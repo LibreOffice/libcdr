@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* libcdr
  * Copyright (C) 2006 Ariya Hidayat (ariya@kde.org)
  * Copyright (C) 2007 Fridrich Strba (fridrich.strba@bluewin.ch)
@@ -36,7 +36,7 @@ stream is a WordPerfect Graphics that libcdr is able to parse
 */
 bool libcdr::CDRDocument::isSupported(WPXInputStream * /* input */)
 {
-	return false;
+  return false;
 }
 
 /**
@@ -49,12 +49,12 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 */
 bool libcdr::CDRDocument::parse(::WPXInputStream * /*input */, libwpg::WPGPaintInterface * /* painter */)
 {
-	return false;
+  return false;
 }
 
 bool libcdr::CDRDocument::parse(const unsigned char *data, unsigned long size, libwpg::WPGPaintInterface *painter)
 {
-	return false;
+  return false;
 }
 /**
 Parses the input stream content and generates a valid Scalable Vector Graphics
@@ -65,11 +65,11 @@ Provided as a convenience function for applications that support SVG internally.
 */
 bool libcdr::CDRDocument::generateSVG(::WPXInputStream *input, WPXString &output)
 {
-	return false;
+  return false;
 }
 
 bool libcdr::CDRDocument::generateSVG(const unsigned char *data, unsigned long size, WPXString &output)
 {
-	return false;
+  return false;
 }
-/* vim:set shiftwidth=4 softtabstop=4 noexpandtab: */
+/* vim:set shiftwidth=2 softtabstop=2 expandtab: */

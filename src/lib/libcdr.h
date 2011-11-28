@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* libcdr
  * Copyright (C) 2006 Ariya Hidayat (ariya@kde.org)
  * Copyright (C) 2004 Marc Oude Kotte (marc@solcon.nl)
@@ -28,14 +28,9 @@
 #ifndef __LIBCDR_H__
 #define __LIBCDR_H__
 
-#define LIBCDR_VERSION_MAJOR     @CDR_MAJOR_VERSION@
-#define LIBCDR_VERSION_MINOR     @CDR_MINOR_VERSION@
-#define LIBCDR_VERSION_REVISION  @CDR_MICRO_VERSION@
-#define LIBCDR_VERSION_STRING    "@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.@CDR_MICRO_VERSION@"
-
 #include "CDRDocument.h"
 #include <libwpd/libwpd.h>
 #include <libwpg/libwpg.h>
 
 #endif
-/* vim:set shiftwidth=4 softtabstop=4 noexpandtab: */
+/* vim:set shiftwidth=2 softtabstop=2 expandtab: */

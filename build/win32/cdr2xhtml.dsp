@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="cdr2svg" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="cdr2xhtml" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
 
-CFG=cdr2svg - Win32 Release
+CFG=cdr2xhtml - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "cdr2svg.mak".
+!MESSAGE NMAKE /f "cdr2xhtml.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "cdr2svg.mak" CFG="cdr2svg - Win32 Release"
+!MESSAGE NMAKE /f "cdr2xhtml.mak" CFG="cdr2xhtml - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "cdr2svg - Win32 Release" (based on "Win32 (x86) Console Application")
-!MESSAGE "cdr2svg - Win32 Debug" (based on "Win32 (x86) Console Application")
+!MESSAGE "cdr2xhtml - Win32 Release" (based on "Win32 (x86) Console Application")
+!MESSAGE "cdr2xhtml - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=cdr2svg - Win32 Release
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "cdr2svg - Win32 Release"
+!IF  "$(CFG)" == "cdr2xhtml - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -52,11 +52,11 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 libcdr-0.2.lib libwpd-stream-0.9.lib libwpd-0.9.lib /nologo /subsystem:console /machine:IX86 /out:"Release\bin\cdr2svg.exe" /libpath:"Release\lib"
-# ADD LINK32 libcdr-0.2.lib libwpd-stream-0.9.lib libwpd-0.9.lib /nologo /subsystem:console /machine:IX86 /out:"Release\bin\cdr2svg.exe" /libpath:"Release\lib"
+# ADD BASE LINK32 libcdr-0.2.lib libwpd-stream-0.9.lib libwpd-0.9.lib /nologo /subsystem:console /machine:IX86 /out:"Release\bin\cdr2xhtml.exe" /libpath:"Release\lib"
+# ADD LINK32 libcdr-0.2.lib libwpd-stream-0.9.lib libwpd-0.9.lib /nologo /subsystem:console /machine:IX86 /out:"Release\bin\cdr2xhtml.exe" /libpath:"Release\lib"
 # SUBTRACT LINK32 /nodefaultlib
 
-!ELSEIF  "$(CFG)" == "cdr2svg - Win32 Debug"
+!ELSEIF  "$(CFG)" == "cdr2xhtml - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -80,22 +80,22 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 libcdr-0.2.lib libwpd-stream-0.9.lib libwpd-0.9.lib /nologo /subsystem:console /debug /machine:IX86 /out:"Debug\bin\cdr2svg.exe" /libpath:"Debug\lib"
-# ADD LINK32 libcdr-0.2.lib libwpd-stream-0.9.lib libwpd-0.9.lib /nologo /subsystem:console /debug /machine:IX86 /out:"Debug\bin\cdr2svg.exe" /libpath:"Debug\lib"
+# ADD BASE LINK32 libcdr-0.2.lib libwpd-stream-0.9.lib libwpd-0.9.lib /nologo /subsystem:console /debug /machine:IX86 /out:"Debug\bin\cdr2xhtml.exe" /libpath:"Debug\lib"
+# ADD LINK32 libcdr-0.2.lib libwpd-stream-0.9.lib libwpd-0.9.lib /nologo /subsystem:console /debug /machine:IX86 /out:"Debug\bin\cdr2xhtml.exe" /libpath:"Debug\lib"
 # SUBTRACT LINK32 /nodefaultlib
 
 !ENDIF 
 
 # Begin Target
 
-# Name "cdr2svg - Win32 Release"
-# Name "cdr2svg - Win32 Debug"
+# Name "cdr2xhtml - Win32 Release"
+# Name "cdr2xhtml - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 # Begin Source File
 
-SOURCE=..\..\src\conv\svg\cdr2svg.cpp
+SOURCE=..\..\src\conv\svg\cdr2xhtml.cpp
 # End Source File
 # End Group
 # End Target

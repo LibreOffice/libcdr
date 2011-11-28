@@ -19,6 +19,8 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_DEPENDENCIES = @LIBCDR_WIN32_R
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LDFLAGS = $(version_info) -export-dynamic $(no_undefined)
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRDocument.cpp \
+	CDRSVGGenerator.cpp \
+	CDRSVGGenerator.h \
 	libcdr_utils.h
 
 if OS_WIN32
@@ -31,7 +33,6 @@ endif
 
 
 EXTRA_DIST = \
-	libcdr.h.in \
 	libcdr.rc.in \
 	makefile.mk
 

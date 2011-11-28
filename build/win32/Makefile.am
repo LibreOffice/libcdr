@@ -2,6 +2,6 @@ EXTRA_DIST = \
 	libcdr.dsw \
 	libcdr.dsp \
 	cdr2raw.dsp \
-	cdr2svg.dsp \
+	cdr2xhtml.dsp \
 	compile-resource \
 	lt-compile-resource

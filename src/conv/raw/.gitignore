@@ -4,6 +4,6 @@
 *.la
 Makefile
 Makefile.in
-wpg2raw
-wpg2raw.exe
+cdr2raw
+cdr2raw.exe
 *.rc

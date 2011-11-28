@@ -15,7 +15,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "cdr2svg"=.\cdr2svg.dsp - Package Owner=<4>
+Project: "cdr2xhtml"=.\cdr2xhtml.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

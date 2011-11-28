@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* libcdr
  * Copyright (C) 2004 Marc Oude Kotte (marc@solcon.nl)
  *
@@ -49,4 +49,4 @@
 #endif
 
 #endif // __LIBCDR_UTILS_H__
-/* vim:set shiftwidth=4 softtabstop=4 noexpandtab: */
+/* vim:set shiftwidth=2 softtabstop=2 expandtab: */

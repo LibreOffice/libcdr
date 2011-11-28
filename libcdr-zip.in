@@ -15,12 +15,12 @@ DLLDIR=bin
 @STRIP@ --strip-all \
 $DLLDIR/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.dll \
 bin/cdr2raw.exe \
-bin/cdr2svg.exe
+bin/cdr2xhtml.exe
 
 upx -qqq --best \
 $DLLDIR/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.dll \
 bin/cdr2raw.exe \
-bin/cdr2svg.exe
+bin/cdr2xhtml.exe
 
 rm -f $ZIP
 zip -q -r $ZIP -@ <<EOF
@@ -38,13 +38,13 @@ EOF
 rm -f $TOOLSZIP
 zip -q -r -j $TOOLSZIP -@ <<EOF
 bin/cdr2raw.exe
-bin/cdr2svg.exe
-bin/cdr2svgbatch.exe
+bin/cdr2xhtml.exe
+bin/cdr2xhtmlbatch.exe
 EOF
 
 rm -f $TOOLSZIP
 zip -q -r -j $TOOLSZIP -@ <<EOF
 bin/cdr2raw.exe
-bin/cdr2svg.exe
-bin/cdr2svgbatch.pl
+bin/cdr2xhtml.exe
+bin/cdr2xhtmlbatch.pl
 EOF

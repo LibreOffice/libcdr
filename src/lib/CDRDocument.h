@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* libcdr
  * Copyright (C) 2006 Ariya Hidayat (ariya@kde.org)
  *
@@ -38,16 +38,16 @@ class CDRDocument
 {
 public:
 
-	static bool isSupported(WPXInputStream *input);
+  static bool isSupported(WPXInputStream *input);
 
-	static bool parse(WPXInputStream *input, libwpg::WPGPaintInterface *painter);
-	static bool parse(const unsigned char *data, unsigned long size, libwpg::WPGPaintInterface *painter);
+  static bool parse(WPXInputStream *input, libwpg::WPGPaintInterface *painter);
+  static bool parse(const unsigned char *data, unsigned long size, libwpg::WPGPaintInterface *painter);
 
-	static bool generateSVG(WPXInputStream *input, WPXString &output);
-	static bool generateSVG(const unsigned char *data, unsigned long size, WPXString &output);
+  static bool generateSVG(WPXInputStream *input, WPXString &output);
+  static bool generateSVG(const unsigned char *data, unsigned long size, WPXString &output);
 };
 
 } // namespace libcdr
 
 #endif //  __CDRRAPHICS_H__
-/* vim:set shiftwidth=4 softtabstop=4 noexpandtab: */
+/* vim:set shiftwidth=2 softtabstop=2 expandtab: */
