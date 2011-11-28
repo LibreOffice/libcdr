@@ -14,6 +14,7 @@ install-sh
 libtool
 libcdr.spec
 libcdr-zip
+libcdr-*.tar.*
 ltmain.sh
 m4
 missing
