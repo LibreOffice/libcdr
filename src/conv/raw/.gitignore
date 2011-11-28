@@ -1,0 +1,9 @@
+.deps
+.libs
+*.lo
+*.la
+Makefile
+Makefile.in
+wpg2raw
+wpg2raw.exe
+*.rc

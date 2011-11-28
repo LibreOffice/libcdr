@@ -1,0 +1,50 @@
+#!/bin/sh
+
+# Build runtime and developer zipfiles for libcdr on Win32.
+
+ZIP=libcdr-@CDR_VERSION@-MinGW.zip
+DEVZIP=libcdr-devel-@CDR_VERSION@-MinGW.zip
+TOOLSZIP=libcdr-tools-@CDR_VERSION@.zip
+
+cd $DESTDIR@prefix@
+
+DLLDIR=lib
+[ -f bin/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.dll ] && \
+DLLDIR=bin
+
+@STRIP@ --strip-all \
+$DLLDIR/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.dll \
+bin/cdr2raw.exe \
+bin/cdr2svg.exe
+
+upx -qqq --best \
+$DLLDIR/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.dll \
+bin/cdr2raw.exe \
+bin/cdr2svg.exe
+
+rm -f $ZIP
+zip -q -r $ZIP -@ <<EOF
+$DLLDIR/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.dll
+EOF
+
+rm -f $DEVZIP
+zip -q -r $DEVZIP -@ <<EOF
+include/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@
+lib/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.dll.a
+lib/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.a
+lib/pkgconfig/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.pc
+EOF
+
+rm -f $TOOLSZIP
+zip -q -r -j $TOOLSZIP -@ <<EOF
+bin/cdr2raw.exe
+bin/cdr2svg.exe
+bin/cdr2svgbatch.exe
+EOF
+
+rm -f $TOOLSZIP
+zip -q -r -j $TOOLSZIP -@ <<EOF
+bin/cdr2raw.exe
+bin/cdr2svg.exe
+bin/cdr2svgbatch.pl
+EOF
