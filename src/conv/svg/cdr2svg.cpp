@@ -75,14 +75,14 @@ int main(int argc, char *argv[])
 
 	WPXFileStream input(file);
 
-	if (!libcdr::CDRraphics::isSupported(&input))
+	if (!libcdr::CDRDocument::isSupported(&input))
 	{
 		std::cerr << "ERROR: Unsupported file format (unsupported version) or file is encrypted!" << std::endl;
 		return 1;
 	}
 
 	::WPXString output;
-	if (!libcdr::CDRraphics::generateSVG(&input, output))
+	if (!libcdr::CDRDocument::generateSVG(&input, output))
 	{
 		std::cerr << "ERROR: SVG Generation failed!" << std::endl;
 		return 1;

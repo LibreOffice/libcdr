@@ -33,8 +33,9 @@
 #define LIBCDR_VERSION_REVISION  @CDR_MICRO_VERSION@
 #define LIBCDR_VERSION_STRING    "@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.@CDR_MICRO_VERSION@"
 
-#include "CDRraphics.h"
-#include "CDRPaintInterface.h"
+#include "CDRDocument.h"
+#include <libwpd/libwpd.h>
+#include <libwpg/libwpg.h>
 
 #endif
 /* vim:set shiftwidth=4 softtabstop=4 noexpandtab: */

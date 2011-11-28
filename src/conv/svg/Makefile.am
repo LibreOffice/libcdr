@@ -23,8 +23,7 @@ endif
 
 EXTRA_DIST = \
 	$(cdr2svg_SOURCES) \
-	cdr2svg.rc.in \
-	cdr2svgbatch.pl
+	cdr2svg.rc.in
 
 # These may be in the builddir too
 BUILD_EXTRA_DIST = \

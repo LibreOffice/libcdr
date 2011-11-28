@@ -32,8 +32,9 @@
 #include "libcdr.h"
 #include <libwpd-stream/libwpd-stream.h>
 #include <libwpd/libwpd.h>
+#include <libwpg/libwpg.h>
 
-class RawPainter : public libcdr::CDRPaintInterface
+class RawPainter : public libwpg::WPGPaintInterface
 {
 public:
 	RawPainter();
@@ -109,7 +110,7 @@ WPXString getPropString(const WPXPropertyListVector &itemList)
 	return propString;
 }
 
-RawPainter::RawPainter(): libcdr::CDRPaintInterface()
+RawPainter::RawPainter(): libwpg::WPGPaintInterface()
 {
 }
 
@@ -257,14 +258,14 @@ int main(int argc, char *argv[])
 
 	WPXFileStream input(file);
 
-	if (!libcdr::CDRraphics::isSupported(&input))
+	if (!libcdr::CDRDocument::isSupported(&input))
 	{
 		fprintf(stderr, "ERROR: Unsupported file format (unsupported version) or file is encrypted!\n");
 		return 1;
 	}
 
 	RawPainter painter;
-	libcdr::CDRraphics::parse(&input, &painter);
+	libcdr::CDRDocument::parse(&input, &painter);
 
 	return 0;
 }

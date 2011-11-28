@@ -27,27 +27,24 @@
 #ifndef __CDRRAPHICS_H__
 #define __CDRRAPHICS_H__
 
-#include <libwpd/WPXString.h>
+#include <libwpd/libwpd.h>
+#include <libwpg/libwpg.h>
 
 class WPXInputStream;
 
 namespace libcdr
 {
-enum CDRFileFormat { CDR_AUTODETECT = 0, CDR_CDR1, CDR_CDR2 };
-
-class CDRPaintInterface;
-
-class CDRraphics
+class CDRDocument
 {
 public:
 
 	static bool isSupported(WPXInputStream *input);
 
-	static bool parse(WPXInputStream *input, CDRPaintInterface *painter, CDRFileFormat fileFormat = CDR_AUTODETECT);
-	static bool parse(const unsigned char *data, unsigned long size, CDRPaintInterface *painter, CDRFileFormat fileFormat = CDR_AUTODETECT);
+	static bool parse(WPXInputStream *input, libwpg::WPGPaintInterface *painter);
+	static bool parse(const unsigned char *data, unsigned long size, libwpg::WPGPaintInterface *painter);
 
-	static bool generateSVG(WPXInputStream *input, WPXString &output, CDRFileFormat fileFormat = CDR_AUTODETECT);
-	static bool generateSVG(const unsigned char *data, unsigned long size, WPXString &output, CDRFileFormat fileFormat = CDR_AUTODETECT);
+	static bool generateSVG(WPXInputStream *input, WPXString &output);
+	static bool generateSVG(const unsigned char *data, unsigned long size, WPXString &output);
 };
 
 } // namespace libcdr

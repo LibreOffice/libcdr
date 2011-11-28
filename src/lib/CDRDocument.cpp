@@ -25,16 +25,8 @@
  * Corel Corporation or Corel Corporation Limited."
  */
 
-#include "CDRraphics.h"
-#include "CDRHeader.h"
-#include "CDRXParser.h"
-#include "CDR1Parser.h"
-#include "CDR2Parser.h"
+#include "CDRDocument.h"
 #include "libcdr_utils.h"
-#include "CDRSVGGenerator.h"
-#include "CDRInternalStream.h"
-#include "CDRPaintInterface.h"
-#include <sstream>
 
 /**
 Analyzes the content of an input stream to see if it can be parsed
@@ -42,37 +34,9 @@ Analyzes the content of an input stream to see if it can be parsed
 \return A value that indicates whether the content from the input
 stream is a WordPerfect Graphics that libcdr is able to parse
 */
-bool libcdr::CDRraphics::isSupported(WPXInputStream *input)
+bool libcdr::CDRDocument::isSupported(WPXInputStream * /* input */)
 {
-	WPXInputStream *graphics = 0;
-	bool isDocumentOLE = false;
-
-	if (input->isOLEStream())
-	{
-		graphics = input->getDocumentOLEStream("PerfectOffice_MAIN");
-		if (graphics)
-			isDocumentOLE = true;
-		else
-			return false;
-	}
-	else
-		graphics = input;
-
-	graphics->seek(0, WPX_SEEK_SET);
-
-	CDRHeader header;
-	if(!header.load(graphics))
-	{
-		if (graphics && isDocumentOLE)
-			delete graphics;
-		return false;
-	}
-
-	bool retVal = header.isSupported();
-
-	if (graphics && isDocumentOLE)
-		delete graphics;
-	return retVal;
+	return false;
 }
 
 /**
@@ -83,106 +47,14 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 \param painter A CDRPainterInterface implementation
 \return A value that indicates whether the parsing was successful
 */
-bool libcdr::CDRraphics::parse(::WPXInputStream *input, libcdr::CDRPaintInterface *painter, libcdr::CDRFileFormat fileFormat)
+bool libcdr::CDRDocument::parse(::WPXInputStream * /*input */, libwpg::WPGPaintInterface * /* painter */)
 {
-	CDRXParser *parser = 0;
-
-	WPXInputStream *graphics = 0;
-	bool isDocumentOLE = false;
-
-	if (input->isOLEStream())
-	{
-		graphics = input->getDocumentOLEStream("PerfectOffice_MAIN");
-		if (graphics)
-			isDocumentOLE = true;
-		else
-			return false;
-	}
-	else
-		graphics = input;
-
-	graphics->seek(0, WPX_SEEK_SET);
-
-	CDR_DEBUG_MSG(("Loading header...\n"));
-	unsigned char tmpMajorVersion = 0x00;
-	if (fileFormat == CDR_CDR1)
-		tmpMajorVersion = 0x01;
-	else if (fileFormat == CDR_CDR2)
-		tmpMajorVersion = 0x02;
-	CDRHeader header;
-	if(!header.load(graphics))
-	{
-		if (graphics && isDocumentOLE)
-			delete graphics;
-		return false;
-	}
-
-	if(!header.isSupported() && (fileFormat == CDR_AUTODETECT))
-	{
-		CDR_DEBUG_MSG(("Unsupported file format!\n"));
-		if (graphics && isDocumentOLE)
-			delete graphics;
-		return false;
-	}
-	else if (header.isSupported())
-	{
-		// seek to the start of document
-		graphics->seek(header.startOfDocument(), WPX_SEEK_SET);
-		tmpMajorVersion = (unsigned char)(header.majorVersion());
-		if (tmpMajorVersion == 0x01)
-		{
-			unsigned long returnPosition = header.startOfDocument();
-			/* Due to a bug in dumping mechanism, we produced
-			 * invalid CDR files by prepending a CDR1 header
-			 * to a valid WP file. Let us check this kind of files,
-			 * so that we can load our own mess too. */
-			if (header.load(graphics) && header.isSupported())
-			{
-				CDR_DEBUG_MSG(("An invalid graphics we produced :(\n"));
-				graphics->seek(header.startOfDocument() + 16, WPX_SEEK_SET);
-				tmpMajorVersion = (unsigned char)(header.majorVersion());
-			}
-			else
-				graphics->seek(returnPosition, WPX_SEEK_SET);
-
-		}
-	}
-	else
-		// here we force parsing of headerless pictures
-		graphics->seek(0, WPX_SEEK_SET);
-
-	bool retval;
-	switch (tmpMajorVersion)
-	{
-	case 0x01: // CDR1
-		CDR_DEBUG_MSG(("Parsing CDR1\n"));
-		parser = new CDR1Parser(graphics, painter);
-		retval = parser->parse();
-		break;
-	case 0x02: // CDR2
-		CDR_DEBUG_MSG(("Parsing CDR2\n"));
-		parser = new CDR2Parser(graphics, painter);
-		retval = parser->parse();
-		break;
-	default: // other :-)
-		CDR_DEBUG_MSG(("Unknown format\n"));
-		if (graphics && isDocumentOLE)
-			delete graphics;
-		return false;
-	}
-
-	if (parser)
-		delete parser;
-	if (graphics && isDocumentOLE)
-		delete graphics;
-
-	return retval;
+	return false;
 }
 
-bool libcdr::CDRraphics::parse(const unsigned char *data, unsigned long size, libcdr::CDRPaintInterface *painter, libcdr::CDRFileFormat fileFormat)
+bool libcdr::CDRDocument::parse(const unsigned char *data, unsigned long size, libwpg::WPGPaintInterface *painter)
 {
-	CDRInternalInputStream tmpStream(data, size);
-	return libcdr::CDRraphics::parse(&tmpStream, painter, fileFormat);
+	return false;
 }
 /**
 Parses the input stream content and generates a valid Scalable Vector Graphics
@@ -191,21 +63,13 @@ Provided as a convenience function for applications that support SVG internally.
 \param output The output string whose content is the resulting SVG
 \return A value that indicates whether the SVG generation was successful.
 */
-bool libcdr::CDRraphics::generateSVG(::WPXInputStream *input, WPXString &output, libcdr::CDRFileFormat fileFormat)
+bool libcdr::CDRDocument::generateSVG(::WPXInputStream *input, WPXString &output)
 {
-	std::ostringstream tmpOutputStream;
-	libcdr::CDRSVGGenerator generator(tmpOutputStream);
-	bool result = libcdr::CDRraphics::parse(input, &generator, fileFormat);
-	if (result)
-		output = WPXString(tmpOutputStream.str().c_str());
-	else
-		output = WPXString("");
-	return result;
+	return false;
 }
 
-bool libcdr::CDRraphics::generateSVG(const unsigned char *data, unsigned long size, WPXString &output, libcdr::CDRFileFormat fileFormat)
+bool libcdr::CDRDocument::generateSVG(const unsigned char *data, unsigned long size, WPXString &output)
 {
-	CDRInternalInputStream tmpStream(data, size);
-	return libcdr::CDRraphics::generateSVG(&tmpStream, output, fileFormat);
+	return false;
 }
 /* vim:set shiftwidth=4 softtabstop=4 noexpandtab: */
