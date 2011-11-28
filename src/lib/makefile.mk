@@ -29,7 +29,8 @@ INCPRE+=$(SOLARVER)$/$(UPD)$/$(INPATH)$/inc$/libwpg
 .ENDIF
 
 SLOFILES= \
-        $(SLO)$/CDRDocument.obj
+        $(SLO)$/CDRDocument.obj \
+		$(SLO)$/CDRSVGGenerator.obj
 
 LIB1ARCHIV=$(LB)$/libcdrlib.a
 LIB1TARGET=$(SLB)$/$(TARGET).lib

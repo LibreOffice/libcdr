@@ -25,14 +25,17 @@
  * Corel Corporation or Corel Corporation Limited."
  */
 
+#include <sstream>
+#include <string>
 #include "CDRDocument.h"
+#include "CDRSVGGenerator.h"
 #include "libcdr_utils.h"
 
 /**
 Analyzes the content of an input stream to see if it can be parsed
 \param input The input stream
 \return A value that indicates whether the content from the input
-stream is a WordPerfect Graphics that libcdr is able to parse
+stream is a Corel Draw Document that libcdr is able to parse
 */
 bool libcdr::CDRDocument::isSupported(WPXInputStream * /* input */)
 {
@@ -52,10 +55,6 @@ bool libcdr::CDRDocument::parse(::WPXInputStream * /*input */, libwpg::WPGPaintI
   return false;
 }
 
-bool libcdr::CDRDocument::parse(const unsigned char *data, unsigned long size, libwpg::WPGPaintInterface *painter)
-{
-  return false;
-}
 /**
 Parses the input stream content and generates a valid Scalable Vector Graphics
 Provided as a convenience function for applications that support SVG internally.
@@ -65,11 +64,14 @@ Provided as a convenience function for applications that support SVG internally.
 */
 bool libcdr::CDRDocument::generateSVG(::WPXInputStream *input, WPXString &output)
 {
-  return false;
+  std::ostringstream tmpOutputStream;
+  libcdr::CDRSVGGenerator generator(tmpOutputStream);
+  bool result = libcdr::CDRDocument::parse(input, &generator);
+  if (result)
+    output = WPXString(tmpOutputStream.str().c_str());
+  else
+    output = WPXString("");
+  return result;
 }
 
-bool libcdr::CDRDocument::generateSVG(const unsigned char *data, unsigned long size, WPXString &output)
-{
-  return false;
-}
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

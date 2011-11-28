@@ -4,7 +4,7 @@
 %define release     %{?CUSTOM_RELEASE} %{!?CUSTOM_RELEASE:%RELEASE}
 
 Name: %{name}
-Summary: Library for importing and converting Corel WordPerfect(tm) Graphics images
+Summary: Library for importing and converting Corel Draw Documents
 Version: %{version}
 Release: %{release}
 Source: %{name}-%{version}.tar.gz

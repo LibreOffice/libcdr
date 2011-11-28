@@ -87,43 +87,11 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\src\lib\WPG1Parser.cpp
+SOURCE=..\..\src\lib\CDRDocument.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\lib\WPG2Parser.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGBitmap.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGColor.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGDashArray.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGHeader.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGInternalStream.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGraphics.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGSVGGenerator.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGXParser.cpp
+SOURCE=..\..\src\lib\CDRSVGGenerator.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -131,55 +99,19 @@ SOURCE=..\..\src\lib\WPGXParser.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDRDocument.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRSVGGenerator.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\libcdr.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\src\lib\libcdr_utils.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPG1Parser.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPG2Parser.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGBitmap.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGColor.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGDashArray.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGHeader.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGInternalStream.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGPaintInterface.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGraphics.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGSVGGenerator.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WPGXParser.h
 # End Source File
 # End Group
 # End Target

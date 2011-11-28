@@ -1,5 +1,5 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* libvisio
+/* libcdr
  * Version: MPL 1.1 / GPLv2+ / LGPLv2+
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -24,11 +24,12 @@
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPLv2+"), or
  * the GNU Lesser General Public License Version 2 or later (the "LGPLv2+"),
- * in which case the provisions of the GPLv2+ or the LGPLv2+ are applicable
+ * in which case the procdrns of the GPLv2+ or the LGPLv2+ are applicable
  * instead of those above.
  */
 
 #include "CDRSVGGenerator.h"
+#include "libcdr.h"
 #include <locale.h>
 #include <sstream>
 #include <string>
@@ -73,15 +74,15 @@ static unsigned stringToColour(const ::WPXString &s)
   return val;
 }
 
-libvisio::CDRSVGGenerator::CDRSVGGenerator(std::ostream &output_sink): m_gradient(), m_style(), m_gradientIndex(1), m_shadowIndex(1), m_isFirstPage(true), m_outputSink(output_sink)
+libcdr::CDRSVGGenerator::CDRSVGGenerator(std::ostream &output_sink): m_gradient(), m_style(), m_gradientIndex(1), m_shadowIndex(1), m_isFirstPage(true), m_outputSink(output_sink)
 {
 }
 
-libvisio::CDRSVGGenerator::~CDRSVGGenerator()
+libcdr::CDRSVGGenerator::~CDRSVGGenerator()
 {
 }
 
-void libvisio::CDRSVGGenerator::startGraphics(const WPXPropertyList &propList)
+void libcdr::CDRSVGGenerator::startGraphics(const WPXPropertyList &propList)
 {
   if (m_isFirstPage)
     m_isFirstPage = false;
@@ -102,12 +103,12 @@ void libvisio::CDRSVGGenerator::startGraphics(const WPXPropertyList &propList)
   m_outputSink << " >\n";
 }
 
-void libvisio::CDRSVGGenerator::endGraphics()
+void libcdr::CDRSVGGenerator::endGraphics()
 {
   m_outputSink << "</svg:svg>\n";
 }
 
-void libvisio::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const ::WPXPropertyListVector &gradient)
+void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const ::WPXPropertyListVector &gradient)
 {
   m_style.clear();
   m_style = propList;
@@ -300,7 +301,7 @@ void libvisio::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, cons
   }
 }
 
-void libvisio::CDRSVGGenerator::startLayer(const ::WPXPropertyList &propList)
+void libcdr::CDRSVGGenerator::startLayer(const ::WPXPropertyList &propList)
 {
   m_outputSink << "<svg:g id=\"Layer" << propList["svg:id"]->getInt() << "\"";
   if (propList["svg:fill-rule"])
@@ -308,12 +309,12 @@ void libvisio::CDRSVGGenerator::startLayer(const ::WPXPropertyList &propList)
   m_outputSink << " >\n";
 }
 
-void libvisio::CDRSVGGenerator::endLayer()
+void libcdr::CDRSVGGenerator::endLayer()
 {
   m_outputSink << "</svg:g>\n";
 }
 
-void libvisio::CDRSVGGenerator::drawRectangle(const ::WPXPropertyList &propList)
+void libcdr::CDRSVGGenerator::drawRectangle(const ::WPXPropertyList &propList)
 {
   m_outputSink << "<svg:rect ";
   m_outputSink << "x=\"" << doubleToString(72*propList["svg:x"]->getDouble()) << "\" y=\"" << doubleToString(72*propList["svg:y"]->getDouble()) << "\" ";
@@ -324,7 +325,7 @@ void libvisio::CDRSVGGenerator::drawRectangle(const ::WPXPropertyList &propList)
   m_outputSink << "/>\n";
 }
 
-void libvisio::CDRSVGGenerator::drawEllipse(const WPXPropertyList &propList)
+void libcdr::CDRSVGGenerator::drawEllipse(const WPXPropertyList &propList)
 {
   m_outputSink << "<svg:ellipse ";
   m_outputSink << "cx=\"" << doubleToString(72*propList["svg:cx"]->getDouble()) << "\" cy=\"" << doubleToString(72*propList["svg:cy"]->getDouble()) << "\" ";
@@ -339,17 +340,17 @@ void libvisio::CDRSVGGenerator::drawEllipse(const WPXPropertyList &propList)
   m_outputSink << "/>\n";
 }
 
-void libvisio::CDRSVGGenerator::drawPolyline(const ::WPXPropertyListVector &vertices)
+void libcdr::CDRSVGGenerator::drawPolyline(const ::WPXPropertyListVector &vertices)
 {
   drawPolySomething(vertices, false);
 }
 
-void libvisio::CDRSVGGenerator::drawPolygon(const ::WPXPropertyListVector &vertices)
+void libcdr::CDRSVGGenerator::drawPolygon(const ::WPXPropertyListVector &vertices)
 {
   drawPolySomething(vertices, true);
 }
 
-void libvisio::CDRSVGGenerator::drawPolySomething(const ::WPXPropertyListVector &vertices, bool isClosed)
+void libcdr::CDRSVGGenerator::drawPolySomething(const ::WPXPropertyListVector &vertices, bool isClosed)
 {
   if(vertices.count() < 2)
     return;
@@ -382,7 +383,7 @@ void libvisio::CDRSVGGenerator::drawPolySomething(const ::WPXPropertyListVector 
   }
 }
 
-void libvisio::CDRSVGGenerator::drawPath(const ::WPXPropertyListVector &path)
+void libcdr::CDRSVGGenerator::drawPath(const ::WPXPropertyListVector &path)
 {
   m_outputSink << "<svg:path d=\" ";
   bool isClosed = false;
@@ -428,7 +429,7 @@ void libvisio::CDRSVGGenerator::drawPath(const ::WPXPropertyListVector &path)
   m_outputSink << "/>\n";
 }
 
-void libvisio::CDRSVGGenerator::drawGraphicObject(const ::WPXPropertyList &propList, const ::WPXBinaryData &binaryData)
+void libcdr::CDRSVGGenerator::drawGraphicObject(const ::WPXPropertyList &propList, const ::WPXBinaryData &binaryData)
 {
   if (!propList["libwpg:mime-type"] || propList["libwpg:mime-type"]->getStr().len() <= 0)
     return;
@@ -442,7 +443,7 @@ void libvisio::CDRSVGGenerator::drawGraphicObject(const ::WPXPropertyList &propL
   m_outputSink << "\" />\n";
 }
 
-void libvisio::CDRSVGGenerator::startTextObject(const ::WPXPropertyList &propList, const ::WPXPropertyListVector & /* path */)
+void libcdr::CDRSVGGenerator::startTextObject(const ::WPXPropertyList &propList, const ::WPXPropertyListVector & /* path */)
 {
   m_outputSink << "<svg:text ";
   if (propList["svg:x"] && propList["svg:y"])
@@ -457,12 +458,12 @@ void libvisio::CDRSVGGenerator::startTextObject(const ::WPXPropertyList &propLis
 
 }
 
-void libvisio::CDRSVGGenerator::endTextObject()
+void libcdr::CDRSVGGenerator::endTextObject()
 {
   m_outputSink << "</svg:text>\n";
 }
 
-void libvisio::CDRSVGGenerator::startTextSpan(const ::WPXPropertyList &propList)
+void libcdr::CDRSVGGenerator::startTextSpan(const ::WPXPropertyList &propList)
 {
   m_outputSink << "<svg:tspan ";
   if (propList["style:font-name"])
@@ -486,19 +487,19 @@ void libvisio::CDRSVGGenerator::startTextSpan(const ::WPXPropertyList &propList)
   m_outputSink << ">\n";
 }
 
-void libvisio::CDRSVGGenerator::endTextSpan()
+void libcdr::CDRSVGGenerator::endTextSpan()
 {
   m_outputSink << "</svg:tspan>\n";
 }
 
-void libvisio::CDRSVGGenerator::insertText(const ::WPXString &str)
+void libcdr::CDRSVGGenerator::insertText(const ::WPXString &str)
 {
   WPXString tempUTF8(str, true);
   m_outputSink << tempUTF8.cstr() << "\n";
 }
 
 // create "style" attribute based on current pen and brush
-void libvisio::CDRSVGGenerator::writeStyle(bool /* isClosed */)
+void libcdr::CDRSVGGenerator::writeStyle(bool /* isClosed */)
 {
   m_outputSink << "style=\"";
 

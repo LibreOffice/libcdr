@@ -1,5 +1,5 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* libvisio
+/* libcdr
  * Version: MPL 1.1 / GPLv2+ / LGPLv2+
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -24,19 +24,19 @@
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPLv2+"), or
  * the GNU Lesser General Public License Version 2 or later (the "LGPLv2+"),
- * in which case the provisions of the GPLv2+ or the LGPLv2+ are applicable
+ * in which case the procdrns of the GPLv2+ or the LGPLv2+ are applicable
  * instead of those above.
  */
 
-#ifndef __VISIOSVGGENERATOR_H__
-#define __VISIOSVGGENERATOR_H__
+#ifndef __CDRSVGGENERATOR_H__
+#define __CDRSVGGENERATOR_H__
 
 #include <stdio.h>
 #include <iostream>
 #include <libwpd/libwpd.h>
 #include <libwpg/libwpg.h>
 
-namespace libvisio
+namespace libcdr
 {
 
 class CDRSVGGenerator : public libwpg::WPGPaintInterface
@@ -80,7 +80,7 @@ private:
   std::ostream &m_outputSink;
 };
 
-} // namespace libvisio
+} // namespace libcdr
 
-#endif // __VISIOSVGGENERATOR_H__
+#endif // __CDRSVGGENERATOR_H__
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
