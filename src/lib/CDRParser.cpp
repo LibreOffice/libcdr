@@ -39,6 +39,8 @@
 #include "CDRInternalStream.h"
 #include "CDRParser.h"
 
+#define DUMP_PREVIEW_IMAGE 0
+
 libcdr::CDRParser::CDRParser(WPXInputStream *input, libwpg::WPGPaintInterface *painter)
   : m_input(input),
     m_painter(painter) {}
@@ -130,8 +132,42 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
   }
 }
 
-void libcdr::CDRParser::readRecord(WPXString /* fourCC */, unsigned /* length */, WPXInputStream * /* input */)
+void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputStream *input)
 {
+  if (fourCC == "DISP")
+  {
+#if DUMP_PREVIEW_IMAGE
+    WPXBinaryData previewImage;
+    previewImage.append(0x42);
+    previewImage.append(0x4d);
+
+    previewImage.append((unsigned char)((length + 10) & 0x000000ff));
+    previewImage.append((unsigned char)(((length + 10) & 0x0000ff00) >> 8));
+    previewImage.append((unsigned char)(((length + 10) & 0x00ff0000) >> 16));
+    previewImage.append((unsigned char)(((length + 10) & 0xff000000) >> 24));
+
+    previewImage.append(0x00);
+    previewImage.append(0x00);
+    previewImage.append(0x00);
+    previewImage.append(0x00);
+
+    previewImage.append(0x36);
+    previewImage.append(0x00);
+    previewImage.append(0x00);
+    previewImage.append(0x00);
+	input->seek(4, WPX_SEEK_CUR);
+    for (unsigned i = 0; i<length; i++)
+      previewImage.append(readU8(input));
+    FILE *f = fopen("previewImage.bmp", "wb");
+    if (f)
+    {
+      const unsigned char *tmpBuffer = previewImage.getDataBuffer();
+      for (unsigned long k = 0; k < previewImage.size(); k++)
+        fprintf(f, "%c",tmpBuffer[k]);
+      fclose(f);
+    }
+  }
+#endif
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
