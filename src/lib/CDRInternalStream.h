@@ -36,6 +36,9 @@
 
 #include <libwpd-stream/libwpd-stream.h>
 
+namespace libcdr
+{
+
 class CDRInternalStream : public WPXInputStream
 {
 public:
@@ -67,6 +70,8 @@ private:
   CDRInternalStream(const CDRInternalStream &);
   CDRInternalStream &operator=(const CDRInternalStream &);
 };
+
+} // namespace libcdr
 
 #endif
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

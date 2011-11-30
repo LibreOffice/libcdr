@@ -29,10 +29,12 @@
  */
 
 
+#include <zlib.h>
 #include "CDRInternalStream.h"
+#include "libcdr_utils.h"
 
 
-CDRInternalStream::CDRInternalStream(const unsigned char *buffer, unsigned long size) :
+libcdr::CDRInternalStream::CDRInternalStream(const unsigned char *buffer, unsigned long size) :
   WPXInputStream(),
   m_offset(0),
   m_buffer()
@@ -42,72 +44,83 @@ CDRInternalStream::CDRInternalStream(const unsigned char *buffer, unsigned long 
 }
 
 
-CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned long size, bool compressed) :
+
+#define CHUNK 16384
+
+libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned long size, bool compressed) :
   WPXInputStream(),
   m_offset(0),
   m_buffer()
 {
   unsigned long tmpNumBytesRead = 0;
 
-  const unsigned char *tmpBuffer = input->read(size, tmpNumBytesRead);
-
-  if (size != tmpNumBytesRead)
-    return;
+  const unsigned char *tmpBuffer = 0;
 
   if (!compressed)
   {
+    tmpBuffer = input->read(size, tmpNumBytesRead);
+
+    if (size != tmpNumBytesRead)
+      return;
+
     for (unsigned long i=0; i<size; i++)
       m_buffer.push_back(tmpBuffer[i]);
   }
   else
   {
-    unsigned char buffer[4096] = { 0 };
-    unsigned pos = 0;
-    unsigned offset = 0;
+    unsigned cmprsize = readU32(input);
+    unsigned ucmprsize = readU32(input);
+    if (!ucmprsize)
+      return;
+    /* unsigned blcks = */ readU32(input);
+    input->seek(4, WPX_SEEK_CUR);
+    if (readFourCC(input) != "CPng")
+       return;
+    if (readU16(input) != 1)
+      return;
+    if (readU16(input) != 4)
+      return;
 
-    while (offset < size)
+    int ret;
+    z_stream strm;
+    std::vector<unsigned char> out(ucmprsize, 0);
+
+    /* allocate inflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    strm.avail_in = 0;
+    strm.next_in = Z_NULL;
+    ret = inflateInit(&strm);
+    if (ret != Z_OK)
+      return;
+
+    tmpBuffer = input->read(cmprsize, tmpNumBytesRead);
+
+    if (cmprsize != tmpNumBytesRead)
+      return;
+
+    strm.avail_in = tmpNumBytesRead;
+    strm.next_in = (Bytef *)tmpBuffer;
+
+    strm.avail_out = ucmprsize;
+    strm.next_out = &out[0];
+    ret = inflate(&strm, Z_NO_FLUSH);
+    switch (ret)
     {
-      unsigned flag = tmpBuffer[offset++];
-      if (offset > size-1)
-        break;
-
-      unsigned mask = 1;
-      for (unsigned bit = 0; bit < 8 && offset < size; ++bit)
-      {
-        if (flag & mask)
-        {
-          buffer[pos&4095] = tmpBuffer[offset++];
-          m_buffer.push_back(buffer[pos&4095]);
-          pos++;
-        }
-        else
-        {
-          if (offset > size-2)
-            break;
-          unsigned char addr1 = tmpBuffer[offset++];
-          unsigned char addr2 = tmpBuffer[offset++];
-
-          unsigned length = (addr2&15) + 3;
-          unsigned pointer = (((unsigned)addr2 & 0xF0) << 4) | addr1;
-          if (pointer > 4078)
-            pointer -= 4078;
-          else
-            pointer += 18;
-
-          for (unsigned j = 0; j < length; ++j)
-          {
-            buffer[(pos+j) & 4095] = buffer[(pointer+j) & 4095];
-            m_buffer.push_back(buffer[(pointer+j) & 4095]);
-          }
-          pos += length;
-        }
-        mask = mask << 1;
-      }
+    case Z_NEED_DICT:
+    case Z_DATA_ERROR:
+    case Z_MEM_ERROR:
+      (void)inflateEnd(&strm);
+      return;
     }
+
+    for (unsigned long i=0; i<ucmprsize; i++)
+      m_buffer.push_back(out[i]);
   }
 }
 
-const unsigned char *CDRInternalStream::read(unsigned long numBytes, unsigned long &numBytesRead)
+const unsigned char *libcdr::CDRInternalStream::read(unsigned long numBytes, unsigned long &numBytesRead)
 {
   numBytesRead = 0;
 
@@ -132,7 +145,7 @@ const unsigned char *CDRInternalStream::read(unsigned long numBytes, unsigned lo
   return &m_buffer[oldOffset];
 }
 
-int CDRInternalStream::seek(long offset, WPX_SEEK_TYPE seekType)
+int libcdr::CDRInternalStream::seek(long offset, WPX_SEEK_TYPE seekType)
 {
   if (seekType == WPX_SEEK_CUR)
     m_offset += offset;
@@ -153,12 +166,12 @@ int CDRInternalStream::seek(long offset, WPX_SEEK_TYPE seekType)
   return 0;
 }
 
-long CDRInternalStream::tell()
+long libcdr::CDRInternalStream::tell()
 {
   return m_offset;
 }
 
-bool CDRInternalStream::atEOS()
+bool libcdr::CDRInternalStream::atEOS()
 {
   if ((long)m_offset >= (long)m_buffer.size())
     return true;

@@ -77,12 +77,17 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input)
     {
       WPXString listType = readFourCC(input);
       CDR_DEBUG_MSG(("CDR listType: %s\n", listType.cstr()));
-      CDRInternalStream tmpStream(input, length - 4);
-      if (!parseRecords(&tmpStream))
-        return false;
+      bool compressed = (listType == "cmpr" ? true : false);
+      if (length > 4)
+      {
+        CDRInternalStream tmpStream(input, length - 4, compressed);
+        if (!parseRecords(&tmpStream))
+          return false;
+      }
     }
 
-    input->seek(position + length, WPX_SEEK_SET);
+    if (length)
+      input->seek(position + length, WPX_SEEK_SET);
     return true;
   }
   catch (...)
