@@ -69,13 +69,13 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
   }
   try
   {
-  	while (readU8(input) == 0);
-	if (!input->atEOS())
-	  input->seek(-1, WPX_SEEK_CUR);
+    while (readU8(input) == 0);
+    if (!input->atEOS())
+      input->seek(-1, WPX_SEEK_CUR);
     WPXString fourCC = readFourCC(input);
     unsigned length = readU32(input);
-	if (blockLengths)
-	  length=blockLengths[length];
+    if (blockLengths)
+      length=blockLengths[length];
     unsigned long position = input->tell();
     CDR_DEBUG_MSG(("Record: %s, length: 0x%.8x (%i)\n", fourCC.cstr(), length, length));
     if (fourCC == "RIFF" || fourCC == "LIST")
@@ -101,25 +101,25 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
 
       bool compressed = (listType == "cmpr" ? true : false);
       CDRInternalStream tmpStream(input, cmprsize, compressed);
-	  if (!compressed)
-	  {
-      	if (!parseRecords(&tmpStream, blockLengths))
-        	return false;
-	  }
-	  else
-	  {
-	    std::vector<unsigned> tmpBlockLengths;
-		unsigned blocksLength = length + position - input->tell();
-		printf("blocksLength == %i\n", blocksLength);
-		CDRInternalStream tmpBlocksStream(input, blocksLength, compressed);
-		while (!tmpBlocksStream.atEOS())
-			tmpBlockLengths.push_back(readU32(&tmpBlocksStream));
-      	if (!parseRecords(&tmpStream, tmpBlockLengths.size() ? &tmpBlockLengths[0] : 0))
-        	return false;
-	  }
+      if (!compressed)
+      {
+        if (!parseRecords(&tmpStream, blockLengths))
+          return false;
+      }
+      else
+      {
+        std::vector<unsigned> tmpBlockLengths;
+        unsigned blocksLength = length + position - input->tell();
+        printf("blocksLength == %i\n", blocksLength);
+        CDRInternalStream tmpBlocksStream(input, blocksLength, compressed);
+        while (!tmpBlocksStream.atEOS())
+          tmpBlockLengths.push_back(readU32(&tmpBlocksStream));
+        if (!parseRecords(&tmpStream, tmpBlockLengths.size() ? &tmpBlockLengths[0] : 0))
+          return false;
+      }
     }
-	else
-	  readRecord(fourCC, length, input);
+    else
+      readRecord(fourCC, length, input);
 
     input->seek(position + length, WPX_SEEK_SET);
     return true;
