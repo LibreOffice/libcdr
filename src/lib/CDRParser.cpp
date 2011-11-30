@@ -28,75 +28,30 @@
  * instead of those above.
  */
 
-#ifndef __LIBVISIO_UTILS_H__
-#define __LIBVISIO_UTILS_H__
-
-#include <stdio.h>
-#include <string>
-#include <libwpd/libwpd.h>
 #include <libwpd-stream/libwpd-stream.h>
+#include <locale.h>
+#include <sstream>
+#include <string>
+#include <cmath>
+#include <set>
+#include "libcdr_utils.h"
+#include "CDRParser.h"
 
-#ifdef _MSC_VER
+libcdr::CDRParser::CDRParser(WPXInputStream *input, libwpg::WPGPaintInterface *painter)
+  : m_input(input),
+    m_painter(painter) {}
 
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned uint32_t;
-typedef unsigned __int64 uint64_t;
-
-#else
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
-
-#endif
-
-// debug message includes source file and line number
-//#define VERBOSE_DEBUG 1
-
-// do nothing with debug messages in a release compile
-#ifdef DEBUG
-#ifdef VERBOSE_DEBUG
-#define CDR_DEBUG_MSG(M) printf("%15s:%5d: ", __FILE__, __LINE__); printf M
-#define CDR_DEBUG(M) M
-#else
-#define CDR_DEBUG_MSG(M) printf M
-#define CDR_DEBUG(M) M
-#endif
-#else
-#define CDR_DEBUG_MSG(M)
-#define CDR_DEBUG(M)
-#endif
-
-namespace libcdr
+libcdr::CDRParser::~CDRParser()
 {
+}
 
-uint8_t readU8(WPXInputStream *input);
-uint16_t readU16(WPXInputStream *input);
-uint32_t readU32(WPXInputStream *input);
-uint64_t readU64(WPXInputStream *input);
-
-double readDouble(WPXInputStream *input);
-
-::WPXString readFourCC(WPXInputStream *input);
-
-class EndOfStreamException
+bool libcdr::CDRParser::parseMain()
 {
-};
+  if (!m_input)
+  {
+    return false;
+  }
+  return true;
+}
 
-class GenericException
-{
-};
-
-} // namespace libcdr
-
-#endif // __LIBVISIO_UTILS_H__
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

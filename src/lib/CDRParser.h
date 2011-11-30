@@ -28,75 +28,38 @@
  * instead of those above.
  */
 
-#ifndef __LIBVISIO_UTILS_H__
-#define __LIBVISIO_UTILS_H__
+#ifndef __CDRPARSER_H__
+#define __CDRPARSER_H__
 
 #include <stdio.h>
-#include <string>
+#include <iostream>
+#include <vector>
+#include <map>
 #include <libwpd/libwpd.h>
 #include <libwpd-stream/libwpd-stream.h>
-
-#ifdef _MSC_VER
-
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned uint32_t;
-typedef unsigned __int64 uint64_t;
-
-#else
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
-
-#endif
-
-// debug message includes source file and line number
-//#define VERBOSE_DEBUG 1
-
-// do nothing with debug messages in a release compile
-#ifdef DEBUG
-#ifdef VERBOSE_DEBUG
-#define CDR_DEBUG_MSG(M) printf("%15s:%5d: ", __FILE__, __LINE__); printf M
-#define CDR_DEBUG(M) M
-#else
-#define CDR_DEBUG_MSG(M) printf M
-#define CDR_DEBUG(M) M
-#endif
-#else
-#define CDR_DEBUG_MSG(M)
-#define CDR_DEBUG(M)
-#endif
+#include <libwpg/libwpg.h>
 
 namespace libcdr
 {
 
-uint8_t readU8(WPXInputStream *input);
-uint16_t readU16(WPXInputStream *input);
-uint32_t readU32(WPXInputStream *input);
-uint64_t readU64(WPXInputStream *input);
+class CDRCollector;
 
-double readDouble(WPXInputStream *input);
-
-::WPXString readFourCC(WPXInputStream *input);
-
-class EndOfStreamException
+class CDRParser
 {
-};
+public:
+  explicit CDRParser(WPXInputStream *input, libwpg::WPGPaintInterface *painter);
+  virtual ~CDRParser();
+  bool parseMain();
 
-class GenericException
-{
-};
+private:
+  CDRParser();
+  CDRParser(const CDRParser &);
+  CDRParser &operator=(const CDRParser &);
+  WPXInputStream *m_input;
+  libwpg::WPGPaintInterface *m_painter;
 
+};
 } // namespace libcdr
 
-#endif // __LIBVISIO_UTILS_H__
+#endif // __CDRPARSER_H__
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
