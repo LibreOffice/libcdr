@@ -68,22 +68,10 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
   }
   else
   {
-    unsigned cmprsize = readU32(input);
-    unsigned ucmprsize = readU32(input);
-    if (!ucmprsize)
-      return;
-    /* unsigned blcks = */ readU32(input);
-    input->seek(4, WPX_SEEK_CUR);
-    if (readFourCC(input) != "CPng")
-       return;
-    if (readU16(input) != 1)
-      return;
-    if (readU16(input) != 4)
-      return;
-
     int ret;
+    unsigned have;
     z_stream strm;
-    std::vector<unsigned char> out(ucmprsize, 0);
+    unsigned char out[CHUNK];
 
     /* allocate inflate state */
     strm.zalloc = Z_NULL;
@@ -95,28 +83,36 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
     if (ret != Z_OK)
       return;
 
-    tmpBuffer = input->read(cmprsize, tmpNumBytesRead);
+    tmpBuffer = input->read(size, tmpNumBytesRead);
 
-    if (cmprsize != tmpNumBytesRead)
+    if (size != tmpNumBytesRead)
       return;
 
     strm.avail_in = tmpNumBytesRead;
     strm.next_in = (Bytef *)tmpBuffer;
 
-    strm.avail_out = ucmprsize;
-    strm.next_out = &out[0];
-    ret = inflate(&strm, Z_NO_FLUSH);
-    switch (ret)
+    do
     {
-    case Z_NEED_DICT:
-    case Z_DATA_ERROR:
-    case Z_MEM_ERROR:
-      (void)inflateEnd(&strm);
-      return;
-    }
+      strm.avail_out = CHUNK;
+      strm.next_out = out;
+      ret = inflate(&strm, Z_NO_FLUSH);
+      switch (ret)
+      {
+      case Z_NEED_DICT:
+      case Z_DATA_ERROR:
+      case Z_MEM_ERROR:
+        (void)inflateEnd(&strm);
+        return;
+      }
 
-    for (unsigned long i=0; i<ucmprsize; i++)
-      m_buffer.push_back(out[i]);
+      have = CHUNK - strm.avail_out;
+
+      for (unsigned long i=0; i<have; i++)
+        m_buffer.push_back(out[i]);
+
+    }
+    while (strm.avail_out == 0);
+
   }
 }
 

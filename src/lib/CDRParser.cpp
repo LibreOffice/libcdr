@@ -47,7 +47,7 @@ libcdr::CDRParser::~CDRParser()
 {
 }
 
-bool libcdr::CDRParser::parseRecords(WPXInputStream *input)
+bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengths)
 {
   if (!input)
   {
@@ -55,13 +55,13 @@ bool libcdr::CDRParser::parseRecords(WPXInputStream *input)
   }
   while (!input->atEOS())
   {
-    if (!parseRecord(input))
+    if (!parseRecord(input, blockLengths))
       return false;
   }
   return true;
 }
 
-bool libcdr::CDRParser::parseRecord(WPXInputStream *input)
+bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLengths)
 {
   if (!input)
   {
@@ -69,25 +69,57 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input)
   }
   try
   {
+  	while (readU8(input) == 0);
+	if (!input->atEOS())
+	  input->seek(-1, WPX_SEEK_CUR);
     WPXString fourCC = readFourCC(input);
     unsigned length = readU32(input);
+	if (blockLengths)
+	  length=blockLengths[length];
     unsigned long position = input->tell();
     CDR_DEBUG_MSG(("Record: %s, length: 0x%.8x (%i)\n", fourCC.cstr(), length, length));
     if (fourCC == "RIFF" || fourCC == "LIST")
     {
       WPXString listType = readFourCC(input);
       CDR_DEBUG_MSG(("CDR listType: %s\n", listType.cstr()));
-      bool compressed = (listType == "cmpr" ? true : false);
-      if (length > 4)
+      unsigned cmprsize = length-4;
+      unsigned ucmprsize = length-4;
+      unsigned blcks = 0;
+      if (listType == "cmpr")
       {
-        CDRInternalStream tmpStream(input, length - 4, compressed);
-        if (!parseRecords(&tmpStream))
+        cmprsize = readU32(input);
+        ucmprsize = readU32(input);
+        blcks = readU32(input);
+        input->seek(4, WPX_SEEK_CUR);
+        if (readFourCC(input) != "CPng")
+          return false;
+        if (readU16(input) != 1)
+          return false;
+        if (readU16(input) != 4)
           return false;
       }
+
+      bool compressed = (listType == "cmpr" ? true : false);
+      CDRInternalStream tmpStream(input, cmprsize, compressed);
+	  if (!compressed)
+	  {
+      	if (!parseRecords(&tmpStream, blockLengths))
+        	return false;
+	  }
+	  else
+	  {
+	    std::vector<unsigned> tmpBlockLengths;
+		unsigned blocksLength = length + position - input->tell();
+		printf("blocksLength == %i\n", blocksLength);
+		CDRInternalStream tmpBlocksStream(input, blocksLength, compressed);
+		while (!tmpBlocksStream.atEOS())
+			tmpBlockLengths.push_back(readU32(&tmpBlocksStream));
+      	if (!parseRecords(&tmpStream, tmpBlockLengths.size() ? &tmpBlockLengths[0] : 0))
+        	return false;
+	  }
     }
 
-    if (length)
-      input->seek(position + length, WPX_SEEK_SET);
+    input->seek(position + length, WPX_SEEK_SET);
     return true;
   }
   catch (...)
