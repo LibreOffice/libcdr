@@ -112,7 +112,6 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       {
         std::vector<unsigned> tmpBlockLengths;
         unsigned blocksLength = length + position - input->tell();
-        printf("blocksLength == %i\n", blocksLength);
         CDRInternalStream tmpBlocksStream(input, blocksLength, compressed);
         while (!tmpBlocksStream.atEOS())
           tmpBlockLengths.push_back(readU32(&tmpBlocksStream));
@@ -155,7 +154,7 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     previewImage.append(0x00);
     previewImage.append(0x00);
     previewImage.append(0x00);
-	input->seek(4, WPX_SEEK_CUR);
+    input->seek(4, WPX_SEEK_CUR);
     for (unsigned i = 0; i<length; i++)
       previewImage.append(readU8(input));
     FILE *f = fopen("previewImage.bmp", "wb");
@@ -166,8 +165,8 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
         fprintf(f, "%c",tmpBuffer[k]);
       fclose(f);
     }
-  }
 #endif
+  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
