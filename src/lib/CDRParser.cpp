@@ -34,7 +34,9 @@
 #include <string>
 #include <cmath>
 #include <set>
+#include <string.h>
 #include "libcdr_utils.h"
+#include "CDRInternalStream.h"
 #include "CDRParser.h"
 
 libcdr::CDRParser::CDRParser(WPXInputStream *input, libwpg::WPGPaintInterface *painter)
@@ -45,13 +47,48 @@ libcdr::CDRParser::~CDRParser()
 {
 }
 
-bool libcdr::CDRParser::parseMain()
+bool libcdr::CDRParser::parseRecords(WPXInputStream *input)
 {
-  if (!m_input)
+  if (!input)
   {
     return false;
   }
+  while (!input->atEOS())
+  {
+    if (!parseRecord(input))
+      return false;
+  }
   return true;
+}
+
+bool libcdr::CDRParser::parseRecord(WPXInputStream *input)
+{
+  if (!input)
+  {
+    return false;
+  }
+  try
+  {
+    WPXString fourCC = readFourCC(input);
+    unsigned length = readU32(input);
+    unsigned long position = input->tell();
+    CDR_DEBUG_MSG(("Record: %s, length: 0x%.8x (%i)\n", fourCC.cstr(), length, length));
+    if (fourCC == "RIFF" || fourCC == "LIST")
+    {
+      WPXString listType = readFourCC(input);
+      CDR_DEBUG_MSG(("CDR listType: %s\n", listType.cstr()));
+      CDRInternalStream tmpStream(input, length - 4);
+      if (!parseRecords(&tmpStream))
+        return false;
+    }
+
+    input->seek(position + length, WPX_SEEK_SET);
+    return true;
+  }
+  catch (...)
+  {
+    return false;
+  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

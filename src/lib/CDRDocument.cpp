@@ -28,6 +28,7 @@
 #include <sstream>
 #include <string>
 #include "CDRDocument.h"
+#include "CDRParser.h"
 #include "CDRSVGGenerator.h"
 #include "libcdr_utils.h"
 
@@ -39,7 +40,7 @@ stream is a Corel Draw Document that libcdr is able to parse
 */
 bool libcdr::CDRDocument::isSupported(WPXInputStream * /* input */)
 {
-  return false;
+  return true;
 }
 
 /**
@@ -50,9 +51,10 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 \param painter A CDRPainterInterface implementation
 \return A value that indicates whether the parsing was successful
 */
-bool libcdr::CDRDocument::parse(::WPXInputStream * /*input */, libwpg::WPGPaintInterface * /* painter */)
+bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterface *painter)
 {
-  return false;
+  CDRParser parser(input, painter);
+  return parser.parseRecords(input);
 }
 
 /**
