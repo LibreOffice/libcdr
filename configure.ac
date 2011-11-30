@@ -42,6 +42,18 @@ PKG_CHECK_MODULES([LIBCDR],[
 	libwpg-0.2
 ])
 
+# =========
+# Find zlib
+# =========
+PKG_CHECK_MODULES([ZLIB],[zlib],[],[
+    AC_CHECK_HEADER(zlib.h, [ZLIB_CFLAGS=],
+        [AC_MSG_ERROR(zlib.h not found. install zlib)], [])
+    AC_CHECK_LIB(z, inflate, [ ZLIB_LIBS=-lz ],
+        [AC_MSG_ERROR(zlib not found or functional)], [])
+])
+AC_SUBST(ZLIB_CFLAGS)
+AC_SUBST(ZLIB_LIBS)
+
 # =================================
 # Libtool/Version Makefile settings
 # =================================
