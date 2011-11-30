@@ -56,6 +56,7 @@ private:
   CDRParser(const CDRParser &);
   CDRParser &operator=(const CDRParser &);
   bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0);
+  void readRecord(WPXString fourCC, unsigned length, WPXInputStream *input);
   WPXInputStream *m_input;
   libwpg::WPGPaintInterface *m_painter;
 

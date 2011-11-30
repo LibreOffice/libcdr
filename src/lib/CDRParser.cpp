@@ -118,6 +118,8 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
         	return false;
 	  }
     }
+	else
+	  readRecord(fourCC, length, input);
 
     input->seek(position + length, WPX_SEEK_SET);
     return true;
@@ -126,6 +128,10 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
   {
     return false;
   }
+}
+
+void libcdr::CDRParser::readRecord(WPXString /* fourCC */, unsigned /* length */, WPXInputStream * /* input */)
+{
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
