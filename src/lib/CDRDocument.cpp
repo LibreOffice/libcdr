@@ -27,6 +27,7 @@
 
 #include <sstream>
 #include <string>
+#include <string.h>
 #include "CDRDocument.h"
 #include "CDRParser.h"
 #include "CDRSVGGenerator.h"
@@ -38,8 +39,13 @@ Analyzes the content of an input stream to see if it can be parsed
 \return A value that indicates whether the content from the input
 stream is a Corel Draw Document that libcdr is able to parse
 */
-bool libcdr::CDRDocument::isSupported(WPXInputStream * /* input */)
+bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
 {
+  if (readFourCC(input) != "RIFF")
+    return false;
+  input->seek(4, WPX_SEEK_CUR);
+  if (strncmp(readFourCC(input).cstr(), "CDR", 3))
+    return false;
   return true;
 }
 
