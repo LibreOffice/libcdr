@@ -142,15 +142,14 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
 {
   if (fourCC == "DISP")
   {
-#if DUMP_PREVIEW_IMAGE
     WPXBinaryData previewImage;
     previewImage.append(0x42);
     previewImage.append(0x4d);
 
-    previewImage.append((unsigned char)((length) & 0x000000ff));
-    previewImage.append((unsigned char)(((length) & 0x0000ff00) >> 8));
-    previewImage.append((unsigned char)(((length) & 0x00ff0000) >> 16));
-    previewImage.append((unsigned char)(((length) & 0xff000000) >> 24));
+    previewImage.append((unsigned char)((length+8) & 0x000000ff));
+    previewImage.append((unsigned char)(((length+8) & 0x0000ff00) >> 8));
+    previewImage.append((unsigned char)(((length+8) & 0x00ff0000) >> 16));
+    previewImage.append((unsigned char)(((length+8) & 0xff000000) >> 24));
 
     previewImage.append(0x00);
     previewImage.append(0x00);
@@ -159,7 +158,7 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
 
 	long currentPosition = input->tell();
 	input->seek(0x18, WPX_SEEK_CUR);
-	int lengthX = length + 8 - (int)readU32(input);
+	int lengthX = length + 10 - readU32(input);
 	input->seek(currentPosition, WPX_SEEK_SET);
 
     previewImage.append((unsigned char)((lengthX) & 0x000000ff));
@@ -167,9 +166,10 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     previewImage.append((unsigned char)(((lengthX) & 0x00ff0000) >> 16));
     previewImage.append((unsigned char)(((lengthX) & 0xff000000) >> 24));
 
-    input->seek(2, WPX_SEEK_CUR);
-    for (unsigned i = 2; i<length; i++)
+    input->seek(4, WPX_SEEK_CUR);
+    for (unsigned i = 4; i<length; i++)
       previewImage.append(readU8(input));
+#if DUMP_PREVIEW_IMAGE
     FILE *f = fopen("previewImage.bmp", "wb");
     if (f)
     {
