@@ -79,10 +79,17 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
     if (blockLengths)
       length=blockLengths[length];
     unsigned long position = input->tell();
-    CDR_DEBUG_MSG(("Record: %s, length: 0x%.8x (%i)\n", fourCC.cstr(), length, length));
+	WPXString listType;
     if (fourCC == "RIFF" || fourCC == "LIST")
     {
-      WPXString listType = readFourCC(input);
+      listType = readFourCC(input);
+	  if (listType == "stlt")
+	    fourCC = listType;
+	}
+    CDR_DEBUG_MSG(("Record: %s, length: 0x%.8x (%i)\n", fourCC.cstr(), length, length));
+	  
+    if (fourCC == "RIFF" || fourCC == "LIST")
+    {
       CDR_DEBUG_MSG(("CDR listType: %s\n", listType.cstr()));
       unsigned cmprsize = length-4;
       unsigned ucmprsize = length-4;
@@ -140,22 +147,28 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     previewImage.append(0x42);
     previewImage.append(0x4d);
 
-    previewImage.append((unsigned char)((length + 10) & 0x000000ff));
-    previewImage.append((unsigned char)(((length + 10) & 0x0000ff00) >> 8));
-    previewImage.append((unsigned char)(((length + 10) & 0x00ff0000) >> 16));
-    previewImage.append((unsigned char)(((length + 10) & 0xff000000) >> 24));
+    previewImage.append((unsigned char)((length) & 0x000000ff));
+    previewImage.append((unsigned char)(((length) & 0x0000ff00) >> 8));
+    previewImage.append((unsigned char)(((length) & 0x00ff0000) >> 16));
+    previewImage.append((unsigned char)(((length) & 0xff000000) >> 24));
 
     previewImage.append(0x00);
     previewImage.append(0x00);
     previewImage.append(0x00);
     previewImage.append(0x00);
 
-    previewImage.append(0x36);
-    previewImage.append(0x00);
-    previewImage.append(0x00);
-    previewImage.append(0x00);
-    input->seek(4, WPX_SEEK_CUR);
-    for (unsigned i = 0; i<length; i++)
+	long currentPosition = input->tell();
+	input->seek(0x18, WPX_SEEK_CUR);
+	int lengthX = length + 8 - (int)readU32(input);
+	input->seek(currentPosition, WPX_SEEK_SET);
+
+    previewImage.append((unsigned char)((lengthX) & 0x000000ff));
+    previewImage.append((unsigned char)(((lengthX) & 0x0000ff00) >> 8));
+    previewImage.append((unsigned char)(((lengthX) & 0x00ff0000) >> 16));
+    previewImage.append((unsigned char)(((lengthX) & 0xff000000) >> 24));
+
+    input->seek(2, WPX_SEEK_CUR);
+    for (unsigned i = 2; i<length; i++)
       previewImage.append(readU8(input));
     FILE *f = fopen("previewImage.bmp", "wb");
     if (f)
