@@ -28,8 +28,8 @@
  * instead of those above.
  */
 
-#ifndef __LIBVISIO_UTILS_H__
-#define __LIBVISIO_UTILS_H__
+#ifndef __LIBCDR_UTILS_H__
+#define __LIBCDR_UTILS_H__
 
 #include <stdio.h>
 #include <string>
@@ -41,6 +41,7 @@
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned uint32_t;
+typedef int int32_t;
 typedef unsigned __int64 uint64_t;
 
 #else
@@ -83,6 +84,7 @@ uint8_t readU8(WPXInputStream *input);
 uint16_t readU16(WPXInputStream *input);
 uint32_t readU32(WPXInputStream *input);
 uint64_t readU64(WPXInputStream *input);
+int32_t readS32(WPXInputStream *input);
 
 double readDouble(WPXInputStream *input);
 
@@ -98,5 +100,5 @@ class GenericException
 
 } // namespace libcdr
 
-#endif // __LIBVISIO_UTILS_H__
+#endif // __LIBCDR_UTILS_H__
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

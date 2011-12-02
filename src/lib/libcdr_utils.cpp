@@ -60,6 +60,11 @@ uint32_t libcdr::readU32(WPXInputStream *input)
   return (uint32_t)(p0|(p1<<8)|(p2<<16)|(p3<<24));
 }
 
+int32_t libcdr::readS32(WPXInputStream *input)
+{
+  return (int32_t)readU32(input);
+}
+
 uint64_t libcdr::readU64(WPXInputStream *input)
 {
   uint64_t p0 = (uint64_t)readU8(input);

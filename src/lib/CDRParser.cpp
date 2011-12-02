@@ -79,15 +79,15 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
     if (blockLengths)
       length=blockLengths[length];
     unsigned long position = input->tell();
-	WPXString listType;
+    WPXString listType;
     if (fourCC == "RIFF" || fourCC == "LIST")
     {
       listType = readFourCC(input);
-	  if (listType == "stlt")
-	    fourCC = listType;
-	}
+      if (listType == "stlt")
+        fourCC = listType;
+    }
     CDR_DEBUG_MSG(("Record: %s, length: 0x%.8x (%i)\n", fourCC.cstr(), length, length));
-	  
+
     if (fourCC == "RIFF" || fourCC == "LIST")
     {
       CDR_DEBUG_MSG(("CDR listType: %s\n", listType.cstr()));
@@ -156,10 +156,10 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     previewImage.append(0x00);
     previewImage.append(0x00);
 
-	long currentPosition = input->tell();
-	input->seek(0x18, WPX_SEEK_CUR);
-	int lengthX = length + 10 - readU32(input);
-	input->seek(currentPosition, WPX_SEEK_SET);
+    long currentPosition = input->tell();
+    input->seek(0x18, WPX_SEEK_CUR);
+    int lengthX = length + 10 - readU32(input);
+    input->seek(currentPosition, WPX_SEEK_SET);
 
     previewImage.append((unsigned char)((lengthX) & 0x000000ff));
     previewImage.append((unsigned char)(((lengthX) & 0x0000ff00) >> 8));
@@ -189,24 +189,48 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     unsigned startOfArgTypes = readU32(input);
     unsigned chunkType = readU32(input);
     std::vector<unsigned> argOffsets(numOfArgs, 0);
-    std::vector<unsigned> argTypeOffsets(numOfArgs, 0);
+    std::vector<unsigned> argTypes(numOfArgs, 0);
     unsigned i = 0;
     input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
     while (i<numOfArgs)
       argOffsets[i++] = readU32(input);
     input->seek(startPosition+startOfArgTypes, WPX_SEEK_SET);
     while (i>0)
-      argTypeOffsets[--i] = readU32(input);
-    printf("loda %lu, %u, %u, %u, %u, %u, %lu, %lu\n", startPosition, chunkLength, numOfArgs, startOfArgs, startOfArgTypes, chunkType, argOffsets.size(), argTypeOffsets.size());
+      argTypes[--i] = readU32(input);
+#if 0
+    printf("loda %lu, %u, %u, %u, %u, %u, %lu, %lu\n", startPosition, chunkLength, numOfArgs, startOfArgs, startOfArgTypes, chunkType, argOffsets.size(), argTypes.size());
     printf("--> argOffsets --> ");
     for (std::vector<unsigned>::iterator iter1 = argOffsets.begin(); iter1 != argOffsets.end(); iter1++)
       printf("0x%.8x, ", *iter1);
     printf("\n");
-    printf("--> argTypeOffsets --> ");
-    for (std::vector<unsigned>::iterator iter2 = argTypeOffsets.begin(); iter2 != argTypeOffsets.end(); iter2++)
+    printf("--> argTypes --> ");
+    for (std::vector<unsigned>::iterator iter2 = argTypes.begin(); iter2 != argTypes.end(); iter2++)
       printf("0x%.8x, ", *iter2);
     printf("\n");
-
+#endif
+    for (i=0; i < argTypes.size(); i++)
+    {
+      if ((argTypes[i] == 0x001e) && (chunkType = 0x03))
+      {
+        input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
+        unsigned pointNum = readU32(input);
+        std::vector<std::pair<double, double> > points;
+        std::vector<unsigned char> pointTypes;
+        for (unsigned j=0; j<pointNum; j++)
+        {
+          std::pair<double, double> point;
+          point.first = (double)readS32(input) / 25400.0;
+          point.second = (double)readS32(input) / 25400.0;
+          points.push_back(point);
+        }
+        for (unsigned k=0; k<pointNum; k++)
+          pointTypes.push_back(readU8(input));
+      }
+      else if ((argTypes[i] == 0x001e) && (chunkType < 0x05))
+      {
+      }
+    }
+    input->seek(startPosition+chunkLength, WPX_SEEK_SET);
   }
 }
 
