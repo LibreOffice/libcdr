@@ -180,6 +180,34 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     }
 #endif
   }
+  else if (fourCC == "loda")
+  {
+    long startPosition = input->tell();
+    unsigned chunkLength = readU32(input);
+    unsigned numOfArgs = readU32(input);
+    unsigned startOfArgs = readU32(input);
+    unsigned startOfArgTypes = readU32(input);
+    unsigned chunkType = readU32(input);
+    std::vector<unsigned> argOffsets(numOfArgs, 0);
+    std::vector<unsigned> argTypeOffsets(numOfArgs, 0);
+    unsigned i = 0;
+    input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
+    while (i<numOfArgs)
+      argOffsets[i++] = readU32(input);
+    input->seek(startPosition+startOfArgTypes, WPX_SEEK_SET);
+    while (i>0)
+      argTypeOffsets[--i] = readU32(input);
+    printf("loda %lu, %u, %u, %u, %u, %u, %lu, %lu\n", startPosition, chunkLength, numOfArgs, startOfArgs, startOfArgTypes, chunkType, argOffsets.size(), argTypeOffsets.size());
+    printf("--> argOffsets --> ");
+    for (std::vector<unsigned>::iterator iter1 = argOffsets.begin(); iter1 != argOffsets.end(); iter1++)
+      printf("0x%.8x, ", *iter1);
+    printf("\n");
+    printf("--> argTypeOffsets --> ");
+    for (std::vector<unsigned>::iterator iter2 = argTypeOffsets.begin(); iter2 != argTypeOffsets.end(); iter2++)
+      printf("0x%.8x, ", *iter2);
+    printf("\n");
+
+  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
