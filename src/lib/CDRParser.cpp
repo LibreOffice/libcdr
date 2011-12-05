@@ -49,7 +49,7 @@ libcdr::CDRParser::~CDRParser()
 {
 }
 
-bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengths)
+bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengths, unsigned level)
 {
   if (!input)
   {
@@ -57,13 +57,13 @@ bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengt
   }
   while (!input->atEOS())
   {
-    if (!parseRecord(input, blockLengths))
+    if (!parseRecord(input, blockLengths, level))
       return false;
   }
   return true;
 }
 
-bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLengths)
+bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLengths, unsigned level)
 {
   if (!input)
   {
@@ -86,7 +86,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       if (listType == "stlt")
         fourCC = listType;
     }
-    CDR_DEBUG_MSG(("Record: %s, length: 0x%.8x (%i)\n", fourCC.cstr(), length, length));
+    CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, fourCC.cstr(), length, length));
 
     if (fourCC == "RIFF" || fourCC == "LIST")
     {
@@ -112,7 +112,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       CDRInternalStream tmpStream(input, cmprsize, compressed);
       if (!compressed)
       {
-        if (!parseRecords(&tmpStream, blockLengths))
+        if (!parseRecords(&tmpStream, blockLengths, level+1))
           return false;
       }
       else
@@ -122,7 +122,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
         CDRInternalStream tmpBlocksStream(input, blocksLength, compressed);
         while (!tmpBlocksStream.atEOS())
           tmpBlockLengths.push_back(readU32(&tmpBlocksStream));
-        if (!parseRecords(&tmpStream, tmpBlockLengths.size() ? &tmpBlockLengths[0] : 0))
+        if (!parseRecords(&tmpStream, tmpBlockLengths.size() ? &tmpBlockLengths[0] : 0, level+1))
           return false;
       }
     }

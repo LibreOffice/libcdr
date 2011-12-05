@@ -49,13 +49,13 @@ class CDRParser
 public:
   explicit CDRParser(WPXInputStream *input, libwpg::WPGPaintInterface *painter);
   virtual ~CDRParser();
-  bool parseRecords(WPXInputStream *input, unsigned *blockLengths = 0);
+  bool parseRecords(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
 
 private:
   CDRParser();
   CDRParser(const CDRParser &);
   CDRParser &operator=(const CDRParser &);
-  bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0);
+  bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
   void readRecord(WPXString fourCC, unsigned length, WPXInputStream *input);
   WPXInputStream *m_input;
   libwpg::WPGPaintInterface *m_painter;
