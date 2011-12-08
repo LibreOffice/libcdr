@@ -19,18 +19,21 @@ CFLAGSCXX+=-frtti
 .IF "$(SYSTEM_LIBWPD)" == "YES"
 INCPRE+=$(WPD_CFLAGS) -I..
 .ELSE
-INCPRE+=$(SOLARVER)$/$(UPD)$/$(INPATH)$/inc$/libwpd
+INCPRE+=$(SOLARVER)$/$(INPATH)$/inc$/libwpd
 .ENDIF
 
 .IF "$(SYSTEM_LIBWPG)" == "YES"
 INCPRE+=$(WPG_CFLAGS) -I..
 .ELSE
-INCPRE+=$(SOLARVER)$/$(UPD)$/$(INPATH)$/inc$/libwpg
+INCPRE+=$(SOLARVER)$/$(INPATH)$/inc$/libwpg
 .ENDIF
 
 SLOFILES= \
         $(SLO)$/CDRDocument.obj \
-		$(SLO)$/CDRSVGGenerator.obj
+		$(SLO)$/CDRInternalStream.obj \
+		$(SLO)$/CDRParser.obj \
+		$(SLO)$/CDRSVGGenerator.obj \
+		$(SLO)$/libcdr_utils.obj
 
 LIB1ARCHIV=$(LB)$/libcdrlib.a
 LIB1TARGET=$(SLB)$/$(TARGET).lib
