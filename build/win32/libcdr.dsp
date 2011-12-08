@@ -91,7 +91,19 @@ SOURCE=..\..\src\lib\CDRDocument.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDRInternalStream.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRParser.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\CDRSVGGenerator.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\libcdr_utils.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -100,6 +112,14 @@ SOURCE=..\..\src\lib\CDRSVGGenerator.cpp
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRDocument.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRInternalStream.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRParser.h
 # End Source File
 # Begin Source File
 
