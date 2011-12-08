@@ -43,10 +43,13 @@
 
 libcdr::CDRParser::CDRParser(WPXInputStream *input, libwpg::WPGPaintInterface *painter)
   : m_input(input),
-    m_painter(painter) {}
+    m_painter(painter),
+    m_isListTypePage(false),
+    m_isPageOpened(false) {}
 
 libcdr::CDRParser::~CDRParser()
 {
+  _closePage();
 }
 
 bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengths, unsigned level)
@@ -61,6 +64,15 @@ bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengt
       return false;
   }
   return true;
+}
+
+void libcdr::CDRParser::_closePage()
+{
+  if (m_isPageOpened)
+  {
+    m_painter->endGraphics();
+    m_isPageOpened = false;
+  }
 }
 
 bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLengths, unsigned level)
@@ -85,6 +97,14 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       listType = readFourCC(input);
       if (listType == "stlt")
         fourCC = listType;
+      if (listType == "page")
+      {
+        _closePage();
+        m_isListTypePage = true;
+      }
+      else
+        m_isListTypePage = false;
+
     }
     CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, fourCC.cstr(), length, length));
 
@@ -156,10 +176,10 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     previewImage.append(0x00);
     previewImage.append(0x00);
 
-    long currentPosition = input->tell();
+    long startPosition = input->tell();
     input->seek(0x18, WPX_SEEK_CUR);
     int lengthX = length + 10 - readU32(input);
-    input->seek(currentPosition, WPX_SEEK_SET);
+    input->seek(startPosition, WPX_SEEK_SET);
 
     previewImage.append((unsigned char)((lengthX) & 0x000000ff));
     previewImage.append((unsigned char)(((lengthX) & 0x0000ff00) >> 8));
@@ -219,8 +239,8 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
         for (unsigned j=0; j<pointNum; j++)
         {
           std::pair<double, double> point;
-          point.first = (double)readS32(input) / 25400.0;
-          point.second = (double)readS32(input) / 25400.0;
+          point.first = (double)readS32(input) / 254000.0;
+          point.second = (double)readS32(input) / 254000.0;
           points.push_back(point);
         }
         for (unsigned k=0; k<pointNum; k++)
@@ -231,6 +251,23 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
       }
     }
     input->seek(startPosition+chunkLength, WPX_SEEK_SET);
+  }
+  else if (fourCC == "bbox")
+  {
+    int X0 = readS32(input);
+    int Y0 = readS32(input);
+    int X1 = readS32(input);
+    int Y1 = readS32(input);
+    double width = (double)(X0 < X1 ? X1 - X0 : X0 - X1) / 254000.0;
+    double height = (double)(Y0 < Y1 ? Y1 - Y0 : Y0 - Y1) / 254000.0;
+    if (X0 != X1 && Y0 != Y1 && m_isListTypePage)
+    {
+      WPXPropertyList propList;
+      propList.insert("svg:width", width);
+      propList.insert("svg:height", height);
+      m_painter->startGraphics(propList);
+      m_isPageOpened = true;
+    }
   }
 }
 
