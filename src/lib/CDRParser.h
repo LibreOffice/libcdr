@@ -58,6 +58,11 @@ private:
   bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
   void readRecord(WPXString fourCC, unsigned length, WPXInputStream *input);
 
+  void readRectangle(WPXInputStream *input);
+  void readEllipse(WPXInputStream *input);
+  void readLineAndCurve(WPXInputStream *input);
+  void readBitmap(WPXInputStream *input);
+
   void _closePage();
   WPXInputStream *m_input;
   libwpg::WPGPaintInterface *m_painter;

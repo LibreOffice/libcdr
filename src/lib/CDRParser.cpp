@@ -226,24 +226,16 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
 #endif
     for (i=0; i < argTypes.size(); i++)
     {
-      if ((argTypes[i] == 0x001e) && (chunkType = 0x03))
+      if (argTypes[i] == 0x001e) // loda coords
       {
-        input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
-        unsigned pointNum = readU32(input);
-        std::vector<std::pair<double, double> > points;
-        std::vector<unsigned char> pointTypes;
-        for (unsigned j=0; j<pointNum; j++)
-        {
-          std::pair<double, double> point;
-          point.first = (double)readS32(input) / 254000.0;
-          point.second = (double)readS32(input) / 254000.0;
-          points.push_back(point);
-        }
-        for (unsigned k=0; k<pointNum; k++)
-          pointTypes.push_back(readU8(input));
-      }
-      else if ((argTypes[i] == 0x001e) && (chunkType < 0x05))
-      {
+        if (chunkType == 0x01) // Rectangle
+          readRectangle(input);
+        else if (chunkType == 0x02) // Ellipse
+          readEllipse(input);
+        else if (chunkType == 0x03) // Line and curve
+          readLineAndCurve(input);
+        else if (chunkType == 0x05)
+          readBitmap(input);
       }
     }
     input->seek(startPosition+chunkLength, WPX_SEEK_SET);
@@ -265,6 +257,41 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
       m_isPageOpened = true;
     }
   }
+}
+
+void libcdr::CDRParser::readRectangle(WPXInputStream *input)
+{
+  int X0 = readS32(input);
+  int Y0 = readS32(input);
+}
+
+void libcdr::CDRParser::readEllipse(WPXInputStream *input)
+{
+  int CX = readS32(input);
+  int CY = readS32(input);
+  int angle1 = readS32(input);
+  int angle2 = readS32(input);
+  int rotation = readS32(input);
+}
+
+void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
+{
+  unsigned pointNum = readU32(input);
+  std::vector<std::pair<double, double> > points;
+  std::vector<unsigned char> pointTypes;
+  for (unsigned j=0; j<pointNum; j++)
+  {
+    std::pair<double, double> point;
+    point.first = (double)readS32(input) / 254000.0;
+    point.second = (double)readS32(input) / 254000.0;
+    points.push_back(point);
+  }
+  for (unsigned k=0; k<pointNum; k++)
+    pointTypes.push_back(readU8(input));
+}
+
+void libcdr::CDRParser::readBitmap(WPXInputStream *input)
+{
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
