@@ -44,7 +44,12 @@ bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
   if (readFourCC(input) != "RIFF")
     return false;
   input->seek(4, WPX_SEEK_CUR);
-  if (strncmp(readFourCC(input).cstr(), "CDR", 3))
+  WPXString signature = readFourCC(input);
+  if (signature.cstr()[0] != 'C' && signature.cstr()[0] != 'c')
+    return false;
+  if (signature.cstr()[1] != 'D' && signature.cstr()[1] != 'd')
+    return false;
+  if (signature.cstr()[2] != 'R' && signature.cstr()[2] != 'r')
     return false;
   return true;
 }
