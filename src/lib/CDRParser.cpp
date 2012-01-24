@@ -39,7 +39,9 @@
 #include "CDRInternalStream.h"
 #include "CDRParser.h"
 
+#ifndef DUMP_PREVIEW_IMAGE
 #define DUMP_PREVIEW_IMAGE 0
+#endif
 
 libcdr::CDRParser::CDRParser(WPXInputStream *input, libwpg::WPGPaintInterface *painter)
   : m_input(input),
@@ -234,6 +236,8 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
           readEllipse(input);
         else if (chunkType == 0x03) // Line and curve
           readLineAndCurve(input);
+        else if (chunkType == 0x04) // Text
+          readText(input);
         else if (chunkType == 0x05)
           readBitmap(input);
       }
@@ -263,6 +267,10 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 {
   int X0 = readS32(input);
   int Y0 = readS32(input);
+  int R0 = readS32(input);
+  int R1 = readS32(input);
+  int R2 = readS32(input);
+  int R3 = readS32(input);
 }
 
 void libcdr::CDRParser::readEllipse(WPXInputStream *input)
@@ -288,6 +296,12 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
   }
   for (unsigned k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
+}
+
+void libcdr::CDRParser::readText(WPXInputStream *input)
+{
+  int X0 = readS32(input);
+  int Y0 = readS32(input);
 }
 
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)

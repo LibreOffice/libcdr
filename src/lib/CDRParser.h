@@ -61,6 +61,7 @@ private:
   void readRectangle(WPXInputStream *input);
   void readEllipse(WPXInputStream *input);
   void readLineAndCurve(WPXInputStream *input);
+  void readText(WPXInputStream *input);
   void readBitmap(WPXInputStream *input);
 
   void _closePage();
