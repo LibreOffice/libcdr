@@ -47,7 +47,8 @@ libcdr::CDRParser::CDRParser(WPXInputStream *input, libwpg::WPGPaintInterface *p
   : m_input(input),
     m_painter(painter),
     m_isListTypePage(false),
-    m_isPageOpened(false) {}
+    m_isPageOpened(false),
+    m_version(0) {}
 
 libcdr::CDRParser::~CDRParser()
 {
@@ -261,6 +262,8 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
       m_isPageOpened = true;
     }
   }
+  else if (fourCC == "vrsn")
+    m_version = readU16(input);
 }
 
 void libcdr::CDRParser::readRectangle(WPXInputStream *input)

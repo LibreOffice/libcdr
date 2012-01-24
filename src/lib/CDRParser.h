@@ -70,6 +70,7 @@ private:
 
   bool m_isListTypePage;
   bool m_isPageOpened;
+  unsigned m_version;
 
 };
 } // namespace libcdr
