@@ -112,14 +112,10 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
     {
       CDR_DEBUG_MSG(("CDR listType: %s\n", listType.cstr()));
       unsigned cmprsize = length-4;
-      unsigned ucmprsize = length-4;
-      unsigned blcks = 0;
       if (listType == "cmpr")
       {
-        cmprsize = readU32(input);
-        ucmprsize = readU32(input);
-        blcks = readU32(input);
-        input->seek(4, WPX_SEEK_CUR);
+        cmprsize  = readU32(input);
+        input->seek(12, WPX_SEEK_CUR);
         if (readFourCC(input) != "CPng")
           return false;
         if (readU16(input) != 1)
