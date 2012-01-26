@@ -14,7 +14,6 @@
  *
  * Major Contributor(s):
  * Copyright (C) 2011 Fridrich Strba <fridrich.strba@bluewin.ch>
- * Copyright (C) 2011 Eilidh McAdam <tibbylickle@gmail.com>
  *
  *
  * All Rights Reserved.
@@ -63,6 +62,9 @@ private:
   void readLineAndCurve(WPXInputStream *input);
   void readText(WPXInputStream *input);
   void readBitmap(WPXInputStream *input);
+  void readTransform(WPXInputStream *input);
+  void readFill(WPXInputStream *input);
+  void readLine(WPXInputStream *input);
 
   void _closePage();
   WPXInputStream *m_input;

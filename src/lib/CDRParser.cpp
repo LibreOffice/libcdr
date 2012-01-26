@@ -14,7 +14,6 @@
  *
  * Major Contributor(s):
  * Copyright (C) 2011 Fridrich Strba <fridrich.strba@bluewin.ch>
- * Copyright (C) 2011 Eilidh McAdam <tibbylickle@gmail.com>
  *
  *
  * All Rights Reserved.
@@ -309,6 +308,67 @@ void libcdr::CDRParser::readText(WPXInputStream *input)
 
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 {
+}
+
+void libcdr::CDRParser::readTransform(WPXInputStream *input)
+{
+  int offset = 32;
+  if (m_version == 1300)
+    offset = 40;
+  if (m_version == 500)
+    offset = 18;
+  input->seek(offset, WPX_SEEK_CUR);
+  double v0 = readDouble(input);
+  double v1 = readDouble(input);
+  double x0 = readDouble(input);
+  double v3 = readDouble(input);
+  double v4 = readDouble(input);
+  double y0 = readDouble(input);
+}
+
+void libcdr::CDRParser::readFill(WPXInputStream *input)
+{
+  unsigned fillId = readU32(input);
+  unsigned short fillType = readU16(input);
+  unsigned short colorModel = 0;
+  unsigned color = 0;
+  if (fillType)
+  {
+    if (m_version >= 1300)
+      input->seek(19, WPX_SEEK_CUR);
+    input->seek(2, WPX_SEEK_CUR);
+    colorModel = readU16(input);
+    input->seek(6, WPX_SEEK_CUR);
+    color = readU32(input);
+  }
+}
+
+void libcdr::CDRParser::readLine(WPXInputStream *input)
+{
+  unsigned lineId = readU32(input);
+  if (m_version >= 1300)
+    input->seek(20, WPX_SEEK_CUR);
+  unsigned short lineType = readU16(input);
+  unsigned short capsType = readU16(input);
+  unsigned short joinType = readU16(input);
+  if (m_version < 1300)
+    input->seek(2, WPX_SEEK_CUR);
+  double lineWidth = (double)readS32(input) / 254000.0;
+  if (m_version < 1300)
+    input->seek(6, WPX_SEEK_CUR);
+  input->seek(54, WPX_SEEK_CUR);
+  unsigned short colorModel = readU16(input);
+  input->seek(6, WPX_SEEK_CUR);
+  unsigned color = readU32(input);
+  input->seek(16, WPX_SEEK_CUR);
+  unsigned short numDash = readU16(input);
+  int fixPosition = input->tell();
+  std::vector<unsigned short> dashArray;
+  for (unsigned short i = 0; i < numDash; ++i)
+    dashArray.push_back(readU16(input));
+  input->seek(fixPosition + 22, WPX_SEEK_SET);
+  unsigned startMarkerId = readU32(input);
+  unsigned endMarkerId = readU32(input);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
