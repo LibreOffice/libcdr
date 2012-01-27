@@ -85,9 +85,13 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
   }
   try
   {
-    while (readU8(input) == 0);
+    while (!input->atEOS() && readU8(input) == 0)
+    {
+    }
     if (!input->atEOS())
       input->seek(-1, WPX_SEEK_CUR);
+    else
+      return true;
     WPXString fourCC = readFourCC(input);
     unsigned length = readU32(input);
     if (blockLengths)
@@ -158,6 +162,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
 
 void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputStream *input)
 {
+  long recordStart = input->tell();
   if (fourCC == "DISP")
   {
     WPXBinaryData previewImage;
@@ -199,70 +204,23 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
 #endif
   }
   else if (fourCC == "loda")
-  {
-    long startPosition = input->tell();
-    unsigned chunkLength = readU32(input);
-    unsigned numOfArgs = readU32(input);
-    unsigned startOfArgs = readU32(input);
-    unsigned startOfArgTypes = readU32(input);
-    unsigned chunkType = readU32(input);
-    std::vector<unsigned> argOffsets(numOfArgs, 0);
-    std::vector<unsigned> argTypes(numOfArgs, 0);
-    unsigned i = 0;
-    input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
-    while (i<numOfArgs)
-      argOffsets[i++] = readU32(input);
-    input->seek(startPosition+startOfArgTypes, WPX_SEEK_SET);
-    while (i>0)
-      argTypes[--i] = readU32(input);
-#if 0
-    printf("loda %lu, %u, %u, %u, %u, %u, %lu, %lu\n", startPosition, chunkLength, numOfArgs, startOfArgs, startOfArgTypes, chunkType, argOffsets.size(), argTypes.size());
-    printf("--> argOffsets --> ");
-    for (std::vector<unsigned>::iterator iter1 = argOffsets.begin(); iter1 != argOffsets.end(); iter1++)
-      printf("0x%.8x, ", *iter1);
-    printf("\n");
-    printf("--> argTypes --> ");
-    for (std::vector<unsigned>::iterator iter2 = argTypes.begin(); iter2 != argTypes.end(); iter2++)
-      printf("0x%.8x, ", *iter2);
-    printf("\n");
-#endif
-    for (i=0; i < argTypes.size(); i++)
-    {
-      if (argTypes[i] == 0x001e) // loda coords
-      {
-        if (chunkType == 0x01) // Rectangle
-          readRectangle(input);
-        else if (chunkType == 0x02) // Ellipse
-          readEllipse(input);
-        else if (chunkType == 0x03) // Line and curve
-          readLineAndCurve(input);
-        else if (chunkType == 0x04) // Text
-          readText(input);
-        else if (chunkType == 0x05)
-          readBitmap(input);
-      }
-    }
-    input->seek(startPosition+chunkLength, WPX_SEEK_SET);
-  }
+    readLoda(input);
   else if (fourCC == "bbox")
-  {
-    int X0 = readS32(input);
-    int Y0 = readS32(input);
-    int X1 = readS32(input);
-    int Y1 = readS32(input);
-    double width = (double)(X0 < X1 ? X1 - X0 : X0 - X1) / 254000.0;
-    double height = (double)(Y0 < Y1 ? Y1 - Y0 : Y0 - Y1) / 254000.0;
-    if (X0 != X1 && Y0 != Y1 && m_isListTypePage)
-    {
-      WPXPropertyList propList;
-      propList.insert("svg:width", width);
-      propList.insert("svg:height", height);
-      m_painter->startGraphics(propList);
-      m_isPageOpened = true;
-    }
-  }
+    readBbox(input);
   else if (fourCC == "vrsn")
     m_version = readU16(input);
+  else if (fourCC == "trfd")
+    readTransform(input);
+  else if (fourCC == "outl")
+    readLine(input);
+  else if (fourCC == "fild")
+    readFill(input);
+  else if (fourCC == "arrw")
+    ;
+  else if (fourCC == "obox")
+    readObox(input);
+  input->seek(recordStart + length, WPX_SEEK_CUR);
+  printf("Jumping to %.8x\n", recordStart + length);
 }
 
 void libcdr::CDRParser::readRectangle(WPXInputStream *input)
@@ -370,5 +328,84 @@ void libcdr::CDRParser::readLine(WPXInputStream *input)
   unsigned startMarkerId = readU32(input);
   unsigned endMarkerId = readU32(input);
 }
+
+void libcdr::CDRParser::readBbox(WPXInputStream *input)
+{
+  int X0 = readS32(input);
+  int Y0 = readS32(input);
+  int X1 = readS32(input);
+  int Y1 = readS32(input);
+  double width = (double)(X0 < X1 ? X1 - X0 : X0 - X1) / 254000.0;
+  double height = (double)(Y0 < Y1 ? Y1 - Y0 : Y0 - Y1) / 254000.0;
+  CDR_DEBUG_MSG(("CDRParser::readBbox X0/Y0 = %i/%i, X1/Y1 = %i/%i, width/height = %f/%f\n", X0, Y0, X1, Y1, width, height));
+  if (X0 != X1 && Y0 != Y1 && m_isListTypePage)
+  {
+    WPXPropertyList propList;
+    propList.insert("svg:width", width);
+    propList.insert("svg:height", height);
+    m_painter->startGraphics(propList);
+    m_isPageOpened = true;
+  }
+}
+
+void libcdr::CDRParser::readObox(WPXInputStream *input)
+{
+  int X0 = readS32(input);
+  int Y0 = readS32(input);
+  int X1 = readS32(input);
+  int Y1 = readS32(input);
+  int X2 = readS32(input);
+  int Y2 = readS32(input);
+  int X3 = readS32(input);
+  int Y3 = readS32(input);
+}
+
+void libcdr::CDRParser::readLoda(WPXInputStream *input)
+{
+  long startPosition = input->tell();
+  unsigned chunkLength = readU32(input);
+  unsigned numOfArgs = readU32(input);
+  unsigned startOfArgs = readU32(input);
+  unsigned startOfArgTypes = readU32(input);
+  unsigned chunkType = readU32(input);
+  std::vector<unsigned> argOffsets(numOfArgs, 0);
+  std::vector<unsigned> argTypes(numOfArgs, 0);
+  unsigned i = 0;
+  input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
+  while (i<numOfArgs)
+    argOffsets[i++] = readU32(input);
+  input->seek(startPosition+startOfArgTypes, WPX_SEEK_SET);
+  while (i>0)
+    argTypes[--i] = readU32(input);
+#if 0
+  printf("loda %lu, %u, %u, %u, %u, %u, %lu, %lu\n", startPosition, chunkLength, numOfArgs, startOfArgs, startOfArgTypes, chunkType, argOffsets.size(), argTypes.size());
+  printf("--> argOffsets --> ");
+  for (std::vector<unsigned>::iterator iter1 = argOffsets.begin(); iter1 != argOffsets.end(); iter1++)
+    printf("0x%.8x, ", *iter1);
+  printf("\n");
+  printf("--> argTypes --> ");
+  for (std::vector<unsigned>::iterator iter2 = argTypes.begin(); iter2 != argTypes.end(); iter2++)
+    printf("0x%.8x, ", *iter2);
+  printf("\n");
+#endif
+  for (i=0; i < argTypes.size(); i++)
+  {
+    if (argTypes[i] == 0x001e) // loda coords
+    {
+      if (chunkType == 0x01) // Rectangle
+        readRectangle(input);
+      else if (chunkType == 0x02) // Ellipse
+        readEllipse(input);
+      else if (chunkType == 0x03) // Line and curve
+        readLineAndCurve(input);
+      else if (chunkType == 0x04) // Text
+        readText(input);
+      else if (chunkType == 0x05)
+        readBitmap(input);
+    }
+  }
+  input->seek(startPosition+chunkLength, WPX_SEEK_SET);
+}
+
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -65,6 +65,9 @@ private:
   void readTransform(WPXInputStream *input);
   void readFill(WPXInputStream *input);
   void readLine(WPXInputStream *input);
+  void readBbox(WPXInputStream *input);
+  void readObox(WPXInputStream *input);
+  void readLoda(WPXInputStream *input);
 
   void _closePage();
   WPXInputStream *m_input;
