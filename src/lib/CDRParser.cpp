@@ -37,14 +37,15 @@
 #include "libcdr_utils.h"
 #include "CDRInternalStream.h"
 #include "CDRParser.h"
+#include "CDRCollector.h"
 
 #ifndef DUMP_PREVIEW_IMAGE
 #define DUMP_PREVIEW_IMAGE 0
 #endif
 
-libcdr::CDRParser::CDRParser(WPXInputStream *input, libwpg::WPGPaintInterface *painter)
+libcdr::CDRParser::CDRParser(WPXInputStream *input, libcdr::CDRCollector *collector)
   : m_input(input),
-    m_painter(painter),
+    m_collector(collector),
     m_isListTypePage(false),
     m_isPageOpened(false),
     m_version(0) {}
@@ -72,7 +73,7 @@ void libcdr::CDRParser::_closePage()
 {
   if (m_isPageOpened)
   {
-    m_painter->endGraphics();
+    m_collector->endGraphics();
     m_isPageOpened = false;
   }
 }
@@ -342,7 +343,7 @@ void libcdr::CDRParser::readBbox(WPXInputStream *input)
     WPXPropertyList propList;
     propList.insert("svg:width", width);
     propList.insert("svg:height", height);
-    m_painter->startGraphics(propList);
+    m_collector->startGraphics(propList);
     m_isPageOpened = true;
   }
 }

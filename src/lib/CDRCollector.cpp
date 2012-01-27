@@ -29,12 +29,25 @@
 
 #include "CDRCollector.h"
 
-libcdr::CDRCollector::CDRCollector()
+libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
+  m_painter(painter)
 {
 }
 
 libcdr::CDRCollector::~CDRCollector()
 {
+}
+
+void libcdr::CDRCollector::startGraphics(WPXPropertyList &propList)
+{
+  if (m_painter)
+    m_painter->startGraphics(propList);
+}
+
+void libcdr::CDRCollector::endGraphics()
+{
+  if (m_painter)
+    m_painter->endGraphics();
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -31,6 +31,7 @@
 #include "CDRDocument.h"
 #include "CDRParser.h"
 #include "CDRSVGGenerator.h"
+#include "CDRCollector.h"
 #include "libcdr_utils.h"
 
 /**
@@ -64,7 +65,8 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 */
 bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterface *painter)
 {
-  CDRParser parser(input, painter);
+  CDRCollector collector(painter);
+  CDRParser parser(input, &collector);
   return parser.parseRecords(input);
 }
 

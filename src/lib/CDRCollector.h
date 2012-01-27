@@ -27,8 +27,10 @@
  * instead of those above.
  */
 
-#ifndef CDRCOLLECTOR_H
-#define CDRCOLLECTOR_H
+#ifndef __CDRCOLLECTOR_H__
+#define __CDRCOLLECTOR_H__
+
+#include <libwpg/libwpg.h>
 
 namespace libcdr
 {
@@ -36,15 +38,20 @@ namespace libcdr
 class CDRCollector
 {
 public:
-  CDRCollector();
+  CDRCollector(::libwpg::WPGPaintInterface *painter);
   virtual ~CDRCollector();
+
+  void startGraphics(WPXPropertyList &propList);
+  void endGraphics();
 
 private:
   CDRCollector(const CDRCollector &);
   CDRCollector &operator=(const CDRCollector &);
+
+  libwpg::WPGPaintInterface *m_painter;
 };
 
 } // namespace libcdr
 
-#endif /* CDRCOLLECTOR_H */
+#endif /* __CDRCOLLECTOR_H__ */
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

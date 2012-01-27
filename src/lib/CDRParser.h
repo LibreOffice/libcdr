@@ -36,7 +36,6 @@
 #include <map>
 #include <libwpd/libwpd.h>
 #include <libwpd-stream/libwpd-stream.h>
-#include <libwpg/libwpg.h>
 
 namespace libcdr
 {
@@ -46,7 +45,7 @@ class CDRCollector;
 class CDRParser
 {
 public:
-  explicit CDRParser(WPXInputStream *input, libwpg::WPGPaintInterface *painter);
+  explicit CDRParser(WPXInputStream *input, CDRCollector *collector);
   virtual ~CDRParser();
   bool parseRecords(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
 
@@ -71,7 +70,7 @@ private:
 
   void _closePage();
   WPXInputStream *m_input;
-  libwpg::WPGPaintInterface *m_painter;
+  CDRCollector *m_collector;
 
   bool m_isListTypePage;
   bool m_isPageOpened;
