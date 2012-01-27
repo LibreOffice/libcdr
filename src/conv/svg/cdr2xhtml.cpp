@@ -41,7 +41,7 @@ namespace
 
 int printUsage()
 {
-  printf("Usage: vsd2xhtml [OPTION] <Corel Draw Document>\n");
+  printf("Usage: cdr2xhtml [OPTION] <Corel Draw Document>\n");
   printf("\n");
   printf("Options:\n");
   printf("--help                Shows this help message\n");
