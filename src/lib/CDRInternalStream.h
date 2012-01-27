@@ -43,7 +43,6 @@ class CDRInternalStream : public WPXInputStream
 {
 public:
   CDRInternalStream(WPXInputStream *input, unsigned long size, bool compressed=false);
-  CDRInternalStream(const unsigned char *buffer, unsigned long size);
   ~CDRInternalStream() {}
 
   bool isOLEStream()
