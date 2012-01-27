@@ -220,6 +220,8 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     ;
   else if (fourCC == "obox")
     readObox(input);
+  else if (fourCC == "flgs")
+    readFlags(input);
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
@@ -405,6 +407,14 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
     }
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
+}
+
+void libcdr::CDRParser::readFlags(WPXInputStream *input)
+{
+  unsigned char b0 = readU8(input);
+  unsigned char b1 = readU8(input);
+  unsigned char b2 = readU8(input);
+  unsigned char b3 = readU8(input);
 }
 
 
