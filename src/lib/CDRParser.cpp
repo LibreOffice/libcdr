@@ -220,7 +220,6 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   else if (fourCC == "obox")
     readObox(input);
   input->seek(recordStart + length, WPX_SEEK_CUR);
-  printf("Jumping to %.8x\n", recordStart + length);
 }
 
 void libcdr::CDRParser::readRectangle(WPXInputStream *input)
