@@ -16,11 +16,13 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LIBADD  = $(LIBCDR_LIBS) $(ZLI
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_DEPENDENCIES = @LIBCDR_WIN32_RESOURCE@
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LDFLAGS = $(version_info) -export-dynamic -no_undefined
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
+	CDRCollector.cpp \
 	CDRDocument.cpp \
 	CDRInternalStream.cpp \
 	CDRParser.cpp \
 	CDRSVGGenerator.cpp \
 	libcdr_utils.cpp \
+	CDRCollector.h \
 	CDRInternalStream.h \
 	CDRParser.h \
 	CDRSVGGenerator.h \
