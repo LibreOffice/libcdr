@@ -69,12 +69,9 @@ private:
   void readLoda(WPXInputStream *input);
   void readFlags(WPXInputStream *input);
 
-  void _closePage();
   WPXInputStream *m_input;
   CDRCollector *m_collector;
 
-  bool m_isListTypePage;
-  bool m_isPageOpened;
   unsigned m_version;
 
 };

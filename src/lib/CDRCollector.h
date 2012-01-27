@@ -41,14 +41,26 @@ public:
   CDRCollector(::libwpg::WPGPaintInterface *painter);
   virtual ~CDRCollector();
 
-  void startGraphics(WPXPropertyList &propList);
-  void endGraphics();
+  // collector functions
+  void collectPage();
+  void collectObject();
+  void collectOtherList();
+  void collectBbox(double x0, double y0, double x1, double y1);
 
 private:
   CDRCollector(const CDRCollector &);
   CDRCollector &operator=(const CDRCollector &);
 
+  // helper functions
+  void _startPage(double width, double height);
+  void _endPage();
+
   libwpg::WPGPaintInterface *m_painter;
+
+  bool m_isPageProperties;
+  bool m_isPageStarted;
+
+  double m_pageWidth, m_pageHeight;
 };
 
 } // namespace libcdr

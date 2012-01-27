@@ -46,13 +46,10 @@
 libcdr::CDRParser::CDRParser(WPXInputStream *input, libcdr::CDRCollector *collector)
   : m_input(input),
     m_collector(collector),
-    m_isListTypePage(false),
-    m_isPageOpened(false),
     m_version(0) {}
 
 libcdr::CDRParser::~CDRParser()
 {
-  _closePage();
 }
 
 bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengths, unsigned level)
@@ -67,15 +64,6 @@ bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengt
       return false;
   }
   return true;
-}
-
-void libcdr::CDRParser::_closePage()
-{
-  if (m_isPageOpened)
-  {
-    m_collector->endGraphics();
-    m_isPageOpened = false;
-  }
 }
 
 bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLengths, unsigned level)
@@ -105,13 +93,11 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       if (listType == "stlt")
         fourCC = listType;
       if (listType == "page")
-      {
-        _closePage();
-        m_isListTypePage = true;
-      }
+        m_collector->collectPage();
+      else if (listType == "obj ")
+        m_collector->collectObject();
       else
-        m_isListTypePage = false;
-
+        m_collector->collectOtherList();
     }
     CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, fourCC.cstr(), length, length));
 
@@ -227,8 +213,8 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
 
 void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 {
-  int X0 = readS32(input);
-  int Y0 = readS32(input);
+  int x0 = readS32(input);
+  int y0 = readS32(input);
   int R0 = readS32(input);
   int R1 = readS32(input);
   int R2 = readS32(input);
@@ -262,8 +248,8 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
 
 void libcdr::CDRParser::readText(WPXInputStream *input)
 {
-  int X0 = readS32(input);
-  int Y0 = readS32(input);
+  int x0 = readS32(input);
+  int y0 = readS32(input);
 }
 
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)
@@ -333,33 +319,25 @@ void libcdr::CDRParser::readLine(WPXInputStream *input)
 
 void libcdr::CDRParser::readBbox(WPXInputStream *input)
 {
-  int X0 = readS32(input);
-  int Y0 = readS32(input);
-  int X1 = readS32(input);
-  int Y1 = readS32(input);
-  double width = (double)(X0 < X1 ? X1 - X0 : X0 - X1) / 254000.0;
-  double height = (double)(Y0 < Y1 ? Y1 - Y0 : Y0 - Y1) / 254000.0;
-  CDR_DEBUG_MSG(("CDRParser::readBbox X0/Y0 = %i/%i, X1/Y1 = %i/%i, width/height = %f/%f\n", X0, Y0, X1, Y1, width, height));
-  if (X0 != X1 && Y0 != Y1 && m_isListTypePage)
-  {
-    WPXPropertyList propList;
-    propList.insert("svg:width", width);
-    propList.insert("svg:height", height);
-    m_collector->startGraphics(propList);
-    m_isPageOpened = true;
-  }
+  double x0 = (double)readS32(input) / 254000.0;
+  double y0 = (double)readS32(input) / 254000.0;
+  double x1 = (double)readS32(input) / 254000.0;
+  double y1 = (double)readS32(input) / 254000.0;
+
+  CDR_DEBUG_MSG(("CDRParser::readBbox x0/y0 = %f/%f, x1/y1 = %f/%f\n", x0, y0, x1, y1));
+  m_collector->collectBbox(x0, y0, x1, y1);
 }
 
 void libcdr::CDRParser::readObox(WPXInputStream *input)
 {
-  int X0 = readS32(input);
-  int Y0 = readS32(input);
-  int X1 = readS32(input);
-  int Y1 = readS32(input);
-  int X2 = readS32(input);
-  int Y2 = readS32(input);
-  int X3 = readS32(input);
-  int Y3 = readS32(input);
+  int x0 = readS32(input);
+  int y0 = readS32(input);
+  int x1 = readS32(input);
+  int y1 = readS32(input);
+  int x2 = readS32(input);
+  int y2 = readS32(input);
+  int x3 = readS32(input);
+  int y3 = readS32(input);
 }
 
 void libcdr::CDRParser::readLoda(WPXInputStream *input)
