@@ -5,7 +5,6 @@
 
 { perl ./createBuildNumber.pl \
 	src/lib/libcdr-build.stamp \
-	src/lib/libcdr-stream-build.stamp \
 	src/conv/raw/cdr2raw-build.stamp \
 	src/conv/svg/cdr2xhtml-build.stamp
 #Success
