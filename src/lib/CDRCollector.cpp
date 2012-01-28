@@ -100,11 +100,11 @@ void libcdr::CDRCollector::collectCubicBezier(double x1, double y1, double x2, d
   CDR_DEBUG_MSG(("CDRCollector::collectCubicBezier(%f, %f, %f, %f, %f, %f)\n", x1, y1, x2, y2, x, y));
   WPXPropertyList node;
   node.insert("svg:x1", x1);
-  node.insert("svg:y1", y1);
+  node.insert("svg:y1", m_pageHeight - y1);
   node.insert("svg:x2", x2);
-  node.insert("svg:y2", y2);
+  node.insert("svg:y2", m_pageHeight - y2);
   node.insert("svg:x", x);
-  node.insert("svg:y", y);
+  node.insert("svg:y", m_pageHeight - y);
   node.insert("libwpg:path-action", "C");
   m_currentPath.append(node);
 }
@@ -114,7 +114,7 @@ void libcdr::CDRCollector::collectMoveTo(double x, double y)
   CDR_DEBUG_MSG(("CDRCollector::collectMoveTo(%f, %f)\n", x, y));
   WPXPropertyList node;
   node.insert("svg:x", x);
-  node.insert("svg:y", y);
+  node.insert("svg:y", m_pageHeight - y);
   node.insert("libwpg:path-action", "M");
   m_currentPath.append(node);
 }
@@ -124,7 +124,7 @@ void libcdr::CDRCollector::collectLineTo(double x, double y)
   CDR_DEBUG_MSG(("CDRCollector::collectLineTo(%f, %f)\n", x, y));
   WPXPropertyList node;
   node.insert("svg:x", x);
-  node.insert("svg:y", y);
+  node.insert("svg:y", m_pageHeight - y);
   node.insert("libwpg:path-action", "L");
   m_currentPath.append(node);
 }
