@@ -28,13 +28,15 @@
  */
 
 #include "CDRCollector.h"
+#include "libcdr_utils.h"
 
 libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_painter(painter),
   m_isPageProperties(false),
   m_isPageStarted(false),
   m_pageWidth(0.0),
-  m_pageHeight(0.0)
+  m_pageHeight(0.0),
+  m_currentPath()
 {
 }
 
@@ -90,6 +92,56 @@ void libcdr::CDRCollector::collectBbox(double x0, double y0, double x1, double y
   {
     m_pageWidth = width;
     m_pageHeight = height;
+  }
+}
+
+void libcdr::CDRCollector::collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y)
+{
+  CDR_DEBUG_MSG(("CDRCollector::collectCubicBezier(%f, %f, %f, %f, %f, %f)\n", x1, y1, x2, y2, x, y));
+  WPXPropertyList node;
+  node.insert("svg:x1", x1);
+  node.insert("svg:y1", y1);
+  node.insert("svg:x2", x2);
+  node.insert("svg:y2", y2);
+  node.insert("svg:x", x);
+  node.insert("svg:y", y);
+  node.insert("libwpg:path-action", "C");
+  m_currentPath.append(node);
+}
+
+void libcdr::CDRCollector::collectMoveTo(double x, double y)
+{
+  CDR_DEBUG_MSG(("CDRCollector::collectMoveTo(%f, %f)\n", x, y));
+  WPXPropertyList node;
+  node.insert("svg:x", x);
+  node.insert("svg:y", y);
+  node.insert("libwpg:path-action", "M");
+  m_currentPath.append(node);
+}
+
+void libcdr::CDRCollector::collectLineTo(double x, double y)
+{
+  CDR_DEBUG_MSG(("CDRCollector::collectLineTo(%f, %f)\n", x, y));
+  WPXPropertyList node;
+  node.insert("svg:x", x);
+  node.insert("svg:y", y);
+  node.insert("libwpg:path-action", "L");
+  m_currentPath.append(node);
+}
+
+void libcdr::CDRCollector::collectFlushPath()
+{
+  CDR_DEBUG_MSG(("CDRCollector::collectFlushPath\n"));
+  if (m_currentPath.count())
+  {
+    WPXPropertyList style;
+    style.insert("draw:stroke", "solid");
+    style.insert("svg:stroke-width", 1, WPX_POINT);
+    style.insert("svg:stroke-color", "#000000");
+    style.insert("draw:fill", "none");
+    m_painter->setStyle(style, WPXPropertyListVector());
+    m_painter->drawPath(m_currentPath);
+    m_currentPath = WPXPropertyListVector();
   }
 }
 
