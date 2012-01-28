@@ -58,6 +58,7 @@ bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengt
   {
     return false;
   }
+  m_collector->collectLevel(level);
   while (!input->atEOS())
   {
     if (!parseRecord(input, blockLengths, level))
@@ -74,6 +75,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
   }
   try
   {
+    m_collector->collectLevel(level);
     while (!input->atEOS() && readU8(input) == 0)
     {
     }
@@ -288,7 +290,6 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
       tmpPoints.push_back(points[i]);
     }
   }
-  m_collector->collectFlushPath();
 }
 
 void libcdr::CDRParser::readText(WPXInputStream *input)
@@ -311,10 +312,11 @@ void libcdr::CDRParser::readTransform(WPXInputStream *input)
   input->seek(offset, WPX_SEEK_CUR);
   double v0 = readDouble(input);
   double v1 = readDouble(input);
-  double x0 = readDouble(input);
+  double x0 = readDouble(input) / 254000.0;
   double v3 = readDouble(input);
   double v4 = readDouble(input);
-  double y0 = readDouble(input);
+  double y0 = readDouble(input) / 254000.0;
+  m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
 }
 
 void libcdr::CDRParser::readFill(WPXInputStream *input)

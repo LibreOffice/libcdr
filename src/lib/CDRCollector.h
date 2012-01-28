@@ -31,6 +31,7 @@
 #define __CDRCOLLECTOR_H__
 
 #include <libwpg/libwpg.h>
+#include "CDRTypes.h"
 
 namespace libcdr
 {
@@ -50,7 +51,8 @@ public:
   void collectMoveTo(double x, double y);
   void collectLineTo(double x, double y);
   void collectClosePath();
-  void collectFlushPath();
+  void collectLevel(unsigned level);
+  void collectTransform(double v0, double v1, double x, double v3, double v4, double y);
 
 private:
   CDRCollector(const CDRCollector &);
@@ -59,15 +61,18 @@ private:
   // helper functions
   void _startPage(double width, double height);
   void _endPage();
+  void _flushCurrentPath();
 
   libwpg::WPGPaintInterface *m_painter;
 
   bool m_isPageProperties;
   bool m_isPageStarted;
 
+  double m_pageOffsetX, m_pageOffsetY;
   double m_pageWidth, m_pageHeight;
 
   WPXPropertyListVector m_currentPath;
+  CDRTransform m_currentTransform;
 };
 
 } // namespace libcdr

@@ -26,6 +26,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRInternalStream.h \
 	CDRParser.h \
 	CDRSVGGenerator.h \
+	CDRTypes.h \
 	libcdr_utils.h
 
 if OS_WIN32

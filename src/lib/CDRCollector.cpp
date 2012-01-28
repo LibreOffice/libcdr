@@ -34,9 +34,10 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_painter(painter),
   m_isPageProperties(false),
   m_isPageStarted(false),
-  m_pageWidth(0.0),
-  m_pageHeight(0.0),
-  m_currentPath()
+  m_pageOffsetX(0.0), m_pageOffsetY(0.0),
+  m_pageWidth(0.0), m_pageHeight(0.0),
+  m_currentPath(),
+  m_currentTransform()
 {
 }
 
@@ -92,6 +93,8 @@ void libcdr::CDRCollector::collectBbox(double x0, double y0, double x1, double y
   {
     m_pageWidth = width;
     m_pageHeight = height;
+    m_pageOffsetX = x0;
+    m_pageOffsetY = y1;
   }
 }
 
@@ -100,11 +103,11 @@ void libcdr::CDRCollector::collectCubicBezier(double x1, double y1, double x2, d
   CDR_DEBUG_MSG(("CDRCollector::collectCubicBezier(%f, %f, %f, %f, %f, %f)\n", x1, y1, x2, y2, x, y));
   WPXPropertyList node;
   node.insert("svg:x1", x1);
-  node.insert("svg:y1", m_pageHeight - y1);
+  node.insert("svg:y1", y1);
   node.insert("svg:x2", x2);
-  node.insert("svg:y2", m_pageHeight - y2);
+  node.insert("svg:y2", y2);
   node.insert("svg:x", x);
-  node.insert("svg:y", m_pageHeight - y);
+  node.insert("svg:y", y);
   node.insert("libwpg:path-action", "C");
   m_currentPath.append(node);
 }
@@ -114,7 +117,7 @@ void libcdr::CDRCollector::collectMoveTo(double x, double y)
   CDR_DEBUG_MSG(("CDRCollector::collectMoveTo(%f, %f)\n", x, y));
   WPXPropertyList node;
   node.insert("svg:x", x);
-  node.insert("svg:y", m_pageHeight - y);
+  node.insert("svg:y", y);
   node.insert("libwpg:path-action", "M");
   m_currentPath.append(node);
 }
@@ -124,12 +127,12 @@ void libcdr::CDRCollector::collectLineTo(double x, double y)
   CDR_DEBUG_MSG(("CDRCollector::collectLineTo(%f, %f)\n", x, y));
   WPXPropertyList node;
   node.insert("svg:x", x);
-  node.insert("svg:y", m_pageHeight - y);
+  node.insert("svg:y", y);
   node.insert("libwpg:path-action", "L");
   m_currentPath.append(node);
 }
 
-void libcdr::CDRCollector::collectFlushPath()
+void libcdr::CDRCollector::_flushCurrentPath()
 {
   CDR_DEBUG_MSG(("CDRCollector::collectFlushPath\n"));
   if (m_currentPath.count())
@@ -140,9 +143,63 @@ void libcdr::CDRCollector::collectFlushPath()
     style.insert("svg:stroke-color", "#000000");
     style.insert("draw:fill", "none");
     m_painter->setStyle(style, WPXPropertyListVector());
-    m_painter->drawPath(m_currentPath);
+    WPXPropertyListVector path;
+    WPXPropertyListVector::Iter i(m_currentPath);
+    for (i.rewind(); i.next();)
+    {
+      if (!i()["libwpg:path-action"])
+        continue;
+      WPXPropertyList node;
+      node.insert("libwpg:path-action", i()["libwpg:path-action"]->getStr());
+      if (i()["svg:x"] && i()["svg:y"])
+      {
+        double x = i()["svg:x"]->getDouble();
+        double y = i()["svg:y"]->getDouble();
+        m_currentTransform.apply(x,y);
+        y = m_pageHeight - y;
+        node.insert("svg:x", x);
+        node.insert("svg:y", y);
+      }
+      if (i()["svg:x1"] && i()["svg:y1"])
+      {
+        double x = i()["svg:x1"]->getDouble();
+        double y = i()["svg:y1"]->getDouble();
+        m_currentTransform.apply(x,y);
+        y = m_pageHeight - y;
+        node.insert("svg:x1", x);
+        node.insert("svg:y1", y);
+      }
+      if (i()["svg:x2"] && i()["svg:y2"])
+      {
+        double x = i()["svg:x2"]->getDouble();
+        double y = i()["svg:y2"]->getDouble();
+        m_currentTransform.apply(x,y);
+        y = m_pageHeight - y;
+        node.insert("svg:x2", x);
+        node.insert("svg:y2", y);
+      }
+      path.append(node);
+    }
+
+    m_painter->drawPath(path);
     m_currentPath = WPXPropertyListVector();
   }
+}
+
+void libcdr::CDRCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0)
+{
+  m_currentTransform.v0 = v0;
+  m_currentTransform.v1 = v1;
+  m_currentTransform.x0 = x0 - m_pageOffsetX;
+  m_currentTransform.v3 = v3;
+  m_currentTransform.v4 = v4;
+  m_currentTransform.y0 = y0 - m_pageOffsetY;
+}
+
+void libcdr::CDRCollector::collectLevel(unsigned level)
+{
+  if (level < 4)
+    _flushCurrentPath();
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
