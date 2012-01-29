@@ -215,12 +215,19 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
 
 void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 {
-  int x0 = readS32(input);
-  int y0 = readS32(input);
+  double x0 = (double)readS32(input) / 254000.0;
+  double y0 = (double)readS32(input) / 254000.0;
   int R0 = readS32(input);
   int R1 = readS32(input);
   int R2 = readS32(input);
   int R3 = readS32(input);
+  m_collector->collectMoveTo(0.0, 0.0);
+  m_collector->collectLineTo(0.0, y0);
+  m_collector->collectLineTo(x0, y0);
+  m_collector->collectLineTo(x0, 0.0);
+  m_collector->collectLineTo(0.0, 0.0);
+  m_collector->collectClosePath();
+  
 }
 
 void libcdr::CDRParser::readEllipse(WPXInputStream *input)

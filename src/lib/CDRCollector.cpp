@@ -133,6 +133,14 @@ void libcdr::CDRCollector::collectLineTo(double x, double y)
   m_currentPath.append(node);
 }
 
+void libcdr::CDRCollector::collectClosePath()
+{
+  CDR_DEBUG_MSG(("CDRCollector::collectClosePath\n"));
+  WPXPropertyList node;
+  node.insert("libwpg:path-action", "Z");
+  m_currentPath.append(node);
+}
+
 void libcdr::CDRCollector::_flushCurrentPath()
 {
   CDR_DEBUG_MSG(("CDRCollector::collectFlushPath\n"));
@@ -140,7 +148,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
   {
     WPXPropertyList style;
     style.insert("draw:stroke", "solid");
-    style.insert("svg:stroke-width", 1, WPX_POINT);
+    style.insert("svg:stroke-width", 1.0 / 72.0);
     style.insert("svg:stroke-color", "#000000");
     style.insert("draw:fill", "none");
     m_painter->setStyle(style, WPXPropertyListVector());
@@ -199,7 +207,7 @@ void libcdr::CDRCollector::collectTransform(double v0, double v1, double x0, dou
 
 void libcdr::CDRCollector::collectLevel(unsigned level)
 {
-  if (level < 4)
+  if (level <= 4)
     _flushCurrentPath();
 }
 
