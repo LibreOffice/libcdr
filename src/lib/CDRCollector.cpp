@@ -36,7 +36,8 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_isPageStarted(false),
   m_pageOffsetX(0.0), m_pageOffsetY(0.0),
   m_pageWidth(0.0), m_pageHeight(0.0),
-  m_currentFildId(0), m_currentOutlId(0.0),
+  m_currentFildId(0), m_currentOutlId(0),
+  m_currentObjectLevel(0), m_currentPageLevel(0),
   m_currentPath(), m_currentTransform(),
   m_fillStyles(), m_lineStyles()
 {
@@ -62,23 +63,25 @@ void libcdr::CDRCollector::_startPage(double width, double height)
 
 void libcdr::CDRCollector::_endPage()
 {
+  if (!m_isPageStarted)
+    return;
   if (m_painter)
     m_painter->endGraphics();
-}
-
-void libcdr::CDRCollector::collectPage()
-{
-  if (m_isPageStarted)
-    _endPage();
   m_isPageStarted = false;
-  m_isPageProperties = true;
 }
 
-void libcdr::CDRCollector::collectObject()
+void libcdr::CDRCollector::collectPage(unsigned level)
+{
+  m_isPageProperties = true;
+  m_currentPageLevel = level;
+}
+
+void libcdr::CDRCollector::collectObject(unsigned level)
 {
   m_isPageProperties = false;
   if (!m_isPageStarted)
     _startPage(m_pageWidth, m_pageHeight);
+  m_currentObjectLevel = level;
 }
 
 void libcdr::CDRCollector::collectOtherList()
@@ -207,8 +210,16 @@ void libcdr::CDRCollector::collectTransform(double v0, double v1, double x0, dou
 
 void libcdr::CDRCollector::collectLevel(unsigned level)
 {
-  if (level <= 4)
+  if (level <= m_currentObjectLevel)
+  {
     _flushCurrentPath();
+    m_currentObjectLevel = 0;
+  }
+  if (level <= m_currentPageLevel)
+  {
+    _endPage();
+    m_currentPageLevel = 0;
+  }
 }
 
 void libcdr::CDRCollector::collectFildId(unsigned id)

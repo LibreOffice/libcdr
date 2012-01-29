@@ -94,10 +94,6 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       listType = readFourCC(input);
       if (listType == "stlt")
         fourCC = listType;
-      if (listType == "page")
-        m_collector->collectPage();
-      else if (listType == "obj ")
-        m_collector->collectObject();
       else
         m_collector->collectOtherList();
     }
@@ -118,6 +114,10 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
         if (readU16(input) != 4)
           return false;
       }
+      else if (listType == "page")
+        m_collector->collectPage(level);
+      else if (listType == "obj ")
+        m_collector->collectObject(level);
 
       bool compressed = (listType == "cmpr" ? true : false);
       CDRInternalStream tmpStream(input, cmprsize, compressed);

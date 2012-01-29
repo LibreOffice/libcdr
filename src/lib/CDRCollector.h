@@ -44,8 +44,8 @@ public:
   virtual ~CDRCollector();
 
   // collector functions
-  void collectPage();
-  void collectObject();
+  void collectPage(unsigned level);
+  void collectObject(unsigned level);
   void collectOtherList();
   void collectBbox(double x0, double y0, double x1, double y1);
   void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y);
@@ -78,6 +78,7 @@ private:
   double m_pageOffsetX, m_pageOffsetY;
   double m_pageWidth, m_pageHeight;
   unsigned m_currentFildId, m_currentOutlId;
+  unsigned m_currentObjectLevel, m_currentPageLevel;
 
   WPXPropertyListVector m_currentPath;
   CDRTransform m_currentTransform;
