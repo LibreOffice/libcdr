@@ -199,11 +199,11 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   else if (fourCC == "vrsn")
     m_version = readU16(input);
   else if (fourCC == "trfd")
-    readTransform(input);
+    readTrfd(input);
   else if (fourCC == "outl")
-    readLine(input);
+    readOutl(input);
   else if (fourCC == "fild")
-    readFill(input);
+    readFild(input);
   else if (fourCC == "arrw")
     ;
   else if (fourCC == "obox")
@@ -302,7 +302,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 {
 }
 
-void libcdr::CDRParser::readTransform(WPXInputStream *input)
+void libcdr::CDRParser::readTrfd(WPXInputStream *input)
 {
   int offset = 32;
   if (m_version == 1300)
@@ -319,7 +319,7 @@ void libcdr::CDRParser::readTransform(WPXInputStream *input)
   m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
 }
 
-void libcdr::CDRParser::readFill(WPXInputStream *input)
+void libcdr::CDRParser::readFild(WPXInputStream *input)
 {
   unsigned fillId = readU32(input);
   unsigned short fillType = readU16(input);
@@ -336,7 +336,7 @@ void libcdr::CDRParser::readFill(WPXInputStream *input)
   }
 }
 
-void libcdr::CDRParser::readLine(WPXInputStream *input)
+void libcdr::CDRParser::readOutl(WPXInputStream *input)
 {
   unsigned lineId = readU32(input);
   if (m_version >= 1300)
@@ -431,6 +431,10 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
       else if (chunkType == 0x05)
         readBitmap(input);
     }
+    else if (argTypes[i] == 0x14)
+      m_collector->collectFildId(readU32(input));
+    else if (argTypes[i] == 0x0a)
+      m_collector->collectOutlId(readU32(input));
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }

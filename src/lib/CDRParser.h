@@ -61,9 +61,9 @@ private:
   void readLineAndCurve(WPXInputStream *input);
   void readText(WPXInputStream *input);
   void readBitmap(WPXInputStream *input);
-  void readTransform(WPXInputStream *input);
-  void readFill(WPXInputStream *input);
-  void readLine(WPXInputStream *input);
+  void readTrfd(WPXInputStream *input);
+  void readFild(WPXInputStream *input);
+  void readOutl(WPXInputStream *input);
   void readBbox(WPXInputStream *input);
   void readObox(WPXInputStream *input);
   void readLoda(WPXInputStream *input);

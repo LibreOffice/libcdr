@@ -36,6 +36,7 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_isPageStarted(false),
   m_pageOffsetX(0.0), m_pageOffsetY(0.0),
   m_pageWidth(0.0), m_pageHeight(0.0),
+  m_currentFildId(0), m_currentOutlId(0.0),
   m_currentPath(),
   m_currentTransform()
 {
@@ -200,6 +201,24 @@ void libcdr::CDRCollector::collectLevel(unsigned level)
 {
   if (level < 4)
     _flushCurrentPath();
+}
+
+void libcdr::CDRCollector::collectFildId(unsigned id)
+{
+  m_currentFildId = id;
+}
+
+void libcdr::CDRCollector::collectOutlId(unsigned id)
+{
+  m_currentOutlId = id;
+}
+
+void libcdr::CDRCollector::collectFild()
+{
+}
+
+void libcdr::CDRCollector::collectOutl()
+{
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

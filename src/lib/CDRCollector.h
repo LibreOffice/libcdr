@@ -53,6 +53,10 @@ public:
   void collectClosePath();
   void collectLevel(unsigned level);
   void collectTransform(double v0, double v1, double x, double v3, double v4, double y);
+  void collectFildId(unsigned id);
+  void collectOutlId(unsigned id);
+  void collectFild();
+  void collectOutl();
 
 private:
   CDRCollector(const CDRCollector &);
@@ -70,6 +74,7 @@ private:
 
   double m_pageOffsetX, m_pageOffsetY;
   double m_pageWidth, m_pageHeight;
+  unsigned m_currentFildId, m_currentOutlId;
 
   WPXPropertyListVector m_currentPath;
   CDRTransform m_currentTransform;
