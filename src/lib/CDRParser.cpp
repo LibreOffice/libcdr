@@ -334,6 +334,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
     input->seek(6, WPX_SEEK_CUR);
     color = readU32(input);
   }
+  m_collector->collectFild(fillId, fillType, colorModel, color, 0);
 }
 
 void libcdr::CDRParser::readOutl(WPXInputStream *input)
@@ -362,6 +363,7 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input)
   input->seek(fixPosition + 22, WPX_SEEK_SET);
   unsigned startMarkerId = readU32(input);
   unsigned endMarkerId = readU32(input);
+  m_collector->collectOutl(lineId, lineType, capsType, joinType, lineWidth, colorModel, color, dashArray, startMarkerId, endMarkerId);
 }
 
 void libcdr::CDRParser::readBbox(WPXInputStream *input)

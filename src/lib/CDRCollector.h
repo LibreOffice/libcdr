@@ -30,6 +30,8 @@
 #ifndef __CDRCOLLECTOR_H__
 #define __CDRCOLLECTOR_H__
 
+#include <vector>
+#include <map>
 #include <libwpg/libwpg.h>
 #include "CDRTypes.h"
 
@@ -55,8 +57,10 @@ public:
   void collectTransform(double v0, double v1, double x, double v3, double v4, double y);
   void collectFildId(unsigned id);
   void collectOutlId(unsigned id);
-  void collectFild();
-  void collectOutl();
+  void collectFild(unsigned id, unsigned short fillType, unsigned short colorModel, unsigned color1, unsigned color2);
+  void collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType,
+                   double lineWidth, unsigned short colorModel, unsigned color,
+                   const std::vector<unsigned short> &dashArray, unsigned startMarkerId, unsigned endMarkerId);
 
 private:
   CDRCollector(const CDRCollector &);
@@ -78,6 +82,8 @@ private:
 
   WPXPropertyListVector m_currentPath;
   CDRTransform m_currentTransform;
+  std::map<unsigned, CDRFillStyle> m_fillStyles;
+  std::map<unsigned, CDRLineStyle> m_lineStyles;
 };
 
 } // namespace libcdr

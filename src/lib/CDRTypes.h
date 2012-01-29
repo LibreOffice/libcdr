@@ -30,6 +30,8 @@
 #ifndef CDRTYPES_H
 #define CDRTYPES_H
 
+#include <vector>
+
 namespace libcdr
 {
 struct CDRTransform
@@ -48,7 +50,40 @@ struct CDRTransform
     x = v0*x + v1*y+x0;
     y = v3*x + v4*y+y0;
   }
+};
 
+struct CDRFillStyle
+{
+  unsigned short fillType;
+  unsigned short colorModel;
+  unsigned color1, color2;
+  CDRFillStyle()
+    : fillType(0), colorModel(0), color1(0), color2(0) {}
+  CDRFillStyle(unsigned short ft, unsigned short cm, unsigned c1, unsigned c2)
+    : fillType(ft), colorModel(cm), color1(c1), color2(c2) {}
+};
+
+struct CDRLineStyle
+{
+  unsigned short lineType;
+  unsigned short capsType;
+  unsigned short joinType;
+  double lineWidth;
+  unsigned short colorModel;
+  unsigned color;
+  std::vector<unsigned short> dashArray;
+  unsigned startMarkerId;
+  unsigned endMarkerId;
+  CDRLineStyle()
+    : lineType(0), capsType(0), joinType(0),
+      lineWidth(0.0), colorModel(0), color(0),
+      dashArray(), startMarkerId(0), endMarkerId(0) {}
+  CDRLineStyle(unsigned short lt, unsigned short ct, unsigned short jt,
+               double lw, unsigned short cm, unsigned c,
+               const std::vector<unsigned short> &da, unsigned smi, unsigned emi)
+    : lineType(lt), capsType(ct), joinType(jt),
+      lineWidth(lw), colorModel(cm), color(c),
+      dashArray(da), startMarkerId(smi), endMarkerId(emi) {}
 };
 
 } // namespace libcdr

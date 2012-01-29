@@ -37,8 +37,8 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_pageOffsetX(0.0), m_pageOffsetY(0.0),
   m_pageWidth(0.0), m_pageHeight(0.0),
   m_currentFildId(0), m_currentOutlId(0.0),
-  m_currentPath(),
-  m_currentTransform()
+  m_currentPath(), m_currentTransform(),
+  m_fillStyles(), m_lineStyles()
 {
 }
 
@@ -213,12 +213,16 @@ void libcdr::CDRCollector::collectOutlId(unsigned id)
   m_currentOutlId = id;
 }
 
-void libcdr::CDRCollector::collectFild()
+void libcdr::CDRCollector::collectFild(unsigned id, unsigned short fillType, unsigned short colorModel, unsigned color1, unsigned color2)
 {
+  m_fillStyles[id] = CDRFillStyle(fillType, colorModel, color1, color2);
 }
 
-void libcdr::CDRCollector::collectOutl()
+void libcdr::CDRCollector::collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType,
+                                       double lineWidth, unsigned short colorModel, unsigned color,
+                                       const std::vector<unsigned short> &dashArray, unsigned startMarkerId, unsigned endMarkerId)
 {
+  m_lineStyles[id] = CDRLineStyle(lineType, capsType, joinType, lineWidth, colorModel, color, dashArray, startMarkerId, endMarkerId);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
