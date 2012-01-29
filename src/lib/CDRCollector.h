@@ -30,7 +30,6 @@
 #ifndef __CDRCOLLECTOR_H__
 #define __CDRCOLLECTOR_H__
 
-#include <vector>
 #include <map>
 #include <libwpg/libwpg.h>
 #include "CDRTypes.h"
