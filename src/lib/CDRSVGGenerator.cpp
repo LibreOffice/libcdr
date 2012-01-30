@@ -408,6 +408,12 @@ void libcdr::CDRSVGGenerator::drawPath(const ::WPXPropertyListVector &path)
       m_outputSink << doubleToString(72*(propList["svg:x2"]->getDouble())) << "," << doubleToString(72*(propList["svg:y2"]->getDouble())) << " ";
       m_outputSink << doubleToString(72*(propList["svg:x"]->getDouble())) << "," << doubleToString(72*(propList["svg:y"]->getDouble()));
     }
+    else if (propList["libwpg:path-action"] && propList["libwpg:path-action"]->getStr() == "Q")
+    {
+      m_outputSink << "\nQ";
+      m_outputSink << doubleToString(72*(propList["svg:x1"]->getDouble())) << "," << doubleToString(72*(propList["svg:y1"]->getDouble())) << " ";
+      m_outputSink << doubleToString(72*(propList["svg:x"]->getDouble())) << "," << doubleToString(72*(propList["svg:y"]->getDouble()));
+    }
     else if (propList["libwpg:path-action"] && propList["libwpg:path-action"]->getStr() == "A")
     {
       m_outputSink << "\nA";
@@ -504,8 +510,12 @@ void libcdr::CDRSVGGenerator::writeStyle(bool /* isClosed */)
   m_outputSink << "style=\"";
 
   if (m_style["svg:stroke-width"])
+  {
+    double width = m_style["svg:stroke-width"]->getDouble();
+    if (width == 0.0 && m_style["draw:stroke"] && m_style["draw:stroke"]->getStr() != "none")
+      width = 1.0 / 72.0;
     m_outputSink << "stroke-width: " << doubleToString(72*m_style["svg:stroke-width"]->getDouble()) << "; ";
-
+  }
   if ((m_style["draw:stroke"] && m_style["draw:stroke"]->getStr() != "none"))
   {
     if (m_style["svg:stroke-color"])

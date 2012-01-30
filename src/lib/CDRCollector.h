@@ -49,6 +49,7 @@ public:
   void collectOtherList();
   void collectBbox(double x0, double y0, double x1, double y1);
   void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y);
+  void collectQuadraticBezier(double x1, double y1, double x, double y);
   void collectMoveTo(double x, double y);
   void collectLineTo(double x, double y);
   void collectClosePath();

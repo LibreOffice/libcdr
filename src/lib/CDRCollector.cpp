@@ -118,6 +118,18 @@ void libcdr::CDRCollector::collectCubicBezier(double x1, double y1, double x2, d
   m_currentPath.append(node);
 }
 
+void libcdr::CDRCollector::collectQuadraticBezier(double x1, double y1, double x, double y)
+{
+  CDR_DEBUG_MSG(("CDRCollector::collectQuadraticBezier(%f, %f, %f, %f)\n", x1, y1, x, y));
+  WPXPropertyList node;
+  node.insert("svg:x1", x1);
+  node.insert("svg:y1", y1);
+  node.insert("svg:x", x);
+  node.insert("svg:y", y);
+  node.insert("libwpg:path-action", "Q");
+  m_currentPath.append(node);
+}
+
 void libcdr::CDRCollector::collectMoveTo(double x, double y)
 {
   CDR_DEBUG_MSG(("CDRCollector::collectMoveTo(%f, %f)\n", x, y));
@@ -198,21 +210,21 @@ void libcdr::CDRCollector::_flushCurrentPath()
       }
       if (i()["svg:x1"] && i()["svg:y1"])
       {
-        double x = i()["svg:x1"]->getDouble();
-        double y = i()["svg:y1"]->getDouble();
-        m_currentTransform.apply(x,y);
-        y = m_pageHeight - y;
-        node.insert("svg:x1", x);
-        node.insert("svg:y1", y);
+        double x1 = i()["svg:x1"]->getDouble();
+        double y1 = i()["svg:y1"]->getDouble();
+        m_currentTransform.apply(x1,y1);
+        y1 = m_pageHeight - y1;
+        node.insert("svg:x1", x1);
+        node.insert("svg:y1", y1);
       }
       if (i()["svg:x2"] && i()["svg:y2"])
       {
-        double x = i()["svg:x2"]->getDouble();
-        double y = i()["svg:y2"]->getDouble();
-        m_currentTransform.apply(x,y);
-        y = m_pageHeight - y;
-        node.insert("svg:x2", x);
-        node.insert("svg:y2", y);
+        double x2 = i()["svg:x2"]->getDouble();
+        double y2 = i()["svg:y2"]->getDouble();
+        m_currentTransform.apply(x2,y2);
+        y2 = m_pageHeight - y2;
+        node.insert("svg:x2", x2);
+        node.insert("svg:y2", y2);
       }
       node.insert("libwpg:path-action", i()["libwpg:path-action"]->getStr());
       path.append(node);

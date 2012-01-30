@@ -217,17 +217,42 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 {
   double x0 = (double)readS32(input) / 254000.0;
   double y0 = (double)readS32(input) / 254000.0;
-  int R0 = readS32(input);
-  int R1 = readS32(input);
-  int R2 = readS32(input);
-  int R3 = readS32(input);
-  m_collector->collectMoveTo(0.0, 0.0);
-  m_collector->collectLineTo(0.0, y0);
-  m_collector->collectLineTo(x0, y0);
-  m_collector->collectLineTo(x0, 0.0);
-  m_collector->collectLineTo(0.0, 0.0);
-  m_collector->collectClosePath();
-
+  double r0 = (double)readU32(input) / 254000.0;
+  double r1 = (double)readU32(input) / 254000.0;
+  double r2 = (double)readU32(input) / 254000.0;
+  double r3 = (double)readU32(input) / 254000.0;
+  if (r0 > 0.0)
+    m_collector->collectMoveTo(0.0, -r0);
+  else
+    m_collector->collectMoveTo(0.0, 0.0);
+  if (r1 > 0.0)
+  {
+    m_collector->collectLineTo(0.0, y0+r1);
+    m_collector->collectQuadraticBezier(0.0, y0, r1, y0);
+  }
+  else
+    m_collector->collectLineTo(0.0, y0);
+  if (r2 > 0.0)
+  {
+    m_collector->collectLineTo(x0-r2, y0);
+    m_collector->collectQuadraticBezier(x0, y0, x0, y0+r2);
+  }
+  else
+    m_collector->collectLineTo(x0, y0);
+  if (r3 > 0.0)
+  {
+    m_collector->collectLineTo(x0, -r3);
+    m_collector->collectQuadraticBezier(x0, 0.0, x0-r3, 0.0);
+  }
+  else
+    m_collector->collectLineTo(x0, 0.0);
+  if (r0 > 0.0)
+  {
+    m_collector->collectLineTo(r0, 0.0);
+    m_collector->collectQuadraticBezier(0.0, 0.0, 0.0, -r0);
+  }
+  else
+    m_collector->collectLineTo(0.0, 0.0);
 }
 
 void libcdr::CDRParser::readEllipse(WPXInputStream *input)
