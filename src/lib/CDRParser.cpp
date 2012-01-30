@@ -206,10 +206,10 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     readFild(input);
   else if (fourCC == "arrw")
     ;
-  else if (fourCC == "obox")
-    readObox(input);
-  else if (fourCC == "flgs")
-    readFlags(input);
+  /*  else if (fourCC == "obox")
+      readObox(input);
+    else if (fourCC == "flgs")
+      readFlags(input); */
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
@@ -257,11 +257,49 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 
 void libcdr::CDRParser::readEllipse(WPXInputStream *input)
 {
-  int CX = readS32(input);
-  int CY = readS32(input);
-  int angle1 = readS32(input);
-  int angle2 = readS32(input);
-  int rotation = readS32(input);
+  CDR_DEBUG_MSG(("CDRParser::readEllipse\n"));
+
+  double x = (double)readS32(input) / 254000.0;
+  double y = (double)readS32(input) / 254000.0;
+  double angle1 = M_PI * (double)readS32(input) / 180000000.0;
+  double angle2 = M_PI * (double)readS32(input) / 180000000.0;
+  double rotation = M_PI * (double)readS32(input) / 180000000.0;
+
+  double cx = x/2.0;
+  double cy = y/2.0;
+  double rx = fabs(cx);
+  double ry = fabs(cy);
+
+  if (angle1 != angle2)
+  {
+    if (angle2 < angle1)
+	 angle2 += 2*M_PI;
+    double x0 = cx + rx*cos(rotation)*cos(angle1) - ry*sin(rotation)*sin(angle1);
+    double y0 = cy - rx*sin(rotation)*cos(angle1) - ry*cos(rotation)*sin(angle1);
+
+    double x1 = cx + rx*cos(rotation)*cos(angle2) - ry*sin(rotation)*sin(angle2);
+    double y1 = cy - rx*sin(-rotation)*cos(angle2) - ry*cos(rotation)*sin(angle2);
+
+    bool largeArc = (angle2 - angle1 > M_PI || angle2 - angle1 < -M_PI);
+
+    m_collector->collectMoveTo(x0, y0);
+    m_collector->collectArcTo(rx, ry, rotation, largeArc, true, x1, y1);
+	m_collector->collectLineTo(cx, cy);
+	m_collector->collectLineTo(x0, y0);
+	m_collector->collectClosePath();
+  }
+  else
+  {
+    double x0 = cx + rx*cos(rotation);
+	double y0 = cy - rx*sin(rotation);
+	
+	double x1 = cx - ry*sin(rotation);
+	double y1 = cx - ry*cos(rotation);
+	
+	m_collector->collectMoveTo(x0, y0);
+	m_collector->collectArcTo(rx, ry, rotation, false, true, x1, y1);
+	m_collector->collectArcTo(rx, ry, rotation, true, true, x0, y0);
+  }
 }
 
 void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
@@ -284,9 +322,10 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
   for (unsigned i=0; i<pointNum; i++)
   {
     const unsigned char &type = pointTypes[i];
-    bool isClosed = false;
     if (type & 0x08)
-      isClosed = true;
+	{
+      // closed
+	}
     if (!(type & 0x10) && !(type & 0x20))
     {
       // cont angle
@@ -324,11 +363,13 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
   }
 }
 
+/*
 void libcdr::CDRParser::readText(WPXInputStream *input)
 {
   int x0 = readS32(input);
   int y0 = readS32(input);
 }
+*/
 
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 {
@@ -409,6 +450,7 @@ void libcdr::CDRParser::readBbox(WPXInputStream *input)
   m_collector->collectBbox(x0, y0, x1, y1);
 }
 
+/*
 void libcdr::CDRParser::readObox(WPXInputStream *input)
 {
   int x0 = readS32(input);
@@ -420,6 +462,7 @@ void libcdr::CDRParser::readObox(WPXInputStream *input)
   int x3 = readS32(input);
   int y3 = readS32(input);
 }
+*/
 
 void libcdr::CDRParser::readLoda(WPXInputStream *input)
 {
@@ -460,8 +503,8 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
         readEllipse(input);
       else if (chunkType == 0x03) // Line and curve
         readLineAndCurve(input);
-      else if (chunkType == 0x04) // Text
-        readText(input);
+      /*      else if (chunkType == 0x04) // Text
+              readText(input); */
       else if (chunkType == 0x05)
         readBitmap(input);
     }
@@ -473,6 +516,7 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
 
+/*
 void libcdr::CDRParser::readFlags(WPXInputStream *input)
 {
   unsigned char b0 = readU8(input);
@@ -480,6 +524,7 @@ void libcdr::CDRParser::readFlags(WPXInputStream *input)
   unsigned char b2 = readU8(input);
   unsigned char b3 = readU8(input);
 }
+*/
 
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

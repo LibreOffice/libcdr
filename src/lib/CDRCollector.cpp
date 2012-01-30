@@ -27,6 +27,7 @@
  * instead of those above.
  */
 
+#include <math.h>
 #include "CDRCollector.h"
 #include "libcdr_utils.h"
 
@@ -150,6 +151,21 @@ void libcdr::CDRCollector::collectLineTo(double x, double y)
   m_currentPath.append(node);
 }
 
+void libcdr::CDRCollector::collectArcTo(double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y)
+{
+  CDR_DEBUG_MSG(("CDRCollector::collectMoveTo(%f, %f)\n", x, y));
+  WPXPropertyList node;
+  node.insert("svg:rx", rx);
+  node.insert("svg:ry", ry);
+  node.insert("libwpg:rotate", rotation * 180 / M_PI, WPX_GENERIC);
+  node.insert("libwpg:large-arc", largeArc);
+  node.insert("libwpg:sweep", sweep);
+  node.insert("svg:x", x);
+  node.insert("svg:y", y);
+  node.insert("libwpg:path-action", "A");
+  m_currentPath.append(node);
+}
+
 void libcdr::CDRCollector::collectClosePath()
 {
   CDR_DEBUG_MSG(("CDRCollector::collectClosePath\n"));
@@ -185,7 +201,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
       {
         x = i()["svg:x"]->getDouble();
         y = i()["svg:y"]->getDouble();
-        m_currentTransform.apply(x,y);
+        m_currentTransform.applyToPoint(x,y);
         y = m_pageHeight - y;
 
         if (firstPoint)
@@ -194,7 +210,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
           initialY = y;
           firstPoint = false;
         }
-        else if (i()["libwpg:path-action"] && i()["libwpg:path-action"]->getStr() == "M")
+        else if (i()["libwpg:path-action"]->getStr() == "M")
         {
           if (initialX == previousX && initialY == previousY)
           {
@@ -212,7 +228,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
       {
         double x1 = i()["svg:x1"]->getDouble();
         double y1 = i()["svg:y1"]->getDouble();
-        m_currentTransform.apply(x1,y1);
+        m_currentTransform.applyToPoint(x1,y1);
         y1 = m_pageHeight - y1;
         node.insert("svg:x1", x1);
         node.insert("svg:y1", y1);
@@ -221,11 +237,30 @@ void libcdr::CDRCollector::_flushCurrentPath()
       {
         double x2 = i()["svg:x2"]->getDouble();
         double y2 = i()["svg:y2"]->getDouble();
-        m_currentTransform.apply(x2,y2);
+        m_currentTransform.applyToPoint(x2,y2);
         y2 = m_pageHeight - y2;
         node.insert("svg:x2", x2);
         node.insert("svg:y2", y2);
       }
+      if (i()["svg:cx"] && i()["svg:cy"])
+      {
+        double cx = i()["svg:cx"]->getDouble();
+        double cy = i()["svg:cy"]->getDouble();
+        m_currentTransform.applyToPoint(cx,cy);
+        cy = m_pageHeight - cy;
+        node.insert("svg:cx", cx);
+        node.insert("svg:cy", cy);
+      }
+      if (i()["svg:rx"])
+        node.insert("svg:rx", i()["svg:rx"]->getDouble());
+      if (i()["svg:ry"])
+        node.insert("svg:ry", i()["svg:ry"]->getDouble());
+      if (i()["libwpg:rotate"])
+        node.insert("libwpg:rotate", i()["libwpg:rotate"]->getDouble(), WPX_GENERIC);
+      if (i()["libwpg:large-arc"])
+        node.insert("libwpg:large-arc", i()["libwpg:large-arc"]->getInt());
+      if (i()["libwpg:sweep"])
+        node.insert("libwpg:sweep", i()["libwpg:sweep"]->getInt());
       node.insert("libwpg:path-action", i()["libwpg:path-action"]->getStr());
       path.append(node);
       node.clear();

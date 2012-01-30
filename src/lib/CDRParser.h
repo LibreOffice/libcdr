@@ -59,15 +59,15 @@ private:
   void readRectangle(WPXInputStream *input);
   void readEllipse(WPXInputStream *input);
   void readLineAndCurve(WPXInputStream *input);
-  void readText(WPXInputStream *input);
+//  void readText(WPXInputStream *input);
   void readBitmap(WPXInputStream *input);
   void readTrfd(WPXInputStream *input);
   void readFild(WPXInputStream *input);
   void readOutl(WPXInputStream *input);
   void readBbox(WPXInputStream *input);
-  void readObox(WPXInputStream *input);
+//  void readObox(WPXInputStream *input);
   void readLoda(WPXInputStream *input);
-  void readFlags(WPXInputStream *input);
+//  void readFlags(WPXInputStream *input);
 
   WPXInputStream *m_input;
   CDRCollector *m_collector;

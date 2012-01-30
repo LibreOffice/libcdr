@@ -45,11 +45,9 @@ struct CDRTransform
   CDRTransform()
     : v0(0.0), v1(0.0), x0(0.0),
       v3(0.0), v4(0.0), y0(0.0) {}
-  void apply(double &x, double &y) const
-  {
-    x = v0*x + v1*y+x0;
-    y = v3*x + v4*y+y0;
-  }
+  void applyToPoint(double &x, double &y) const;
+  void applyToAngle(double &radians) const;
+  void applyToLength(double &width, double &height) const;
 };
 
 struct CDRFillStyle

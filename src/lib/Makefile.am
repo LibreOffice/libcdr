@@ -21,6 +21,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRInternalStream.cpp \
 	CDRParser.cpp \
 	CDRSVGGenerator.cpp \
+	CDRTypes.cpp \
 	libcdr_utils.cpp \
 	CDRCollector.h \
 	CDRInternalStream.h \

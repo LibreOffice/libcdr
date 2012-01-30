@@ -52,6 +52,7 @@ public:
   void collectQuadraticBezier(double x1, double y1, double x, double y);
   void collectMoveTo(double x, double y);
   void collectLineTo(double x, double y);
+  void collectArcTo(double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y);
   void collectClosePath();
   void collectLevel(unsigned level);
   void collectTransform(double v0, double v1, double x, double v3, double v4, double y);
