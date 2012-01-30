@@ -82,6 +82,8 @@ void libcdr::CDRCollector::collectObject(unsigned level)
   if (!m_isPageStarted)
     _startPage(m_pageWidth, m_pageHeight);
   m_currentObjectLevel = level;
+  m_currentFildId = 0;
+  m_currentOutlId = 0;
 }
 
 void libcdr::CDRCollector::collectOtherList()
@@ -149,26 +151,48 @@ void libcdr::CDRCollector::_flushCurrentPath()
   CDR_DEBUG_MSG(("CDRCollector::collectFlushPath\n"));
   if (m_currentPath.count())
   {
+    bool firstPoint = true;
+    double initialX = 0.0;
+    double initialY = 0.0;
+    double previousX = 0.0;
+    double previousY = 0.0;
+    double x = 0.0;
+    double y = 0.0;
     WPXPropertyList style;
-    style.insert("draw:stroke", "solid");
-    style.insert("svg:stroke-width", 1.0 / 72.0);
-    style.insert("svg:stroke-color", "#000000");
-    style.insert("draw:fill", "none");
+    _fillProperties(style);
+    _lineProperties(style);
     m_painter->setStyle(style, WPXPropertyListVector());
+    WPXPropertyList node;
     WPXPropertyListVector path;
     WPXPropertyListVector::Iter i(m_currentPath);
     for (i.rewind(); i.next();)
     {
       if (!i()["libwpg:path-action"])
         continue;
-      WPXPropertyList node;
-      node.insert("libwpg:path-action", i()["libwpg:path-action"]->getStr());
       if (i()["svg:x"] && i()["svg:y"])
       {
-        double x = i()["svg:x"]->getDouble();
-        double y = i()["svg:y"]->getDouble();
+        x = i()["svg:x"]->getDouble();
+        y = i()["svg:y"]->getDouble();
         m_currentTransform.apply(x,y);
         y = m_pageHeight - y;
+
+        if (firstPoint)
+        {
+          initialX = x;
+          initialY = y;
+          firstPoint = false;
+        }
+        else if (i()["libwpg:path-action"] && i()["libwpg:path-action"]->getStr() == "M")
+        {
+          if (initialX == previousX && initialY == previousY)
+          {
+            node.insert("libwpg:path-action", "Z");
+            path.append(node);
+            node.clear();
+          }
+          initialX = x;
+          initialY = y;
+        }
         node.insert("svg:x", x);
         node.insert("svg:y", y);
       }
@@ -190,6 +214,16 @@ void libcdr::CDRCollector::_flushCurrentPath()
         node.insert("svg:x2", x);
         node.insert("svg:y2", y);
       }
+      node.insert("libwpg:path-action", i()["libwpg:path-action"]->getStr());
+      path.append(node);
+      node.clear();
+      previousX = x;
+      previousY = y;
+
+    }
+    if (initialX == previousX && initialY == previousY)
+    {
+      node.insert("libwpg:path-action", "Z");
       path.append(node);
     }
 
@@ -242,6 +276,98 @@ void libcdr::CDRCollector::collectOutl(unsigned id, unsigned short lineType, uns
                                        const std::vector<unsigned short> &dashArray, unsigned startMarkerId, unsigned endMarkerId)
 {
   m_lineStyles[id] = CDRLineStyle(lineType, capsType, joinType, lineWidth, colorModel, color, dashArray, startMarkerId, endMarkerId);
+}
+
+unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned colorValue)
+{
+  unsigned char red = 0;
+  unsigned char green = 0;
+  unsigned char blue = 0;
+  unsigned char col0 = colorValue & 0xff;
+  unsigned char col1 = (colorValue & 0xff00) >> 8;
+  unsigned char col2 = (colorValue & 0xff0000) >> 16;
+  unsigned char col3 = (colorValue & 0xff000000) >> 24;
+  if (colorModel == 0x02) // CMYK100
+  {
+    red = (100 - col0)*(100 - col3)*255/10000;
+    green = (100 - col1)*(100 - col3)*255/10000;
+    blue = (100 - col2)*(100 - col3)*255/10000;
+  }
+  else if ((colorModel == 0x03) || (colorModel == 0x11)) // CMYK255
+  {
+    red = (255 - col0)*(255 - col3)/255;
+    green = (255 - col1)*(255 - col3)/255;
+    blue = (255 - col2)*(255 - col3)/255;
+  }
+  else if (colorModel == 0x04) // CMY
+  {
+    red = 255 - col0;
+    green = 255 - col1;
+    blue = 255 - col2;
+  }
+  else if (colorModel == 0x05) // RGB
+  {
+    red = col2;
+    green = col1;
+    blue = col0;
+  }
+  else if (colorModel == 0x09) // Grayscale
+  {
+    red = col0;
+    green = col0;
+    blue = col0;
+  }
+  return (unsigned)((red << 16) | (green << 8) | blue);
+}
+
+WPXString libcdr::CDRCollector::_getRGBColorString(unsigned short colorModel, unsigned colorValue)
+{
+  WPXString tempString;
+  tempString.sprintf("#%.6x", _getRGBColor(colorModel, colorValue));
+  return tempString;
+}
+
+void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList)
+{
+  if (m_currentFildId == 0)
+    propList.insert("draw:fill", "none");
+  else
+  {
+    std::map<unsigned, CDRFillStyle>::iterator iter = m_fillStyles.find(m_currentFildId);
+    if ((iter == m_fillStyles.end()) || !(iter->second.fillType))
+      propList.insert("draw:fill", "none");
+    else
+    {
+      propList.insert("draw:fill", "solid");
+      propList.insert("draw:fill-color", _getRGBColorString(iter->second.colorModel, iter->second.color1));
+    }
+  }
+}
+
+void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
+{
+  if (m_currentOutlId == 0)
+  {
+    propList.insert("draw:stroke", "solid");
+    propList.insert("svg:stroke-width", 0.0);
+    propList.insert("svg:stroke-color", "#000000");
+  }
+  else
+  {
+    std::map<unsigned, CDRLineStyle>::iterator iter = m_lineStyles.find(m_currentOutlId);
+    if (iter == m_lineStyles.end() || !(iter->second.lineType))
+    {
+      propList.insert("draw:stroke", "solid");
+      propList.insert("svg:stroke-width", 0.0);
+      propList.insert("svg:stroke-color", "#000000");
+    }
+    else
+    {
+      propList.insert("draw:stroke", "solid");
+      propList.insert("svg:stroke-width", iter->second.lineWidth);
+      propList.insert("svg:stroke-color", _getRGBColorString(iter->second.colorModel, iter->second.color));
+    }
+  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

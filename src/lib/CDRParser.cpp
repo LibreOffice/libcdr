@@ -227,7 +227,7 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
   m_collector->collectLineTo(x0, 0.0);
   m_collector->collectLineTo(0.0, 0.0);
   m_collector->collectClosePath();
-  
+
 }
 
 void libcdr::CDRParser::readEllipse(WPXInputStream *input)
