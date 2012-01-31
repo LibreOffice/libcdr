@@ -485,17 +485,7 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
   input->seek(startPosition+startOfArgTypes, WPX_SEEK_SET);
   while (i>0)
     argTypes[--i] = readU32(input);
-#if 0
-  printf("loda %lu, %u, %u, %u, %u, %u, %lu, %lu\n", startPosition, chunkLength, numOfArgs, startOfArgs, startOfArgTypes, chunkType, argOffsets.size(), argTypes.size());
-  printf("--> argOffsets --> ");
-  for (std::vector<unsigned>::iterator iter1 = argOffsets.begin(); iter1 != argOffsets.end(); iter1++)
-    printf("0x%.8x, ", *iter1);
-  printf("\n");
-  printf("--> argTypes --> ");
-  for (std::vector<unsigned>::iterator iter2 = argTypes.begin(); iter2 != argTypes.end(); iter2++)
-    printf("0x%.8x, ", *iter2);
-  printf("\n");
-#endif
+
   for (i=0; i < argTypes.size(); i++)
   {
     input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
