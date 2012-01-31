@@ -399,14 +399,17 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input)
 void libcdr::CDRParser::readFild(WPXInputStream *input)
 {
   unsigned fillId = readU32(input);
+  if (m_version >= 1300)
+    input->seek(8, WPX_SEEK_CUR);
   unsigned short fillType = readU16(input);
   unsigned short colorModel = 0;
   unsigned color = 0;
   if (fillType)
   {
     if (m_version >= 1300)
-      input->seek(19, WPX_SEEK_CUR);
-    input->seek(2, WPX_SEEK_CUR);
+      input->seek(13, WPX_SEEK_CUR);
+    else
+      input->seek(2, WPX_SEEK_CUR);
     colorModel = readU16(input);
     input->seek(6, WPX_SEEK_CUR);
     color = readU32(input);
