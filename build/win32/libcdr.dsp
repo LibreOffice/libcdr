@@ -87,6 +87,10 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDRCollector.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\CDRDocument.cpp
 # End Source File
 # Begin Source File
@@ -99,7 +103,15 @@ SOURCE=..\..\src\lib\CDRParser.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDRPath.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\CDRSVGGenerator.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRTypes.cpp
 # End Source File
 # Begin Source File
 
@@ -109,6 +121,10 @@ SOURCE=..\..\src\lib\libcdr_utils.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRCollector.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRDocument.h
@@ -123,7 +139,15 @@ SOURCE=..\..\src\lib\CDRParser.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDRPath.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\CDRSVGGenerator.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRTypes.h
 # End Source File
 # Begin Source File
 

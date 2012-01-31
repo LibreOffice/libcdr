@@ -31,6 +31,10 @@
 #include "CDRCollector.h"
 #include "libcdr_utils.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_painter(painter),
   m_isPageProperties(false),

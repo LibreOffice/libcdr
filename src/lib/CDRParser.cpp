@@ -29,9 +29,7 @@
 
 #include <libwpd-stream/libwpd-stream.h>
 #include <locale.h>
-#include <sstream>
-#include <string>
-#include <cmath>
+#include <math.h>
 #include <set>
 #include <string.h>
 #include "libcdr_utils.h"
@@ -41,6 +39,10 @@
 
 #ifndef DUMP_PREVIEW_IMAGE
 #define DUMP_PREVIEW_IMAGE 0
+#endif
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
 #endif
 
 libcdr::CDRParser::CDRParser(WPXInputStream *input, libcdr::CDRCollector *collector)
@@ -204,12 +206,12 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     readOutl(input);
   else if (fourCC == "fild")
     readFild(input);
-  else if (fourCC == "arrw")
-    ;
-  /*  else if (fourCC == "obox")
-      readObox(input);
-    else if (fourCC == "flgs")
-      readFlags(input); */
+  /*  else if (fourCC == "arrw")
+      ;
+     else if (fourCC == "obox")
+       readObox(input);
+     else if (fourCC == "flgs")
+       readFlags(input); */
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
@@ -264,7 +266,7 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   double angle1 = M_PI * (double)readS32(input) / 180000000.0;
   double angle2 = M_PI * (double)readS32(input) / 180000000.0;
   double rotation = 0;
-  bool pie(readU32(input));
+  bool pie(0 != readU32(input));
 
   double cx = x/2.0;
   double cy = y/2.0;
@@ -373,11 +375,11 @@ void libcdr::CDRParser::readText(WPXInputStream *input)
   int x0 = readS32(input);
   int y0 = readS32(input);
 }
-*/
 
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 {
 }
+*/
 
 void libcdr::CDRParser::readTrfd(WPXInputStream *input)
 {
@@ -501,9 +503,9 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
       else if (chunkType == 0x03) // Line and curve
         readLineAndCurve(input);
       /*      else if (chunkType == 0x04) // Text
-              readText(input); */
+              readText(input);
       else if (chunkType == 0x05)
-        readBitmap(input);
+        readBitmap(input); */
     }
     else if (argTypes[i] == 0x14)
       m_collector->collectFildId(readU32(input));

@@ -60,7 +60,7 @@ private:
   void readEllipse(WPXInputStream *input);
   void readLineAndCurve(WPXInputStream *input);
 //  void readText(WPXInputStream *input);
-  void readBitmap(WPXInputStream *input);
+//  void readBitmap(WPXInputStream *input);
   void readTrfd(WPXInputStream *input);
   void readFild(WPXInputStream *input);
   void readOutl(WPXInputStream *input);
