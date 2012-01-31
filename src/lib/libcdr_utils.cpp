@@ -35,7 +35,10 @@
 uint8_t libcdr::readU8(WPXInputStream *input)
 {
   if (!input || input->atEOS())
+  {
+    CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
     throw EndOfStreamException();
+  }
   unsigned long numBytesRead;
   uint8_t const *p = input->read(sizeof(uint8_t), numBytesRead);
 
