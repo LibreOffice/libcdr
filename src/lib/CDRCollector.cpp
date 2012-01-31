@@ -329,6 +329,10 @@ void libcdr::CDRCollector::collectOutl(unsigned id, unsigned short lineType, uns
   m_lineStyles[id] = CDRLineStyle(lineType, capsType, joinType, lineWidth, colorModel, color, dashArray, startMarkerId, endMarkerId);
 }
 
+void libcdr::CDRCollector::collectRotate(double /* angle */)
+{
+}
+
 unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned colorValue)
 {
   unsigned char red = 0;

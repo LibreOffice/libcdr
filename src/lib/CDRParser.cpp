@@ -274,7 +274,7 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   if (angle1 != angle2)
   {
     if (angle2 < angle1)
-	 angle2 += 2*M_PI;
+      angle2 += 2*M_PI;
     double x0 = cx + rx*cos(rotation)*cos(angle1) - ry*sin(rotation)*sin(angle1);
     double y0 = cy - rx*sin(rotation)*cos(angle1) - ry*cos(rotation)*sin(angle1);
 
@@ -285,24 +285,24 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
 
     m_collector->collectMoveTo(x0, y0);
     m_collector->collectArcTo(rx, ry, rotation, largeArc, true, x1, y1);
-	if (pie)
-	{
-		m_collector->collectLineTo(cx, cy);
-		m_collector->collectLineTo(x0, y0);
-		m_collector->collectClosePath();
-	}
+    if (pie)
+    {
+      m_collector->collectLineTo(cx, cy);
+      m_collector->collectLineTo(x0, y0);
+      m_collector->collectClosePath();
+    }
   }
   else
   {
     double x0 = cx + rx*cos(rotation);
-	double y0 = cy - rx*sin(rotation);
-	
-	double x1 = cx - ry*sin(rotation);
-	double y1 = cx - ry*cos(rotation);
-	
-	m_collector->collectMoveTo(x0, y0);
-	m_collector->collectArcTo(rx, ry, rotation, false, true, x1, y1);
-	m_collector->collectArcTo(rx, ry, rotation, true, true, x0, y0);
+    double y0 = cy - rx*sin(rotation);
+
+    double x1 = cx - ry*sin(rotation);
+    double y1 = cx - ry*cos(rotation);
+
+    m_collector->collectMoveTo(x0, y0);
+    m_collector->collectArcTo(rx, ry, rotation, false, true, x1, y1);
+    m_collector->collectArcTo(rx, ry, rotation, true, true, x0, y0);
   }
 }
 
@@ -327,9 +327,9 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
   {
     const unsigned char &type = pointTypes[i];
     if (type & 0x08)
-	{
+    {
       // closed
-	}
+    }
     if (!(type & 0x10) && !(type & 0x20))
     {
       // cont angle
@@ -516,6 +516,8 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
       m_collector->collectFildId(readU32(input));
     else if (argTypes[i] == 0x0a)
       m_collector->collectOutlId(readU32(input));
+    else if (argTypes[i] == 0x2efe)
+      m_collector->collectRotate((double)readU32(input)*M_PI / 180000000.0);
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }

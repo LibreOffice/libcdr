@@ -62,6 +62,7 @@ public:
   void collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType,
                    double lineWidth, unsigned short colorModel, unsigned color,
                    const std::vector<unsigned short> &dashArray, unsigned startMarkerId, unsigned endMarkerId);
+  void collectRotate(double angle);
 
 private:
   CDRCollector(const CDRCollector &);
