@@ -35,9 +35,9 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_painter(painter),
   m_isPageProperties(false),
   m_isPageStarted(false),
-  m_pageOffsetX(0.0), m_pageOffsetY(0.0),
-  m_pageWidth(0.0), m_pageHeight(0.0),
-  m_currentFildId(0), m_currentOutlId(0),
+  m_pageOffsetX(-4.25), m_pageOffsetY(-5.5),
+  m_pageWidth(8.5), m_pageHeight(11.0),
+  m_currentFildId(0.0), m_currentOutlId(0),
   m_currentObjectLevel(0), m_currentPageLevel(0),
   m_currentPath(), m_currentTransform(),
   m_fillStyles(), m_lineStyles()
@@ -75,6 +75,10 @@ void libcdr::CDRCollector::collectPage(unsigned level)
 {
   m_isPageProperties = true;
   m_currentPageLevel = level;
+  m_pageWidth = 8.5;
+  m_pageHeight = 11.0;
+  m_pageOffsetX = -4.25;
+  m_pageOffsetY = -5.5;
 }
 
 void libcdr::CDRCollector::collectObject(unsigned level)

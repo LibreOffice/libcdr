@@ -263,7 +263,8 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   double y = (double)readS32(input) / 254000.0;
   double angle1 = M_PI * (double)readS32(input) / 180000000.0;
   double angle2 = M_PI * (double)readS32(input) / 180000000.0;
-  double rotation = M_PI * (double)readS32(input) / 180000000.0;
+  double rotation = 0;
+  bool pie(readU32(input));
 
   double cx = x/2.0;
   double cy = y/2.0;
@@ -284,9 +285,12 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
 
     m_collector->collectMoveTo(x0, y0);
     m_collector->collectArcTo(rx, ry, rotation, largeArc, true, x1, y1);
-	m_collector->collectLineTo(cx, cy);
-	m_collector->collectLineTo(x0, y0);
-	m_collector->collectClosePath();
+	if (pie)
+	{
+		m_collector->collectLineTo(cx, cy);
+		m_collector->collectLineTo(x0, y0);
+		m_collector->collectClosePath();
+	}
   }
   else
   {
