@@ -279,7 +279,7 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
     double y0 = cy - rx*sin(rotation)*cos(angle1) - ry*cos(rotation)*sin(angle1);
 
     double x1 = cx + rx*cos(rotation)*cos(angle2) - ry*sin(rotation)*sin(angle2);
-    double y1 = cy - rx*sin(-rotation)*cos(angle2) - ry*cos(rotation)*sin(angle2);
+    double y1 = cy - rx*sin(rotation)*cos(angle2) - ry*cos(rotation)*sin(angle2);
 
     bool largeArc = (angle2 - angle1 > M_PI || angle2 - angle1 < -M_PI);
 
@@ -298,7 +298,7 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
     double y0 = cy - rx*sin(rotation);
 
     double x1 = cx - ry*sin(rotation);
-    double y1 = cx - ry*cos(rotation);
+    double y1 = cy - ry*cos(rotation);
 
     m_collector->collectMoveTo(x0, y0);
     m_collector->collectArcTo(rx, ry, rotation, false, true, x1, y1);
