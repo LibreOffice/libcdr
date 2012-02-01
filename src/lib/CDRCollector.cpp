@@ -79,20 +79,27 @@ void libcdr::CDRCollector::collectPage(unsigned level)
 {
   m_isPageProperties = true;
   m_currentPageLevel = level;
-  m_pageWidth = 8.5;
-  m_pageHeight = 11.0;
-  m_pageOffsetX = -4.25;
-  m_pageOffsetY = -5.5;
 }
 
 void libcdr::CDRCollector::collectObject(unsigned level)
 {
-  m_isPageProperties = false;
-  if (!m_isPageStarted)
-    _startPage(m_pageWidth, m_pageHeight);
   m_currentObjectLevel = level;
   m_currentFildId = 0;
   m_currentOutlId = 0;
+}
+
+void libcdr::CDRCollector::collectFlags(unsigned flags)
+{
+  if (!m_isPageProperties || (flags & 0x00ff0000))
+  {
+    m_isPageProperties = false;
+  }
+  else
+  {
+    m_isPageProperties = false;
+    if (!m_isPageStarted)
+      _startPage(m_pageWidth, m_pageHeight);
+  }
 }
 
 void libcdr::CDRCollector::collectOtherList()
@@ -100,17 +107,12 @@ void libcdr::CDRCollector::collectOtherList()
   m_isPageProperties = false;
 }
 
-void libcdr::CDRCollector::collectBbox(double x0, double y0, double x1, double y1)
+void libcdr::CDRCollector::collectPageSize(double width, double height)
 {
-  double width = (x0 < x1 ? x1 - x0 : x0 - x1);
-  double height = (y0 < y1 ? y1 - y0 : y0 - y1);
-  if (m_isPageProperties)
-  {
-    m_pageWidth = width;
-    m_pageHeight = height;
-    m_pageOffsetX = x0;
-    m_pageOffsetY = y1;
-  }
+  m_pageWidth = width;
+  m_pageHeight = height;
+  m_pageOffsetX = -width / 2.0;
+  m_pageOffsetY = -height / 2.0;
 }
 
 void libcdr::CDRCollector::collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y)

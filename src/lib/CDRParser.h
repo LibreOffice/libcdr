@@ -64,10 +64,10 @@ private:
   void readTrfd(WPXInputStream *input);
   void readFild(WPXInputStream *input);
   void readOutl(WPXInputStream *input);
-  void readBbox(WPXInputStream *input);
-//  void readObox(WPXInputStream *input);
   void readLoda(WPXInputStream *input);
-//  void readFlags(WPXInputStream *input);
+  void readFlags(WPXInputStream *input);
+  void readMcfg(WPXInputStream *input);
+
 
   WPXInputStream *m_input;
   CDRCollector *m_collector;

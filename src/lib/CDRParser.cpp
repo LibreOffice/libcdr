@@ -196,8 +196,6 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   }
   else if (fourCC == "loda")
     readLoda(input);
-  else if (fourCC == "bbox")
-    readBbox(input);
   else if (fourCC == "vrsn")
     m_version = readU16(input);
   else if (fourCC == "trfd")
@@ -207,11 +205,11 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   else if (fourCC == "fild")
     readFild(input);
   /*  else if (fourCC == "arrw")
-      ;
-     else if (fourCC == "obox")
-       readObox(input);
-     else if (fourCC == "flgs")
-       readFlags(input); */
+      ; */
+  else if (fourCC == "flgs")
+    readFlags(input);
+  else if (fourCC == "mcfg")
+    readMcfg(input);
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
@@ -219,10 +217,10 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 {
   double x0 = (double)readS32(input) / 254000.0;
   double y0 = (double)readS32(input) / 254000.0;
-  double r0 = (double)readU32(input) / 254000.0;
-  double r1 = m_version < 900 ? r0 : (double)readU32(input) / 254000.0;
-  double r2 = m_version < 900 ? r0 : (double)readU32(input) / 254000.0;
-  double r3 = m_version < 900 ? r0 : (double)readU32(input) / 254000.0;
+  double r3 = (double)readU32(input) / 254000.0;
+  double r2 = m_version < 900 ? r3 : (double)readU32(input) / 254000.0;
+  double r1 = m_version < 900 ? r3 : (double)readU32(input) / 254000.0;
+  double r0 = m_version < 900 ? r3 : (double)readU32(input) / 254000.0;
   if (r0 > 0.0)
     m_collector->collectMoveTo(0.0, -r0);
   else
@@ -448,31 +446,6 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input)
   m_collector->collectOutl(lineId, lineType, capsType, joinType, lineWidth, colorModel, color, dashArray, startMarkerId, endMarkerId);
 }
 
-void libcdr::CDRParser::readBbox(WPXInputStream *input)
-{
-  double x0 = (double)readS32(input) / 254000.0;
-  double y0 = (double)readS32(input) / 254000.0;
-  double x1 = (double)readS32(input) / 254000.0;
-  double y1 = (double)readS32(input) / 254000.0;
-
-  CDR_DEBUG_MSG(("CDRParser::readBbox x0/y0 = %f/%f, x1/y1 = %f/%f\n", x0, y0, x1, y1));
-  m_collector->collectBbox(x0, y0, x1, y1);
-}
-
-/*
-void libcdr::CDRParser::readObox(WPXInputStream *input)
-{
-  int x0 = readS32(input);
-  int y0 = readS32(input);
-  int x1 = readS32(input);
-  int y1 = readS32(input);
-  int x2 = readS32(input);
-  int y2 = readS32(input);
-  int x3 = readS32(input);
-  int y3 = readS32(input);
-}
-*/
-
 void libcdr::CDRParser::readLoda(WPXInputStream *input)
 {
   long startPosition = input->tell();
@@ -517,15 +490,22 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
 
-/*
 void libcdr::CDRParser::readFlags(WPXInputStream *input)
 {
-  unsigned char b0 = readU8(input);
-  unsigned char b1 = readU8(input);
-  unsigned char b2 = readU8(input);
-  unsigned char b3 = readU8(input);
+  unsigned flags = readU32(input);
+  m_collector->collectFlags(flags);
 }
-*/
+
+void libcdr::CDRParser::readMcfg(WPXInputStream *input)
+{
+  if (m_version >= 1300)
+    input->seek(12, WPX_SEEK_CUR);
+  else if (m_version >= 900)
+    input->seek(4, WPX_SEEK_CUR);
+  double width = (double)readS32(input) / 254000.0;
+  double height = (double)readS32(input) / 254000.0;
+  m_collector->collectPageSize(width, height);
+}
 
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

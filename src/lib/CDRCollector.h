@@ -47,7 +47,6 @@ public:
   void collectPage(unsigned level);
   void collectObject(unsigned level);
   void collectOtherList();
-  void collectBbox(double x0, double y0, double x1, double y1);
   void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y);
   void collectQuadraticBezier(double x1, double y1, double x, double y);
   void collectMoveTo(double x, double y);
@@ -63,6 +62,8 @@ public:
                    double lineWidth, unsigned short colorModel, unsigned color,
                    const std::vector<unsigned short> &dashArray, unsigned startMarkerId, unsigned endMarkerId);
   void collectRotate(double angle);
+  void collectFlags(unsigned flags);
+  void collectPageSize(double width, double height);
 
 private:
   CDRCollector(const CDRCollector &);
