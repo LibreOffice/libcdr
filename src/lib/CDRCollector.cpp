@@ -372,6 +372,41 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     green = col1;
     blue = col0;
   }
+  else if (colorModel == 0x06) // HSB
+  {
+    unsigned short hue = (col1<<8) | col0;
+    double saturation = (double)col2/255.0;
+    double brightness = (double)col3/255.0;
+
+    while (hue < 0)
+      hue += 360;
+    while (hue > 360)
+      hue -= 360;
+
+    double satRed, satGreen, satBlue;
+
+    if (hue < 120)
+    {
+      satRed = (double)(120 - hue) / 60.0;
+      satGreen = (double)hue / 60.0;
+      satBlue = 0;
+    }
+    else if (hue < 240)
+    {
+      satRed = 0;
+      satGreen = (double)(240 - hue) / 60.0;
+      satBlue = (double)(hue - 120) / 60.0;
+    }
+    else
+    {
+      satRed = (double)(hue - 240) / 60.0;
+      satGreen = 0.0;
+      satBlue = (double)(360 - hue) / 60.0;
+    }
+    red = (unsigned char)round(255*(1 - saturation + saturation * (satRed > 1 ? 1 : satRed)) * brightness);
+    green = (unsigned char)round(255*(1 - saturation + saturation * (satGreen > 1 ? 1 : satGreen)) * brightness);
+    blue = (unsigned char)round(255*(1 - saturation + saturation * (satBlue > 1 ? 1 : satBlue)) * brightness);
+  }
   else if (colorModel == 0x07) // HLS
   {
     unsigned short hue = (col1<<8) | col0;
