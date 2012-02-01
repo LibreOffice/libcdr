@@ -372,6 +372,55 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     green = col1;
     blue = col0;
   }
+  else if (colorModel == 0x07) // HLS
+  {
+    unsigned short hue = (col1<<8) | col0;
+    double lightness = (double)col2/255.0;
+    double saturation = (double)col3/255.0;
+
+    while (hue < 0)
+      hue += 360;
+    while (hue > 360)
+      hue -= 360;
+
+    double satRed, satGreen, satBlue;
+
+    if (hue < 120)
+    {
+      satRed =  (double)(120 - hue) / 60.0;
+      satGreen = (double)hue/60.0;
+      satBlue = 0.0;
+    }
+    else if (hue < 240)
+    {
+      satRed = 0;
+      satGreen = (double)(240 - hue) / 60.0;
+      satBlue = (double)(hue - 120) / 60.0;
+    }
+    else
+    {
+      satRed = (double)(hue - 240) / 60.0;
+      satGreen = 0;
+      satBlue = (double)(360 - hue) / 60.0;
+    }
+
+    double tmpRed = 2*saturation*(satRed > 1 ? 1 : satRed) + 1 - saturation;
+    double tmpGreen = 2*saturation*(satGreen > 1 ? 1 : satGreen) + 1 - saturation;
+    double tmpBlue = 2*saturation*(satBlue > 1 ? 1 : satBlue) + 1 - saturation;
+
+    if (lightness < 0.5)
+    {
+      red = (unsigned char)round(255.0*lightness*tmpRed);
+      green = (unsigned char)round(255.0*lightness*tmpGreen);
+      blue = (unsigned char)round(255.0*lightness*tmpBlue);
+    }
+    else
+    {
+      red = (unsigned char)round(255*((1 - lightness) * tmpRed + 2 * lightness - 1));
+      green = (unsigned char)round(255*((1 - lightness) * tmpGreen + 2 * lightness - 1));
+      blue = (unsigned char)round(255*((1 - lightness) * tmpBlue + 2 * lightness - 1));
+    }
+  }
   else if (colorModel == 0x09) // Grayscale
   {
     red = col0;
