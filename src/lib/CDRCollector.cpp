@@ -485,6 +485,7 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList)
     {
       propList.insert("draw:fill", "solid");
       propList.insert("draw:fill-color", _getRGBColorString(iter->second.colorModel, iter->second.color1));
+      propList.insert("svg:fill-rule", "evenodd");
     }
   }
 }
