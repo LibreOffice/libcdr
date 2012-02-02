@@ -310,6 +310,7 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readLineAndCurve\n"));
 
+  unsigned isClosedPath = false;
   unsigned pointNum = readU32(input);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
@@ -327,9 +328,9 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
   {
     const unsigned char &type = pointTypes[i];
     if (type & 0x08)
-    {
-      // closed
-    }
+      isClosedPath = true;
+    else
+      isClosedPath = false;
     if (!(type & 0x10) && !(type & 0x20))
     {
       // cont angle
@@ -351,6 +352,8 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
     {
       tmpPoints.clear();
       m_collector->collectLineTo(points[i].first, points[i].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
     }
     else if (!(type & 0x40) && (type & 0x80))
     {
@@ -358,6 +361,8 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
         m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
       else
         m_collector->collectLineTo(points[i].first, points[i].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
       tmpPoints.clear();
     }
     else if((type & 0x40) && (type & 0x80))
@@ -366,6 +371,76 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
     }
   }
 }
+
+void libcdr::CDRParser::readPath(WPXInputStream *input)
+{
+  CDR_DEBUG_MSG(("CDRParser::readPath\n"));
+
+  bool isClosedPath = false;
+  input->seek(4, WPX_SEEK_CUR);
+  unsigned short pointNum = readU16(input);
+  input->seek(2, WPX_SEEK_CUR);
+  std::vector<std::pair<double, double> > points;
+  std::vector<unsigned char> pointTypes;
+  input->seek(24, WPX_SEEK_CUR);
+  for (unsigned j=0; j<pointNum; j++)
+  {
+    std::pair<double, double> point;
+    point.first = (double)readS32(input) / 254000.0;
+    point.second = (double)readS32(input) / 254000.0;
+    points.push_back(point);
+  }
+  for (unsigned k=0; k<pointNum; k++)
+    pointTypes.push_back(readU8(input));
+  std::vector<std::pair<double, double> >tmpPoints;
+  for (unsigned i=0; i<pointNum; i++)
+  {
+    const unsigned char &type = pointTypes[i];
+    if (type & 0x08)
+      isClosedPath = true;
+    else
+      isClosedPath = false;
+    if (!(type & 0x10) && !(type & 0x20))
+    {
+      // cont angle
+    }
+    else if (type & 0x10)
+    {
+      // cont smooth
+    }
+    else if (type & 0x20)
+    {
+      // cont symmetrical
+    }
+    if (!(type & 0x40) && !(type & 0x80))
+    {
+      tmpPoints.clear();
+      m_collector->collectMoveTo(points[i].first, points[i].second);
+    }
+    else if ((type & 0x40) && !(type & 0x80))
+    {
+      tmpPoints.clear();
+      m_collector->collectLineTo(points[i].first, points[i].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
+    }
+    else if (!(type & 0x40) && (type & 0x80))
+    {
+      if (tmpPoints.size() >= 2)
+        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
+      else
+        m_collector->collectLineTo(points[i].first, points[i].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
+      tmpPoints.clear();
+    }
+    else if((type & 0x40) && (type & 0x80))
+    {
+      tmpPoints.push_back(points[i]);
+    }
+  }
+}
+
 
 /*
 void libcdr::CDRParser::readText(WPXInputStream *input)
@@ -479,6 +554,8 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
         readEllipse(input);
       else if (chunkType == 0x03) // Line and curve
         readLineAndCurve(input);
+      else if (chunkType == 0x25) // Path
+        readPath(input);
       /*      else if (chunkType == 0x04) // Text
               readText(input);
       else if (chunkType == 0x05)

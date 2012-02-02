@@ -67,7 +67,7 @@ private:
   void readLoda(WPXInputStream *input);
   void readFlags(WPXInputStream *input);
   void readMcfg(WPXInputStream *input);
-
+  void readPath(WPXInputStream *input);
 
   WPXInputStream *m_input;
   CDRCollector *m_collector;
