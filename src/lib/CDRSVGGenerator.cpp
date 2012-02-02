@@ -514,7 +514,7 @@ void libcdr::CDRSVGGenerator::writeStyle(bool /* isClosed */)
     double width = m_style["svg:stroke-width"]->getDouble();
     if (width == 0.0 && m_style["draw:stroke"] && m_style["draw:stroke"]->getStr() != "none")
       width = 1.0 / 72.0;
-    m_outputSink << "stroke-width: " << doubleToString(72*m_style["svg:stroke-width"]->getDouble()) << "; ";
+    m_outputSink << "stroke-width: " << doubleToString(72*width) << "; ";
   }
   if ((m_style["draw:stroke"] && m_style["draw:stroke"]->getStr() != "none"))
   {
