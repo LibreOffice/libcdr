@@ -31,15 +31,43 @@
 #define CDRPATH_H
 
 #include <vector>
+#include <libwpd/libwpd.h>
+
+#include "CDRTypes.h"
 
 namespace libcdr
 {
-class CDRPathElement;
 
-class CDRPath
+class CDRPathElement
 {
+public:
+  CDRPathElement() {}
+  virtual ~CDRPathElement() {}
+  virtual void writeOut(WPXPropertyListVector &vec) = 0;
+  virtual void transform(const CDRTransform &trafo) = 0;
+};
+
+
+class CDRPath : public CDRPathElement
+{
+public:
   CDRPath() : m_elements() {}
-  ~CDRPath() {}
+  ~CDRPath();
+
+  void appendMoveTo(double x, double y);
+  void appendLineTo(double x, double y);
+  void appendCubicBezierTo(double x1, double y1, double x2, double x3, double x, double y);
+  void appendQuadraticBezierTo(double x1, double y1, double x, double y);
+  void appendArcTo(double rx, double ry, double rotation, bool longAngle, bool sweep, double x, double y);
+  void appendClosePath();
+  void appendPath(const CDRPath &path);
+
+  void writeOut(WPXPropertyListVector &vec);
+  void transform(const CDRTransform &trafo);
+
+  void clear();
+  bool empty();
+
 private:
   std::vector<CDRPathElement *> m_elements;
 };

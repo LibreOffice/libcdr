@@ -33,6 +33,7 @@
 #include <map>
 #include <libwpg/libwpg.h>
 #include "CDRTypes.h"
+#include "CDRPath.h"
 
 namespace libcdr
 {
@@ -90,7 +91,7 @@ private:
   unsigned m_currentFildId, m_currentOutlId;
   unsigned m_currentObjectLevel, m_currentPageLevel;
 
-  WPXPropertyListVector m_currentPath;
+  CDRPath m_currentPath;
   CDRTransform m_currentTransform;
   std::map<unsigned, CDRFillStyle> m_fillStyles;
   std::map<unsigned, CDRLineStyle> m_lineStyles;

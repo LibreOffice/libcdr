@@ -32,8 +32,8 @@
 
 void libcdr::CDRTransform::applyToPoint(double &x, double &y) const
 {
-  x = v0*x + v1*y+x0;
-  y = v3*x + v4*y+y0;
+  x = m_v0*x + m_v1*y+m_x0;
+  y = m_v3*x + m_v4*y+m_y0;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

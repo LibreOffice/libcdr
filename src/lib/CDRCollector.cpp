@@ -118,76 +118,43 @@ void libcdr::CDRCollector::collectPageSize(double width, double height)
 void libcdr::CDRCollector::collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y)
 {
   CDR_DEBUG_MSG(("CDRCollector::collectCubicBezier(%f, %f, %f, %f, %f, %f)\n", x1, y1, x2, y2, x, y));
-  WPXPropertyList node;
-  node.insert("svg:x1", x1);
-  node.insert("svg:y1", y1);
-  node.insert("svg:x2", x2);
-  node.insert("svg:y2", y2);
-  node.insert("svg:x", x);
-  node.insert("svg:y", y);
-  node.insert("libwpg:path-action", "C");
-  m_currentPath.append(node);
+  m_currentPath.appendCubicBezierTo(x1, y1, x2, y2, x, y);
 }
 
 void libcdr::CDRCollector::collectQuadraticBezier(double x1, double y1, double x, double y)
 {
   CDR_DEBUG_MSG(("CDRCollector::collectQuadraticBezier(%f, %f, %f, %f)\n", x1, y1, x, y));
-  WPXPropertyList node;
-  node.insert("svg:x1", x1);
-  node.insert("svg:y1", y1);
-  node.insert("svg:x", x);
-  node.insert("svg:y", y);
-  node.insert("libwpg:path-action", "Q");
-  m_currentPath.append(node);
+  m_currentPath.appendQuadraticBezierTo(x1, y1, x, y);
 }
 
 void libcdr::CDRCollector::collectMoveTo(double x, double y)
 {
   CDR_DEBUG_MSG(("CDRCollector::collectMoveTo(%f, %f)\n", x, y));
-  WPXPropertyList node;
-  node.insert("svg:x", x);
-  node.insert("svg:y", y);
-  node.insert("libwpg:path-action", "M");
-  m_currentPath.append(node);
+  m_currentPath.appendMoveTo(x,y);
 }
 
 void libcdr::CDRCollector::collectLineTo(double x, double y)
 {
   CDR_DEBUG_MSG(("CDRCollector::collectLineTo(%f, %f)\n", x, y));
-  WPXPropertyList node;
-  node.insert("svg:x", x);
-  node.insert("svg:y", y);
-  node.insert("libwpg:path-action", "L");
-  m_currentPath.append(node);
+  m_currentPath.appendLineTo(x, y);
 }
 
 void libcdr::CDRCollector::collectArcTo(double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y)
 {
-  CDR_DEBUG_MSG(("CDRCollector::collectMoveTo(%f, %f)\n", x, y));
-  WPXPropertyList node;
-  node.insert("svg:rx", rx);
-  node.insert("svg:ry", ry);
-  node.insert("libwpg:rotate", rotation * 180 / M_PI, WPX_GENERIC);
-  node.insert("libwpg:large-arc", largeArc);
-  node.insert("libwpg:sweep", sweep);
-  node.insert("svg:x", x);
-  node.insert("svg:y", y);
-  node.insert("libwpg:path-action", "A");
-  m_currentPath.append(node);
+  CDR_DEBUG_MSG(("CDRCollector::collectArcTo(%f, %f)\n", x, y));
+  m_currentPath.appendArcTo(rx, ry, rotation, largeArc, sweep, x, y);
 }
 
 void libcdr::CDRCollector::collectClosePath()
 {
   CDR_DEBUG_MSG(("CDRCollector::collectClosePath\n"));
-  WPXPropertyList node;
-  node.insert("libwpg:path-action", "Z");
-  m_currentPath.append(node);
+  m_currentPath.appendClosePath();
 }
 
 void libcdr::CDRCollector::_flushCurrentPath()
 {
   CDR_DEBUG_MSG(("CDRCollector::collectFlushPath\n"));
-  if (m_currentPath.count())
+  if (!m_currentPath.empty())
   {
     bool firstPoint = true;
     double initialX = 0.0;
@@ -200,9 +167,13 @@ void libcdr::CDRCollector::_flushCurrentPath()
     _fillProperties(style);
     _lineProperties(style);
     m_painter->setStyle(style, WPXPropertyListVector());
-    WPXPropertyList node;
+    m_currentPath.transform(m_currentTransform);
+    CDRTransform tmpTrafo(1.0, 0.0, 0.0, 0.0, -1.0, m_pageHeight);
+    m_currentPath.transform(tmpTrafo);
+    WPXPropertyListVector tmpPath;
+    m_currentPath.writeOut(tmpPath);
     WPXPropertyListVector path;
-    WPXPropertyListVector::Iter i(m_currentPath);
+    WPXPropertyListVector::Iter i(tmpPath);
     for (i.rewind(); i.next();)
     {
       if (!i()["libwpg:path-action"])
@@ -211,9 +182,6 @@ void libcdr::CDRCollector::_flushCurrentPath()
       {
         x = i()["svg:x"]->getDouble();
         y = i()["svg:y"]->getDouble();
-        m_currentTransform.applyToPoint(x,y);
-        y = m_pageHeight - y;
-
         if (firstPoint)
         {
           initialX = x;
@@ -224,79 +192,33 @@ void libcdr::CDRCollector::_flushCurrentPath()
         {
           if (initialX == previousX && initialY == previousY)
           {
+            WPXPropertyList node;
             node.insert("libwpg:path-action", "Z");
             path.append(node);
-            node.clear();
           }
           initialX = x;
           initialY = y;
         }
-        node.insert("svg:x", x);
-        node.insert("svg:y", y);
       }
-      if (i()["svg:x1"] && i()["svg:y1"])
-      {
-        double x1 = i()["svg:x1"]->getDouble();
-        double y1 = i()["svg:y1"]->getDouble();
-        m_currentTransform.applyToPoint(x1,y1);
-        y1 = m_pageHeight - y1;
-        node.insert("svg:x1", x1);
-        node.insert("svg:y1", y1);
-      }
-      if (i()["svg:x2"] && i()["svg:y2"])
-      {
-        double x2 = i()["svg:x2"]->getDouble();
-        double y2 = i()["svg:y2"]->getDouble();
-        m_currentTransform.applyToPoint(x2,y2);
-        y2 = m_pageHeight - y2;
-        node.insert("svg:x2", x2);
-        node.insert("svg:y2", y2);
-      }
-      if (i()["svg:cx"] && i()["svg:cy"])
-      {
-        double cx = i()["svg:cx"]->getDouble();
-        double cy = i()["svg:cy"]->getDouble();
-        m_currentTransform.applyToPoint(cx,cy);
-        cy = m_pageHeight - cy;
-        node.insert("svg:cx", cx);
-        node.insert("svg:cy", cy);
-      }
-      if (i()["svg:rx"])
-        node.insert("svg:rx", i()["svg:rx"]->getDouble());
-      if (i()["svg:ry"])
-        node.insert("svg:ry", i()["svg:ry"]->getDouble());
-      if (i()["libwpg:rotate"])
-        node.insert("libwpg:rotate", i()["libwpg:rotate"]->getDouble(), WPX_GENERIC);
-      if (i()["libwpg:large-arc"])
-        node.insert("libwpg:large-arc", i()["libwpg:large-arc"]->getInt());
-      if (i()["libwpg:sweep"])
-        node.insert("libwpg:sweep", i()["libwpg:sweep"]->getInt());
-      node.insert("libwpg:path-action", i()["libwpg:path-action"]->getStr());
-      path.append(node);
-      node.clear();
       previousX = x;
       previousY = y;
-
+      path.append(i());
     }
     if (initialX == previousX && initialY == previousY)
     {
+      WPXPropertyList node;
       node.insert("libwpg:path-action", "Z");
       path.append(node);
     }
 
     m_painter->drawPath(path);
-    m_currentPath = WPXPropertyListVector();
+    m_currentPath.clear();
   }
 }
 
 void libcdr::CDRCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0)
 {
-  m_currentTransform.v0 = v0;
-  m_currentTransform.v1 = v1;
-  m_currentTransform.x0 = x0 - m_pageOffsetX;
-  m_currentTransform.v3 = v3;
-  m_currentTransform.v4 = v4;
-  m_currentTransform.y0 = y0 - m_pageOffsetY;
+  m_currentTransform = CDRTransform(v0, v1, x0-m_pageOffsetX, v3, v4, y0-m_pageOffsetY);
 }
 
 void libcdr::CDRCollector::collectLevel(unsigned level)

@@ -36,18 +36,19 @@ namespace libcdr
 {
 struct CDRTransform
 {
-  double v0;
-  double v1;
-  double x0;
-  double v3;
-  double v4;
-  double y0;
+  double m_v0;
+  double m_v1;
+  double m_x0;
+  double m_v3;
+  double m_v4;
+  double m_y0;
   CDRTransform()
-    : v0(0.0), v1(0.0), x0(0.0),
-      v3(0.0), v4(0.0), y0(0.0) {}
+    : m_v0(1.0), m_v1(0.0), m_x0(0.0),
+      m_v3(0.0), m_v4(1.0), m_y0(0.0) {}
+  CDRTransform(double v0, double v1, double x0, double v3, double v4, double y0)
+    : m_v0(v0), m_v1(v1), m_x0(x0), m_v3(v3), m_v4(v4), m_y0(y0) {}
+
   void applyToPoint(double &x, double &y) const;
-  void applyToAngle(double &radians) const;
-  void applyToLength(double &width, double &height) const;
 };
 
 struct CDRFillStyle
