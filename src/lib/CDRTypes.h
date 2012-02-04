@@ -49,6 +49,7 @@ struct CDRTransform
     : m_v0(v0), m_v1(v1), m_x0(x0), m_v3(v3), m_v4(v4), m_y0(y0) {}
 
   void applyToPoint(double &x, double &y) const;
+  void applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const;
 };
 
 struct CDRFillStyle
