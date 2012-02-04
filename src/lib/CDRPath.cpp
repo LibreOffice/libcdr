@@ -44,7 +44,7 @@ public:
     : m_x(x),
       m_y(y) {}
   ~CDRMoveToElement() {}
-  void writeOut(WPXPropertyListVector &vec);
+  void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 private:
   double m_x;
@@ -58,7 +58,7 @@ public:
     : m_x(x),
       m_y(y) {}
   ~CDRLineToElement() {}
-  void writeOut(WPXPropertyListVector &vec);
+  void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 private:
   double m_x;
@@ -76,7 +76,7 @@ public:
       m_x(x),
       m_y(y) {}
   ~CDRCubicBezierToElement() {}
-  void writeOut(WPXPropertyListVector &vec);
+  void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 private:
   double m_x1;
@@ -96,7 +96,7 @@ public:
       m_x(x),
       m_y(y) {}
   ~CDRQuadraticBezierToElement() {}
-  void writeOut(WPXPropertyListVector &vec);
+  void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 private:
   double m_x1;
@@ -117,7 +117,7 @@ public:
       m_x(x),
       m_y(y) {}
   ~CDRArcToElement() {}
-  void writeOut(WPXPropertyListVector &vec);
+  void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 private:
   double m_rx;
@@ -134,14 +134,14 @@ class CDRClosePathElement : public CDRPathElement
 public:
   CDRClosePathElement() {}
   ~CDRClosePathElement() {}
-  void writeOut(WPXPropertyListVector &vec);
+  void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 };
 
 } // namespace libcdr
 
 
-void libcdr::CDRMoveToElement::writeOut(WPXPropertyListVector &vec)
+void libcdr::CDRMoveToElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
   node.insert("libwpg:path-action", "M");
@@ -155,7 +155,7 @@ void libcdr::CDRMoveToElement::transform(const CDRTransform &trafo)
   trafo.applyToPoint(m_x,m_y);
 }
 
-void libcdr::CDRLineToElement::writeOut(WPXPropertyListVector &vec)
+void libcdr::CDRLineToElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
   node.insert("libwpg:path-action", "L");
@@ -169,7 +169,7 @@ void libcdr::CDRLineToElement::transform(const CDRTransform &trafo)
   trafo.applyToPoint(m_x,m_y);
 }
 
-void libcdr::CDRCubicBezierToElement::writeOut(WPXPropertyListVector &vec)
+void libcdr::CDRCubicBezierToElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
   node.insert("libwpg:path-action", "C");
@@ -189,7 +189,7 @@ void libcdr::CDRCubicBezierToElement::transform(const CDRTransform &trafo)
   trafo.applyToPoint(m_x,m_y);
 }
 
-void libcdr::CDRQuadraticBezierToElement::writeOut(WPXPropertyListVector &vec)
+void libcdr::CDRQuadraticBezierToElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
   node.insert("libwpg:path-action", "Q");
@@ -206,7 +206,7 @@ void libcdr::CDRQuadraticBezierToElement::transform(const CDRTransform &trafo)
   trafo.applyToPoint(m_x,m_y);
 }
 
-void libcdr::CDRArcToElement::writeOut(WPXPropertyListVector &vec)
+void libcdr::CDRArcToElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
   node.insert("libwpg:path-action", "A");
@@ -222,10 +222,10 @@ void libcdr::CDRArcToElement::writeOut(WPXPropertyListVector &vec)
 
 void libcdr::CDRArcToElement::transform(const CDRTransform &trafo)
 {
-  trafo.applyToPoint(m_x,m_y);
+  trafo.applyToArc(m_rx, m_ry, m_rotation, m_sweep, m_x, m_y);
 }
 
-void libcdr::CDRClosePathElement::writeOut(WPXPropertyListVector &vec)
+void libcdr::CDRClosePathElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
   node.insert("libwpg:path-action", "Z");
@@ -275,9 +275,9 @@ void libcdr::CDRPath::appendPath(const CDRPath &path)
 {
 }
 
-void libcdr::CDRPath::writeOut(WPXPropertyListVector &vec)
+void libcdr::CDRPath::writeOut(WPXPropertyListVector &vec) const
 {
-  for (std::vector<CDRPathElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
+  for (std::vector<CDRPathElement *>::const_iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
     (*iter)->writeOut(vec);
 }
 

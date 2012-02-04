@@ -43,7 +43,7 @@ class CDRPathElement
 public:
   CDRPathElement() {}
   virtual ~CDRPathElement() {}
-  virtual void writeOut(WPXPropertyListVector &vec) = 0;
+  virtual void writeOut(WPXPropertyListVector &vec) const = 0;
   virtual void transform(const CDRTransform &trafo) = 0;
 };
 
@@ -62,7 +62,7 @@ public:
   void appendClosePath();
   void appendPath(const CDRPath &path);
 
-  void writeOut(WPXPropertyListVector &vec);
+  void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 
   void clear();
