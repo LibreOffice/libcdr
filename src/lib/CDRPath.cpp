@@ -40,13 +40,17 @@ namespace libcdr
 class CDRMoveToElement : public CDRPathElement
 {
 public:
-  CDRMoveToElement(double x, double y)
-    : m_x(x),
+  CDRMoveToElement(double cx, double cy, double x, double y)
+    : m_cx(cx),
+      m_cy(cy),
+      m_x(x),
       m_y(y) {}
   ~CDRMoveToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 private:
+  double m_cx;
+  double m_cy;
   double m_x;
   double m_y;
 };
@@ -54,13 +58,17 @@ private:
 class CDRLineToElement : public CDRPathElement
 {
 public:
-  CDRLineToElement(double x, double y)
-    : m_x(x),
+  CDRLineToElement(double cx, double cy, double x, double y)
+    : m_cx(cx),
+      m_cy(cy),
+      m_x(x),
       m_y(y) {}
   ~CDRLineToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 private:
+  double m_cx;
+  double m_cy;
   double m_x;
   double m_y;
 };
@@ -68,8 +76,10 @@ private:
 class CDRCubicBezierToElement : public CDRPathElement
 {
 public:
-  CDRCubicBezierToElement(double x1, double y1, double x2, double y2, double x, double y)
-    : m_x1(x1),
+  CDRCubicBezierToElement(double cx, double cy, double x1, double y1, double x2, double y2, double x, double y)
+    : m_cx(cy),
+      m_cy(cy),
+      m_x1(x1),
       m_y1(y1),
       m_x2(x2),
       m_y2(y2),
@@ -79,6 +89,8 @@ public:
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 private:
+  double m_cx;
+  double m_cy;
   double m_x1;
   double m_y1;
   double m_x2;
@@ -90,8 +102,10 @@ private:
 class CDRQuadraticBezierToElement : public CDRPathElement
 {
 public:
-  CDRQuadraticBezierToElement(double x1, double y1, double x, double y)
-    : m_x1(x1),
+  CDRQuadraticBezierToElement(double cx, double cy, double x1, double y1, double x, double y)
+    : m_cx(cx),
+      m_cy(cy),
+      m_x1(x1),
       m_y1(y1),
       m_x(x),
       m_y(y) {}
@@ -99,6 +113,8 @@ public:
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 private:
+  double m_cx;
+  double m_cy;
   double m_x1;
   double m_y1;
   double m_x;
@@ -108,8 +124,10 @@ private:
 class CDRArcToElement : public CDRPathElement
 {
 public:
-  CDRArcToElement(double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y)
-    : m_rx(rx),
+  CDRArcToElement(double cx, double cy, double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y)
+    : m_cx(cx),
+      m_cy(cy),
+      m_rx(rx),
       m_ry(ry),
       m_rotation(rotation),
       m_largeArc(largeArc),
@@ -120,6 +138,8 @@ public:
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
 private:
+  double m_cx;
+  double m_cy;
   double m_rx;
   double m_ry;
   double m_rotation;
@@ -236,29 +256,29 @@ void libcdr::CDRClosePathElement::transform(const CDRTransform & /* trafo */)
 {
 }
 
-void libcdr::CDRPath::appendMoveTo(double x, double y)
+void libcdr::CDRPath::appendMoveTo(double cx, double cy, double x, double y)
 {
-  m_elements.push_back(new libcdr::CDRMoveToElement(x, y));
+  m_elements.push_back(new libcdr::CDRMoveToElement(cx, cy, x, y));
 }
 
-void libcdr::CDRPath::appendLineTo(double x, double y)
+void libcdr::CDRPath::appendLineTo(double cx, double cy, double x, double y)
 {
-  m_elements.push_back(new libcdr::CDRLineToElement(x, y));
+  m_elements.push_back(new libcdr::CDRLineToElement(cx, cy, x, y));
 }
 
-void libcdr::CDRPath::appendCubicBezierTo(double x1, double y1, double x2, double y2, double x, double y)
+void libcdr::CDRPath::appendCubicBezierTo(double cx, double cy, double x1, double y1, double x2, double y2, double x, double y)
 {
-  m_elements.push_back(new libcdr::CDRCubicBezierToElement(x1, y1, x2, y2, x, y));
+  m_elements.push_back(new libcdr::CDRCubicBezierToElement(cx, cy, x1, y1, x2, y2, x, y));
 }
 
-void libcdr::CDRPath::appendQuadraticBezierTo(double x1, double y1, double x, double y)
+void libcdr::CDRPath::appendQuadraticBezierTo(double cx, double cy, double x1, double y1, double x, double y)
 {
-  m_elements.push_back(new libcdr::CDRQuadraticBezierToElement(x1, y1, x, y));
+  m_elements.push_back(new libcdr::CDRQuadraticBezierToElement(cx, cy, x1, y1, x, y));
 }
 
-void libcdr::CDRPath::appendArcTo(double rx, double ry, double rotation, bool longAngle, bool sweep, double x, double y)
+void libcdr::CDRPath::appendArcTo(double cx, double cy, double rx, double ry, double rotation, bool longAngle, bool sweep, double x, double y)
 {
-  m_elements.push_back(new libcdr::CDRArcToElement(rx, ry, rotation, longAngle, sweep, x, y));
+  m_elements.push_back(new libcdr::CDRArcToElement(cx, cy, rx, ry, rotation, longAngle, sweep, x, y));
 }
 
 void libcdr::CDRPath::appendClosePath()

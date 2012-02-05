@@ -50,10 +50,10 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
   applyToPoint(x, y);
 
   // represent ellipse as a transformed unit circle
-  double v0 = m_v0*rx*cos(rotation) - m_v1*rx*sin(rotation);
-  double v1 = m_v1*ry*cos(rotation) + m_v0*ry*sin(rotation);
-  double v3 = m_v3*rx*cos(rotation) - m_v4*rx*sin(rotation);
-  double v4 = m_v4*ry*cos(rotation) + m_v3*ry*sin(rotation);
+  double v0 = m_v0*rx*cos(rotation) + m_v1*rx*sin(rotation);
+  double v1 = m_v1*ry*cos(rotation) - m_v0*ry*sin(rotation);
+  double v3 = m_v3*rx*cos(rotation) + m_v4*rx*sin(rotation);
+  double v4 = m_v4*ry*cos(rotation) - m_v3*ry*sin(rotation);
 
   // centered implicit equation
   double A = v0*v0 + v1*v1;

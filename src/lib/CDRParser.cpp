@@ -221,38 +221,40 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
   double r2 = m_version < 900 ? r3 : (double)readU32(input) / 254000.0;
   double r1 = m_version < 900 ? r3 : (double)readU32(input) / 254000.0;
   double r0 = m_version < 900 ? r3 : (double)readU32(input) / 254000.0;
+  double cx = 0.0;
+  double cy = 0.0;
   if (r0 > 0.0)
-    m_collector->collectMoveTo(0.0, -r0);
+    m_collector->collectMoveTo(cx, cy, 0.0, -r0);
   else
-    m_collector->collectMoveTo(0.0, 0.0);
+    m_collector->collectMoveTo(cx, cy, 0.0, 0.0);
   if (r1 > 0.0)
   {
-    m_collector->collectLineTo(0.0, y0+r1);
-    m_collector->collectQuadraticBezier(0.0, y0, r1, y0);
+    m_collector->collectLineTo(cx, cy, 0.0, y0+r1);
+    m_collector->collectQuadraticBezier(cx, cy, 0.0, y0, r1, y0);
   }
   else
-    m_collector->collectLineTo(0.0, y0);
+    m_collector->collectLineTo(cx, cy, 0.0, y0);
   if (r2 > 0.0)
   {
-    m_collector->collectLineTo(x0-r2, y0);
-    m_collector->collectQuadraticBezier(x0, y0, x0, y0+r2);
+    m_collector->collectLineTo(cx, cy, x0-r2, y0);
+    m_collector->collectQuadraticBezier(cx, cy, x0, y0, x0, y0+r2);
   }
   else
-    m_collector->collectLineTo(x0, y0);
+    m_collector->collectLineTo(cx, cy, x0, y0);
   if (r3 > 0.0)
   {
-    m_collector->collectLineTo(x0, -r3);
-    m_collector->collectQuadraticBezier(x0, 0.0, x0-r3, 0.0);
+    m_collector->collectLineTo(cx, cy, x0, -r3);
+    m_collector->collectQuadraticBezier(cx, cy, x0, 0.0, x0-r3, 0.0);
   }
   else
-    m_collector->collectLineTo(x0, 0.0);
+    m_collector->collectLineTo(cx, cy, x0, 0.0);
   if (r0 > 0.0)
   {
-    m_collector->collectLineTo(r0, 0.0);
-    m_collector->collectQuadraticBezier(0.0, 0.0, 0.0, -r0);
+    m_collector->collectLineTo(cx, cy, r0, 0.0);
+    m_collector->collectQuadraticBezier(cx, cy, 0.0, 0.0, 0.0, -r0);
   }
   else
-    m_collector->collectLineTo(0.0, 0.0);
+    m_collector->collectLineTo(cx, cy, 0.0, 0.0);
 }
 
 void libcdr::CDRParser::readEllipse(WPXInputStream *input)
@@ -263,7 +265,6 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   double y = (double)readS32(input) / 254000.0;
   double angle1 = M_PI * (double)readS32(input) / 180000000.0;
   double angle2 = M_PI * (double)readS32(input) / 180000000.0;
-  double rotation = 0;
   bool pie(0 != readU32(input));
 
   double cx = x/2.0;
@@ -275,34 +276,34 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   {
     if (angle2 < angle1)
       angle2 += 2*M_PI;
-    double x0 = cx + rx*cos(rotation)*cos(angle1) - ry*sin(rotation)*sin(angle1);
-    double y0 = cy - rx*sin(rotation)*cos(angle1) - ry*cos(rotation)*sin(angle1);
+    double x0 = cx + rx*cos(angle1);
+    double y0 = cy - ry*sin(angle1);
 
-    double x1 = cx + rx*cos(rotation)*cos(angle2) - ry*sin(rotation)*sin(angle2);
-    double y1 = cy - rx*sin(rotation)*cos(angle2) - ry*cos(rotation)*sin(angle2);
+    double x1 = cx + rx*cos(angle2);
+    double y1 = cy - ry*sin(angle2);
 
     bool largeArc = (angle2 - angle1 > M_PI || angle2 - angle1 < -M_PI);
 
-    m_collector->collectMoveTo(x0, y0);
-    m_collector->collectArcTo(rx, ry, rotation, largeArc, true, x1, y1);
+    m_collector->collectMoveTo(cx, cy, x0, y0);
+    m_collector->collectArcTo(cx, cy, rx, ry, 0.0, largeArc, true, x1, y1);
     if (pie)
     {
-      m_collector->collectLineTo(cx, cy);
-      m_collector->collectLineTo(x0, y0);
+      m_collector->collectLineTo(cx, cy, cx, cy);
+      m_collector->collectLineTo(cx, cy, x0, y0);
       m_collector->collectClosePath();
     }
   }
   else
   {
-    double x0 = cx + rx*cos(rotation);
-    double y0 = cy - rx*sin(rotation);
+    double x0 = cx + rx;
+    double y0 = cy;
 
-    double x1 = cx - ry*sin(rotation);
-    double y1 = cy - ry*cos(rotation);
+    double x1 = cx;
+    double y1 = cy - ry;
 
-    m_collector->collectMoveTo(x0, y0);
-    m_collector->collectArcTo(rx, ry, rotation, false, true, x1, y1);
-    m_collector->collectArcTo(rx, ry, rotation, true, true, x0, y0);
+    m_collector->collectMoveTo(cx, cy, x0, y0);
+    m_collector->collectArcTo(cx, cy, rx, ry, 0.0, false, true, x1, y1);
+    m_collector->collectArcTo(cx, cy, rx, ry, 0.0, true, true, x0, y0);
   }
 }
 
@@ -323,6 +324,8 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
   }
   for (unsigned k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
+  double cx = 0.0;
+  double cy = 0.0;
   std::vector<std::pair<double, double> >tmpPoints;
   for (unsigned i=0; i<pointNum; i++)
   {
@@ -346,21 +349,21 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
     if (!(type & 0x40) && !(type & 0x80))
     {
       tmpPoints.clear();
-      m_collector->collectMoveTo(points[i].first, points[i].second);
+      m_collector->collectMoveTo(cx, cy, points[i].first, points[i].second);
     }
     else if ((type & 0x40) && !(type & 0x80))
     {
       tmpPoints.clear();
-      m_collector->collectLineTo(points[i].first, points[i].second);
+      m_collector->collectLineTo(cx, cy, points[i].first, points[i].second);
       if (isClosedPath)
         m_collector->collectClosePath();
     }
     else if (!(type & 0x40) && (type & 0x80))
     {
       if (tmpPoints.size() >= 2)
-        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
+        m_collector->collectCubicBezier(cx, cy, tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
       else
-        m_collector->collectLineTo(points[i].first, points[i].second);
+        m_collector->collectLineTo(cx, cy, points[i].first, points[i].second);
       if (isClosedPath)
         m_collector->collectClosePath();
       tmpPoints.clear();
@@ -393,6 +396,8 @@ void libcdr::CDRParser::readPath(WPXInputStream *input)
   for (unsigned k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
   std::vector<std::pair<double, double> >tmpPoints;
+  double cx = 0.0;
+  double cy = 0.0;
   for (unsigned i=0; i<pointNum; i++)
   {
     const unsigned char &type = pointTypes[i];
@@ -415,21 +420,21 @@ void libcdr::CDRParser::readPath(WPXInputStream *input)
     if (!(type & 0x40) && !(type & 0x80))
     {
       tmpPoints.clear();
-      m_collector->collectMoveTo(points[i].first, points[i].second);
+      m_collector->collectMoveTo(cx, cy, points[i].first, points[i].second);
     }
     else if ((type & 0x40) && !(type & 0x80))
     {
       tmpPoints.clear();
-      m_collector->collectLineTo(points[i].first, points[i].second);
+      m_collector->collectLineTo(cx, cy, points[i].first, points[i].second);
       if (isClosedPath)
         m_collector->collectClosePath();
     }
     else if (!(type & 0x40) && (type & 0x80))
     {
       if (tmpPoints.size() >= 2)
-        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
+        m_collector->collectCubicBezier(cx, cy, tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
       else
-        m_collector->collectLineTo(points[i].first, points[i].second);
+        m_collector->collectLineTo(cx, cy, points[i].first, points[i].second);
       if (isClosedPath)
         m_collector->collectClosePath();
       tmpPoints.clear();

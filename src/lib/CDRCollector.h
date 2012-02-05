@@ -48,11 +48,11 @@ public:
   void collectPage(unsigned level);
   void collectObject(unsigned level);
   void collectOtherList();
-  void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y);
-  void collectQuadraticBezier(double x1, double y1, double x, double y);
-  void collectMoveTo(double x, double y);
-  void collectLineTo(double x, double y);
-  void collectArcTo(double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y);
+  void collectCubicBezier(double cx, double cy, double x1, double y1, double x2, double y2, double x, double y);
+  void collectQuadraticBezier(double cx, double cy, double x1, double y1, double x, double y);
+  void collectMoveTo(double cx, double cy, double x, double y);
+  void collectLineTo(double cx, double cy, double x, double y);
+  void collectArcTo(double cx, double cy, double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y);
   void collectClosePath();
   void collectLevel(unsigned level);
   void collectTransform(double v0, double v1, double x, double v3, double v4, double y);
@@ -95,6 +95,8 @@ private:
   CDRTransform m_currentTransform;
   std::map<unsigned, CDRFillStyle> m_fillStyles;
   std::map<unsigned, CDRLineStyle> m_lineStyles;
+  double m_cx;
+  double m_cy;
 };
 
 } // namespace libcdr
