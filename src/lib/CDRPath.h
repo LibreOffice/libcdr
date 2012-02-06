@@ -54,11 +54,11 @@ public:
   CDRPath() : m_elements() {}
   ~CDRPath();
 
-  void appendMoveTo(double cx, double cy, double x, double y);
-  void appendLineTo(double cx, double cy, double x, double y);
-  void appendCubicBezierTo(double cx, double cy, double x1, double y1, double x2, double x3, double x, double y);
-  void appendQuadraticBezierTo(double cx, double cy, double x1, double y1, double x, double y);
-  void appendArcTo(double cx, double cy, double rx, double ry, double rotation, bool longAngle, bool sweep, double x, double y);
+  void appendMoveTo(double x, double y);
+  void appendLineTo(double x, double y);
+  void appendCubicBezierTo(double x1, double y1, double x2, double x3, double x, double y);
+  void appendQuadraticBezierTo(double x1, double y1, double x, double y);
+  void appendArcTo(double rx, double ry, double rotation, bool longAngle, bool sweep, double x, double y);
   void appendClosePath();
   void appendPath(const CDRPath &path);
 

@@ -44,8 +44,7 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_currentFildId(0.0), m_currentOutlId(0),
   m_currentObjectLevel(0), m_currentPageLevel(0),
   m_currentPath(), m_currentTransform(),
-  m_fillStyles(), m_lineStyles(),
-  m_cx(0.0), m_cy(0.0)
+  m_fillStyles(), m_lineStyles()
 {
 }
 
@@ -116,44 +115,34 @@ void libcdr::CDRCollector::collectPageSize(double width, double height)
   m_pageOffsetY = -height / 2.0;
 }
 
-void libcdr::CDRCollector::collectCubicBezier(double cx, double cy, double x1, double y1, double x2, double y2, double x, double y)
+void libcdr::CDRCollector::collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y)
 {
-  CDR_DEBUG_MSG(("CDRCollector::collectCubicBezier(%f, %f, %f, %f, %f, %f, %f, %f)\n", cx, cy, x1, y1, x2, y2, x, y));
-  m_currentPath.appendCubicBezierTo(cx, cy, x1, y1, x2, y2, x, y);
-  m_cx = cx;
-  m_cy = cy;
+  CDR_DEBUG_MSG(("CDRCollector::collectCubicBezier(%f, %f, %f, %f, %f, %f)\n", x1, y1, x2, y2, x, y));
+  m_currentPath.appendCubicBezierTo(x1, y1, x2, y2, x, y);
 }
 
-void libcdr::CDRCollector::collectQuadraticBezier(double cx, double cy, double x1, double y1, double x, double y)
+void libcdr::CDRCollector::collectQuadraticBezier(double x1, double y1, double x, double y)
 {
-  CDR_DEBUG_MSG(("CDRCollector::collectQuadraticBezier(%f, %f, %f, %f, %f, %f)\n", cx, cy, x1, y1, x, y));
-  m_currentPath.appendQuadraticBezierTo(cx, cy, x1, y1, x, y);
-  m_cx = cx;
-  m_cy = cy;
+  CDR_DEBUG_MSG(("CDRCollector::collectQuadraticBezier(%f, %f, %f, %f)\n", x1, y1, x, y));
+  m_currentPath.appendQuadraticBezierTo(x1, y1, x, y);
 }
 
-void libcdr::CDRCollector::collectMoveTo(double cx, double cy, double x, double y)
+void libcdr::CDRCollector::collectMoveTo(double x, double y)
 {
-  CDR_DEBUG_MSG(("CDRCollector::collectMoveTo(%f, %f, %f, %f)\n", cx, cy, x, y));
-  m_currentPath.appendMoveTo(cx, cy, x, y);
-  m_cx = cx;
-  m_cy = cy;
+  CDR_DEBUG_MSG(("CDRCollector::collectMoveTo(%f, %f)\n", x, y));
+  m_currentPath.appendMoveTo(x,y);
 }
 
-void libcdr::CDRCollector::collectLineTo(double cx, double cy, double x, double y)
+void libcdr::CDRCollector::collectLineTo(double x, double y)
 {
-  CDR_DEBUG_MSG(("CDRCollector::collectLineTo(%f, %f,%f, %f)\n", cx, cy, x, y));
-  m_currentPath.appendLineTo(cx, cy, x, y);
-  m_cx = cx;
-  m_cy = cy;
+  CDR_DEBUG_MSG(("CDRCollector::collectLineTo(%f, %f)\n", x, y));
+  m_currentPath.appendLineTo(x, y);
 }
 
-void libcdr::CDRCollector::collectArcTo(double cx, double cy, double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y)
+void libcdr::CDRCollector::collectArcTo(double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y)
 {
-  CDR_DEBUG_MSG(("CDRCollector::collectArcTo(%f, %f, %f, %f)\n", cx, cy, x, y));
-  m_currentPath.appendArcTo(cx, cy, rx, ry, rotation, largeArc, sweep, x, y);
-  m_cx = cx;
-  m_cy = cy;
+  CDR_DEBUG_MSG(("CDRCollector::collectArcTo(%f, %f)\n", x, y));
+  m_currentPath.appendArcTo(rx, ry, rotation, largeArc, sweep, x, y);
 }
 
 void libcdr::CDRCollector::collectClosePath()
