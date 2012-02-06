@@ -43,7 +43,7 @@ void libcdr::CDRTransform::applyToPoint(double &x, double &y) const
   x = tmpX;
 }
 
-#define EPSILON 0.00001
+#define EPSILON 1E-10
 
 void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const
 {
