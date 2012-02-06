@@ -179,7 +179,9 @@ void libcdr::CDRCollector::_flushCurrentPath()
     _lineProperties(style);
     m_painter->setStyle(style, WPXPropertyListVector());
     m_currentPath.transform(m_currentTransform);
-    CDRTransform tmpTrafo(1.0, 0.0, 0.0, 0.0, -1.0, m_pageHeight);
+    CDRTransform tmpTrafo(1.0, 0.0, -m_pageOffsetX, 0.0, 1.0, -m_pageOffsetY);
+    m_currentPath.transform(tmpTrafo);
+    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_pageHeight);
     m_currentPath.transform(tmpTrafo);
     WPXPropertyListVector tmpPath;
     m_currentPath.writeOut(tmpPath);
@@ -229,7 +231,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
 
 void libcdr::CDRCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0)
 {
-  m_currentTransform = CDRTransform(v0, v1, x0-m_pageOffsetX, v3, v4, y0-m_pageOffsetY);
+  m_currentTransform = CDRTransform(v0, v1, x0, v3, v4, y0);
 }
 
 void libcdr::CDRCollector::collectLevel(unsigned level)

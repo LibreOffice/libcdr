@@ -38,8 +38,9 @@
 
 void libcdr::CDRTransform::applyToPoint(double &x, double &y) const
 {
-  x = m_v0*x + m_v1*y+m_x0;
+  double tmpX = m_v0*x + m_v1*y+m_x0;
   y = m_v3*x + m_v4*y+m_y0;
+  x = tmpX;
 }
 
 #define EPSILON 0.00001
