@@ -44,7 +44,8 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_currentFildId(0.0), m_currentOutlId(0),
   m_currentObjectLevel(0), m_currentPageLevel(0),
   m_currentPath(), m_currentTransform(),
-  m_fillStyles(), m_lineStyles(), m_polygon(0)
+  m_fillStyles(), m_lineStyles(), m_polygon(0),
+  m_bmps()
 {
 }
 
@@ -459,6 +460,11 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
       propList.insert("svg:stroke-color", _getRGBColorString(iter->second.colorModel, iter->second.color));
     }
   }
+}
+
+void libcdr::CDRCollector::collectBmp(const WPXBinaryData &image)
+{
+  m_bmps.push_back(image);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

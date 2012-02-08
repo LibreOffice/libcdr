@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+#/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* libcdr
  * Version: MPL 1.1 / GPLv2+ / LGPLv2+
  *
@@ -41,6 +41,14 @@
 #define DUMP_PREVIEW_IMAGE 0
 #endif
 
+#ifndef DUMP_IMAGE
+#define DUMP_IMAGE 0
+#endif
+
+#if DUMP_IMAGE
+static unsigned imageId = 0;
+#endif
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -48,7 +56,7 @@
 libcdr::CDRParser::CDRParser(WPXInputStream *input, libcdr::CDRCollector *collector)
   : m_input(input),
     m_collector(collector),
-    m_version(0) {}
+    m_version(0), m_bmpNum(0) {}
 
 libcdr::CDRParser::~CDRParser()
 {
@@ -210,6 +218,8 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     readFlags(input);
   else if (fourCC == "mcfg")
     readMcfg(input);
+  else if (fourCC == "bmp ")
+    readBmp(input, length);
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
@@ -676,6 +686,49 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
   m_collector->collectPolygonTransform(numAngles, nextPoint, rx, ry, cx, cy);
 }
 
+void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
+{
+  WPXBinaryData image;
+/*  image.append(0x42);
+  image.append(0x4d);
+
+  image.append((unsigned char)((length+8) & 0x000000ff));
+  image.append((unsigned char)(((length+8) & 0x0000ff00) >> 8));
+  image.append((unsigned char)(((length+8) & 0x00ff0000) >> 16));
+  image.append((unsigned char)(((length+8) & 0xff000000) >> 24));
+
+  image.append(0x00);
+  image.append(0x00);
+  image.append(0x00);
+  image.append(0x00);
+
+  long startPosition = input->tell();
+  input->seek(0x18, WPX_SEEK_CUR);
+  int lengthX = length + 10 - readU32(input);
+  input->seek(startPosition, WPX_SEEK_SET);
+
+  image.append((unsigned char)((lengthX) & 0x000000ff));
+  image.append((unsigned char)(((lengthX) & 0x0000ff00) >> 8));
+  image.append((unsigned char)(((lengthX) & 0x00ff0000) >> 16));
+  image.append((unsigned char)(((lengthX) & 0xff000000) >> 24)); */
+
+  input->seek(0, WPX_SEEK_CUR);
+  for (unsigned i = 0; i<length; i++)
+    image.append(readU8(input));
+#if DUMP_IMAGE
+  WPXString imageName;
+  imageName.sprintf("image%i.bmp", imageId++);
+  FILE *f = fopen(imageName.cstr(), "wb");
+  if (f)
+  {
+    const unsigned char *tmpBuffer = image.getDataBuffer();
+    for (unsigned long k = 0; k < image.size(); k++)
+      fprintf(f, "%c",tmpBuffer[k]);
+    fclose(f);
+  }
+#endif
+  m_collector->collectBmp( image);
+}
 
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

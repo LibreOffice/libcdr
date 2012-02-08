@@ -66,6 +66,7 @@ public:
   void collectFlags(unsigned flags);
   void collectPageSize(double width, double height);
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
+  void collectBmp(const WPXBinaryData &image);
 
 private:
   CDRCollector(const CDRCollector &);
@@ -97,6 +98,7 @@ private:
   std::map<unsigned, CDRFillStyle> m_fillStyles;
   std::map<unsigned, CDRLineStyle> m_lineStyles;
   CDRPolygon *m_polygon;
+  std::vector<WPXBinaryData> m_bmps;
 };
 
 } // namespace libcdr
