@@ -34,6 +34,8 @@
 
 namespace libcdr
 {
+class CDRPath;
+
 struct CDRTransform
 {
   double m_v0;
@@ -84,6 +86,19 @@ struct CDRLineStyle
     : lineType(lt), capsType(ct), joinType(jt),
       lineWidth(lw), colorModel(cm), color(c),
       dashArray(da), startMarkerId(smi), endMarkerId(emi) {}
+};
+
+struct CDRPolygon
+{
+  unsigned m_numAngles;
+  double m_rx;
+  double m_ry;
+  double m_cx;
+  double m_cy;
+  CDRPolygon() : m_numAngles(0), m_rx(0.0), m_ry(0.0), m_cx(0.0), m_cy(0.0) {}
+  CDRPolygon(unsigned numAngles, double rx, double ry, double cx, double cy)
+    : m_numAngles(numAngles), m_rx(rx), m_ry(ry), m_cx(cx), m_cy(cy) {}
+  void create(CDRPath &path) const;
 };
 
 } // namespace libcdr

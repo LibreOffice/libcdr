@@ -30,6 +30,7 @@
 
 #include <math.h>
 #include "CDRTypes.h"
+#include "CDRPath.h"
 
 
 #ifndef M_PI
@@ -107,4 +108,19 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
   // sweep is inversed each time the arc is flipped
   sweep = (m_v0*m_v4 < m_v3*m_v1);
 }
+
+void libcdr::CDRPolygon::create(libcdr::CDRPath &path) const
+{
+  libcdr::CDRPath tmpPath(path);
+  double step = 2*M_PI / (double)m_numAngles;
+  libcdr::CDRTransform tmpTrafo(cos(step), -sin(step), 0.0, sin(step), cos(step), 0.0);
+  for (unsigned i = 1; i < m_numAngles; ++i)
+  {
+    tmpPath.transform(tmpTrafo);
+    path.appendPath(tmpPath);
+  }
+  tmpTrafo = libcdr::CDRTransform(m_rx, 0.0, m_cx, 0.0, m_ry, m_cy);
+  path.transform(tmpTrafo);
+}
+
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

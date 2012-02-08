@@ -263,7 +263,6 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   double y = (double)readS32(input) / 254000.0;
   double angle1 = M_PI * (double)readS32(input) / 180000000.0;
   double angle2 = M_PI * (double)readS32(input) / 180000000.0;
-  double rotation = 0;
   bool pie(0 != readU32(input));
 
   double cx = x/2.0;
@@ -275,16 +274,16 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   {
     if (angle2 < angle1)
       angle2 += 2*M_PI;
-    double x0 = cx + rx*cos(rotation)*cos(angle1) - ry*sin(rotation)*sin(angle1);
-    double y0 = cy - rx*sin(rotation)*cos(angle1) - ry*cos(rotation)*sin(angle1);
+    double x0 = cx + rx*cos(angle1);
+    double y0 = cy - ry*sin(angle1);
 
-    double x1 = cx + rx*cos(rotation)*cos(angle2) - ry*sin(rotation)*sin(angle2);
-    double y1 = cy - rx*sin(rotation)*cos(angle2) - ry*cos(rotation)*sin(angle2);
+    double x1 = cx + rx*cos(angle2);
+    double y1 = cy - ry*sin(angle2);
 
     bool largeArc = (angle2 - angle1 > M_PI || angle2 - angle1 < -M_PI);
 
     m_collector->collectMoveTo(x0, y0);
-    m_collector->collectArcTo(rx, ry, rotation, largeArc, true, x1, y1);
+    m_collector->collectArcTo(rx, ry, largeArc, true, x1, y1);
     if (pie)
     {
       m_collector->collectLineTo(cx, cy);
@@ -294,15 +293,15 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   }
   else
   {
-    double x0 = cx + rx*cos(rotation);
-    double y0 = cy - rx*sin(rotation);
+    double x0 = cx + rx;
+    double y0 = cy;
 
-    double x1 = cx - ry*sin(rotation);
-    double y1 = cy - ry*cos(rotation);
+    double x1 = cx;
+    double y1 = cy - ry;
 
     m_collector->collectMoveTo(x0, y0);
-    m_collector->collectArcTo(rx, ry, rotation, false, true, x1, y1);
-    m_collector->collectArcTo(rx, ry, rotation, true, true, x0, y0);
+    m_collector->collectArcTo(rx, ry, false, true, x1, y1);
+    m_collector->collectArcTo(rx, ry, true, true, x0, y0);
   }
 }
 
@@ -560,6 +559,8 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
               readText(input);
       else if (chunkType == 0x05)
         readBitmap(input); */
+      else if (chunkType == 0x14) // Polygon
+        readPolygonCoords(input);
     }
     else if (argTypes[i] == 0x14)
       m_collector->collectFildId(readU32(input));
@@ -567,6 +568,8 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
       m_collector->collectOutlId(readU32(input));
     else if (argTypes[i] == 0x2efe)
       m_collector->collectRotate((double)readU32(input)*M_PI / 180000000.0);
+    else if (argTypes[i] == 0x2af8)
+      readPolygonTransform(input);
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
@@ -587,6 +590,85 @@ void libcdr::CDRParser::readMcfg(WPXInputStream *input)
   double height = (double)readS32(input) / 254000.0;
   m_collector->collectPageSize(width, height);
 }
+
+void libcdr::CDRParser::readPolygonCoords(WPXInputStream *input)
+{
+  CDR_DEBUG_MSG(("CDRParser::readPolygonCoords\n"));
+
+  bool isClosedPath = false;
+  unsigned pointNum = readU32(input);
+  std::vector<std::pair<double, double> > points;
+  std::vector<unsigned char> pointTypes;
+  for (unsigned j=0; j<pointNum; j++)
+  {
+    std::pair<double, double> point;
+    point.first = (double)readS32(input) / 254000.0;
+    point.second = (double)readS32(input) / 254000.0;
+    points.push_back(point);
+  }
+  for (unsigned k=0; k<pointNum; k++)
+    pointTypes.push_back(readU8(input));
+  std::vector<std::pair<double, double> >tmpPoints;
+  for (unsigned i=0; i<pointNum; i++)
+  {
+    const unsigned char &type = pointTypes[i];
+    if (type & 0x08)
+      isClosedPath = true;
+    else
+      isClosedPath = false;
+    if (!(type & 0x10) && !(type & 0x20))
+    {
+      // cont angle
+    }
+    else if (type & 0x10)
+    {
+      // cont smooth
+    }
+    else if (type & 0x20)
+    {
+      // cont symmetrical
+    }
+    if (!(type & 0x40) && !(type & 0x80))
+    {
+      tmpPoints.clear();
+      m_collector->collectMoveTo(points[i].first, points[i].second);
+    }
+    else if ((type & 0x40) && !(type & 0x80))
+    {
+      tmpPoints.clear();
+      m_collector->collectLineTo(points[i].first, points[i].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
+    }
+    else if (!(type & 0x40) && (type & 0x80))
+    {
+      if (tmpPoints.size() >= 2)
+        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
+      else
+        m_collector->collectLineTo(points[i].first, points[i].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
+      tmpPoints.clear();
+    }
+    else if((type & 0x40) && (type & 0x80))
+    {
+      tmpPoints.push_back(points[i]);
+    }
+  }
+}
+
+void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
+{
+  input->seek(4, WPX_SEEK_CUR);
+  unsigned numAngles = readU32(input);
+  input->seek(8, WPX_SEEK_CUR);
+  double rx = readDouble(input);
+  double ry = readDouble(input);
+  double cx = (double)readS32(input) / 254000.0;
+  double cy = (double)readS32(input) / 254000.0;
+  m_collector->collectPolygonTransform(numAngles, rx, ry, cx, cy);
+}
+
 
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

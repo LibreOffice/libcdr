@@ -44,7 +44,7 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_currentFildId(0.0), m_currentOutlId(0),
   m_currentObjectLevel(0), m_currentPageLevel(0),
   m_currentPath(), m_currentTransform(),
-  m_fillStyles(), m_lineStyles()
+  m_fillStyles(), m_lineStyles(), m_polygon(0)
 {
 }
 
@@ -139,10 +139,10 @@ void libcdr::CDRCollector::collectLineTo(double x, double y)
   m_currentPath.appendLineTo(x, y);
 }
 
-void libcdr::CDRCollector::collectArcTo(double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y)
+void libcdr::CDRCollector::collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y)
 {
   CDR_DEBUG_MSG(("CDRCollector::collectArcTo(%f, %f)\n", x, y));
-  m_currentPath.appendArcTo(rx, ry, rotation, largeArc, sweep, x, y);
+  m_currentPath.appendArcTo(rx, ry, 0.0, largeArc, sweep, x, y);
 }
 
 void libcdr::CDRCollector::collectClosePath()
@@ -156,6 +156,13 @@ void libcdr::CDRCollector::_flushCurrentPath()
   CDR_DEBUG_MSG(("CDRCollector::collectFlushPath\n"));
   if (!m_currentPath.empty())
   {
+    if (m_polygon)
+    {
+      m_polygon->create(m_currentPath);
+      delete m_polygon;
+      m_polygon = 0;
+	  m_currentPath.appendClosePath();
+    }
     bool firstPoint = true;
     double initialX = 0.0;
     double initialY = 0.0;
@@ -261,6 +268,13 @@ void libcdr::CDRCollector::collectOutl(unsigned id, unsigned short lineType, uns
 
 void libcdr::CDRCollector::collectRotate(double /* angle */)
 {
+}
+
+void libcdr::CDRCollector::collectPolygonTransform(unsigned numAngles, double rx, double ry, double cx, double cy)
+{
+  if (m_polygon)
+    delete m_polygon;
+  m_polygon = new CDRPolygon(numAngles, rx, ry, cx, cy);
 }
 
 unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned colorValue)

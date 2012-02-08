@@ -45,6 +45,7 @@ public:
   virtual ~CDRPathElement() {}
   virtual void writeOut(WPXPropertyListVector &vec) const = 0;
   virtual void transform(const CDRTransform &trafo) = 0;
+  virtual CDRPathElement *clone() = 0;
 };
 
 
@@ -52,6 +53,7 @@ class CDRPath : public CDRPathElement
 {
 public:
   CDRPath() : m_elements() {}
+  CDRPath(const CDRPath &path);
   ~CDRPath();
 
   void appendMoveTo(double x, double y);
@@ -64,6 +66,7 @@ public:
 
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
+  CDRPathElement *clone();
 
   void clear();
   bool empty();

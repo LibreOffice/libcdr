@@ -46,6 +46,7 @@ public:
   ~CDRMoveToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
+  CDRPathElement *clone();
 private:
   double m_x;
   double m_y;
@@ -60,6 +61,7 @@ public:
   ~CDRLineToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
+  CDRPathElement *clone();
 private:
   double m_x;
   double m_y;
@@ -78,6 +80,7 @@ public:
   ~CDRCubicBezierToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
+  CDRPathElement *clone();
 private:
   double m_x1;
   double m_y1;
@@ -98,6 +101,7 @@ public:
   ~CDRQuadraticBezierToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
+  CDRPathElement *clone();
 private:
   double m_x1;
   double m_y1;
@@ -119,6 +123,7 @@ public:
   ~CDRArcToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
+  CDRPathElement *clone();
 private:
   double m_rx;
   double m_ry;
@@ -136,6 +141,7 @@ public:
   ~CDRClosePathElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
   void transform(const CDRTransform &trafo);
+  CDRPathElement *clone();
 };
 
 } // namespace libcdr
@@ -155,6 +161,11 @@ void libcdr::CDRMoveToElement::transform(const CDRTransform &trafo)
   trafo.applyToPoint(m_x,m_y);
 }
 
+libcdr::CDRPathElement *libcdr::CDRMoveToElement::clone()
+{
+  return new CDRMoveToElement(m_x, m_y);
+}
+
 void libcdr::CDRLineToElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
@@ -167,6 +178,11 @@ void libcdr::CDRLineToElement::writeOut(WPXPropertyListVector &vec) const
 void libcdr::CDRLineToElement::transform(const CDRTransform &trafo)
 {
   trafo.applyToPoint(m_x,m_y);
+}
+
+libcdr::CDRPathElement *libcdr::CDRLineToElement::clone()
+{
+  return new CDRLineToElement(m_x, m_y);
 }
 
 void libcdr::CDRCubicBezierToElement::writeOut(WPXPropertyListVector &vec) const
@@ -189,6 +205,11 @@ void libcdr::CDRCubicBezierToElement::transform(const CDRTransform &trafo)
   trafo.applyToPoint(m_x,m_y);
 }
 
+libcdr::CDRPathElement *libcdr::CDRCubicBezierToElement::clone()
+{
+  return new CDRCubicBezierToElement(m_x1, m_y1, m_x2, m_y2, m_x, m_y);
+}
+
 void libcdr::CDRQuadraticBezierToElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
@@ -204,6 +225,11 @@ void libcdr::CDRQuadraticBezierToElement::transform(const CDRTransform &trafo)
 {
   trafo.applyToPoint(m_x1,m_y1);
   trafo.applyToPoint(m_x,m_y);
+}
+
+libcdr::CDRPathElement *libcdr::CDRQuadraticBezierToElement::clone()
+{
+  return new CDRQuadraticBezierToElement(m_x1, m_y1, m_x, m_y);
 }
 
 void libcdr::CDRArcToElement::writeOut(WPXPropertyListVector &vec) const
@@ -225,6 +251,11 @@ void libcdr::CDRArcToElement::transform(const CDRTransform &trafo)
   trafo.applyToArc(m_rx, m_ry, m_rotation, m_sweep, m_x, m_y);
 }
 
+libcdr::CDRPathElement *libcdr::CDRArcToElement::clone()
+{
+  return new CDRArcToElement(m_rx, m_ry, m_rotation, m_largeArc, m_sweep, m_x, m_y);
+}
+
 void libcdr::CDRClosePathElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
@@ -234,6 +265,11 @@ void libcdr::CDRClosePathElement::writeOut(WPXPropertyListVector &vec) const
 
 void libcdr::CDRClosePathElement::transform(const CDRTransform & /* trafo */)
 {
+}
+
+libcdr::CDRPathElement *libcdr::CDRClosePathElement::clone()
+{
+  return new CDRClosePathElement();
 }
 
 void libcdr::CDRPath::appendMoveTo(double x, double y)
@@ -266,6 +302,12 @@ void libcdr::CDRPath::appendClosePath()
   m_elements.push_back(new libcdr::CDRClosePathElement());
 }
 
+libcdr::CDRPath::CDRPath(const libcdr::CDRPath &path) : m_elements()
+{
+  for (std::vector<CDRPathElement *>::const_iterator iter = path.m_elements.begin(); iter != path.m_elements.end(); ++iter)
+    m_elements.push_back((*iter)->clone());
+}
+
 libcdr::CDRPath::~CDRPath()
 {
   clear();
@@ -273,6 +315,8 @@ libcdr::CDRPath::~CDRPath()
 
 void libcdr::CDRPath::appendPath(const CDRPath &path)
 {
+  for (std::vector<CDRPathElement *>::const_iterator iter = path.m_elements.begin(); iter != path.m_elements.end(); ++iter)
+    m_elements.push_back((*iter)->clone());
 }
 
 void libcdr::CDRPath::writeOut(WPXPropertyListVector &vec) const
@@ -285,6 +329,11 @@ void libcdr::CDRPath::transform(const CDRTransform &trafo)
 {
   for (std::vector<CDRPathElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
     (*iter)->transform(trafo);
+}
+
+libcdr::CDRPathElement *libcdr::CDRPath::clone()
+{
+  return new CDRPath(*this);
 }
 
 void libcdr::CDRPath::clear()

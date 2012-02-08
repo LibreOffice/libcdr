@@ -52,7 +52,7 @@ public:
   void collectQuadraticBezier(double x1, double y1, double x, double y);
   void collectMoveTo(double x, double y);
   void collectLineTo(double x, double y);
-  void collectArcTo(double rx, double ry, double rotation, bool largeArc, bool sweep, double x, double y);
+  void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y);
   void collectClosePath();
   void collectLevel(unsigned level);
   void collectTransform(double v0, double v1, double x, double v3, double v4, double y);
@@ -65,6 +65,7 @@ public:
   void collectRotate(double angle);
   void collectFlags(unsigned flags);
   void collectPageSize(double width, double height);
+  void collectPolygonTransform(unsigned numAngles, double rx, double ry, double cx, double cy);
 
 private:
   CDRCollector(const CDRCollector &);
@@ -95,6 +96,7 @@ private:
   CDRTransform m_currentTransform;
   std::map<unsigned, CDRFillStyle> m_fillStyles;
   std::map<unsigned, CDRLineStyle> m_lineStyles;
+  CDRPolygon *m_polygon;
 };
 
 } // namespace libcdr

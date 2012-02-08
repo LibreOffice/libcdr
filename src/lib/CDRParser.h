@@ -68,6 +68,8 @@ private:
   void readFlags(WPXInputStream *input);
   void readMcfg(WPXInputStream *input);
   void readPath(WPXInputStream *input);
+  void readPolygonCoords(WPXInputStream *input);
+  void readPolygonTransform(WPXInputStream *input);
 
   WPXInputStream *m_input;
   CDRCollector *m_collector;
