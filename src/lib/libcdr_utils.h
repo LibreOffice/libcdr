@@ -33,8 +33,16 @@
 
 #include <stdio.h>
 #include <string>
+#include <math.h>
 #include <libwpd/libwpd.h>
 #include <libwpd-stream/libwpd-stream.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+#define CDR_EPSILON 1E-6
+#define CDR_ALMOST_ZERO(m) fabs(m) <= CDR_EPSILON
 
 #ifdef _MSC_VER
 

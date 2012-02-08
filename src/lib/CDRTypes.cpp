@@ -28,14 +28,9 @@
  * instead of those above.
  */
 
-#include <math.h>
 #include "CDRTypes.h"
 #include "CDRPath.h"
-
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+#include "libcdr_utils.h"
 
 void libcdr::CDRTransform::applyToPoint(double &x, double &y) const
 {
@@ -43,8 +38,6 @@ void libcdr::CDRTransform::applyToPoint(double &x, double &y) const
   y = m_v3*x + m_v4*y+m_y0;
   x = tmpX;
 }
-
-#define EPSILON 1E-10
 
 void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const
 {
@@ -64,7 +57,7 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
 
   double r1, r2;
   // convert implicit equation to angle and halfaxis:
-  if (fabs(B) <= EPSILON)
+  if (CDR_ALMOST_ZERO(B))
   {
     rotation = 0;
     r1 = A;
@@ -72,7 +65,7 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
   }
   else
   {
-    if (fabs(A-C) <= EPSILON)
+    if (CDR_ALMOST_ZERO(A-C))
     {
       r1 = A + B / 2.0;
       r2 = A - B / 2.0;
@@ -113,14 +106,37 @@ void libcdr::CDRPolygon::create(libcdr::CDRPath &path) const
 {
   libcdr::CDRPath tmpPath(path);
   double step = 2*M_PI / (double)m_numAngles;
-  libcdr::CDRTransform tmpTrafo(cos(step), -sin(step), 0.0, sin(step), cos(step), 0.0);
-  for (unsigned i = 1; i < m_numAngles; ++i)
+  if (m_numAngles % m_nextPoint)
   {
-    tmpPath.transform(tmpTrafo);
-    path.appendPath(tmpPath);
+    libcdr::CDRTransform tmpTrafo(cos(m_nextPoint*step), sin(m_nextPoint*step), 0.0, -sin(m_nextPoint*step), cos(m_nextPoint*step), 0.0);
+    for (unsigned i = 1; i < m_numAngles; ++i)
+    {
+      tmpPath.transform(tmpTrafo);
+      path.appendPath(tmpPath);
+    }
   }
-  tmpTrafo = libcdr::CDRTransform(m_rx, 0.0, m_cx, 0.0, m_ry, m_cy);
-  path.transform(tmpTrafo);
+  else
+  {
+    libcdr::CDRTransform tmpTrafo(cos(m_nextPoint*step), sin(m_nextPoint*step), 0.0, -sin(m_nextPoint*step), cos(m_nextPoint*step), 0.0);
+    libcdr::CDRTransform tmpShift(cos(step), sin(step), 0.0, -sin(step), cos(step), 0.0);
+    for (unsigned i = 0; i < m_nextPoint; ++i)
+    {
+      if (i)
+      {
+        tmpPath.transform(tmpShift);
+        path.appendPath(tmpPath);
+      }
+      for (unsigned j=1; j < m_numAngles / m_nextPoint; ++j)
+      {
+        tmpPath.transform(tmpTrafo);
+        path.appendPath(tmpPath);
+      }
+      path.appendClosePath();
+    }
+  }
+  path.appendClosePath();
+  libcdr::CDRTransform trafo(m_rx, 0.0, m_cx, 0.0, m_ry, m_cy);
+  path.transform(trafo);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

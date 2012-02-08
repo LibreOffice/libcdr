@@ -161,7 +161,6 @@ void libcdr::CDRCollector::_flushCurrentPath()
       m_polygon->create(m_currentPath);
       delete m_polygon;
       m_polygon = 0;
-	  m_currentPath.appendClosePath();
     }
     bool firstPoint = true;
     double initialX = 0.0;
@@ -183,6 +182,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
     m_currentPath.writeOut(tmpPath);
     WPXPropertyListVector path;
     WPXPropertyListVector::Iter i(tmpPath);
+    bool ignoreM = false;
     for (i.rewind(); i.next();)
     {
       if (!i()["libwpg:path-action"])
@@ -199,19 +199,26 @@ void libcdr::CDRCollector::_flushCurrentPath()
         }
         else if (i()["libwpg:path-action"]->getStr() == "M")
         {
-          if (initialX == previousX && initialY == previousY)
+          if (CDR_ALMOST_ZERO(previousX - x) && CDR_ALMOST_ZERO(previousY - y))
+            ignoreM = true;
+          else
           {
-            WPXPropertyList node;
-            node.insert("libwpg:path-action", "Z");
-            path.append(node);
+            if (CDR_ALMOST_ZERO(initialX - previousX) && CDR_ALMOST_ZERO(initialY - previousY))
+            {
+              WPXPropertyList node;
+              node.insert("libwpg:path-action", "Z");
+              path.append(node);
+            }
+            initialX = x;
+            initialY = y;
           }
-          initialX = x;
-          initialY = y;
         }
       }
       previousX = x;
       previousY = y;
-      path.append(i());
+      if (!ignoreM)
+        path.append(i());
+      ignoreM = false;
     }
     if (initialX == previousX && initialY == previousY)
     {
@@ -270,11 +277,11 @@ void libcdr::CDRCollector::collectRotate(double /* angle */)
 {
 }
 
-void libcdr::CDRCollector::collectPolygonTransform(unsigned numAngles, double rx, double ry, double cx, double cy)
+void libcdr::CDRCollector::collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy)
 {
   if (m_polygon)
     delete m_polygon;
-  m_polygon = new CDRPolygon(numAngles, rx, ry, cx, cy);
+  m_polygon = new CDRPolygon(numAngles, nextPoint, rx, ry, cx, cy);
 }
 
 unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned colorValue)

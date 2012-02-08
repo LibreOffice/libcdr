@@ -91,13 +91,14 @@ struct CDRLineStyle
 struct CDRPolygon
 {
   unsigned m_numAngles;
+  unsigned m_nextPoint;
   double m_rx;
   double m_ry;
   double m_cx;
   double m_cy;
-  CDRPolygon() : m_numAngles(0), m_rx(0.0), m_ry(0.0), m_cx(0.0), m_cy(0.0) {}
-  CDRPolygon(unsigned numAngles, double rx, double ry, double cx, double cy)
-    : m_numAngles(numAngles), m_rx(rx), m_ry(ry), m_cx(cx), m_cy(cy) {}
+  CDRPolygon() : m_numAngles(0), m_nextPoint(0), m_rx(0.0), m_ry(0.0), m_cx(0.0), m_cy(0.0) {}
+  CDRPolygon(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy)
+    : m_numAngles(numAngles), m_nextPoint(nextPoint), m_rx(rx), m_ry(ry), m_cx(cx), m_cy(cy) {}
   void create(CDRPath &path) const;
 };
 

@@ -65,7 +65,7 @@ public:
   void collectRotate(double angle);
   void collectFlags(unsigned flags);
   void collectPageSize(double width, double height);
-  void collectPolygonTransform(unsigned numAngles, double rx, double ry, double cx, double cy);
+  void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
 
 private:
   CDRCollector(const CDRCollector &);

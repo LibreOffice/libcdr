@@ -310,7 +310,8 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
   CDR_DEBUG_MSG(("CDRParser::readLineAndCurve\n"));
 
   unsigned isClosedPath = false;
-  unsigned pointNum = readU32(input);
+  unsigned short pointNum = readU16(input);
+  input->seek(2, WPX_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
   for (unsigned j=0; j<pointNum; j++)
@@ -596,7 +597,8 @@ void libcdr::CDRParser::readPolygonCoords(WPXInputStream *input)
   CDR_DEBUG_MSG(("CDRParser::readPolygonCoords\n"));
 
   bool isClosedPath = false;
-  unsigned pointNum = readU32(input);
+  unsigned short pointNum = readU16(input);
+  input->seek(2, WPX_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
   for (unsigned j=0; j<pointNum; j++)
@@ -659,14 +661,19 @@ void libcdr::CDRParser::readPolygonCoords(WPXInputStream *input)
 
 void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
 {
-  input->seek(4, WPX_SEEK_CUR);
+  if (m_version < 1300)
+    input->seek(4, WPX_SEEK_CUR);
   unsigned numAngles = readU32(input);
-  input->seek(8, WPX_SEEK_CUR);
+  unsigned nextPoint = readU32(input);
+  if (m_version < 1300)
+    input->seek(4, WPX_SEEK_CUR);
+  else
+    input->seek(8, WPX_SEEK_CUR);
   double rx = readDouble(input);
   double ry = readDouble(input);
   double cx = (double)readS32(input) / 254000.0;
   double cy = (double)readS32(input) / 254000.0;
-  m_collector->collectPolygonTransform(numAngles, rx, ry, cx, cy);
+  m_collector->collectPolygonTransform(numAngles, nextPoint, rx, ry, cx, cy);
 }
 
 
