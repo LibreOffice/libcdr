@@ -462,9 +462,16 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
   }
 }
 
-void libcdr::CDRCollector::collectBmp(const WPXBinaryData &image)
+void libcdr::CDRCollector::collectBitmap(unsigned imageId, unsigned short colorMode, unsigned short colorDepth, unsigned width, unsigned height, double scaleX, double scaleY)
 {
-  m_bmps.push_back(image);
+  std::map<unsigned, WPXBinaryData>::iterator iter = m_bmps.find(imageId);
+  if (iter == m_bmps.end())
+    return;
+}
+
+void libcdr::CDRCollector::collectBmp(unsigned imageId, const WPXBinaryData &image)
+{
+  m_bmps[imageId] = image;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

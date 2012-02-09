@@ -45,10 +45,6 @@
 #define DUMP_IMAGE 0
 #endif
 
-#if DUMP_IMAGE
-static unsigned imageId = 0;
-#endif
-
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -458,11 +454,103 @@ void libcdr::CDRParser::readText(WPXInputStream *input)
   int x0 = readS32(input);
   int y0 = readS32(input);
 }
+*/
 
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 {
+  CDR_DEBUG_MSG(("CDRParser::readBitmap\n"));
+
+  bool isClosedPath = false;
+  unsigned X1 = (double)readS32(input) / 254000.0;
+  unsigned Y1 = (double)readS32(input) / 254000.0;
+  unsigned X2 = (double)readS32(input) / 254000.0;
+  unsigned Y2 = (double)readS32(input) / 254000.0;
+#if 0
+  unsigned X3 = (double)readS32(input) / 254000.0;
+  unsigned Y3 = (double)readS32(input) / 254000.0;
+  unsigned X4 = (double)readS32(input) / 254000.0;
+  unsigned Y4 = (double)readS32(input) / 254000.0;
+#else
+  input->seek(16, WPX_SEEK_CUR);
+#endif
+
+  unsigned short colorMode = readU16(input);
+  unsigned short colorDepth = readU16(input);
+  unsigned width = readU32(input);
+  unsigned height = readU32(input);
+  input->seek(4, WPX_SEEK_CUR);
+  unsigned imageId = readU32(input);
+  if (m_version == 700)
+    input->seek(8, WPX_SEEK_CUR);
+  else if (m_version >= 800 && m_version < 900)
+    input->seek(12, WPX_SEEK_CUR);
+  else
+    input->seek(20, WPX_SEEK_CUR);
+
+  unsigned short pointNum = readU16(input);
+  input->seek(2, WPX_SEEK_CUR);
+  std::vector<std::pair<double, double> > points;
+  std::vector<unsigned char> pointTypes;
+  for (unsigned j=0; j<pointNum; j++)
+  {
+    std::pair<double, double> point;
+    point.first = (double)readS32(input) / 254000.0;
+    point.second = (double)readS32(input) / 254000.0;
+    points.push_back(point);
+  }
+  for (unsigned k=0; k<pointNum; k++)
+    pointTypes.push_back(readU8(input));
+  std::vector<std::pair<double, double> >tmpPoints;
+  for (unsigned i=0; i<pointNum; i++)
+  {
+    const unsigned char &type = pointTypes[i];
+    if (type & 0x08)
+      isClosedPath = true;
+    else
+      isClosedPath = false;
+    if (!(type & 0x10) && !(type & 0x20))
+    {
+      // cont angle
+    }
+    else if (type & 0x10)
+    {
+      // cont smooth
+    }
+    else if (type & 0x20)
+    {
+      // cont symmetrical
+    }
+    if (!(type & 0x40) && !(type & 0x80))
+    {
+      tmpPoints.clear();
+      m_collector->collectMoveTo(points[i].first, points[i].second);
+    }
+    else if ((type & 0x40) && !(type & 0x80))
+    {
+      tmpPoints.clear();
+      m_collector->collectLineTo(points[i].first, points[i].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
+    }
+    else if (!(type & 0x40) && (type & 0x80))
+    {
+      if (tmpPoints.size() >= 2)
+        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
+      else
+        m_collector->collectLineTo(points[i].first, points[i].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
+      tmpPoints.clear();
+    }
+    else if((type & 0x40) && (type & 0x80))
+    {
+      tmpPoints.push_back(points[i]);
+    }
+  }
+  double scaleX = 72.0*fabs(X1 - X2)/(double)width;
+  double scaleY = 72.0*fabs(Y1 - Y2)/(double)height;
+  m_collector->collectBitmap(imageId, colorMode, colorDepth, width, height, scaleX, scaleY);
 }
-*/
 
 void libcdr::CDRParser::readTrfd(WPXInputStream *input)
 {
@@ -567,9 +655,9 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
       else if (chunkType == 0x25) // Path
         readPath(input);
       /*      else if (chunkType == 0x04) // Text
-              readText(input);
+              readText(input); */
       else if (chunkType == 0x05)
-        readBitmap(input); */
+        readBitmap(input);
       else if (chunkType == 0x14) // Polygon
         readPolygonCoords(input);
     }
@@ -688,46 +776,11 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
 
 void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
 {
+  unsigned imageId = readU32(input);
   WPXBinaryData image;
-/*  image.append(0x42);
-  image.append(0x4d);
-
-  image.append((unsigned char)((length+8) & 0x000000ff));
-  image.append((unsigned char)(((length+8) & 0x0000ff00) >> 8));
-  image.append((unsigned char)(((length+8) & 0x00ff0000) >> 16));
-  image.append((unsigned char)(((length+8) & 0xff000000) >> 24));
-
-  image.append(0x00);
-  image.append(0x00);
-  image.append(0x00);
-  image.append(0x00);
-
-  long startPosition = input->tell();
-  input->seek(0x18, WPX_SEEK_CUR);
-  int lengthX = length + 10 - readU32(input);
-  input->seek(startPosition, WPX_SEEK_SET);
-
-  image.append((unsigned char)((lengthX) & 0x000000ff));
-  image.append((unsigned char)(((lengthX) & 0x0000ff00) >> 8));
-  image.append((unsigned char)(((lengthX) & 0x00ff0000) >> 16));
-  image.append((unsigned char)(((lengthX) & 0xff000000) >> 24)); */
-
-  input->seek(0, WPX_SEEK_CUR);
-  for (unsigned i = 0; i<length; i++)
+  for (unsigned i = 0; i<length-4; ++i)
     image.append(readU8(input));
-#if DUMP_IMAGE
-  WPXString imageName;
-  imageName.sprintf("image%i.bmp", imageId++);
-  FILE *f = fopen(imageName.cstr(), "wb");
-  if (f)
-  {
-    const unsigned char *tmpBuffer = image.getDataBuffer();
-    for (unsigned long k = 0; k < image.size(); k++)
-      fprintf(f, "%c",tmpBuffer[k]);
-    fclose(f);
-  }
-#endif
-  m_collector->collectBmp( image);
+  m_collector->collectBmp(imageId, image);
 }
 
 
