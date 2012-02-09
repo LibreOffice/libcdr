@@ -755,6 +755,7 @@ void libcdr::CDRParser::readPolygonCoords(WPXInputStream *input)
       tmpPoints.push_back(points[i]);
     }
   }
+  m_collector->collectPolygon();
 }
 
 void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
@@ -763,10 +764,12 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
     input->seek(4, WPX_SEEK_CUR);
   unsigned numAngles = readU32(input);
   unsigned nextPoint = readU32(input);
-  if (m_version < 1300)
-    input->seek(4, WPX_SEEK_CUR);
+  if (nextPoint <= 1)
+    nextPoint = readU32(input);
   else
-    input->seek(8, WPX_SEEK_CUR);
+    input->seek(4, WPX_SEEK_CUR);
+  if (m_version >= 1300)
+    input->seek(4, WPX_SEEK_CUR);
   double rx = readDouble(input);
   double ry = readDouble(input);
   double cx = (double)readS32(input) / 254000.0;

@@ -68,6 +68,7 @@ public:
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
   void collectBitmap(unsigned imageId, unsigned short colorMode, unsigned short colorDepth, unsigned width, unsigned height, double scaleX, double scaleY);
   void collectBmp(unsigned imageId, const WPXBinaryData &image);
+  void collectPolygon();
 
 private:
   CDRCollector(const CDRCollector &);
@@ -100,6 +101,7 @@ private:
   std::map<unsigned, CDRLineStyle> m_lineStyles;
   CDRPolygon *m_polygon;
   std::map<unsigned, WPXBinaryData> m_bmps;
+  bool m_isInPolygon;
 };
 
 } // namespace libcdr

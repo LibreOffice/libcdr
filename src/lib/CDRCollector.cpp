@@ -45,7 +45,7 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_currentObjectLevel(0), m_currentPageLevel(0),
   m_currentPath(), m_currentTransform(),
   m_fillStyles(), m_lineStyles(), m_polygon(0),
-  m_bmps()
+  m_bmps(), m_isInPolygon(false)
 {
 }
 
@@ -157,12 +157,14 @@ void libcdr::CDRCollector::_flushCurrentPath()
   CDR_DEBUG_MSG(("CDRCollector::collectFlushPath\n"));
   if (!m_currentPath.empty())
   {
+    if (m_polygon && m_isInPolygon)
+      m_polygon->create(m_currentPath);
     if (m_polygon)
     {
-      m_polygon->create(m_currentPath);
       delete m_polygon;
       m_polygon = 0;
     }
+    m_isInPolygon = false;
     bool firstPoint = true;
     double initialX = 0.0;
     double initialY = 0.0;
@@ -276,6 +278,11 @@ void libcdr::CDRCollector::collectOutl(unsigned id, unsigned short lineType, uns
 
 void libcdr::CDRCollector::collectRotate(double /* angle */)
 {
+}
+
+void libcdr::CDRCollector::collectPolygon()
+{
+  m_isInPolygon = true;
 }
 
 void libcdr::CDRCollector::collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy)
