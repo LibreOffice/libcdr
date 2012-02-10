@@ -8,7 +8,8 @@ lib_LTLIBRARIES = libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.la
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_includedir = $(includedir)/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@/libcdr
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_include_HEADERS = \
 	libcdr.h \
-	CDRDocument.h
+	CDRDocument.h \
+	CDRStringVector.h
 
 AM_CXXFLAGS = $(LIBCDR_CXXFLAGS) $(ZLIB_CFLAGS) $(DEBUG_CXXFLAGS)
 
@@ -21,6 +22,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRInternalStream.cpp \
 	CDRParser.cpp \
 	CDRPath.cpp \
+	CDRStringVector.cpp \
 	CDRSVGGenerator.cpp \
 	CDRTypes.cpp \
 	libcdr_utils.cpp \
