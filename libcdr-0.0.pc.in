@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
                                                                        
-Name: libvisio-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@
+Name: libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@
 Description: Library for parsing the Corel Draw file format structure
 Version: @VERSION@
 Requires: libwpd-0.9 libwpd-stream-0.9 libwpg-0.2
