@@ -27,8 +27,8 @@
  * instead of those above.
  */
 
-#ifndef CDRPATH_H
-#define CDRPATH_H
+#ifndef __CDRPATH_H__
+#define __CDRPATH_H__
 
 #include <vector>
 #include <libwpd/libwpd.h>
@@ -77,5 +77,5 @@ private:
 
 } // namespace libcdr
 
-#endif /* CDRPATH_H */
+#endif /* __CDRPATH_H__ */
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

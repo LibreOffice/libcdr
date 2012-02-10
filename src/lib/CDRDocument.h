@@ -24,8 +24,8 @@
  * Corel Corporation or Corel Corporation Limited."
  */
 
-#ifndef __CDRRAPHICS_H__
-#define __CDRRAPHICS_H__
+#ifndef __CDRDOCUMENT_H__
+#define __CDRDOCUMENT_H__
 
 #include <libwpd/libwpd.h>
 #include <libwpg/libwpg.h>
@@ -48,5 +48,5 @@ public:
 
 } // namespace libcdr
 
-#endif //  __CDRRAPHICS_H__
+#endif //  __CDRDOCUMENT_H__
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -27,8 +27,8 @@
  * instead of those above.
  */
 
-#ifndef CDRSTRINGVECTOR_H
-#define CDRSTRINGVECTOR_H
+#ifndef __CDRSTRINGVECTOR_H__
+#define __CDRSTRINGVECTOR_H__
 
 #include <libwpd/libwpd.h>
 
@@ -57,5 +57,5 @@ private:
 
 } // namespace libcdr
 
-#endif /* CDRSTRINGVECTOR_H */
+#endif /* __CDRSTRINGVECTOR_H__ */
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

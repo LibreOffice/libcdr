@@ -27,8 +27,8 @@
  * instead of those above.
  */
 
-#ifndef CDRTYPES_H
-#define CDRTYPES_H
+#ifndef __CDRTYPES_H__
+#define __CDRTYPES_H__
 
 #include <vector>
 
@@ -104,5 +104,5 @@ struct CDRPolygon
 
 } // namespace libcdr
 
-#endif /* CDRTYPES_H */
+#endif /* __CDRTYPES_H__ */
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
