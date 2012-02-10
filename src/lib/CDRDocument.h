@@ -29,6 +29,7 @@
 
 #include <libwpd/libwpd.h>
 #include <libwpg/libwpg.h>
+#include "CDRStringVector.h"
 
 class WPXInputStream;
 
