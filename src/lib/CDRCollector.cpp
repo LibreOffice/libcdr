@@ -331,8 +331,6 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     double saturation = (double)col2/255.0;
     double brightness = (double)col3/255.0;
 
-    while (hue < 0)
-      hue += 360;
     while (hue > 360)
       hue -= 360;
 
@@ -366,8 +364,6 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     double lightness = (double)col2/255.0;
     double saturation = (double)col3/255.0;
 
-    while (hue < 0)
-      hue += 360;
     while (hue > 360)
       hue -= 360;
 
@@ -469,7 +465,7 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
   }
 }
 
-void libcdr::CDRCollector::collectBitmap(unsigned imageId, unsigned short colorMode, unsigned short colorDepth, unsigned width, unsigned height, double scaleX, double scaleY)
+void libcdr::CDRCollector::collectBitmap(unsigned imageId, unsigned short /* colorMode */, unsigned short /* colorDepth */, unsigned /* width */, unsigned /* height */, double /* scaleX */, double /* scaleY */)
 {
   std::map<unsigned, WPXBinaryData>::iterator iter = m_bmps.find(imageId);
   if (iter == m_bmps.end())
