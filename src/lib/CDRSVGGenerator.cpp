@@ -74,7 +74,7 @@ static unsigned stringToColour(const ::WPXString &s)
   return val;
 }
 
-libcdr::CDRSVGGenerator::CDRSVGGenerator(std::ostream &output_sink): m_gradient(), m_style(), m_gradientIndex(1), m_shadowIndex(1), m_isFirstPage(true), m_outputSink(output_sink)
+libcdr::CDRSVGGenerator::CDRSVGGenerator(libcdr::CDRStringVector &vec): m_gradient(), m_style(), m_gradientIndex(1), m_shadowIndex(1), m_outputSink(), m_vec(vec)
 {
 }
 
@@ -84,17 +84,6 @@ libcdr::CDRSVGGenerator::~CDRSVGGenerator()
 
 void libcdr::CDRSVGGenerator::startGraphics(const WPXPropertyList &propList)
 {
-  if (m_isFirstPage)
-    m_isFirstPage = false;
-  else
-    m_outputSink << "<hr/>\n";
-
-  m_outputSink << "<!-- \n";
-  m_outputSink << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
-  m_outputSink << "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"";
-  m_outputSink << " \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
-  m_outputSink << " -->\n";
-
   m_outputSink << "<svg:svg version=\"1.1\" xmlns:svg=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" ";
   if (propList["svg:width"])
     m_outputSink << "width=\"" << doubleToString(72*(propList["svg:width"]->getDouble())) << "\" ";
@@ -106,6 +95,8 @@ void libcdr::CDRSVGGenerator::startGraphics(const WPXPropertyList &propList)
 void libcdr::CDRSVGGenerator::endGraphics()
 {
   m_outputSink << "</svg:svg>\n";
+  m_vec.append(m_outputSink.str().c_str());
+  m_outputSink.clear();
 }
 
 void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const ::WPXPropertyListVector &gradient)

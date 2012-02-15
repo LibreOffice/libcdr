@@ -33,8 +33,10 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <sstream>
 #include <libwpd/libwpd.h>
 #include <libwpg/libwpg.h>
+#include "CDRStringVector.h"
 
 namespace libcdr
 {
@@ -42,7 +44,7 @@ namespace libcdr
 class CDRSVGGenerator : public libwpg::WPGPaintInterface
 {
 public:
-  CDRSVGGenerator(std::ostream &output_sink);
+  CDRSVGGenerator(CDRStringVector &vec);
   ~CDRSVGGenerator();
 
   void startGraphics(const ::WPXPropertyList &propList);
@@ -73,11 +75,11 @@ private:
   ::WPXPropertyList m_style;
   int m_gradientIndex;
   int m_shadowIndex;
-  bool m_isFirstPage;
   void writeStyle(bool isClosed=true);
   void drawPolySomething(const ::WPXPropertyListVector &vertices, bool isClosed);
 
-  std::ostream &m_outputSink;
+  std::ostringstream m_outputSink;
+  CDRStringVector &m_vec;
 };
 
 } // namespace libcdr

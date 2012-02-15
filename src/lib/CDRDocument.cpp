@@ -27,7 +27,6 @@
  * instead of those above.
  */
 
-#include <sstream>
 #include <string>
 #include <string.h>
 #include "CDRDocument.h"
@@ -79,15 +78,10 @@ Provided as a convenience function for applications that support SVG internally.
 \param output The output string whose content is the resulting SVG
 \return A value that indicates whether the SVG generation was successful.
 */
-bool libcdr::CDRDocument::generateSVG(::WPXInputStream *input, WPXString &output)
+bool libcdr::CDRDocument::generateSVG(::WPXInputStream *input, libcdr::CDRStringVector &output)
 {
-  std::ostringstream tmpOutputStream;
-  libcdr::CDRSVGGenerator generator(tmpOutputStream);
+  libcdr::CDRSVGGenerator generator(output);
   bool result = libcdr::CDRDocument::parse(input, &generator);
-  if (result)
-    output = WPXString(tmpOutputStream.str().c_str());
-  else
-    output = WPXString("");
   return result;
 }
 

@@ -43,7 +43,7 @@ public:
 
   static bool parse(WPXInputStream *input, libwpg::WPGPaintInterface *painter);
 
-  static bool generateSVG(WPXInputStream *input, WPXString &output);
+  static bool generateSVG(WPXInputStream *input, CDRStringVector &output);
 };
 
 } // namespace libcdr
