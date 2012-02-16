@@ -67,7 +67,7 @@ public:
   void collectPageSize(double width, double height);
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
   void collectBitmap(unsigned imageId, unsigned short colorMode, unsigned short colorDepth, unsigned width, unsigned height, double scaleX, double scaleY);
-  void collectBmp(unsigned imageId, const WPXBinaryData &image);
+  void collectBmp(unsigned imageId, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap);
   void collectPolygon();
 
 private:

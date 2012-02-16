@@ -36,6 +36,15 @@
 
 #define CHUNK 16384
 
+libcdr::CDRInternalStream::CDRInternalStream(const std::vector<unsigned char> &buffer) :
+  WPXInputStream(),
+  m_offset(0),
+  m_buffer()
+{
+  for (unsigned long i=0; i<buffer.size(); ++i)
+    m_buffer.push_back(buffer[i]);
+}
+
 libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned long size, bool compressed) :
   WPXInputStream(),
   m_offset(0),

@@ -29,6 +29,7 @@
 
 #include <math.h>
 #include "CDRCollector.h"
+#include "CDRInternalStream.h"
 #include "libcdr_utils.h"
 
 #ifndef M_PI
@@ -472,9 +473,11 @@ void libcdr::CDRCollector::collectBitmap(unsigned imageId, unsigned short /* col
     return;
 }
 
-void libcdr::CDRCollector::collectBmp(unsigned imageId, const WPXBinaryData &image)
+void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap)
 {
-  m_bmps[imageId] = image;
+  libcdr::CDRInternalStream stream(bitmap);
+  WPXBinaryData image;
+//  m_bmps[imageId];
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
