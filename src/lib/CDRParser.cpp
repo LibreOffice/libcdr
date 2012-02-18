@@ -781,7 +781,7 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
 {
   unsigned imageId = readU32(input);
   input->seek(50, WPX_SEEK_CUR);
-  unsigned color_model = readU32(input);
+  unsigned colorModel = readU32(input);
   input->seek(4, WPX_SEEK_CUR);
   unsigned width = readU32(input);
   unsigned height = readU32(input);
@@ -789,10 +789,11 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
   unsigned bpp = readU32(input);
   input->seek(4, WPX_SEEK_CUR);
   unsigned bmpsize = readU32(input);
+  input->seek(32, WPX_SEEK_CUR);
   std::vector<unsigned> palette;
-  if (bpp < 24 && color_model != 5 && color_model != 6)
+  if (bpp < 24 && colorModel != 5 && colorModel != 6)
   {
-    input->seek(34, WPX_SEEK_CUR);
+    input->seek(2, WPX_SEEK_CUR);
     unsigned short palettesize = readU16(input);
     for (unsigned short i = 0; i <palettesize; ++i)
       palette.push_back((readU8(input) << 16) | (readU8(input) << 8) | readU8(input));
@@ -800,7 +801,7 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
   std::vector<unsigned char> bitmap;
   for (unsigned j = 0; j<bmpsize; ++j)
     bitmap.push_back(readU8(input));
-  m_collector->collectBmp(imageId, width, height, bpp, palette, bitmap);
+  m_collector->collectBmp(imageId, colorModel, width, height, bpp, palette, bitmap);
 }
 
 

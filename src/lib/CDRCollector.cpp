@@ -36,6 +36,33 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#ifndef DUMP_IMAGE
+#define DUMP_IMAGE 0
+#endif
+
+namespace
+{
+void writeU16(WPXBinaryData &buffer, const int value)
+{
+  buffer.append((unsigned char)(value & 0xFF));
+  buffer.append((unsigned char)((value >> 8) & 0xFF));
+}
+
+void writeU32(WPXBinaryData &buffer, const int value)
+{
+  buffer.append((unsigned char)(value & 0xFF));
+  buffer.append((unsigned char)((value >> 8) & 0xFF));
+  buffer.append((unsigned char)((value >> 16) & 0xFF));
+  buffer.append((unsigned char)((value >> 24) & 0xFF));
+}
+
+void writeU8(WPXBinaryData &buffer, const int value)
+{
+  buffer.append((unsigned char)(value & 0xFF));
+}
+
+}
+
 libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_painter(painter),
   m_isPageProperties(false),
@@ -473,10 +500,88 @@ void libcdr::CDRCollector::collectBitmap(unsigned imageId, unsigned short /* col
     return;
 }
 
-void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap)
+void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorMode, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap)
 {
   libcdr::CDRInternalStream stream(bitmap);
   WPXBinaryData image;
+
+  unsigned tmpPixelSize = (unsigned)(height * width);
+  if (tmpPixelSize < (unsigned)height) // overflow
+    return;
+
+  unsigned tmpDIBImageSize = tmpPixelSize * 4;
+  if (tmpPixelSize > tmpDIBImageSize) // overflow !!!
+    return;
+
+  unsigned tmpDIBOffsetBits = 14 + 40;
+  unsigned tmpDIBFileSize = tmpDIBOffsetBits + tmpDIBImageSize;
+  if (tmpDIBImageSize > tmpDIBFileSize) // overflow !!!
+    return;
+
+  // Create DIB file header
+  writeU16(image, 0x4D42);  // Type
+  writeU32(image, tmpDIBFileSize); // Size
+  writeU16(image, 0); // Reserved1
+  writeU16(image, 0); // Reserved2
+  writeU32(image, tmpDIBOffsetBits); // OffsetBits
+
+  // Create DIB Info header
+  writeU32(image, 40); // Size
+
+  writeU32(image, width);  // Width
+  writeU32(image, height); // Height
+
+  writeU16(image, 1); // Planes
+  writeU16(image, 32); // BitCount
+  writeU32(image, 0); // Compression
+  writeU32(image, tmpDIBImageSize); // SizeImage
+  writeU32(image, 0); // XPelsPerMeter
+  writeU32(image, 0); // YPelsPerMeter
+  writeU32(image, 0); // ColorsUsed
+  writeU32(image, 0); // ColorsImportant
+
+  // The Bitmaps in CDR are padded to 32bit border
+  unsigned lineWidth = ((width * bpp + 32 - bpp) / 32) * 4;
+
+  for (unsigned j = 0; j < height; ++j)
+  {
+    unsigned i = 0;
+    unsigned k = 0;
+    if (bpp == 1)
+    {
+      while (i <lineWidth && k < width)
+      {
+        unsigned l = 0;
+        unsigned char c = bitmap[j*lineWidth+i];
+        i++;
+        while (k < width && l < 8)
+        {
+          if (c & 0x80)
+            writeU32(image, 0xffffff);
+          else
+            writeU32(image, 0);
+          c <<= 1;
+          l++;
+          k++;
+        }
+      }
+    }
+  }
+
+#if DUMP_IMAGE
+  WPXString filename;
+  filename.sprintf("bitmap%.8x.bmp", imageId);
+  FILE *f = fopen(filename.cstr(), "wb");
+  if (f)
+  {
+    const unsigned char *tmpBuffer = image.getDataBuffer();
+    for (unsigned long k = 0; k < image.size(); k++)
+      fprintf(f, "%c",tmpBuffer[k]);
+    fclose(f);
+  }
+#endif
+
+
 //  m_bmps[imageId];
 }
 
