@@ -66,8 +66,8 @@ public:
   void collectFlags(unsigned flags);
   void collectPageSize(double width, double height);
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
-  void collectBitmap(unsigned imageId, unsigned short colorMode, unsigned short colorDepth, unsigned width, unsigned height, double scaleX, double scaleY);
-  void collectBmp(unsigned imageId, unsigned colorMode, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap);
+  void collectBitmap(unsigned imageId, unsigned short colorModel, unsigned short colorDepth, unsigned width, unsigned height, double scaleX, double scaleY);
+  void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap);
   void collectPolygon();
 
 private:
@@ -80,6 +80,7 @@ private:
   void _flushCurrentPath();
 
   unsigned _getRGBColor(unsigned short colorModel, unsigned colorValue);
+  unsigned _getBMPColor(unsigned short colorModel, unsigned colorValue);
   WPXString _getRGBColorString(unsigned short colorModel, unsigned colorValue);
 
   void _fillProperties(WPXPropertyList &propList);

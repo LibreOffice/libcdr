@@ -320,6 +320,39 @@ void libcdr::CDRCollector::collectPolygonTransform(unsigned numAngles, unsigned 
   m_polygon = new CDRPolygon(numAngles, nextPoint, rx, ry, cx, cy);
 }
 
+unsigned libcdr::CDRCollector::_getBMPColor(unsigned short colorModel, unsigned colorValue)
+{
+  switch (colorModel)
+  {
+  case 0:
+    return _getRGBColor(0, colorValue);
+  case 1:
+    return _getRGBColor(5, colorValue);
+  case 2:
+    return _getRGBColor(4, colorValue);
+  case 3:
+    return _getRGBColor(3, colorValue);
+  case 4:
+    return _getRGBColor(6, colorValue);
+  case 5:
+    return _getRGBColor(9, colorValue);
+  case 6:
+    return _getRGBColor(8, colorValue);
+  case 7:
+    return _getRGBColor(7, colorValue);
+  case 8:
+    return colorValue;
+  case 9:
+    return colorValue;
+  case 10:
+    return _getRGBColor(5, colorValue);
+  case 11:
+    return _getRGBColor(11, colorValue);
+  default:
+    return colorValue;
+  }
+}
+
 unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned colorValue)
 {
   unsigned char red = 0;
@@ -500,7 +533,7 @@ void libcdr::CDRCollector::collectBitmap(unsigned imageId, unsigned short /* col
     return;
 }
 
-void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorMode, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap)
+void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap)
 {
   libcdr::CDRInternalStream stream(bitmap);
   WPXBinaryData image;
@@ -543,11 +576,13 @@ void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorMode, unsi
   // The Bitmaps in CDR are padded to 32bit border
   unsigned lineWidth = ((width * bpp + 32 - bpp) / 32) * 4;
 
+  bool storeBMP = true;
+
   for (unsigned j = 0; j < height; ++j)
   {
     unsigned i = 0;
     unsigned k = 0;
-    if (bpp == 1)
+    if (colorModel == 6)
     {
       while (i <lineWidth && k < width)
       {
@@ -566,23 +601,65 @@ void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorMode, unsi
         }
       }
     }
+    else if (colorModel == 5)
+    {
+      while (i <lineWidth && i < width)
+      {
+        unsigned char c = bitmap[j*lineWidth+i];
+        i++;
+        writeU32(image, _getBMPColor(colorModel, c));
+      }
+    }
+    else if (!palette.empty())
+    {
+      while (i < lineWidth && i < width)
+      {
+        unsigned char c = bitmap[j*lineWidth+i];
+        i++;
+        writeU32(image, _getBMPColor(colorModel, palette[c]));
+      }
+    }
+    else if (bpp == 24)
+    {
+      while (i < lineWidth && k < width)
+      {
+        unsigned c = ((unsigned)bitmap[j*lineWidth+i+2] << 16) | ((unsigned)bitmap[j*lineWidth+i+1] << 8) | ((unsigned)bitmap[j*lineWidth+i]);
+        i += 3;
+        writeU32(image, _getBMPColor(colorModel, c));
+        k++;
+      }
+    }
+    else if (bpp == 32)
+    {
+      while (i < lineWidth && k < width)
+      {
+        unsigned c = (bitmap[j*lineWidth+i+3] << 24) | (bitmap[j*lineWidth+i+2] << 16) | (bitmap[j*lineWidth+i+1] << 8) | (bitmap[j*lineWidth+i]);
+        i += 4;
+        writeU32(image, _getBMPColor(colorModel, c));
+        k++;
+      }
+    }
+    else
+      storeBMP = false;
   }
 
-#if DUMP_IMAGE
-  WPXString filename;
-  filename.sprintf("bitmap%.8x.bmp", imageId);
-  FILE *f = fopen(filename.cstr(), "wb");
-  if (f)
+  if (storeBMP)
   {
-    const unsigned char *tmpBuffer = image.getDataBuffer();
-    for (unsigned long k = 0; k < image.size(); k++)
-      fprintf(f, "%c",tmpBuffer[k]);
-    fclose(f);
-  }
+#if DUMP_IMAGE
+    WPXString filename;
+    filename.sprintf("bitmap%.8x.bmp", imageId);
+    FILE *f = fopen(filename.cstr(), "wb");
+    if (f)
+    {
+      const unsigned char *tmpBuffer = image.getDataBuffer();
+      for (unsigned long k = 0; k < image.size(); k++)
+        fprintf(f, "%c",tmpBuffer[k]);
+      fclose(f);
+    }
 #endif
 
-
-//  m_bmps[imageId];
+    m_bmps[imageId] = image;
+  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
