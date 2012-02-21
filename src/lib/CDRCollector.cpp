@@ -267,6 +267,55 @@ void libcdr::CDRCollector::_flushCurrentPath()
     m_painter->drawPath(path);
     m_currentPath.clear();
   }
+  if (m_currentImage.getImage().size())
+  {
+    double cx = m_currentImage.getMiddleX();
+    double cy = m_currentImage.getMiddleY();
+    m_currentTransform.applyToPoint(cx, cy);
+    CDRTransform tmpTrafo(1.0, 0.0, -m_pageOffsetX, 0.0, 1.0, -m_pageOffsetY);
+    tmpTrafo.applyToPoint(cx, cy);
+    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_pageHeight);
+    tmpTrafo.applyToPoint(cx, cy);
+    double scaleX = (m_currentTransform.m_v0 < 0.0 ? -1.0 : 1.0)*sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
+    double scaleY = (m_currentTransform.m_v3 < 0.0 ? -1.0 : 1.0)*sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
+    bool flipX(scaleX < 0);
+    bool flipY(scaleY < 0);
+    double width = fabs(scaleX)*m_currentImage.getWidth();
+    double height = fabs(scaleY)*m_currentImage.getHeight();
+    double rotate = -atan2(m_currentTransform.m_v3, m_currentTransform.m_v4);
+
+    WPXPropertyList propList;
+
+    propList.insert("svg:x", cx - width / 2.0);
+    propList.insert("svg:width", width);
+    propList.insert("svg:y", cy - height / 2.0);
+    propList.insert("svg:height", height);
+
+    if (flipX)
+    {
+      propList.insert("draw:mirror-horizontal", true);
+      rotate = M_PI - rotate;
+    }
+    if (flipY)
+    {
+      propList.insert("draw:mirror-vertical", true);
+      rotate *= -1.0;
+    }
+
+    while (rotate < 0.0)
+      rotate += 2.0*M_PI;
+    while (rotate > 2.0*M_PI)
+      rotate -= 2.0*M_PI;
+
+    if (rotate != 0.0)
+      propList.insert("libwpg:rotate", rotate * 180 / M_PI, WPX_GENERIC);
+
+    propList.insert("libwpg:mime-type", "image/bmp");
+
+    m_painter->drawGraphicObject(propList, m_currentImage.getImage());
+  }
+  m_currentImage = libcdr::CDRImage();
+
 }
 
 void libcdr::CDRCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0)
@@ -535,8 +584,8 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
 void libcdr::CDRCollector::collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2)
 {
   std::map<unsigned, WPXBinaryData>::iterator iter = m_bmps.find(imageId);
-  if (iter == m_bmps.end())
-    m_currentImage = CDRImage(imageId, x1, x2, y1, y2);
+  if (iter != m_bmps.end())
+    m_currentImage = CDRImage(iter->second, x1, x2, y1, y2);
 }
 
 void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap)

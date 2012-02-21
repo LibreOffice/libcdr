@@ -32,6 +32,7 @@
 
 #include <vector>
 #include <math.h>
+#include <libwpd/libwpd.h>
 
 namespace libcdr
 {
@@ -105,14 +106,14 @@ struct CDRPolygon
 
 struct CDRImage
 {
-  unsigned m_imageId;
+  WPXBinaryData m_image;
   double m_x1;
   double m_x2;
   double m_y1;
   double m_y2;
-  CDRImage() : m_imageId(0), m_x1(0.0), m_x2(0.0), m_y1(0.0), m_y2(0.0) {}
-  CDRImage(unsigned imageId, double x1, double x2, double y1, double y2)
-    : m_imageId(imageId), m_x1(x1), m_x2(x2), m_y1(y1), m_y2(y2) {}
+  CDRImage() : m_image(), m_x1(0.0), m_x2(0.0), m_y1(0.0), m_y2(0.0) {}
+  CDRImage(const WPXBinaryData &image, double x1, double x2, double y1, double y2)
+    : m_image(image), m_x1(x1), m_x2(x2), m_y1(y1), m_y2(y2) {}
   double getMiddleX() const
   {
     return (m_x1 + m_x2) / 2.0;
@@ -129,9 +130,9 @@ struct CDRImage
   {
     return fabs(m_y1 - m_y2);
   }
-  unsigned getId() const
+  const WPXBinaryData &getImage() const
   {
-    return m_imageId;
+    return m_image;
   }
 };
 
