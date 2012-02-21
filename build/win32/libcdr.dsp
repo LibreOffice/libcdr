@@ -107,6 +107,10 @@ SOURCE=..\..\src\lib\CDRPath.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDRStringVector.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\CDRSVGGenerator.cpp
 # End Source File
 # Begin Source File
@@ -140,6 +144,10 @@ SOURCE=..\..\src\lib\CDRParser.h
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRPath.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRStringVector.h
 # End Source File
 # Begin Source File
 
