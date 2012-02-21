@@ -34,6 +34,7 @@ SLOFILES= \
     $(SLO)$/CDRInternalStream.obj \
     $(SLO)$/CDRParser.obj \
     $(SLO)$/CDRPath.obj \
+    $(SLO)$/CDRStringVector.obj \
     $(SLO)$/CDRSVGGenerator.obj \
     $(SLO)$/CDRTypes.obj \
     $(SLO)$/libcdr_utils.obj
