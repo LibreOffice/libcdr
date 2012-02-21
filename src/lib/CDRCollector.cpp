@@ -76,6 +76,7 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_pageWidth(8.5), m_pageHeight(11.0),
   m_currentFildId(0.0), m_currentOutlId(0),
   m_currentObjectLevel(0), m_currentPageLevel(0),
+  m_currentImage(),
   m_currentPath(), m_currentTransform(),
   m_fillStyles(), m_lineStyles(), m_polygon(0),
   m_bmps(), m_isInPolygon(false)
@@ -531,11 +532,11 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
   }
 }
 
-void libcdr::CDRCollector::collectBitmap(unsigned imageId, unsigned short /* colorMode */, unsigned short /* colorDepth */, unsigned /* width */, unsigned /* height */, double /* scaleX */, double /* scaleY */)
+void libcdr::CDRCollector::collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2)
 {
   std::map<unsigned, WPXBinaryData>::iterator iter = m_bmps.find(imageId);
   if (iter == m_bmps.end())
-    return;
+    m_currentImage = CDRImage(imageId, x1, x2, y1, y2);
 }
 
 void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap)

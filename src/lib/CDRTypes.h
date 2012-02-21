@@ -31,6 +31,7 @@
 #define __CDRTYPES_H__
 
 #include <vector>
+#include <math.h>
 
 namespace libcdr
 {
@@ -100,6 +101,38 @@ struct CDRPolygon
   CDRPolygon(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy)
     : m_numAngles(numAngles), m_nextPoint(nextPoint), m_rx(rx), m_ry(ry), m_cx(cx), m_cy(cy) {}
   void create(CDRPath &path) const;
+};
+
+struct CDRImage
+{
+  unsigned m_imageId;
+  double m_x1;
+  double m_x2;
+  double m_y1;
+  double m_y2;
+  CDRImage() : m_imageId(0), m_x1(0.0), m_x2(0.0), m_y1(0.0), m_y2(0.0) {}
+  CDRImage(unsigned imageId, double x1, double x2, double y1, double y2)
+    : m_imageId(imageId), m_x1(x1), m_x2(x2), m_y1(y1), m_y2(y2) {}
+  double getMiddleX() const
+  {
+    return (m_x1 + m_x2) / 2.0;
+  }
+  double getMiddleY() const
+  {
+    return (m_y1 + m_y2) / 2.0;
+  }
+  double getWidth() const
+  {
+    return fabs(m_x1 - m_x2);
+  }
+  double getHeight() const
+  {
+    return fabs(m_y1 - m_y2);
+  }
+  unsigned getId() const
+  {
+    return m_imageId;
+  }
 };
 
 } // namespace libcdr

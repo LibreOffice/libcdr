@@ -461,24 +461,20 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
   CDR_DEBUG_MSG(("CDRParser::readBitmap\n"));
 
   bool isClosedPath = false;
-  unsigned X1 = (double)readS32(input) / 254000.0;
-  unsigned Y1 = (double)readS32(input) / 254000.0;
-  unsigned X2 = (double)readS32(input) / 254000.0;
-  unsigned Y2 = (double)readS32(input) / 254000.0;
+  double x1 = (double)readS32(input) / 254000.0;
+  double y1 = (double)readS32(input) / 254000.0;
+  double x2 = (double)readS32(input) / 254000.0;
+  double y2 = (double)readS32(input) / 254000.0;
 #if 0
-  unsigned X3 = (double)readS32(input) / 254000.0;
-  unsigned Y3 = (double)readS32(input) / 254000.0;
-  unsigned X4 = (double)readS32(input) / 254000.0;
-  unsigned Y4 = (double)readS32(input) / 254000.0;
+  double x3 = (double)readS32(input) / 254000.0;
+  double y3 = (double)readS32(input) / 254000.0;
+  double x4 = (double)readS32(input) / 254000.0;
+  double y4 = (double)readS32(input) / 254000.0;
 #else
   input->seek(16, WPX_SEEK_CUR);
 #endif
 
-  unsigned short colorMode = readU16(input);
-  unsigned short colorDepth = readU16(input);
-  unsigned width = readU32(input);
-  unsigned height = readU32(input);
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(16, WPX_SEEK_CUR);
   unsigned imageId = readU32(input);
   if (m_version == 700)
     input->seek(8, WPX_SEEK_CUR);
@@ -547,9 +543,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
       tmpPoints.push_back(points[i]);
     }
   }
-  double scaleX = 72.0*fabs(X1 - X2)/(double)width;
-  double scaleY = 72.0*fabs(Y1 - Y2)/(double)height;
-  m_collector->collectBitmap(imageId, colorMode, colorDepth, width, height, scaleX, scaleY);
+  m_collector->collectBitmap(imageId, x1, x2, y1, y2);
 }
 
 void libcdr::CDRParser::readTrfd(WPXInputStream *input)

@@ -66,7 +66,7 @@ public:
   void collectFlags(unsigned flags);
   void collectPageSize(double width, double height);
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
-  void collectBitmap(unsigned imageId, unsigned short colorModel, unsigned short colorDepth, unsigned width, unsigned height, double scaleX, double scaleY);
+  void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2);
   void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap);
   void collectPolygon();
 
@@ -95,6 +95,7 @@ private:
   double m_pageWidth, m_pageHeight;
   unsigned m_currentFildId, m_currentOutlId;
   unsigned m_currentObjectLevel, m_currentPageLevel;
+  CDRImage m_currentImage;
 
   CDRPath m_currentPath;
   CDRTransform m_currentTransform;
