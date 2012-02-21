@@ -114,15 +114,6 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
   }
 }
 
-libcdr::CDRInternalStream::CDRInternalStream(const unsigned char *buffer, const unsigned long size) :
-  WPXInputStream(),
-  m_offset(0),
-  m_buffer()
-{
-  for (unsigned long i = 0; i < size; ++i)
-    m_buffer.push_back(buffer[i]);
-}
-
 const unsigned char *libcdr::CDRInternalStream::read(unsigned long numBytes, unsigned long &numBytesRead)
 {
   numBytesRead = 0;

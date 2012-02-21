@@ -42,6 +42,11 @@
 
 namespace
 {
+int cdr_round(double d)
+{
+  return (d>0) ? int(d+0.5) : int(d-0.5);
+}
+
 void writeU16(WPXBinaryData &buffer, const int value)
 {
   buffer.append((unsigned char)(value & 0xFF));
@@ -415,9 +420,9 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
       satGreen = 0.0;
       satBlue = (double)(360 - hue) / 60.0;
     }
-    red = (unsigned char)round(255*(1 - saturation + saturation * (satRed > 1 ? 1 : satRed)) * brightness);
-    green = (unsigned char)round(255*(1 - saturation + saturation * (satGreen > 1 ? 1 : satGreen)) * brightness);
-    blue = (unsigned char)round(255*(1 - saturation + saturation * (satBlue > 1 ? 1 : satBlue)) * brightness);
+    red = (unsigned char)cdr_round(255*(1 - saturation + saturation * (satRed > 1 ? 1 : satRed)) * brightness);
+    green = (unsigned char)cdr_round(255*(1 - saturation + saturation * (satGreen > 1 ? 1 : satGreen)) * brightness);
+    blue = (unsigned char)cdr_round(255*(1 - saturation + saturation * (satBlue > 1 ? 1 : satBlue)) * brightness);
   }
   else if (colorModel == 0x07) // HLS
   {
@@ -455,15 +460,15 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
 
     if (lightness < 0.5)
     {
-      red = (unsigned char)round(255.0*lightness*tmpRed);
-      green = (unsigned char)round(255.0*lightness*tmpGreen);
-      blue = (unsigned char)round(255.0*lightness*tmpBlue);
+      red = (unsigned char)cdr_round(255.0*lightness*tmpRed);
+      green = (unsigned char)cdr_round(255.0*lightness*tmpGreen);
+      blue = (unsigned char)cdr_round(255.0*lightness*tmpBlue);
     }
     else
     {
-      red = (unsigned char)round(255*((1 - lightness) * tmpRed + 2 * lightness - 1));
-      green = (unsigned char)round(255*((1 - lightness) * tmpGreen + 2 * lightness - 1));
-      blue = (unsigned char)round(255*((1 - lightness) * tmpBlue + 2 * lightness - 1));
+      red = (unsigned char)cdr_round(255*((1 - lightness) * tmpRed + 2 * lightness - 1));
+      green = (unsigned char)cdr_round(255*((1 - lightness) * tmpGreen + 2 * lightness - 1));
+      blue = (unsigned char)cdr_round(255*((1 - lightness) * tmpBlue + 2 * lightness - 1));
     }
   }
   else if (colorModel == 0x09) // Grayscale
