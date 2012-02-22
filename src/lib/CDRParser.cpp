@@ -384,11 +384,10 @@ void libcdr::CDRParser::readPath(WPXInputStream *input)
 
   bool isClosedPath = false;
   input->seek(4, WPX_SEEK_CUR);
-  unsigned short pointNum = readU16(input);
+  unsigned short pointNum = readU16(input)+3;
   input->seek(2, WPX_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
-  input->seek(24, WPX_SEEK_CUR);
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
