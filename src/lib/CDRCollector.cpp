@@ -654,10 +654,7 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
         propList.insert("draw:dots2", dots2);
         propList.insert("draw:dots2-length", 72.0*(iter->second.lineWidth)*dots2len, WPX_POINT);
         propList.insert("draw:distance", 72.0*(iter->second.lineWidth)*gap, WPX_POINT);
-
       }
-
-
     }
   }
 }
