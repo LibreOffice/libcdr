@@ -20,6 +20,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRCollector.cpp \
 	CDRDocument.cpp \
 	CDRInternalStream.cpp \
+	CDROutputElementList.cpp \
 	CDRParser.cpp \
 	CDRPath.cpp \
 	CDRStringVector.cpp \
@@ -28,6 +29,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	libcdr_utils.cpp \
 	CDRCollector.h \
 	CDRInternalStream.h \
+	CDROutputElementList.h \
 	CDRParser.h \
 	CDRPath.h \
 	CDRSVGGenerator.h \

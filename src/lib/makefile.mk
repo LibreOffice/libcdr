@@ -32,6 +32,7 @@ SLOFILES= \
     $(SLO)$/CDRCollector.obj \
     $(SLO)$/CDRDocument.obj \
     $(SLO)$/CDRInternalStream.obj \
+    $(SLO)$/CDROutputElementList.obj \
     $(SLO)$/CDRParser.obj \
     $(SLO)$/CDRPath.obj \
     $(SLO)$/CDRStringVector.obj \

@@ -99,6 +99,10 @@ SOURCE=..\..\src\lib\CDRInternalStream.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDROutputElementList.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\CDRParser.cpp
 # End Source File
 # Begin Source File
@@ -136,6 +140,10 @@ SOURCE=..\..\src\lib\CDRDocument.h
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRInternalStream.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDROutputElementList.h
 # End Source File
 # Begin Source File
 
