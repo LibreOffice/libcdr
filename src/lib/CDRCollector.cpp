@@ -79,7 +79,7 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_currentImage(),
   m_currentPath(), m_currentTransform(),
   m_fillStyles(), m_lineStyles(), m_polygon(0),
-  m_bmps(), m_isInPolygon(false)
+  m_bmps(), m_isInPolygon(false), m_outputElements()
 {
 }
 
@@ -105,6 +105,11 @@ void libcdr::CDRCollector::_endPage()
 {
   if (!m_isPageStarted)
     return;
+  while (!m_outputElements.empty())
+  {
+    m_outputElements.top().draw(m_painter);
+    m_outputElements.pop();
+  }
   if (m_painter)
     m_painter->endGraphics();
   m_isPageStarted = false;
@@ -189,6 +194,7 @@ void libcdr::CDRCollector::collectClosePath()
 void libcdr::CDRCollector::_flushCurrentPath()
 {
   CDR_DEBUG_MSG(("CDRCollector::collectFlushPath\n"));
+  CDROutputElementList outputElement;
   if (!m_currentPath.empty())
   {
     if (m_polygon && m_isInPolygon)
@@ -209,7 +215,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
     WPXPropertyList style;
     _fillProperties(style);
     _lineProperties(style);
-    m_painter->setStyle(style, WPXPropertyListVector());
+    outputElement.addStyle(style, WPXPropertyListVector());
     m_currentPath.transform(m_currentTransform);
     CDRTransform tmpTrafo(1.0, 0.0, -m_pageOffsetX, 0.0, 1.0, -m_pageOffsetY);
     m_currentPath.transform(tmpTrafo);
@@ -264,7 +270,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
       path.append(node);
     }
 
-    m_painter->drawPath(path);
+    outputElement.addPath(path);
     m_currentPath.clear();
   }
   if (m_currentImage.getImage().size())
@@ -312,9 +318,11 @@ void libcdr::CDRCollector::_flushCurrentPath()
 
     propList.insert("libwpg:mime-type", "image/bmp");
 
-    m_painter->drawGraphicObject(propList, m_currentImage.getImage());
+    outputElement.addGraphicObject(propList, m_currentImage.getImage());
   }
   m_currentImage = libcdr::CDRImage();
+  if (!outputElement.empty())
+    m_outputElements.push(outputElement);
 
 }
 

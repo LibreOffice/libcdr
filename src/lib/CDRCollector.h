@@ -31,9 +31,11 @@
 #define __CDRCOLLECTOR_H__
 
 #include <map>
+#include <stack>
 #include <libwpg/libwpg.h>
 #include "CDRTypes.h"
 #include "CDRPath.h"
+#include "CDROutputElementList.h"
 
 namespace libcdr
 {
@@ -104,6 +106,7 @@ private:
   CDRPolygon *m_polygon;
   std::map<unsigned, WPXBinaryData> m_bmps;
   bool m_isInPolygon;
+  std::stack<CDROutputElementList> m_outputElements;
 };
 
 } // namespace libcdr
