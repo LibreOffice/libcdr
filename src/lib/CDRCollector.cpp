@@ -574,9 +574,90 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
     }
     else
     {
-      propList.insert("draw:stroke", "solid");
+      if (iter->second.dashArray.size())
+        propList.insert("draw:stroke", "dash");
+      else
+        propList.insert("draw:stroke", "solid");
       propList.insert("svg:stroke-width", iter->second.lineWidth);
       propList.insert("svg:stroke-color", _getRGBColorString(iter->second.colorModel, iter->second.color));
+
+      switch (iter->second.capsType)
+      {
+      case 1:
+        propList.insert("svg:stroke-linecap", "round");
+        break;
+      case 2:
+        propList.insert("svg:stroke-linecap", "square");
+        break;
+      default:
+        propList.insert("svg:stroke-linecap", "butt");
+      }
+
+      switch (iter->second.joinType)
+      {
+      case 1:
+        propList.insert("svg:stroke-linejoin", "round");
+        break;
+      case 2:
+        propList.insert("svg:stroke-linejoin", "bevel");
+        break;
+      default:
+        propList.insert("svg:stroke-linejoin", "miter");
+      }
+
+      if (iter->second.dashArray.size())
+      {
+        int dots1 = 0;
+        int dots2 = 0;
+        unsigned dots1len = 0;
+        unsigned dots2len = 0;
+        unsigned gap = 0;
+
+        if (iter->second.dashArray.size() >= 2)
+        {
+          dots1len = iter->second.dashArray[0];
+          gap = iter->second.dashArray[1];
+        }
+
+        unsigned count = iter->second.dashArray.size() / 2;
+        unsigned i = 0;
+        for (; i < count;)
+        {
+          if (dots1len == iter->second.dashArray[2*i])
+            dots1++;
+          else
+            break;
+          gap = gap < iter->second.dashArray[2*i+1] ?  iter->second.dashArray[2*i+1] : gap;
+          i++;
+        }
+        if (i < count)
+        {
+          dots2len = iter->second.dashArray[2*i];
+          gap = gap < iter->second.dashArray[2*i+1] ? iter->second.dashArray[2*i+1] : gap;
+        }
+        for (; i < count;)
+        {
+          if (dots2len == iter->second.dashArray[2*i])
+            dots2++;
+          else
+            break;
+          gap = gap < iter->second.dashArray[2*i+1] ? iter->second.dashArray[2*i+1] : gap;
+          i++;
+        }
+        if (!dots2)
+        {
+          dots2 = dots1;
+          dots2len = dots1len;
+        }
+        propList.insert("draw:dots1", dots1);
+        propList.insert("draw:dots1-length", 72.0*(iter->second.lineWidth)*dots1len, WPX_POINT);
+        propList.insert("draw:dots2", dots2);
+        propList.insert("draw:dots2-length", 72.0*(iter->second.lineWidth)*dots2len, WPX_POINT);
+        propList.insert("draw:distance", 72.0*(iter->second.lineWidth)*gap, WPX_POINT);
+
+      }
+
+
     }
   }
 }
