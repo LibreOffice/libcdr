@@ -246,7 +246,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
             ignoreM = true;
           else
           {
-            if (CDR_ALMOST_ZERO(initialX - previousX) && CDR_ALMOST_ZERO(initialY - previousY))
+            if ((CDR_ALMOST_ZERO(initialX - previousX) && CDR_ALMOST_ZERO(initialY - previousY)) || (style["draw:fill"] && style["draw:fill"]->getStr() != "none"))
             {
               WPXPropertyList node;
               node.insert("libwpg:path-action", "Z");
@@ -263,7 +263,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
         path.append(i());
       ignoreM = false;
     }
-    if (initialX == previousX && initialY == previousY)
+    if ((CDR_ALMOST_ZERO(initialX - previousX) && CDR_ALMOST_ZERO(initialY - previousY)) || (style["draw:fill"] && style["draw:fill"]->getStr() != "none"))
     {
       WPXPropertyList node;
       node.insert("libwpg:path-action", "Z");
