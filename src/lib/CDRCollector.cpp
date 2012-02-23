@@ -431,7 +431,7 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     green = (100 - col1)*(100 - col3)*255/10000;
     blue = (100 - col2)*(100 - col3)*255/10000;
   }
-  else if ((colorModel == 0x03) || (colorModel == 0x11)) // CMYK255
+  else if ((colorModel == 0x03) || (colorModel == 0x11) || (colorModel == 0x01)) // CMYK255
   {
     red = (255 - col0)*(255 - col3)/255;
     green = (255 - col1)*(255 - col3)/255;
@@ -552,7 +552,7 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList)
   else
   {
     std::map<unsigned, CDRFillStyle>::iterator iter = m_fillStyles.find(m_currentFildId);
-    if ((iter == m_fillStyles.end()) || !(iter->second.fillType))
+    if ((iter == m_fillStyles.end()) || !(iter->second.fillType & 0x3))
       propList.insert("draw:fill", "none");
     else
     {
