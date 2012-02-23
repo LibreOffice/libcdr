@@ -574,7 +574,7 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
   else
   {
     std::map<unsigned, CDRLineStyle>::iterator iter = m_lineStyles.find(m_currentOutlId);
-    if (iter == m_lineStyles.end() || !(iter->second.lineType))
+    if (iter == m_lineStyles.end() || !(iter->second.lineType & 0x3))
     {
       propList.insert("draw:stroke", "solid");
       propList.insert("svg:stroke-width", 0.0);
@@ -586,7 +586,10 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
         propList.insert("draw:stroke", "dash");
       else
         propList.insert("draw:stroke", "solid");
-      propList.insert("svg:stroke-width", iter->second.lineWidth);
+	  if (iter->second.lineType & 0x20) // hairline flag ???
+	    propList.insert("svg:stroke-width", 0.0);
+	  else
+        propList.insert("svg:stroke-width", iter->second.lineWidth);
       propList.insert("svg:stroke-color", _getRGBColorString(iter->second.colorModel, iter->second.color));
 
       switch (iter->second.capsType)
