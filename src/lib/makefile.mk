@@ -28,6 +28,10 @@ INCPRE+=$(WPG_CFLAGS) -I..
 INCPRE+=$(SOLARVER)$/$(INPATH)$/inc$/libwpg
 .ENDIF
 
+.IF "$(SYSTEM_ZLIB)" != "YES"
+INCPRE+=-I$(SOLARVER)$/$(INPATH)$/inc$/external/zlib
+.ENDIF
+
 SLOFILES= \
     $(SLO)$/CDRCollector.obj \
     $(SLO)$/CDRDocument.obj \
