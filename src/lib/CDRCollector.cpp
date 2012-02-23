@@ -566,15 +566,25 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList)
 void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
 {
   if (m_currentOutlId == 0)
-    propList.insert("draw:stroke", "none");
+  {
+    propList.insert("draw:stroke", "solid");
+    propList.insert("svg:stroke-width", 0.0);
+    propList.insert("svg:stroke-color", "#000000");
+  }
   else
   {
     std::map<unsigned, CDRLineStyle>::iterator iter = m_lineStyles.find(m_currentOutlId);
-    if (iter == m_lineStyles.end() || !(iter->second.lineType & 0x3))
-      propList.insert("draw:stroke", "none");
-    else
+    if (iter == m_lineStyles.end())
     {
-      if (iter->second.dashArray.size())
+      propList.insert("draw:stroke", "solid");
+      propList.insert("svg:stroke-width", 0.0);
+      propList.insert("svg:stroke-color", "#000000");
+    }
+    else if (iter->second.lineType & 0x1)
+      propList.insert("draw:stroke", "none");
+    else if (iter->second.lineType & 0x6)
+    {
+      if (iter->second.dashArray.size() && (iter->second.lineType & 0x4))
         propList.insert("draw:stroke", "dash");
       else
         propList.insert("draw:stroke", "solid");
@@ -659,6 +669,13 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
         propList.insert("draw:distance", 72.0*(iter->second.lineWidth)*gap, WPX_POINT);
       }
     }
+    else
+    {
+      propList.insert("draw:stroke", "solid");
+      propList.insert("svg:stroke-width", 0.0);
+      propList.insert("svg:stroke-color", "#000000");
+    }
+
   }
 }
 
