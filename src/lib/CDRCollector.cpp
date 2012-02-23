@@ -566,20 +566,12 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList)
 void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
 {
   if (m_currentOutlId == 0)
-  {
-    propList.insert("draw:stroke", "solid");
-    propList.insert("svg:stroke-width", 0.0);
-    propList.insert("svg:stroke-color", "#000000");
-  }
+    propList.insert("draw:stroke", "none");
   else
   {
     std::map<unsigned, CDRLineStyle>::iterator iter = m_lineStyles.find(m_currentOutlId);
     if (iter == m_lineStyles.end() || !(iter->second.lineType & 0x3))
-    {
-      propList.insert("draw:stroke", "solid");
-      propList.insert("svg:stroke-width", 0.0);
-      propList.insert("svg:stroke-color", "#000000");
-    }
+      propList.insert("draw:stroke", "none");
     else
     {
       if (iter->second.dashArray.size())
