@@ -215,7 +215,7 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   else if (fourCC == "mcfg")
     readMcfg(input);
   else if (fourCC == "bmp ")
-    readBmp(input, length);
+    readBmp(input);
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
@@ -770,7 +770,7 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
   m_collector->collectPolygonTransform(numAngles, nextPoint, rx, ry, cx, cy);
 }
 
-void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readBmp(WPXInputStream *input)
 {
   unsigned imageId = readU32(input);
   input->seek(50, WPX_SEEK_CUR);

@@ -70,7 +70,7 @@ private:
   void readPath(WPXInputStream *input);
   void readPolygonCoords(WPXInputStream *input);
   void readPolygonTransform(WPXInputStream *input);
-  void readBmp(WPXInputStream *input, unsigned length);
+  void readBmp(WPXInputStream *input);
 
   WPXInputStream *m_input;
   CDRCollector *m_collector;
