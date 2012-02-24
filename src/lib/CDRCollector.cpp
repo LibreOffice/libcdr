@@ -671,10 +671,7 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
         propList.insert("draw:stroke", "dash");
       else
         propList.insert("draw:stroke", "solid");
-      if (iter->second.lineType & 0x20) // hairline flag ???
-        propList.insert("svg:stroke-width", 0.0);
-      else
-        propList.insert("svg:stroke-width", iter->second.lineWidth);
+      propList.insert("svg:stroke-width", iter->second.lineWidth);
       propList.insert("svg:stroke-color", _getRGBColorString(iter->second.colorModel, iter->second.color));
 
       switch (iter->second.capsType)
