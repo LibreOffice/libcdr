@@ -585,12 +585,10 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
 
 void libcdr::CDRParser::readOutl(WPXInputStream *input)
 {
-  unsigned flag = 0;
-
   unsigned lineId = readU32(input);
   if (m_version >= 1300)
   {
-    flag = readU32(input);
+    unsigned flag = readU32(input);
     if (flag == 5)
       input->seek(123, WPX_SEEK_CUR);
     else
