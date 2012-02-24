@@ -425,13 +425,13 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
   unsigned char col1 = (colorValue & 0xff00) >> 8;
   unsigned char col2 = (colorValue & 0xff0000) >> 16;
   unsigned char col3 = (colorValue & 0xff000000) >> 24;
-  if (colorModel == 0x02 || colorModel == 0x11) // CMYK100
+  if (colorModel == 0x02) // CMYK100
   {
     red = (100 - col0)*(100 - col3)*255/10000;
     green = (100 - col1)*(100 - col3)*255/10000;
     blue = (100 - col2)*(100 - col3)*255/10000;
   }
-  else if (colorModel == 0x03 || colorModel == 0x01) // CMYK255
+  else if (colorModel == 0x03 || colorModel == 0x01 || colorModel == 0x11) // CMYK255
   {
     red = (255 - col0)*(255 - col3)/255;
     green = (255 - col1)*(255 - col3)/255;
