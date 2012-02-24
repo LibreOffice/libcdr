@@ -425,13 +425,13 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
   unsigned char col1 = (colorValue & 0xff00) >> 8;
   unsigned char col2 = (colorValue & 0xff0000) >> 16;
   unsigned char col3 = (colorValue & 0xff000000) >> 24;
-  if (colorModel == 0x02) // CMYK100
+  if (colorModel == 0x02 || colorModel == 0x11) // CMYK100
   {
     red = (100 - col0)*(100 - col3)*255/10000;
     green = (100 - col1)*(100 - col3)*255/10000;
     blue = (100 - col2)*(100 - col3)*255/10000;
   }
-  else if ((colorModel == 0x03) || (colorModel == 0x11) || (colorModel == 0x01)) // CMYK255
+  else if (colorModel == 0x03 || colorModel == 0x01) // CMYK255
   {
     red = (255 - col0)*(255 - col3)/255;
     green = (255 - col1)*(255 - col3)/255;
@@ -534,6 +534,84 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     red = col0;
     green = col0;
     blue = col0;
+  }
+  else if (colorModel == 0x19) // HKS
+  {
+    const unsigned char C_channel[] =
+    {
+      0,     5,   0,   0,   0,   0,   0,   0,   0,   0,
+      0,     0,   0,   0,   0,  30,  60,   0,   0,   0,
+      0,    90,  60,   0,  20,   5,  20,  50,  20,  10,
+      60,   80,  90,  80,  90, 100,  90, 100, 100, 100,
+      100, 100,  90, 100, 100, 100,  65, 100,  95,  80,
+      100, 100, 100, 100,  60, 100,  80,  70,  10,  60,
+      85,   65,  60,  10,  20,  20,  10,  10,   0,   0,
+      10,    0,   0,  60,  10,   0,   0,   0,   0,   0,
+      10,    0,  10,  20,   0,   0
+    };
+    const unsigned char M_channel[] =
+    {
+      10,    0,   0,  20,  30,  45,  60,  65,  85,  45,
+      85,  100, 100, 100, 100, 100, 100,  55,  90, 100,
+      100,  30,   0, 100, 100, 100, 100, 100, 100, 100,
+      100, 100,  90,  90, 100,  60,  50,  30,  70,  80,
+      70,   50,  70,   0,   0,  20,   0,   0,   0,   0,
+      0,     0,  50,   0,   0,   0,   5,   0,   0,   0,
+      0,     0,   0,   0,  20,   0,  50,  55,  55,  50,
+      30,   60,  60,  95,  80,  85,  75,  80,   0,  10,
+      0,    25,   0,   0,   0,   0
+    };
+    const unsigned char Y_channel[] =
+    {
+      60,  100, 100, 100, 100, 100, 100, 100, 100,  50,
+      95,   95, 100,  80,  90,  70,  80,  25,  80,  70,
+      50,    5,  95,  25,  20,   0,  40,   0,   0,   0,
+      0,     0,   0,   0,   0,  20,   0,  15,  10,   0,
+      0,     0,   0,   0,  10,  10,   5,  45,  55,  60,
+      80,   70,  80,  90,  65,  50, 100, 100,  70,  90,
+      100, 100, 100,  20, 100, 100, 100, 100, 100, 100,
+      80,   90,  60, 100, 100, 100,  70,  70,   0,  30,
+      10,   30,   0,  10,  20,  20
+    };
+    const unsigned char K_channel[] =
+    {
+      0,    0,   0,   0,   0,   0,   0,   0,   0,   0,
+      0,    0,   0,   0,   0,   0,   0,   0,   0,   0,
+      0,    5,   0,   0,   0,   0,   0,   0,   0,   0,
+      0,    0,   0,   0,   0,  70,   0,   0,  60,   0,
+      0,    0,   0,   0,   0,   0,   0,   0,   0,   0,
+      10,  30,   0,  20,  50,  20,   0,  75,  60,  40,
+      10,   0,   0,  90,   0,   0,   0,   0,  30,  55,
+      60,  80,  70,   0,   0,  30,  50,  60, 100,  35,
+      40,  90,  70,  80,  50,  60
+    };
+    unsigned short hks = (unsigned short)(colorValue & 0xffff)+85;
+    unsigned hksIndex = hks % 86;
+    hks /= 86;
+    unsigned K_percent = hks/10;
+    switch (K_percent)
+    {
+    case 2:
+      K_percent = 10;
+      break;
+    case 3:
+      K_percent = 30;
+      break;
+    case 4:
+      K_percent = 50;
+      break;
+    default:
+      K_percent = 0;
+      break;
+    }
+    unsigned O_percent = (hks % 10) ? (hks % 10) * 10 : 100;
+    col0 = cdr_round((double)O_percent*C_channel[hksIndex]/100.0);
+    col1 = cdr_round((double)O_percent*M_channel[hksIndex]/100.0);
+    col2 = cdr_round((double)O_percent*Y_channel[hksIndex]/100.0);
+    col3 = cdr_round(((100.0 - (double)K_percent)*K_channel[hksIndex]+(double)K_percent*100.0)/100.0);
+    red = (100 - col0)*(100 - col3)*255/10000;
+    green = (100 - col1)*(100 - col3)*255/10000;
+    blue = (100 - col2)*(100 - col3)*255/10000;
   }
   return (unsigned)((red << 16) | (green << 8) | blue);
 }
