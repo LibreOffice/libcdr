@@ -585,9 +585,15 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
 
 void libcdr::CDRParser::readOutl(WPXInputStream *input)
 {
+  unsigned flag = 0;
+
   unsigned lineId = readU32(input);
   if (m_version >= 1300)
-    input->seek(20, WPX_SEEK_CUR);
+    flag = readU32(input);
+    if (flag == 5)
+      input->seek(123, WPX_SEEK_CUR);
+    else
+      input->seek(16, WPX_SEEK_CUR);
   unsigned short lineType = readU16(input);
   unsigned short capsType = readU16(input);
   unsigned short joinType = readU16(input);
@@ -601,10 +607,7 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input)
   unsigned short colorModel = readU16(input);
   input->seek(6, WPX_SEEK_CUR);
   unsigned color = readU32(input);
-  if (m_version < 1300)
-    input->seek(16, WPX_SEEK_CUR);
-  else
-    input->seek(18, WPX_SEEK_CUR);
+  input->seek(16, WPX_SEEK_CUR);
   unsigned short numDash = readU16(input);
   int fixPosition = input->tell();
   std::vector<unsigned short> dashArray;
