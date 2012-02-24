@@ -635,7 +635,7 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList)
   else
   {
     std::map<unsigned, CDRFillStyle>::iterator iter = m_fillStyles.find(m_currentFildId);
-    if ((iter == m_fillStyles.end()) || !(iter->second.fillType & 0x3))
+    if (iter == m_fillStyles.end() || iter->second.fillType != 1) // Handle only solid fill for the while
       propList.insert("draw:fill", "none");
     else
     {
