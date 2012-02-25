@@ -416,6 +416,26 @@ unsigned libcdr::CDRCollector::_getBMPColor(unsigned short colorModel, unsigned 
   }
 }
 
+void libcdr::CDRCollector::_transformCMYK(double &c, double &m, double &y, double &k)
+{
+  double c1 = 0.88*c;
+  double m1 = 0.32*c+0.78*m+0.02*y+0.02*k;
+  double y1 = 0.2*m+y+0.03*k;
+  double k1 = 0.12*c+0.13*m+0.88*k;
+  if (c1 > 1.0)
+    c1 = 1.0;
+  if (m1 > 1.0)
+    m1 = 1.0;
+  if (y1 > 1.0)
+    y1 = 1.0;
+  if (k1 > 1.0)
+    k1 = 1.0;
+  c = c1;
+  m = m1;
+  y = y1;
+  k = k1;
+}
+
 unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned colorValue)
 {
   unsigned char red = 0;
@@ -427,15 +447,25 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
   unsigned char col3 = (colorValue & 0xff000000) >> 24;
   if (colorModel == 0x02) // CMYK100
   {
-    red = (100 - col0)*(100 - col3)*255/10000;
-    green = (100 - col1)*(100 - col3)*255/10000;
-    blue = (100 - col2)*(100 - col3)*255/10000;
+    double c = (double)col0/100.0;
+    double m = (double)col1/100.0;
+    double y = (double)col2/100.0;
+    double k = (double)col3/100.0;
+    _transformCMYK(c,m,y,k);
+    red = cdr_round((1.0 - c)*(1.0 - k)*255);
+    green = cdr_round((1.0 - m)*(1.0 - k)*255);
+    blue = cdr_round((1.0 - y)*(1.0 - k)*255);
   }
   else if (colorModel == 0x03 || colorModel == 0x01 || colorModel == 0x11) // CMYK255
   {
-    red = (255 - col0)*(255 - col3)/255;
-    green = (255 - col1)*(255 - col3)/255;
-    blue = (255 - col2)*(255 - col3)/255;
+    double c = (double)col0/255.0;
+    double m = (double)col1/255.0;
+    double y = (double)col2/255.0;
+    double k = (double)col3/255.0;
+    _transformCMYK(c,m,y,k);
+    red = cdr_round((1.0 - c)*(1.0 - k)*255);
+    green = cdr_round((1.0 - m)*(1.0 - k)*255);
+    blue = cdr_round((1.0 - y)*(1.0 - k)*255);
   }
   else if (colorModel == 0x04) // CMY
   {
