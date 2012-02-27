@@ -28,6 +28,12 @@ INCPRE+=$(WPG_CFLAGS) -I..
 INCPRE+=$(SOLARVER)$/$(INPATH)$/inc$/libwpg
 .ENDIF
 
+.IF "$(SYSTEM_CMS2)" == "YES"
+INCPRE+=$(LCMS2_CFLAGS) -I..
+.ELSE
+INCPRE+=$(SOLARVER)$/$(INPATH)$/inc$/lcms2
+.ENDIF
+
 .IF "$(SYSTEM_ZLIB)" != "YES"
 INCPRE+=-I$(SOLARVER)$/$(INPATH)$/inc$/external/zlib
 .ENDIF
