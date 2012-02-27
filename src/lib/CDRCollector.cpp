@@ -427,13 +427,6 @@ unsigned libcdr::CDRCollector::_getBMPColor(unsigned short colorModel, unsigned 
   }
 }
 
-extern "C" {
-  void Logger(cmsContext ContextID, cmsUInt32Number ErrorCode, const char *Text)
-  {
-    printf("%s\n", Text);
-  }
-}
-
 unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned colorValue)
 {
   unsigned char red = 0;

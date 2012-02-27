@@ -82,7 +82,6 @@ private:
   void _endPage();
   void _flushCurrentPath();
 
-  void _transformCMYK(double &c, double &m, double &y, double &k);
   unsigned _getRGBColor(unsigned short colorModel, unsigned colorValue);
   unsigned _getBMPColor(unsigned short colorModel, unsigned colorValue);
   WPXString _getRGBColorString(unsigned short colorModel, unsigned colorValue);
