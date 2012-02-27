@@ -40,6 +40,7 @@ PKG_CHECK_MODULES([LIBCDR],[
 	libwpd-0.9
 	libwpd-stream-0.9
 	libwpg-0.2
+	lcms2
 ])
 
 # =========
