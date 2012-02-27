@@ -33,6 +33,7 @@
 #include <map>
 #include <stack>
 #include <libwpg/libwpg.h>
+#include <lcms2.h>
 #include "CDRTypes.h"
 #include "CDRPath.h"
 #include "CDROutputElementList.h"
@@ -108,6 +109,10 @@ private:
   std::map<unsigned, WPXBinaryData> m_bmps;
   bool m_isInPolygon;
   std::stack<CDROutputElementList> m_outputElements;
+
+  cmsHPROFILE m_defaultCMYKProfile;
+  cmsHPROFILE m_defaultRGBProfile;
+  cmsHTRANSFORM m_colorTransformCMYK2RGB;
 };
 
 } // namespace libcdr

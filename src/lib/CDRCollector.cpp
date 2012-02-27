@@ -66,6 +66,8 @@ void writeU8(WPXBinaryData &buffer, const int value)
   buffer.append((unsigned char)(value & 0xFF));
 }
 
+#include "CDRColorProfiles.h"
+
 }
 
 libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
@@ -79,14 +81,23 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_currentImage(),
   m_currentPath(), m_currentTransform(),
   m_fillStyles(), m_lineStyles(), m_polygon(0),
-  m_bmps(), m_isInPolygon(false), m_outputElements()
+  m_bmps(), m_isInPolygon(false), m_outputElements(),
+  m_defaultCMYKProfile(cmsOpenProfileFromMem(SWOP_icc, SWOP_icc_len)),
+  m_defaultRGBProfile(cmsCreate_sRGBProfile()), m_colorTransformCMYK2RGB(0)
 {
+  m_colorTransformCMYK2RGB = cmsCreateTransform(m_defaultCMYKProfile, TYPE_CMYK_DBL, m_defaultRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
 }
 
 libcdr::CDRCollector::~CDRCollector()
 {
   if (m_isPageStarted)
     _endPage();
+  if (m_colorTransformCMYK2RGB)
+    cmsDeleteTransform(m_colorTransformCMYK2RGB);
+  if (m_defaultCMYKProfile)
+    cmsCloseProfile(m_defaultCMYKProfile);
+  if (m_defaultRGBProfile)
+    cmsCloseProfile(m_defaultRGBProfile);
 }
 
 void libcdr::CDRCollector::_startPage(double width, double height)
@@ -416,24 +427,11 @@ unsigned libcdr::CDRCollector::_getBMPColor(unsigned short colorModel, unsigned 
   }
 }
 
-void libcdr::CDRCollector::_transformCMYK(double &c, double &m, double &y, double &k)
-{
-  double c1 = 0.88*c;
-  double m1 = 0.32*c+0.78*m+0.02*y+0.02*k;
-  double y1 = 0.2*m+y+0.03*k;
-  double k1 = 0.12*c+0.13*m+0.88*k;
-  if (c1 > 1.0)
-    c1 = 1.0;
-  if (m1 > 1.0)
-    m1 = 1.0;
-  if (y1 > 1.0)
-    y1 = 1.0;
-  if (k1 > 1.0)
-    k1 = 1.0;
-  c = c1;
-  m = m1;
-  y = y1;
-  k = k1;
+extern "C" {
+  void Logger(cmsContext ContextID, cmsUInt32Number ErrorCode, const char *Text)
+  {
+    printf("%s\n", Text);
+  }
 }
 
 unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned colorValue)
@@ -447,25 +445,33 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
   unsigned char col3 = (colorValue & 0xff000000) >> 24;
   if (colorModel == 0x02) // CMYK100
   {
-    double c = (double)col0/100.0;
-    double m = (double)col1/100.0;
-    double y = (double)col2/100.0;
-    double k = (double)col3/100.0;
-    _transformCMYK(c,m,y,k);
-    red = cdr_round((1.0 - c)*(1.0 - k)*255);
-    green = cdr_round((1.0 - m)*(1.0 - k)*255);
-    blue = cdr_round((1.0 - y)*(1.0 - k)*255);
+    double cmyk[4] =
+    {
+      (double)col0,
+      (double)col1,
+      (double)col2,
+      (double)col3
+    };
+    unsigned char rgb[3] = { 0, 0, 0 };
+    cmsDoTransform(m_colorTransformCMYK2RGB, cmyk, rgb, 1);
+    red = rgb[0];
+    green = rgb[1];
+    blue = rgb[2];
   }
   else if (colorModel == 0x03 || colorModel == 0x01 || colorModel == 0x11) // CMYK255
   {
-    double c = (double)col0/255.0;
-    double m = (double)col1/255.0;
-    double y = (double)col2/255.0;
-    double k = (double)col3/255.0;
-    _transformCMYK(c,m,y,k);
-    red = cdr_round((1.0 - c)*(1.0 - k)*255);
-    green = cdr_round((1.0 - m)*(1.0 - k)*255);
-    blue = cdr_round((1.0 - y)*(1.0 - k)*255);
+    double cmyk[4] =
+    {
+      (double)col0*100.0/255.0,
+      (double)col1*100.0/255.0,
+      (double)col2*100.0/255.0,
+      (double)col3*100.0/255.0
+    };
+    unsigned char rgb[3] = { 0, 0, 0 };
+    cmsDoTransform(m_colorTransformCMYK2RGB, cmyk, rgb, 1);
+    red = rgb[0];
+    green = rgb[1];
+    blue = rgb[2];
   }
   else if (colorModel == 0x04) // CMY
   {
@@ -639,14 +645,24 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
       break;
     }
     unsigned O_percent = (hks % 10) ? (hks % 10) * 10 : 100;
-    col0 = cdr_round((double)O_percent*C_channel[hksIndex]/100.0);
-    col1 = cdr_round((double)O_percent*M_channel[hksIndex]/100.0);
-    col2 = cdr_round((double)O_percent*Y_channel[hksIndex]/100.0);
-    col3 = cdr_round(((100.0 - (double)K_percent)*K_channel[hksIndex]+(double)K_percent*100.0)/100.0);
-    col3 = cdr_round((double)O_percent*col3/100.0);
-    red = (100 - col0)*(100 - col3)*255/10000;
-    green = (100 - col1)*(100 - col3)*255/10000;
-    blue = (100 - col2)*(100 - col3)*255/10000;
+    col0 = (double)O_percent*C_channel[hksIndex];
+    col1 = (double)O_percent*M_channel[hksIndex];
+    col2 = (double)O_percent*Y_channel[hksIndex];
+    col3 = (100.0 - (double)K_percent)*K_channel[hksIndex]+(double)K_percent*100.0;
+    col3 = (double)O_percent*col3/100.0;
+    double cmyk[4] =
+    {
+      (double)col0,
+      (double)col1,
+      (double)col2,
+      (double)col3
+    };
+    unsigned char rgb[3] = { 0, 0, 0 };
+    cmsDoTransform(m_colorTransformCMYK2RGB, cmyk, rgb, 1);
+    red = rgb[0];
+    green = rgb[1];
+    blue = rgb[2];
+
   }
   return (unsigned)((red << 16) | (green << 8) | blue);
 }

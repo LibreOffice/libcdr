@@ -28,6 +28,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRTypes.cpp \
 	libcdr_utils.cpp \
 	CDRCollector.h \
+	CDRColorProfiles.h \
 	CDRInternalStream.h \
 	CDROutputElementList.h \
 	CDRParser.h \
