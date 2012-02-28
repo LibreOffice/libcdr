@@ -571,9 +571,9 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
   else if (colorModel == 0x12) // Lab
   {
     cmsCIELab Lab;
-    Lab.L = (double)col0*100.0/255.0;
-    Lab.a = (double)((signed char)(col1 - 0x80))*60.0/127.0;
-    Lab.b = (double)((signed char)(col2 - 0x80))*60.0/127.0;
+    Lab.L = (double)col0*70.0/255.0;
+    Lab.a = (double)((signed char)(col1 - 0x80));
+    Lab.b = (double)((signed char)(col2 - 0x80));
     unsigned char rgb[3] = { 0, 0, 0 };
     cmsDoTransform(m_colorTransformLab2RGB, &Lab, rgb, 1);
     red = rgb[0];
