@@ -82,10 +82,16 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_currentPath(), m_currentTransform(),
   m_fillStyles(), m_lineStyles(), m_polygon(0),
   m_bmps(), m_isInPolygon(false), m_outputElements(),
-  m_defaultCMYKProfile(cmsOpenProfileFromMem(SWOP_icc, SWOP_icc_len)),
-  m_defaultRGBProfile(cmsCreate_sRGBProfile()), m_colorTransformCMYK2RGB(0)
+  m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
 {
-  m_colorTransformCMYK2RGB = cmsCreateTransform(m_defaultCMYKProfile, TYPE_CMYK_DBL, m_defaultRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
+  cmsHPROFILE tmpCMYKProfile = cmsOpenProfileFromMem(SWOP_icc, SWOP_icc_len);
+  cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
+  m_colorTransformCMYK2RGB = cmsCreateTransform(tmpCMYKProfile, TYPE_CMYK_DBL, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
+  cmsHPROFILE tmpLabProfile = cmsCreateLab4Profile(0);
+  m_colorTransformLab2RGB = cmsCreateTransform(tmpLabProfile, TYPE_Lab_DBL, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
+  cmsCloseProfile(tmpLabProfile);
+  cmsCloseProfile(tmpCMYKProfile);
+  cmsCloseProfile(tmpRGBProfile);
 }
 
 libcdr::CDRCollector::~CDRCollector()
@@ -94,10 +100,8 @@ libcdr::CDRCollector::~CDRCollector()
     _endPage();
   if (m_colorTransformCMYK2RGB)
     cmsDeleteTransform(m_colorTransformCMYK2RGB);
-  if (m_defaultCMYKProfile)
-    cmsCloseProfile(m_defaultCMYKProfile);
-  if (m_defaultRGBProfile)
-    cmsCloseProfile(m_defaultRGBProfile);
+  if (m_colorTransformLab2RGB)
+    cmsDeleteTransform(m_colorTransformLab2RGB);
 }
 
 void libcdr::CDRCollector::_startPage(double width, double height)
@@ -563,6 +567,18 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     red = col0;
     green = col0;
     blue = col0;
+  }
+  else if (colorModel == 0x12) // Lab
+  {
+    cmsCIELab Lab;
+    Lab.L = (double)col0*100.0/255.0;
+    Lab.a = (double)((signed char)(col1 - 0x80))*60.0/127.0;
+    Lab.b = (double)((signed char)(col2 - 0x80))*60.0/127.0;
+    unsigned char rgb[3] = { 0, 0, 0 };
+    cmsDoTransform(m_colorTransformLab2RGB, &Lab, rgb, 1);
+    red = rgb[0];
+    green = rgb[1];
+    blue = rgb[2];
   }
   else if (colorModel == 0x19) // HKS
   {

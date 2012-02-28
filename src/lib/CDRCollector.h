@@ -109,9 +109,8 @@ private:
   bool m_isInPolygon;
   std::stack<CDROutputElementList> m_outputElements;
 
-  cmsHPROFILE m_defaultCMYKProfile;
-  cmsHPROFILE m_defaultRGBProfile;
   cmsHTRANSFORM m_colorTransformCMYK2RGB;
+  cmsHTRANSFORM m_colorTransformLab2RGB;
 };
 
 } // namespace libcdr
