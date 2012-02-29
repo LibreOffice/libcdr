@@ -82,8 +82,8 @@ struct CDRGradient
     : m_type(0), m_mode(0), m_angle(0.0), m_midPoint(0.0), m_edgeOffset(0), m_centerXOffset(0), m_centerYOffset(0), m_stops() {}
   CDRGradient(const CDRGradient &gradient)
     : m_type(gradient.m_type), m_mode(gradient.m_mode), m_angle(gradient.m_angle), m_midPoint(gradient.m_midPoint),
-	  m_edgeOffset(gradient.m_edgeOffset), m_centerXOffset(gradient.m_centerXOffset), m_centerYOffset(gradient.m_centerYOffset),
-	  m_stops(gradient.m_stops) {}
+      m_edgeOffset(gradient.m_edgeOffset), m_centerXOffset(gradient.m_centerXOffset), m_centerYOffset(gradient.m_centerYOffset),
+      m_stops(gradient.m_stops) {}
 };
 
 struct CDRFillStyle

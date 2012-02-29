@@ -564,14 +564,15 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input)
 
 void libcdr::CDRParser::readFild(WPXInputStream *input)
 {
-  libcdr::CDRGradient gradient;
   unsigned fillId = readU32(input);
   if (m_version >= 1300)
     input->seek(8, WPX_SEEK_CUR);
   unsigned short fillType = readU16(input);
   unsigned short colorModel = 0;
-  unsigned color = 0;
-  if (fillType)
+  unsigned color1 = 0;
+  unsigned color2 = 0;
+  libcdr::CDRGradient gradient;
+  if (fillType == 1) // Solid
   {
     if (m_version >= 1300)
       input->seek(13, WPX_SEEK_CUR);
@@ -579,9 +580,46 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
       input->seek(2, WPX_SEEK_CUR);
     colorModel = readU16(input);
     input->seek(6, WPX_SEEK_CUR);
-    color = readU32(input);
+    color1 = readU32(input);
   }
-  m_collector->collectFild(fillId, fillType, colorModel, color, 0, gradient);
+  else if (fillType == 2)
+  {
+    if (m_version >= 1300)
+      input->seek(14, WPX_SEEK_CUR);
+    else
+      input->seek(2, WPX_SEEK_CUR);
+    gradient.m_type = readU8(input);
+    if (m_version >= 1300)
+      input->seek(5, WPX_SEEK_CUR);
+    else
+      input->seek(19, WPX_SEEK_CUR);
+    gradient.m_edgeOffset = readS32(input);
+    gradient.m_angle = (double)readS32(input) / 1000000.0;
+    gradient.m_centerXOffset = readS32(input);
+    gradient.m_centerYOffset = readS32(input);
+    input->seek(2, WPX_SEEK_CUR);
+    gradient.m_mode = readU16(input);
+    if (m_version >= 1300)
+      input->seek(6, WPX_SEEK_CUR);
+    else
+      input->seek(2, WPX_SEEK_CUR);
+    gradient.m_midPoint = (double)readU8(input) / 100.0;
+    input->seek(1, WPX_SEEK_CUR);
+    unsigned short numStops = readU16(input);
+    input->seek(2, WPX_SEEK_CUR);
+    for (unsigned short i = 0; i < numStops; ++i)
+    {
+      libcdr::CDRGradientStop stop;
+      stop.m_colorModel = readU16(input);
+      input->seek(6, WPX_SEEK_CUR);
+      stop.m_colorValue = readU32(input);
+      stop.m_offset = (double)readU32(input) / 100.0;
+      if (m_version >= 1300)
+        input->seek(8, WPX_SEEK_CUR);
+      gradient.m_stops.push_back(stop);
+    }
+  }
+  m_collector->collectFild(fillId, fillType, colorModel, color1, color2, gradient);
 }
 
 void libcdr::CDRParser::readOutl(WPXInputStream *input)
