@@ -715,9 +715,53 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
         propList.insert("svg:fill-rule", "evenodd");
         break;
       case 2: // Gradient
-        if (iter->second.gradient.m_stops.size() < 2)
+        if (iter->second.gradient.m_stops.empty())
           propList.insert("draw:fill", "none");
-        else
+        else if (iter->second.gradient.m_stops.size() == 1)
+        {
+          propList.insert("draw:fill", "solid");
+          propList.insert("draw:fill-color", _getRGBColorString(iter->second.gradient.m_stops[0].m_colorModel, iter->second.gradient.m_stops[0].m_colorValue));
+          propList.insert("svg:fill-rule", "evenodd");
+        }
+        else if (iter->second.gradient.m_stops.size() == 2)
+        {
+          double angle = iter->second.gradient.m_angle;
+          while (angle < 0.0)
+            angle += 360.0;
+          while (angle > 360.0)
+            angle -= 360.0;
+          propList.insert("draw:fill", "gradient");
+          propList.insert("draw:start-color", _getRGBColorString(iter->second.gradient.m_stops[0].m_colorModel, iter->second.gradient.m_stops[0].m_colorValue));
+          propList.insert("draw:end-color", _getRGBColorString(iter->second.gradient.m_stops[1].m_colorModel, iter->second.gradient.m_stops[1].m_colorValue));
+          propList.insert("draw:angle", (int)angle);
+          switch (iter->second.gradient.m_type)
+          {
+          case 1: // linear
+          case 3: // conical
+            propList.insert("draw:style", "linear");
+            angle += 90.0;
+            while (angle < 0.0)
+              angle += 360.0;
+            while (angle > 360.0)
+              angle -= 360.0;
+            propList.insert("draw:angle", (int)angle);
+            break;
+          case 2: // radial
+            propList.insert("draw:style", "radial");
+            propList.insert("svg:cx", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
+            propList.insert("svg:cy", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
+            break;
+          case 4: // square
+            propList.insert("draw:style", "square");
+            propList.insert("svg:cx", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
+            propList.insert("svg:cy", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
+            break;
+          default:
+            propList.insert("draw:fill", "none");
+            break;
+          }
+        }
+        else // output svg gradient as a hail mary pass towards ODG that does not really support it
         {
         }
         break;
