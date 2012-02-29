@@ -568,6 +568,18 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     green = col0;
     blue = col0;
   }
+  else if (colorModel == 12) // Lab
+  {
+    cmsCIELab Lab;
+    Lab.L = (double)col0*70.0/255.0;
+    Lab.a = (double)(signed char)col1;
+    Lab.b = (double)(signed char)col2;
+    unsigned char rgb[3] = { 0, 0, 0 };
+    cmsDoTransform(m_colorTransformLab2RGB, &Lab, rgb, 1);
+    red = rgb[0];
+    green = rgb[1];
+    blue = rgb[2];
+  }
   else if (colorModel == 0x12) // Lab
   {
     cmsCIELab Lab;
