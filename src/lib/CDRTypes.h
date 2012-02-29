@@ -56,15 +56,40 @@ struct CDRTransform
   void applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const;
 };
 
+struct CDRGradientStop
+{
+  unsigned short m_colorModel;
+  unsigned m_colorValue;
+  double m_offset;
+  CDRGradientStop() : m_colorModel(0), m_colorValue(0), m_offset(0.0) {}
+  CDRGradientStop(unsigned short colorModel, unsigned colorValue, double offset)
+    : m_colorModel(colorModel), m_colorValue(colorValue), m_offset(offset) {}
+};
+
+struct CDRGradient
+{
+  unsigned char m_type;
+  unsigned char m_mode;
+  double m_angle;
+  double m_midPoint;
+  int m_edgeOffset;
+  int m_centerXOffset;
+  int m_centerYOffset;
+  std::vector<CDRGradientStop> m_stops;
+  CDRGradient()
+    : m_type(0), m_mode(0), m_angle(0.0), m_midPoint(0.0), m_edgeOffset(0), m_centerXOffset(0), m_centerYOffset(0), m_stops() {}
+};
+
 struct CDRFillStyle
 {
   unsigned short fillType;
   unsigned short colorModel;
   unsigned color1, color2;
+  CDRGradient gradient;
   CDRFillStyle()
-    : fillType(0), colorModel(0), color1(0), color2(0) {}
-  CDRFillStyle(unsigned short ft, unsigned short cm, unsigned c1, unsigned c2)
-    : fillType(ft), colorModel(cm), color1(c1), color2(c2) {}
+    : fillType(0), colorModel(0), color1(0), color2(0), gradient() {}
+  CDRFillStyle(unsigned short ft, unsigned short cm, unsigned c1, unsigned c2, const CDRGradient &gr)
+    : fillType(ft), colorModel(cm), color1(c1), color2(c2), gradient(gr) {}
 };
 
 struct CDRLineStyle
@@ -134,30 +159,6 @@ struct CDRImage
   {
     return m_image;
   }
-};
-
-struct CDRGradientStop
-{
-  unsigned short m_colorModel;
-  unsigned m_colorValue;
-  double m_offset;
-  CDRGradientStop() : m_colorModel(0), m_colorValue(0), m_offset(0.0) {}
-  CDRGradientStop(unsigned short colorModel, unsigned colorValue, double offset)
-    : m_colorModel(colorModel), m_colorValue(colorValue), m_offset(offset) {}
-};
-
-struct CDRGradient
-{
-  unsigned char m_type;
-  unsigned char m_mode;
-  double m_angle;
-  double m_midPoint;
-  int m_edgeOffset;
-  int m_centerXOffset;
-  int m_centerYOffset;
-  std::vector<CDRGradientStop> m_stops;
-  CDRGradient()
-    : m_type(0), m_mode(0), m_angle(0.0), m_midPoint(0.0), m_edgeOffset(0), m_centerXOffset(0), m_centerYOffset(0), m_stops() {}
 };
 
 } // namespace libcdr

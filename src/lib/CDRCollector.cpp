@@ -370,9 +370,9 @@ void libcdr::CDRCollector::collectOutlId(unsigned id)
   m_currentOutlId = id;
 }
 
-void libcdr::CDRCollector::collectFild(unsigned id, unsigned short fillType, unsigned short colorModel, unsigned color1, unsigned color2)
+void libcdr::CDRCollector::collectFild(unsigned id, unsigned short fillType, unsigned short colorModel, unsigned color1, unsigned color2, const libcdr::CDRGradient &gradient)
 {
-  m_fillStyles[id] = CDRFillStyle(fillType, colorModel, color1, color2);
+  m_fillStyles[id] = CDRFillStyle(fillType, colorModel, color1, color2, gradient);
 }
 
 void libcdr::CDRCollector::collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType,

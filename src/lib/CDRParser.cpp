@@ -564,6 +564,7 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input)
 
 void libcdr::CDRParser::readFild(WPXInputStream *input)
 {
+  libcdr::CDRGradient gradient;
   unsigned fillId = readU32(input);
   if (m_version >= 1300)
     input->seek(8, WPX_SEEK_CUR);
@@ -580,7 +581,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
     input->seek(6, WPX_SEEK_CUR);
     color = readU32(input);
   }
-  m_collector->collectFild(fillId, fillType, colorModel, color, 0);
+  m_collector->collectFild(fillId, fillType, colorModel, color, 0, gradient);
 }
 
 void libcdr::CDRParser::readOutl(WPXInputStream *input)

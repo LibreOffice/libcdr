@@ -61,7 +61,7 @@ public:
   void collectTransform(double v0, double v1, double x, double v3, double v4, double y);
   void collectFildId(unsigned id);
   void collectOutlId(unsigned id);
-  void collectFild(unsigned id, unsigned short fillType, unsigned short colorModel, unsigned color1, unsigned color2);
+  void collectFild(unsigned id, unsigned short fillType, unsigned short colorModel, unsigned color1, unsigned color2, const CDRGradient &gradient);
   void collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType,
                    double lineWidth, unsigned short colorModel, unsigned color,
                    const std::vector<unsigned short> &dashArray, unsigned startMarkerId, unsigned endMarkerId);
