@@ -31,15 +31,16 @@
  * http://lists.freedesktop.org/archives/openicc/2010q3/002218.html
  * They are distribuable and modifiable under the above-mentioned license
  *
- * This particular profile was modified to be input-only using littlecms' 
+ * This particular profile was modified to be input-only using littlecms'
  * linkicc utility with following options:
  * linkicc -t0  -n13  -x -o SWOP.icc SWOP2006_Coated5_GCR_bas.icc *lab
- * 
+ *
  * The binary blob that follows was generated verbatim from the profile
  * using "xxd -i" command
  */
 
-static const unsigned char SWOP_icc[] = {
+static const unsigned char SWOP_icc[] =
+{
   0x00, 0x02, 0xa0, 0xb0, 0x6c, 0x63, 0x6d, 0x73, 0x04, 0x30, 0x00, 0x00,
   0x73, 0x63, 0x6e, 0x72, 0x43, 0x4d, 0x59, 0x4b, 0x4c, 0x61, 0x62, 0x20,
   0x07, 0xdc, 0x00, 0x02, 0x00, 0x1d, 0x00, 0x09, 0x00, 0x19, 0x00, 0x0e,
@@ -14392,4 +14393,4 @@ static const unsigned char SWOP_icc[] = {
   0x00, 0x62, 0x00, 0x75, 0x00, 0x69, 0x00, 0x6c, 0x00, 0x74, 0x00, 0x2d,
   0x00, 0x69, 0x00, 0x6e, 0x00, 0x00, 0x00, 0x00
 };
-unsigned int SWOP_icc_len = 172208;
+const unsigned int SWOP_icc_len = 172208;
