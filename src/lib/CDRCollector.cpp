@@ -84,7 +84,7 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_bmps(), m_isInPolygon(false), m_outputElements(),
   m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
 {
-  cmsHPROFILE tmpCMYKProfile = cmsOpenProfileFromMem(SWOP_icc, SWOP_icc_len);
+  cmsHPROFILE tmpCMYKProfile = cmsOpenProfileFromMem(SWOP_icc, sizeof(SWOP_icc)/sizeof(SWOP_icc[0]));
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
   m_colorTransformCMYK2RGB = cmsCreateTransform(tmpCMYKProfile, TYPE_CMYK_DBL, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
   cmsHPROFILE tmpLabProfile = cmsCreateLab4Profile(0);
