@@ -228,9 +228,10 @@ void libcdr::CDRCollector::_flushCurrentPath()
     double x = 0.0;
     double y = 0.0;
     WPXPropertyList style;
-    _fillProperties(style);
+    WPXPropertyListVector gradient;
+    _fillProperties(style, gradient);
     _lineProperties(style);
-    outputElement.addStyle(style, WPXPropertyListVector());
+    outputElement.addStyle(style, gradient);
     m_currentPath.transform(m_currentTransform);
     CDRTransform tmpTrafo(1.0, 0.0, -m_pageOffsetX, 0.0, 1.0, -m_pageOffsetY);
     m_currentPath.transform(tmpTrafo);
@@ -568,7 +569,7 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     green = col0;
     blue = col0;
   }
-  else if (colorModel == 12) // Lab
+  else if (colorModel == 0x0c) // Lab
   {
     cmsCIELab Lab;
     Lab.L = (double)col0*70.0/255.0;
@@ -695,20 +696,35 @@ WPXString libcdr::CDRCollector::_getRGBColorString(unsigned short colorModel, un
   return tempString;
 }
 
-void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList)
+void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropertyListVector &vec)
 {
   if (m_currentFildId == 0)
     propList.insert("draw:fill", "none");
   else
   {
     std::map<unsigned, CDRFillStyle>::iterator iter = m_fillStyles.find(m_currentFildId);
-    if (iter == m_fillStyles.end() || iter->second.fillType != 1) // Handle only solid fill for the while
+    if (iter == m_fillStyles.end())
       propList.insert("draw:fill", "none");
     else
     {
-      propList.insert("draw:fill", "solid");
-      propList.insert("draw:fill-color", _getRGBColorString(iter->second.colorModel, iter->second.color1));
-      propList.insert("svg:fill-rule", "evenodd");
+      switch (iter->second.fillType)
+      {
+      case 1: // Solid
+        propList.insert("draw:fill", "solid");
+        propList.insert("draw:fill-color", _getRGBColorString(iter->second.colorModel, iter->second.color1));
+        propList.insert("svg:fill-rule", "evenodd");
+        break;
+      case 2: // Gradient
+        if (iter->second.gradient.m_stops.size() < 2)
+          propList.insert("draw:fill", "none");
+        else
+        {
+        }
+        break;
+      default:
+        propList.insert("draw:fill", "none");
+        break;
+      }
     }
   }
 }

@@ -86,7 +86,7 @@ private:
   unsigned _getBMPColor(unsigned short colorModel, unsigned colorValue);
   WPXString _getRGBColorString(unsigned short colorModel, unsigned colorValue);
 
-  void _fillProperties(WPXPropertyList &propList);
+  void _fillProperties(WPXPropertyList &propList, WPXPropertyListVector &vec);
   void _lineProperties(WPXPropertyList &propList);
 
   libwpg::WPGPaintInterface *m_painter;

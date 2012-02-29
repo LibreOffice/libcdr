@@ -582,7 +582,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
     input->seek(6, WPX_SEEK_CUR);
     color1 = readU32(input);
   }
-  else if (fillType == 2)
+  else if (fillType == 2) // Gradient
   {
     if (m_version >= 1300)
       input->seek(14, WPX_SEEK_CUR);
