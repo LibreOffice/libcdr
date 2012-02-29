@@ -64,6 +64,8 @@ struct CDRGradientStop
   CDRGradientStop() : m_colorModel(0), m_colorValue(0), m_offset(0.0) {}
   CDRGradientStop(unsigned short colorModel, unsigned colorValue, double offset)
     : m_colorModel(colorModel), m_colorValue(colorValue), m_offset(offset) {}
+  CDRGradientStop(const CDRGradientStop &stop)
+    : m_colorModel(stop.m_colorModel), m_colorValue(stop.m_colorValue), m_offset(stop.m_offset) {}
 };
 
 struct CDRGradient
@@ -78,6 +80,10 @@ struct CDRGradient
   std::vector<CDRGradientStop> m_stops;
   CDRGradient()
     : m_type(0), m_mode(0), m_angle(0.0), m_midPoint(0.0), m_edgeOffset(0), m_centerXOffset(0), m_centerYOffset(0), m_stops() {}
+  CDRGradient(const CDRGradient &gradient)
+    : m_type(gradient.m_type), m_mode(gradient.m_mode), m_angle(gradient.m_angle), m_midPoint(gradient.m_midPoint),
+	  m_edgeOffset(gradient.m_edgeOffset), m_centerXOffset(gradient.m_centerXOffset), m_centerYOffset(gradient.m_centerYOffset),
+	  m_stops(gradient.m_stops) {}
 };
 
 struct CDRFillStyle
