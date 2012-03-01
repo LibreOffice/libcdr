@@ -775,6 +775,8 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           propList.insert("draw:fill-image", image.getBase64Data());
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
+		  propList.insert("svg:width", 0.5);
+		  propList.insert("svg:height", 0.5);
         }
         else
         {
@@ -794,6 +796,8 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           propList.insert("draw:fill-image", iterBmp->second.getBase64Data());
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
+		  propList.insert("svg:width", 1.0);
+		  propList.insert("svg:height", 1.0);
         }
         else
           propList.insert("draw:fill", "none");
