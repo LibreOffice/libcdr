@@ -31,6 +31,7 @@
 #define __CDRCOLLECTOR_H__
 
 #include <map>
+#include <vector>
 #include <stack>
 #include <libwpg/libwpg.h>
 #include <lcms2.h>
@@ -71,6 +72,7 @@ public:
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
   void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2);
   void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap);
+  void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern);
   void collectPolygon();
 
 private:
@@ -88,6 +90,7 @@ private:
 
   void _fillProperties(WPXPropertyList &propList, WPXPropertyListVector &vec);
   void _lineProperties(WPXPropertyList &propList);
+  void _generateBitmapFromPattern(WPXBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor);
 
   libwpg::WPGPaintInterface *m_painter;
 
@@ -106,6 +109,7 @@ private:
   std::map<unsigned, CDRLineStyle> m_lineStyles;
   CDRPolygon *m_polygon;
   std::map<unsigned, WPXBinaryData> m_bmps;
+  std::map<unsigned, CDRPattern> m_patterns;
   bool m_isInPolygon;
   std::stack<CDROutputElementList> m_outputElements;
 

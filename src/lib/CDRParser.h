@@ -71,13 +71,12 @@ private:
   void readPolygonCoords(WPXInputStream *input);
   void readPolygonTransform(WPXInputStream *input);
   void readBmp(WPXInputStream *input);
+  void readBmpf(WPXInputStream *input);
 
   WPXInputStream *m_input;
   CDRCollector *m_collector;
 
   unsigned m_version;
-  unsigned m_bmpNum;
-
 };
 } // namespace libcdr
 

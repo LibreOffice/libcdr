@@ -178,6 +178,16 @@ struct CDRImage
   }
 };
 
+struct CDRPattern
+{
+  unsigned width;
+  unsigned height;
+  std::vector<unsigned char> pattern;
+  CDRPattern() : width(0), height(0), pattern() {}
+  CDRPattern(unsigned w, unsigned h, const std::vector<unsigned char> &p)
+    : width(w), height(h), pattern(p) {}
+};
+
 } // namespace libcdr
 
 #endif /* __CDRTYPES_H__ */

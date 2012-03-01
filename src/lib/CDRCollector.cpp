@@ -78,10 +78,9 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_pageWidth(8.5), m_pageHeight(11.0),
   m_currentFildId(0.0), m_currentOutlId(0),
   m_currentObjectLevel(0), m_currentPageLevel(0),
-  m_currentImage(),
-  m_currentPath(), m_currentTransform(),
+  m_currentImage(), m_currentPath(), m_currentTransform(),
   m_fillStyles(), m_lineStyles(), m_polygon(0),
-  m_bmps(), m_isInPolygon(false), m_outputElements(),
+  m_bmps(), m_patterns(), m_isInPolygon(false), m_outputElements(),
   m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
 {
   cmsHPROFILE tmpCMYKProfile = cmsOpenProfileFromMem(SWOP_icc, sizeof(SWOP_icc)/sizeof(SWOP_icc[0]));
@@ -766,11 +765,26 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
         }
         break;
       case 7: // Pattern
-        // For the while, fill solid with the background colour
-        propList.insert("draw:fill", "solid");
-        propList.insert("draw:fill-color", _getRGBColorString(iter->second.color2));
-        propList.insert("svg:fill-rule", "evenodd");
-        break;
+      {
+        std::map<unsigned, CDRPattern>::iterator iterPattern = m_patterns.find(iter->second.patternId);
+        if (iterPattern != m_patterns.end())
+        {
+          propList.insert("draw:fill", "bitmap");
+          WPXBinaryData image;
+          _generateBitmapFromPattern(image, iterPattern->second, iter->second.color1, iter->second.color2);
+          propList.insert("draw:fill-image", image.getBase64Data());
+          propList.insert("libwpg:mime-type", "image/bmp");
+          propList.insert("style:repeat", "repeat");
+        }
+        else
+        {
+          // We did not find the pattern, so fill solid with the background colour
+          propList.insert("draw:fill", "solid");
+          propList.insert("draw:fill-color", _getRGBColorString(iter->second.color2));
+          propList.insert("svg:fill-rule", "evenodd");
+        }
+      }
+      break;
       case 9: // Bitmap
       {
         std::map<unsigned, WPXBinaryData>::iterator iterBmp = m_bmps.find(iter->second.patternId);
@@ -903,6 +917,74 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
       propList.insert("svg:stroke-color", "#000000");
     }
 
+  }
+}
+
+void libcdr::CDRCollector::_generateBitmapFromPattern(WPXBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor)
+{
+  unsigned height = pattern.height;
+  unsigned width = pattern.width;
+  unsigned tmpPixelSize = (unsigned)(height * width);
+  if (tmpPixelSize < (unsigned)height) // overflow
+    return;
+
+  unsigned tmpDIBImageSize = tmpPixelSize * 4;
+  if (tmpPixelSize > tmpDIBImageSize) // overflow !!!
+    return;
+
+  unsigned tmpDIBOffsetBits = 14 + 40;
+  unsigned tmpDIBFileSize = tmpDIBOffsetBits + tmpDIBImageSize;
+  if (tmpDIBImageSize > tmpDIBFileSize) // overflow !!!
+    return;
+
+  // Create DIB file header
+  writeU16(bitmap, 0x4D42);  // Type
+  writeU32(bitmap, tmpDIBFileSize); // Size
+  writeU16(bitmap, 0); // Reserved1
+  writeU16(bitmap, 0); // Reserved2
+  writeU32(bitmap, tmpDIBOffsetBits); // OffsetBits
+
+  // Create DIB Info header
+  writeU32(bitmap, 40); // Size
+
+  writeU32(bitmap, width);  // Width
+  writeU32(bitmap, height); // Height
+
+  writeU16(bitmap, 1); // Planes
+  writeU16(bitmap, 32); // BitCount
+  writeU32(bitmap, 0); // Compression
+  writeU32(bitmap, tmpDIBImageSize); // SizeImage
+  writeU32(bitmap, 0); // XPelsPerMeter
+  writeU32(bitmap, 0); // YPelsPerMeter
+  writeU32(bitmap, 0); // ColorsUsed
+  writeU32(bitmap, 0); // ColorsImportant
+
+  // The Bitmaps in CDR are padded to 32bit border
+  unsigned lineWidth = ((width + 31) / 32) * 4;
+
+  unsigned foreground = _getRGBColor(fgColor);
+  unsigned background = _getRGBColor(bgColor);
+
+  for (unsigned j = 0; j < height; ++j)
+  {
+    unsigned i = 0;
+    unsigned k = 0;
+    while (i <lineWidth && k < width)
+    {
+      unsigned l = 0;
+      unsigned char c = pattern.pattern[j*lineWidth+i];
+      i++;
+      while (k < width && l < 8)
+      {
+        if (c & 0x80)
+          writeU32(bitmap, background);
+        else
+          writeU32(bitmap, foreground);
+        c <<= 1;
+        l++;
+        k++;
+      }
+    }
   }
 }
 
@@ -1040,6 +1122,11 @@ void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorModel, uns
 
     m_bmps[imageId] = image;
   }
+}
+
+void libcdr::CDRCollector::collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern)
+{
+  m_patterns[patternId] = CDRPattern(width, height, pattern);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
