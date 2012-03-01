@@ -765,6 +765,12 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
         {
         }
         break;
+      case 7: // Pattern
+        // For the while, fill solid with the background colour
+        propList.insert("draw:fill", "solid");
+        propList.insert("draw:fill-color", _getRGBColorString(iter->second.color2));
+        propList.insert("svg:fill-rule", "evenodd");
+        break;
       default:
         propList.insert("draw:fill", "none");
         break;

@@ -648,7 +648,14 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
       input->seek(2, WPX_SEEK_CUR);
     patternId = readU32(input);
     input->seek(16, WPX_SEEK_CUR);
-
+    unsigned short colorModel = readU16(input);
+    input->seek(6, WPX_SEEK_CUR);
+    unsigned colorValue = readU32(input);
+    color1 = libcdr::CDRColor(colorModel, colorValue);
+    colorModel = readU16(input);
+    input->seek(6, WPX_SEEK_CUR);
+    colorValue = readU32(input);
+    color2 = libcdr::CDRColor(colorModel, colorValue);
   }
   m_collector->collectFild(fillId, fillType, color1, color2, gradient, patternId);
 }
