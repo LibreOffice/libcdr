@@ -965,7 +965,7 @@ void libcdr::CDRCollector::_generateBitmapFromPattern(WPXBinaryData &bitmap, con
   unsigned foreground = _getRGBColor(fgColor);
   unsigned background = _getRGBColor(bgColor);
 
-  for (unsigned j = 0; j < height; ++j)
+  for (unsigned j = height; j > 0; --j)
   {
     unsigned i = 0;
     unsigned k = 0;
