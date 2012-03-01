@@ -640,7 +640,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
       gradient.m_stops.push_back(stop);
     }
   }
-  else if (fillType == 7)
+  else if (fillType == 7) // Pattern
   {
     if (m_version >= 1300)
       input->seek(13, WPX_SEEK_CUR);
@@ -656,6 +656,11 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
     input->seek(6, WPX_SEEK_CUR);
     colorValue = readU32(input);
     color2 = libcdr::CDRColor(colorModel, colorValue);
+  }
+  else if (fillType == 9) // bitmap
+  {
+    input->seek(42, WPX_SEEK_CUR);
+    patternId = readU32(input);
   }
   m_collector->collectFild(fillId, fillType, color1, color2, gradient, patternId);
 }

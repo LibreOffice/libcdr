@@ -771,6 +771,20 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
         propList.insert("draw:fill-color", _getRGBColorString(iter->second.color2));
         propList.insert("svg:fill-rule", "evenodd");
         break;
+      case 9: // Bitmap
+      {
+        std::map<unsigned, WPXBinaryData>::iterator iterBmp = m_bmps.find(iter->second.patternId);
+        if (iterBmp != m_bmps.end())
+        {
+          propList.insert("draw:fill", "bitmap");
+          propList.insert("draw:fill-image", iterBmp->second.getBase64Data());
+          propList.insert("libwpg:mime-type", "image/bmp");
+          propList.insert("style:repeat", "repeat");
+        }
+        else
+          propList.insert("draw:fill", "none");
+      }
+      break;
       default:
         propList.insert("draw:fill", "none");
         break;
