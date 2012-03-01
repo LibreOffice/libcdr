@@ -1,4 +1,4 @@
-#/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* libcdr
  * Version: MPL 1.1 / GPLv2+ / LGPLv2+
  *
@@ -875,7 +875,7 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input)
     input->seek(2, WPX_SEEK_CUR);
     unsigned short palettesize = readU16(input);
     for (unsigned short i = 0; i <palettesize; ++i)
-      palette.push_back((readU8(input) << 16) | (readU8(input) << 8) | readU8(input));
+      palette.push_back(readU8(input) | (readU8(input) << 8) | (readU8(input) << 16));
   }
   std::vector<unsigned char> bitmap;
   for (unsigned j = 0; j<bmpsize; ++j)
