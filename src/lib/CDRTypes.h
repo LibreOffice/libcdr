@@ -56,16 +56,26 @@ struct CDRTransform
   void applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const;
 };
 
-struct CDRGradientStop
+struct CDRColor
 {
   unsigned short m_colorModel;
   unsigned m_colorValue;
+  CDRColor() : m_colorModel(0), m_colorValue(0) {}
+  CDRColor(unsigned short colorModel, unsigned colorValue)
+    : m_colorModel(colorModel), m_colorValue(colorValue) {}
+  CDRColor(const CDRColor &color)
+    : m_colorModel(color.m_colorModel), m_colorValue(color.m_colorValue) {}
+};
+
+struct CDRGradientStop
+{
+  CDRColor m_color;
   double m_offset;
-  CDRGradientStop() : m_colorModel(0), m_colorValue(0), m_offset(0.0) {}
-  CDRGradientStop(unsigned short colorModel, unsigned colorValue, double offset)
-    : m_colorModel(colorModel), m_colorValue(colorValue), m_offset(offset) {}
+  CDRGradientStop() : m_color(), m_offset(0.0) {}
+  CDRGradientStop(const CDRColor &color, double offset)
+    : m_color(color), m_offset(offset) {}
   CDRGradientStop(const CDRGradientStop &stop)
-    : m_colorModel(stop.m_colorModel), m_colorValue(stop.m_colorValue), m_offset(stop.m_offset) {}
+    : m_color(stop.m_color), m_offset(stop.m_offset) {}
 };
 
 struct CDRGradient
@@ -89,13 +99,15 @@ struct CDRGradient
 struct CDRFillStyle
 {
   unsigned short fillType;
-  unsigned short colorModel;
-  unsigned color1, color2;
+  CDRColor color1, color2;
   CDRGradient gradient;
+  unsigned patternId;
   CDRFillStyle()
-    : fillType(0), colorModel(0), color1(0), color2(0), gradient() {}
-  CDRFillStyle(unsigned short ft, unsigned short cm, unsigned c1, unsigned c2, const CDRGradient &gr)
-    : fillType(ft), colorModel(cm), color1(c1), color2(c2), gradient(gr) {}
+    : fillType(0), color1(), color2(), gradient(), patternId(0) {}
+  CDRFillStyle(unsigned short ft, CDRColor c1, CDRColor c2, const CDRGradient &gr, unsigned pI)
+    : fillType(ft), color1(c1), color2(c2), gradient(gr), patternId(pI) {}
+  CDRFillStyle(const CDRFillStyle &style)
+    : fillType(style.fillType), color1(style.color1), color2(style.color2), gradient(style.gradient), patternId(style.patternId) {}
 };
 
 struct CDRLineStyle
@@ -104,21 +116,20 @@ struct CDRLineStyle
   unsigned short capsType;
   unsigned short joinType;
   double lineWidth;
-  unsigned short colorModel;
-  unsigned color;
+  CDRColor color;
   std::vector<unsigned short> dashArray;
   unsigned startMarkerId;
   unsigned endMarkerId;
   CDRLineStyle()
     : lineType(0), capsType(0), joinType(0),
-      lineWidth(0.0), colorModel(0), color(0),
-      dashArray(), startMarkerId(0), endMarkerId(0) {}
+      lineWidth(0.0), color(), dashArray(),
+      startMarkerId(0), endMarkerId(0) {}
   CDRLineStyle(unsigned short lt, unsigned short ct, unsigned short jt,
-               double lw, unsigned short cm, unsigned c,
-               const std::vector<unsigned short> &da, unsigned smi, unsigned emi)
+               double lw, const CDRColor &c, const std::vector<unsigned short> &da,
+               unsigned smi, unsigned emi)
     : lineType(lt), capsType(ct), joinType(jt),
-      lineWidth(lw), colorModel(cm), color(c),
-      dashArray(da), startMarkerId(smi), endMarkerId(emi) {}
+      lineWidth(lw), color(c), dashArray(da),
+      startMarkerId(smi), endMarkerId(emi) {}
 };
 
 struct CDRPolygon

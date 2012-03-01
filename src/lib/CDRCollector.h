@@ -61,10 +61,10 @@ public:
   void collectTransform(double v0, double v1, double x, double v3, double v4, double y);
   void collectFildId(unsigned id);
   void collectOutlId(unsigned id);
-  void collectFild(unsigned id, unsigned short fillType, unsigned short colorModel, unsigned color1, unsigned color2, const CDRGradient &gradient);
+  void collectFild(unsigned id, unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, unsigned patternId);
   void collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType,
-                   double lineWidth, unsigned short colorModel, unsigned color,
-                   const std::vector<unsigned short> &dashArray, unsigned startMarkerId, unsigned endMarkerId);
+                   double lineWidth, const CDRColor &color, const std::vector<unsigned short> &dashArray,
+                   unsigned startMarkerId, unsigned endMarkerId);
   void collectRotate(double angle);
   void collectFlags(unsigned flags);
   void collectPageSize(double width, double height);
@@ -82,9 +82,9 @@ private:
   void _endPage();
   void _flushCurrentPath();
 
-  unsigned _getRGBColor(unsigned short colorModel, unsigned colorValue);
-  unsigned _getBMPColor(unsigned short colorModel, unsigned colorValue);
-  WPXString _getRGBColorString(unsigned short colorModel, unsigned colorValue);
+  unsigned _getRGBColor(const CDRColor &color);
+  unsigned _getBMPColor(const CDRColor &color);
+  WPXString _getRGBColorString(const CDRColor &color);
 
   void _fillProperties(WPXPropertyList &propList, WPXPropertyListVector &vec);
   void _lineProperties(WPXPropertyList &propList);

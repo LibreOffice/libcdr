@@ -573,9 +573,9 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
     input->seek(2, WPX_SEEK_CUR);
   }
   unsigned short fillType = readU16(input);
-  unsigned short colorModel = 0;
-  unsigned color1 = 0;
-  unsigned color2 = 0;
+  libcdr::CDRColor color1;
+  libcdr::CDRColor color2;
+  unsigned patternId = 0;
   libcdr::CDRGradient gradient;
   if (fillType == 1) // Solid
   {
@@ -583,9 +583,10 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
       input->seek(13, WPX_SEEK_CUR);
     else
       input->seek(2, WPX_SEEK_CUR);
-    colorModel = readU16(input);
+    unsigned short colorModel = readU16(input);
     input->seek(6, WPX_SEEK_CUR);
-    color1 = readU32(input);
+    unsigned colorValue = readU32(input);
+    color1 = libcdr::CDRColor(colorModel, colorValue);
   }
   else if (fillType == 2) // Gradient
   {
@@ -620,9 +621,10 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
     for (unsigned short i = 0; i < numStops; ++i)
     {
       libcdr::CDRGradientStop stop;
-      stop.m_colorModel = readU16(input);
+      unsigned short colorModel = readU16(input);
       input->seek(6, WPX_SEEK_CUR);
-      stop.m_colorValue = readU32(input);
+      unsigned colorValue = readU32(input);
+      stop.m_color = libcdr::CDRColor(colorModel, colorValue);
       if (m_version >= 1300)
       {
         if (v13flag == 0x9e)
@@ -638,7 +640,17 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
       gradient.m_stops.push_back(stop);
     }
   }
-  m_collector->collectFild(fillId, fillType, colorModel, color1, color2, gradient);
+  else if (fillType == 7)
+  {
+    if (m_version >= 1300)
+      input->seek(13, WPX_SEEK_CUR);
+    else
+      input->seek(2, WPX_SEEK_CUR);
+    patternId = readU32(input);
+    input->seek(16, WPX_SEEK_CUR);
+
+  }
+  m_collector->collectFild(fillId, fillType, color1, color2, gradient, patternId);
 }
 
 void libcdr::CDRParser::readOutl(WPXInputStream *input)
@@ -664,7 +676,8 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input)
     input->seek(54, WPX_SEEK_CUR);
   unsigned short colorModel = readU16(input);
   input->seek(6, WPX_SEEK_CUR);
-  unsigned color = readU32(input);
+  unsigned colorValue = readU32(input);
+  libcdr::CDRColor color(colorModel, colorValue);
   input->seek(16, WPX_SEEK_CUR);
   unsigned short numDash = readU16(input);
   int fixPosition = input->tell();
@@ -674,7 +687,7 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input)
   input->seek(fixPosition + 22, WPX_SEEK_SET);
   unsigned startMarkerId = readU32(input);
   unsigned endMarkerId = readU32(input);
-  m_collector->collectOutl(lineId, lineType, capsType, joinType, lineWidth, colorModel, color, dashArray, startMarkerId, endMarkerId);
+  m_collector->collectOutl(lineId, lineType, capsType, joinType, lineWidth, color, dashArray, startMarkerId, endMarkerId);
 }
 
 void libcdr::CDRParser::readLoda(WPXInputStream *input)

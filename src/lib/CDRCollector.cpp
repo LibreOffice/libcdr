@@ -371,16 +371,16 @@ void libcdr::CDRCollector::collectOutlId(unsigned id)
   m_currentOutlId = id;
 }
 
-void libcdr::CDRCollector::collectFild(unsigned id, unsigned short fillType, unsigned short colorModel, unsigned color1, unsigned color2, const libcdr::CDRGradient &gradient)
+void libcdr::CDRCollector::collectFild(unsigned id, unsigned short fillType, const libcdr::CDRColor &color1, const libcdr::CDRColor &color2, const libcdr::CDRGradient &gradient, unsigned patternId)
 {
-  m_fillStyles[id] = CDRFillStyle(fillType, colorModel, color1, color2, gradient);
+  m_fillStyles[id] = CDRFillStyle(fillType, color1, color2, gradient, patternId);
 }
 
 void libcdr::CDRCollector::collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType,
-                                       double lineWidth, unsigned short colorModel, unsigned color,
-                                       const std::vector<unsigned short> &dashArray, unsigned startMarkerId, unsigned endMarkerId)
+                                       double lineWidth, const CDRColor &color, const std::vector<unsigned short> &dashArray,
+                                       unsigned startMarkerId, unsigned endMarkerId)
 {
-  m_lineStyles[id] = CDRLineStyle(lineType, capsType, joinType, lineWidth, colorModel, color, dashArray, startMarkerId, endMarkerId);
+  m_lineStyles[id] = CDRLineStyle(lineType, capsType, joinType, lineWidth, color, dashArray, startMarkerId, endMarkerId);
 }
 
 void libcdr::CDRCollector::collectRotate(double /* angle */)
@@ -399,49 +399,49 @@ void libcdr::CDRCollector::collectPolygonTransform(unsigned numAngles, unsigned 
   m_polygon = new CDRPolygon(numAngles, nextPoint, rx, ry, cx, cy);
 }
 
-unsigned libcdr::CDRCollector::_getBMPColor(unsigned short colorModel, unsigned colorValue)
+unsigned libcdr::CDRCollector::_getBMPColor(const CDRColor &color)
 {
-  switch (colorModel)
+  switch (color.m_colorModel)
   {
   case 0:
-    return _getRGBColor(0, colorValue);
+    return _getRGBColor(libcdr::CDRColor(0, color.m_colorValue));
   case 1:
-    return _getRGBColor(5, colorValue);
+    return _getRGBColor(libcdr::CDRColor(5, color.m_colorValue));
   case 2:
-    return _getRGBColor(4, colorValue);
+    return _getRGBColor(libcdr::CDRColor(4, color.m_colorValue));
   case 3:
-    return _getRGBColor(3, colorValue);
+    return _getRGBColor(libcdr::CDRColor(3, color.m_colorValue));
   case 4:
-    return _getRGBColor(6, colorValue);
+    return _getRGBColor(libcdr::CDRColor(6, color.m_colorValue));
   case 5:
-    return _getRGBColor(9, colorValue);
+    return _getRGBColor(libcdr::CDRColor(9, color.m_colorValue));
   case 6:
-    return _getRGBColor(8, colorValue);
+    return _getRGBColor(libcdr::CDRColor(8, color.m_colorValue));
   case 7:
-    return _getRGBColor(7, colorValue);
+    return _getRGBColor(libcdr::CDRColor(7, color.m_colorValue));
   case 8:
-    return colorValue;
+    return color.m_colorValue;
   case 9:
-    return colorValue;
+    return color.m_colorValue;
   case 10:
-    return _getRGBColor(5, colorValue);
+    return _getRGBColor(libcdr::CDRColor(5, color.m_colorValue));
   case 11:
-    return _getRGBColor(18, colorValue);
+    return _getRGBColor(libcdr::CDRColor(18, color.m_colorValue));
   default:
-    return colorValue;
+    return color.m_colorValue;
   }
 }
 
-unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned colorValue)
+unsigned libcdr::CDRCollector::_getRGBColor(const CDRColor &color)
 {
   unsigned char red = 0;
   unsigned char green = 0;
   unsigned char blue = 0;
-  unsigned char col0 = colorValue & 0xff;
-  unsigned char col1 = (colorValue & 0xff00) >> 8;
-  unsigned char col2 = (colorValue & 0xff0000) >> 16;
-  unsigned char col3 = (colorValue & 0xff000000) >> 24;
-  if (colorModel == 0x02) // CMYK100
+  unsigned char col0 = color.m_colorValue & 0xff;
+  unsigned char col1 = (color.m_colorValue & 0xff00) >> 8;
+  unsigned char col2 = (color.m_colorValue & 0xff0000) >> 16;
+  unsigned char col3 = (color.m_colorValue & 0xff000000) >> 24;
+  if (color.m_colorModel == 0x02) // CMYK100
   {
     double cmyk[4] =
     {
@@ -456,7 +456,7 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     green = rgb[1];
     blue = rgb[2];
   }
-  else if (colorModel == 0x03 || colorModel == 0x01 || colorModel == 0x11) // CMYK255
+  else if (color.m_colorModel == 0x03 || color.m_colorModel == 0x01 || color.m_colorModel == 0x11) // CMYK255
   {
     double cmyk[4] =
     {
@@ -471,19 +471,19 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     green = rgb[1];
     blue = rgb[2];
   }
-  else if (colorModel == 0x04) // CMY
+  else if (color.m_colorModel == 0x04) // CMY
   {
     red = 255 - col0;
     green = 255 - col1;
     blue = 255 - col2;
   }
-  else if (colorModel == 0x05) // RGB
+  else if (color.m_colorModel == 0x05) // RGB
   {
     red = col2;
     green = col1;
     blue = col0;
   }
-  else if (colorModel == 0x06) // HSB
+  else if (color.m_colorModel == 0x06) // HSB
   {
     unsigned short hue = (col1<<8) | col0;
     double saturation = (double)col2/255.0;
@@ -516,7 +516,7 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     green = (unsigned char)cdr_round(255*(1 - saturation + saturation * (satGreen > 1 ? 1 : satGreen)) * brightness);
     blue = (unsigned char)cdr_round(255*(1 - saturation + saturation * (satBlue > 1 ? 1 : satBlue)) * brightness);
   }
-  else if (colorModel == 0x07) // HLS
+  else if (color.m_colorModel == 0x07) // HLS
   {
     unsigned short hue = (col1<<8) | col0;
     double lightness = (double)col2/255.0;
@@ -563,13 +563,13 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
       blue = (unsigned char)cdr_round(255*((1 - lightness) * tmpBlue + 2 * lightness - 1));
     }
   }
-  else if (colorModel == 0x09) // Grayscale
+  else if (color.m_colorModel == 0x09) // Grayscale
   {
     red = col0;
     green = col0;
     blue = col0;
   }
-  else if (colorModel == 0x0c) // Lab
+  else if (color.m_colorModel == 0x0c) // Lab
   {
     cmsCIELab Lab;
     Lab.L = (double)col0*100.0/255.0;
@@ -581,7 +581,7 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     green = rgb[1];
     blue = rgb[2];
   }
-  else if (colorModel == 0x12) // Lab
+  else if (color.m_colorModel == 0x12) // Lab
   {
     cmsCIELab Lab;
     Lab.L = (double)col0*100.0/255.0;
@@ -593,7 +593,7 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
     green = rgb[1];
     blue = rgb[2];
   }
-  else if (colorModel == 0x19) // HKS
+  else if (color.m_colorModel == 0x19) // HKS
   {
     const unsigned char C_channel[] =
     {
@@ -647,7 +647,7 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
       60,  80,  70,   0,   0,  30,  50,  60, 100,  35,
       40,  90,  70,  80,  50,  60
     };
-    unsigned short hks = (unsigned short)(colorValue & 0xffff)+85;
+    unsigned short hks = (unsigned short)(color.m_colorValue & 0xffff)+85;
     unsigned hksIndex = hks % 86;
     hks /= 86;
     unsigned K_percent = hks/10;
@@ -689,10 +689,10 @@ unsigned libcdr::CDRCollector::_getRGBColor(unsigned short colorModel, unsigned 
   return (unsigned)((red << 16) | (green << 8) | blue);
 }
 
-WPXString libcdr::CDRCollector::_getRGBColorString(unsigned short colorModel, unsigned colorValue)
+WPXString libcdr::CDRCollector::_getRGBColorString(const libcdr::CDRColor &color)
 {
   WPXString tempString;
-  tempString.sprintf("#%.6x", _getRGBColor(colorModel, colorValue));
+  tempString.sprintf("#%.6x", _getRGBColor(color));
   return tempString;
 }
 
@@ -711,7 +711,7 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
       {
       case 1: // Solid
         propList.insert("draw:fill", "solid");
-        propList.insert("draw:fill-color", _getRGBColorString(iter->second.colorModel, iter->second.color1));
+        propList.insert("draw:fill-color", _getRGBColorString(iter->second.color1));
         propList.insert("svg:fill-rule", "evenodd");
         break;
       case 2: // Gradient
@@ -720,7 +720,7 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
         else if (iter->second.gradient.m_stops.size() == 1)
         {
           propList.insert("draw:fill", "solid");
-          propList.insert("draw:fill-color", _getRGBColorString(iter->second.gradient.m_stops[0].m_colorModel, iter->second.gradient.m_stops[0].m_colorValue));
+          propList.insert("draw:fill-color", _getRGBColorString(iter->second.gradient.m_stops[0].m_color));
           propList.insert("svg:fill-rule", "evenodd");
         }
         else if (iter->second.gradient.m_stops.size() == 2)
@@ -731,8 +731,8 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           while (angle > 360.0)
             angle -= 360.0;
           propList.insert("draw:fill", "gradient");
-          propList.insert("draw:start-color", _getRGBColorString(iter->second.gradient.m_stops[0].m_colorModel, iter->second.gradient.m_stops[0].m_colorValue));
-          propList.insert("draw:end-color", _getRGBColorString(iter->second.gradient.m_stops[1].m_colorModel, iter->second.gradient.m_stops[1].m_colorValue));
+          propList.insert("draw:start-color", _getRGBColorString(iter->second.gradient.m_stops[0].m_color));
+          propList.insert("draw:end-color", _getRGBColorString(iter->second.gradient.m_stops[1].m_color));
           propList.insert("draw:angle", (int)angle);
           switch (iter->second.gradient.m_type)
           {
@@ -799,7 +799,7 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
       else
         propList.insert("draw:stroke", "solid");
       propList.insert("svg:stroke-width", iter->second.lineWidth);
-      propList.insert("svg:stroke-color", _getRGBColorString(iter->second.colorModel, iter->second.color));
+      propList.insert("svg:stroke-color", _getRGBColorString(iter->second.color));
 
       switch (iter->second.capsType)
       {
@@ -967,7 +967,7 @@ void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorModel, uns
       {
         unsigned char c = bitmap[j*lineWidth+i];
         i++;
-        writeU32(image, _getBMPColor(colorModel, c));
+        writeU32(image, _getBMPColor(libcdr::CDRColor(colorModel, c)));
       }
     }
     else if (!palette.empty())
@@ -976,7 +976,7 @@ void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorModel, uns
       {
         unsigned char c = bitmap[j*lineWidth+i];
         i++;
-        writeU32(image, _getBMPColor(colorModel, palette[c]));
+        writeU32(image, _getBMPColor(libcdr::CDRColor(colorModel, palette[c])));
       }
     }
     else if (bpp == 24)
@@ -985,7 +985,7 @@ void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorModel, uns
       {
         unsigned c = ((unsigned)bitmap[j*lineWidth+i+2] << 16) | ((unsigned)bitmap[j*lineWidth+i+1] << 8) | ((unsigned)bitmap[j*lineWidth+i]);
         i += 3;
-        writeU32(image, _getBMPColor(colorModel, c));
+        writeU32(image, _getBMPColor(libcdr::CDRColor(colorModel, c)));
         k++;
       }
     }
@@ -995,7 +995,7 @@ void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorModel, uns
       {
         unsigned c = (bitmap[j*lineWidth+i+3] << 24) | (bitmap[j*lineWidth+i+2] << 16) | (bitmap[j*lineWidth+i+1] << 8) | (bitmap[j*lineWidth+i]);
         i += 4;
-        writeU32(image, _getBMPColor(colorModel, c));
+        writeU32(image, _getBMPColor(libcdr::CDRColor(colorModel, c)));
         k++;
       }
     }
