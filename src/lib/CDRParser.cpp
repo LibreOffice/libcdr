@@ -585,37 +585,46 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
   else if (fillType == 2) // Gradient
   {
     if (m_version >= 1300)
-      input->seek(14, WPX_SEEK_CUR);
+      input->seek(8, WPX_SEEK_CUR);
     else
       input->seek(2, WPX_SEEK_CUR);
     gradient.m_type = readU8(input);
     if (m_version >= 1300)
-      input->seek(5, WPX_SEEK_CUR);
+    {
+      input->seek(17, WPX_SEEK_CUR);
+      gradient.m_edgeOffset = readU16(input);
+    }
     else
+    {
       input->seek(19, WPX_SEEK_CUR);
-    gradient.m_edgeOffset = readS32(input);
+      gradient.m_edgeOffset = readS32(input);
+    }
     gradient.m_angle = (double)readS32(input) / 1000000.0;
     gradient.m_centerXOffset = readS32(input);
     gradient.m_centerYOffset = readS32(input);
     input->seek(2, WPX_SEEK_CUR);
     gradient.m_mode = readU16(input);
-    if (m_version >= 1300)
-      input->seek(6, WPX_SEEK_CUR);
-    else
-      input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, WPX_SEEK_CUR);
     gradient.m_midPoint = (double)readU8(input) / 100.0;
     input->seek(1, WPX_SEEK_CUR);
     unsigned short numStops = readU16(input);
-    input->seek(2, WPX_SEEK_CUR);
+    if (m_version >= 1300)
+      input->seek(5, WPX_SEEK_CUR);
+    else
+      input->seek(2, WPX_SEEK_CUR);
     for (unsigned short i = 0; i < numStops; ++i)
     {
       libcdr::CDRGradientStop stop;
       stop.m_colorModel = readU16(input);
       input->seek(6, WPX_SEEK_CUR);
       stop.m_colorValue = readU32(input);
-      stop.m_offset = (double)readU32(input) / 100.0;
       if (m_version >= 1300)
-        input->seek(8, WPX_SEEK_CUR);
+        input->seek(26, WPX_SEEK_CUR);
+      stop.m_offset = (double)readU16(input) / 100.0;
+      if (m_version >= 1300)
+        input->seek(5, WPX_SEEK_CUR);
+      else
+        input->seek(2, WPX_SEEK_CUR);
       gradient.m_stops.push_back(stop);
     }
   }
