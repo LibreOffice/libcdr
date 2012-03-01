@@ -628,7 +628,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
         if (v13flag == 0x9e)
           input->seek(26, WPX_SEEK_CUR);
         else
-          input->seek(6, WPX_SEEK_CUR);
+          input->seek(5, WPX_SEEK_CUR);
       }
       stop.m_offset = (double)readU16(input) / 100.0;
       if (m_version >= 1300)
