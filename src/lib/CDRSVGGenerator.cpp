@@ -74,7 +74,7 @@ static unsigned stringToColour(const ::WPXString &s)
   return val;
 }
 
-libcdr::CDRSVGGenerator::CDRSVGGenerator(libcdr::CDRStringVector &vec): m_gradient(), m_style(), m_gradientIndex(1), m_shadowIndex(1), m_outputSink(), m_vec(vec)
+libcdr::CDRSVGGenerator::CDRSVGGenerator(libcdr::CDRStringVector &vec): m_gradient(), m_style(), m_gradientIndex(1), m_patternIndex(1), m_shadowIndex(1), m_outputSink(), m_vec(vec)
 {
 }
 
@@ -288,6 +288,27 @@ void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const 
 
         m_outputSink << "</svg:defs>\n";
       }
+    }
+  }
+  else if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap")
+  {
+    if (m_style["draw:fill-image"] && m_style["libwpg:mime-type"])
+    {
+      m_outputSink << "<svg:defs>\n";
+      m_outputSink << "  <svg:pattern id=\"img" << m_patternIndex++ << "\" patternUnits=\"userSpaceOnUse\" width=\"100\" height=\"100\">" << std::endl;
+      m_outputSink << "<svg:image ";
+      if (m_style["svg:x"] && m_style["svg:y"] && m_style["svg:width"] && m_style["svg:height"])
+      {
+        m_outputSink << "x=\"" << doubleToString(72*(m_style["svg:x"]->getDouble())) << "\" y=\"" << doubleToString(72*(m_style["svg:y"]->getDouble())) << "\" ";
+        m_outputSink << "width=\"" << doubleToString(72*(m_style["svg:width"]->getDouble())) << "\" height=\"" << doubleToString(72*(m_style["svg:height"]->getDouble())) << "\" ";
+      }
+      else
+        m_outputSink << "x=\"0\" y=\"0\" width=\"100\" height=\"100\" ";
+      m_outputSink << "xlink:href=\"data:" << m_style["libwpg:mime-type"]->getStr().cstr() << ";base64,";
+      m_outputSink << m_style["draw:fill-image"]->getStr().cstr();
+      m_outputSink << "\" />\n";
+      m_outputSink << "  </svg:pattern>\n";
+      m_outputSink << "</svg:defs>\n";
     }
   }
 }
@@ -556,6 +577,9 @@ void libcdr::CDRSVGGenerator::writeStyle(bool /* isClosed */)
 
   if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "gradient")
     m_outputSink << "fill: url(#grad" << m_gradientIndex-1 << "); ";
+
+  if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap")
+    m_outputSink << "fill: url(#img" << m_patternIndex-1 << "); ";
 
   if(m_style["draw:shadow"] && m_style["draw:shadow"]->getStr() == "visible")
     m_outputSink << "filter:url(#shadow" << m_shadowIndex-1 << "); ";
