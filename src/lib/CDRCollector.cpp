@@ -594,95 +594,78 @@ unsigned libcdr::CDRCollector::_getRGBColor(const CDRColor &color)
   }
   else if (color.m_colorModel == 0x19) // HKS
   {
-    const unsigned char C_channel[] =
+    unsigned char HKS_red [] =
     {
-      3,     4,   0,   0,   0,   0,   0,   0,   0,   0,
-      0,     0,   1,   7,  12,  14,  18,   0,   0,   1,
-      9,     8,  14,  12,  16,  26,  14,  13,  29,  43,
-      37,   35,  36,  38,  37,  38,  38,  39,  39,  39,
-      35,   36,  39,  39,  39,  32,  38,  39,  35,  39,
-
-      100, 100, 100, 100,  60, 100,  80,  70,  10,  60,
-      85,   65,  60,  10,  20,  20,  10,  10,   0,   0,
-      10,    0,   0,  60,  10,   0,   0,   0,   0,   0,
-      10,    0,  10,  20,   0,   0
+      0xff, 0xe3, 0x00, 0x00, 0xff, 0x8f, 0x00, 0x00,
+      0xff, 0x9b, 0x1d, 0x00, 0xe2, 0x1f, 0x33, 0x00,
+      0x78, 0x89, 0x3a, 0x00, 0xca, 0x22, 0x6f, 0x00,
+      0xb2, 0x34, 0x86, 0x00, 0xb0, 0x3b, 0x8e, 0x00,
+      0x54, 0x3c, 0xcb, 0x00, 0x28, 0x53, 0xd2, 0x00,
+      0x55, 0x96, 0xd3, 0x00, 0x00, 0xd2, 0xa0, 0x00,
+      0x00, 0x98, 0x55, 0x00, 0x00, 0x6a, 0x7d, 0x00,
+      0x2a, 0x6a, 0x40, 0x00, 0x46, 0xc6, 0x0d, 0x00,
+      0xea, 0xa9, 0x00, 0x00, 0x92, 0x6d, 0x2b, 0x00,
+      0x7a, 0x5e, 0x1f, 0x00, 0x66, 0x22, 0x8d, 0x00,
+      0xad, 0x80, 0x59, 0x00, 0x83, 0x41
     };
-    const unsigned char M_channel[] =
+
+    unsigned char HKS_green [] =
     {
-      19,   13,  12,  35,  44,  69,  79,  87,  94,  68,
-      99,   99,  99, 100,  99, 100,  98,  78,  96, 100,
-      100, 100, 100,  99, 100,  98, 100, 100,  97,  97,
-      93,   96,  97,  74,  66,  31,  75,  85,  83,  65,
-      77,   34,  20,   9,  32,   0,   3,  13,   0,   3,
-
-      0,     0,  50,   0,   0,   0,   5,   0,   0,   0,
-      0,     0,   0,   0,  20,   0,  50,  55,  55,  50,
-      30,   60,  60,  95,  80,  85,  75,  80,   0,  10,
-      0,    25,   0,   0,   0,   0
+      0xff, 0xe3, 0x00, 0x00, 0xff, 0x8f, 0x00, 0x00,
+      0xff, 0x9b, 0x1d, 0x00, 0xe2, 0x1f, 0x33, 0x00,
+      0x78, 0x89, 0x3a, 0x00, 0xca, 0x22, 0x6f, 0x00,
+      0xb2, 0x34, 0x86, 0x00, 0xb0, 0x3b, 0x8e, 0x00,
+      0x54, 0x3c, 0xcb, 0x00, 0x28, 0x53, 0xd2, 0x00,
+      0x55, 0x96, 0xd3, 0x00, 0x00, 0xd2, 0xa0, 0x00,
+      0x00, 0x98, 0x55, 0x00, 0x00, 0x6a, 0x7d, 0x00,
+      0x2a, 0x6a, 0x40, 0x00, 0x46, 0xc6, 0x0d, 0x00,
+      0xea, 0xa9, 0x00, 0x00, 0x92, 0x6d, 0x2b, 0x00,
+      0x7a, 0x5e, 0x1f, 0x00, 0x66, 0x22, 0x8d, 0x00,
+      0xad, 0x80, 0x59, 0x00, 0x83, 0x41
     };
-    const unsigned char Y_channel[] =
+
+    unsigned char HKS_blue [] =
     {
-      78,   99, 100, 100, 100, 100, 100,  97,  97,  61,
-      97,   93,  91,  81,  77,  65,  57,  24,  83,  68,
-      49,   36,  16,   0,  51,   0,   0,  29,   0,   0,
-      2,     0,   7,  40,   0,  23,  37,   0,   0,   0,
-      0,    20,  11,  31,  26,  20,  52,  71,  66,  87,
-
-      80,   70,  80,  90,  65,  50, 100, 100,  70,  90,
-      100, 100, 100,  20, 100, 100, 100, 100, 100, 100,
-      80,   90,  60, 100, 100, 100,  70,  70,   0,  30,
-      10,   30,   0,  10,  20,  20
+      0xff, 0xe3, 0x00, 0x00, 0xff, 0x8f, 0x00, 0x00,
+      0xff, 0x9b, 0x1d, 0x00, 0xe2, 0x1f, 0x33, 0x00,
+      0x78, 0x89, 0x3a, 0x00, 0xca, 0x22, 0x6f, 0x00,
+      0xb2, 0x34, 0x86, 0x00, 0xb0, 0x3b, 0x8e, 0x00,
+      0x54, 0x3c, 0xcb, 0x00, 0x28, 0x53, 0xd2, 0x00,
+      0x55, 0x96, 0xd3, 0x00, 0x00, 0xd2, 0xa0, 0x00,
+      0x00, 0x98, 0x55, 0x00, 0x00, 0x6a, 0x7d, 0x00,
+      0x2a, 0x6a, 0x40, 0x00, 0x46, 0xc6, 0x0d, 0x00,
+      0xea, 0xa9, 0x00, 0x00, 0x92, 0x6d, 0x2b, 0x00,
+      0x7a, 0x5e, 0x1f, 0x00, 0x66, 0x22, 0x8d, 0x00,
+      0xad, 0x80, 0x59, 0x00, 0x83, 0x41
     };
-    const unsigned char K_channel[] =
-    {
-      0,    0,   0,   0,   0,   0,   1,   2,   2,   0,
-      4,    3,   3,   7,  18,  12,  39,   0,   1,   0,
-      0,    0,   0,   0,   4,   0,   0,   0,   0,   2,
-      3,    2,   9,  48,   0,   0,  39,   2,   2,   0,
-      0,    0,   0,   0,   0,   0,   0,   2,   0,   2,
 
-      10,  30,   0,  20,  50,  20,   0,  75,  60,  40,
-      10,   0,   0,  90,   0,   0,   0,   0,  30,  55,
-      60,  80,  70,   0,   0,  30,  50,  60, 100,  35,
-      40,  90,  70,  80,  50,  60
-    };
     unsigned short hks = (unsigned short)(color.m_colorValue & 0xffff)+85;
     unsigned hksIndex = hks % 86;
     hks /= 86;
-    unsigned K_percent = hks/10;
-    switch (K_percent)
+    unsigned blackPercent = hks/10;
+    switch (blackPercent)
     {
     case 2:
-      K_percent = 10;
+      blackPercent = 10;
       break;
     case 3:
-      K_percent = 30;
+      blackPercent = 30;
       break;
     case 4:
-      K_percent = 50;
+      blackPercent = 50;
       break;
     default:
-      K_percent = 0;
+      blackPercent = 0;
       break;
     }
-    unsigned O_percent = (hks % 10) ? (hks % 10) * 10 : 100;
-    col0 = (double)O_percent*C_channel[hksIndex];
-    col1 = (double)O_percent*M_channel[hksIndex];
-    col2 = (double)O_percent*Y_channel[hksIndex];
-    col3 = (100.0 - (double)K_percent)*K_channel[hksIndex]+(double)K_percent*100.0;
-    col3 = (double)O_percent*col3/100.0;
-    double cmyk[4] =
-    {
-      (double)col0,
-      (double)col1,
-      (double)col2,
-      (double)col3
-    };
-    unsigned char rgb[3] = { 0, 0, 0 };
-    cmsDoTransform(m_colorTransformCMYK2RGB, cmyk, rgb, 1);
-    red = rgb[0];
-    green = rgb[1];
-    blue = rgb[2];
+    unsigned colorPercent = (hks % 10) ? (hks % 10) * 10 : 100;
+    // try to avoid overflow due to rounding issues, so use first wider integer types and later, fill the unsigned char properly
+    unsigned tmpRed = cdr_round((double)(1.0 - (double)blackPercent/100.0)*(255.0*(1.0 - (double)colorPercent/100.0) + HKS_red[hksIndex]*(double)colorPercent/100.0));
+    unsigned tmpGreen = cdr_round((double)(1.0 - (double)blackPercent/100.0)*(255.0*(1.0 - (double)colorPercent/100.0) + HKS_green[hksIndex]*(double)colorPercent/100.0));
+    unsigned tmpBlue = cdr_round((double)(1.0 - (double)blackPercent/100.0)*(255.0*(1.0 - (double)colorPercent/100.0) + HKS_blue[hksIndex]*(double)colorPercent/100.0));
+    red = (tmpRed < 255 ? tmpRed : 255);
+    green = (tmpGreen < 255 ? tmpGreen : 255);
+    blue = (tmpBlue < 255) ? tmpBlue : 255
 
   }
   return (unsigned)((red << 16) | (green << 8) | blue);
@@ -775,8 +758,8 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           propList.insert("draw:fill-image", image.getBase64Data());
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
-		  propList.insert("svg:width", 0.5);
-		  propList.insert("svg:height", 0.5);
+          propList.insert("svg:width", 0.5);
+          propList.insert("svg:height", 0.5);
         }
         else
         {
@@ -796,8 +779,8 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           propList.insert("draw:fill-image", iterBmp->second.getBase64Data());
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
-		  propList.insert("svg:width", 1.0);
-		  propList.insert("svg:height", 1.0);
+          propList.insert("svg:width", 1.0);
+          propList.insert("svg:height", 1.0);
         }
         else
           propList.insert("draw:fill", "none");
