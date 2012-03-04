@@ -663,9 +663,9 @@ unsigned libcdr::CDRCollector::_getRGBColor(const CDRColor &color)
     unsigned tmpRed = cdr_round((double)(1.0 - (double)blackPercent/100.0)*(255.0*(1.0 - (double)colorPercent/100.0) + HKS_red[hksIndex]*(double)colorPercent/100.0));
     unsigned tmpGreen = cdr_round((double)(1.0 - (double)blackPercent/100.0)*(255.0*(1.0 - (double)colorPercent/100.0) + HKS_green[hksIndex]*(double)colorPercent/100.0));
     unsigned tmpBlue = cdr_round((double)(1.0 - (double)blackPercent/100.0)*(255.0*(1.0 - (double)colorPercent/100.0) + HKS_blue[hksIndex]*(double)colorPercent/100.0));
-    red = (tmpRed < 255 ? tmpRed : 255);
-    green = (tmpGreen < 255 ? tmpGreen : 255);
-    blue = (tmpBlue < 255) ? tmpBlue : 255
+    red = (tmpRed < 255 ? (unsigned char)tmpRed : 255);
+    green = (tmpGreen < 255 ? (unsigned char)tmpGreen : 255);
+    blue = (tmpBlue < 255 ? (unsigned char)tmpBlue : 255);
 
   }
   return (unsigned)((red << 16) | (green << 8) | blue);
