@@ -47,6 +47,8 @@ bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
   input->seek(0, WPX_SEEK_SET);
   WPXInputStream *tmpInput = input;
   CDRZipStream zinput(input);
+  // Yes, we are kidnapping here the OLE document API and extending
+  // it to support also zip files.
   if (zinput.isOLEStream())
     input = zinput.getDocumentOLEStream("content/riffData.cdr");
   if (!input)

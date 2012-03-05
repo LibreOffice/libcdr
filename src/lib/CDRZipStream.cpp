@@ -36,11 +36,9 @@
 #include "libcdr_utils.h"
 
 
-#define CHUNK 16384
-
 libcdr::CDRZipStream::CDRZipStream(WPXInputStream *input) :
   WPXInputStream(),
-  m_input(input)
+  m_input(input) 
 {
 }
 
@@ -89,7 +87,6 @@ WPXInputStream *libcdr::CDRZipStream::getDocumentOLEStream(const char *name)
   }
   std::vector<unsigned char> newBuffer(ze.unc_size);
   libcdr::CDRUnzip::UnzipItem(result, ze.index, &newBuffer[0], ze.unc_size);
-
 #if 0
   FILE *f = fopen("dumpstream.bin", "wb");
   if (f)
