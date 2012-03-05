@@ -550,7 +550,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 void libcdr::CDRParser::readTrfd(WPXInputStream *input)
 {
   int offset = 32;
-  if (m_version == 1300)
+  if (m_version >= 1300)
     offset = 40;
   if (m_version == 500)
     offset = 18;
