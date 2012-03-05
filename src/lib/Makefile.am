@@ -26,6 +26,8 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRStringVector.cpp \
 	CDRSVGGenerator.cpp \
 	CDRTypes.cpp \
+	CDRUnzip.cpp \
+	CDRZipStream.cpp \
 	libcdr_utils.cpp \
 	CDRCollector.h \
 	CDRColorProfiles.h \
@@ -35,6 +37,8 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRPath.h \
 	CDRSVGGenerator.h \
 	CDRTypes.h \
+	CDRUnzip.h \
+	CDRZipStream.h \
 	libcdr_utils.h
 
 if OS_WIN32
