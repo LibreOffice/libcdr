@@ -123,6 +123,14 @@ SOURCE=..\..\src\lib\CDRTypes.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDRUnzip.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRZipStream.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\libcdr_utils.cpp
 # End Source File
 # End Group
@@ -132,6 +140,10 @@ SOURCE=..\..\src\lib\libcdr_utils.cpp
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRCollector.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRColorProfiles.h
 # End Source File
 # Begin Source File
 
@@ -164,6 +176,14 @@ SOURCE=..\..\src\lib\CDRSVGGenerator.h
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRTypes.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRUnzip.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRZipStream.h
 # End Source File
 # Begin Source File
 

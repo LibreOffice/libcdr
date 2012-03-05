@@ -48,6 +48,8 @@ SLOFILES= \
     $(SLO)$/CDRStringVector.obj \
     $(SLO)$/CDRSVGGenerator.obj \
     $(SLO)$/CDRTypes.obj \
+    $(SLO)$/CDRUnzip.obj \
+    $(SLO)$/CDRZipStream.obj \
     $(SLO)$/libcdr_utils.obj
 
 LIB1ARCHIV=$(LB)$/libcdrlib.a
