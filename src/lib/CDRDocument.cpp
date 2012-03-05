@@ -33,6 +33,7 @@
 #include "CDRParser.h"
 #include "CDRSVGGenerator.h"
 #include "CDRCollector.h"
+#include "CDRZipStream.h"
 #include "libcdr_utils.h"
 
 /**
@@ -43,17 +44,30 @@ stream is a Corel Draw Document that libcdr is able to parse
 */
 bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
 {
-  if (readFourCC(input) != "RIFF")
-    return false;
+  input->seek(0, WPX_SEEK_SET);
+  WPXInputStream *tmpInput = input;
+  CDRZipStream zinput(input);
+  if (zinput.isOLEStream())
+    input = zinput.getDocumentOLEStream("content/riffData.cdr");
+  if (!input)
+    input = tmpInput;
+  input->seek(0, WPX_SEEK_SET);
+  bool soFarSoGood = true;
+  WPXString riff = readFourCC(input);
+  if (riff != "RIFF")
+    soFarSoGood = false;
   input->seek(4, WPX_SEEK_CUR);
   WPXString signature = readFourCC(input);
-  if (signature.cstr()[0] != 'C' && signature.cstr()[0] != 'c')
-    return false;
-  if (signature.cstr()[1] != 'D' && signature.cstr()[1] != 'd')
-    return false;
-  if (signature.cstr()[2] != 'R' && signature.cstr()[2] != 'r')
-    return false;
-  return true;
+  if (soFarSoGood && signature.cstr()[0] != 'C' && signature.cstr()[0] != 'c')
+    soFarSoGood = false;
+  if (soFarSoGood && signature.cstr()[1] != 'D' && signature.cstr()[1] != 'd')
+    soFarSoGood = false;
+  if (soFarSoGood && signature.cstr()[2] != 'R' && signature.cstr()[2] != 'r')
+    soFarSoGood = false;
+  if (input != tmpInput)
+    delete input;
+  input = tmpInput;
+  return soFarSoGood;
 }
 
 /**
@@ -66,9 +80,21 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 */
 bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterface *painter)
 {
+  input->seek(0, WPX_SEEK_SET);
+  WPXInputStream *tmpInput = input;
+  CDRZipStream zinput(input);
+  if (zinput.isOLEStream())
+    input = zinput.getDocumentOLEStream("content/riffData.cdr");
+  if (!input)
+    input = tmpInput;
+  input->seek(0, WPX_SEEK_SET);
   CDRCollector collector(painter);
   CDRParser parser(input, &collector);
-  return parser.parseRecords(input);
+  bool retVal = parser.parseRecords(input);
+  if (input != tmpInput)
+    delete input;
+  input = tmpInput;
+  return retVal;
 }
 
 /**
