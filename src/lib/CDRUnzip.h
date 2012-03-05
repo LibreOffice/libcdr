@@ -5,14 +5,11 @@
 // Modified by:  Lucian Wischik
 //               lu@wischik.com
 //
-// Version 1.0   - Turned C files into just a single CPP file
-//               - Made them compile cleanly as C++ files
-//               - Gave them simpler APIs
-//               - Added the ability to zip/unzip directly in memory without
-//                 any intermediate files
-//
 // Modified by:  Hans Dietrich
 //               hdietrich@gmail.com
+//
+// Mofified by:  Fridrich Strba
+//               fridrich.strba@bluewin.ch
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -83,9 +80,10 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef __CDRUNZIP_H__
-#define __CDRUNZIP_H__
+#ifndef CDRUNZIP_H
+#define CDRUNZIP_H
 
+#include <libwpd-stream/libwpd-stream.h>
 
 namespace libcdr
 {
@@ -95,18 +93,19 @@ typedef struct
   int index;                 // index of this file within the zip
   long comp_size;            // sizes of item, compressed and uncompressed. These
   long unc_size;             // may be -1 if not yet known (e.g. being streamed in)
-} ZIPENTRY;
+} ZipEntry;
 
-void *OpenZip(void *z, unsigned int len);
+class CDRUnzip
+{
+public:
+  static void *OpenZip(WPXInputStream *is);
 
-unsigned GetZipItem(void *hz, int index, ZIPENTRY *ze);
+  static unsigned FindZipItem(void *hz, const char *name, int *index, ZipEntry *ze);
 
-unsigned FindZipItem(void *hz, const char *name, int *index, ZIPENTRY *ze);
+  static unsigned UnzipItem(void *hz, int index, void *dst, unsigned int len);
 
-unsigned UnzipItem(void *hz, int index, void *dst, unsigned int len);
+  static unsigned CloseZip(void *hz);
+};
+} //namespace libcdr
 
-unsigned CloseZip(void *hz);
-
-}
-
-#endif
+#endif //CDRUNZIP_H

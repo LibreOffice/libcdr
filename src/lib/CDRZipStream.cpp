@@ -66,50 +66,46 @@ bool libcdr::CDRZipStream::atEOS()
 
 bool libcdr::CDRZipStream::isOLEStream()
 {
-  std::vector<unsigned char> tmpBuffer;
-  long position = m_input->tell();
   m_input->seek(0, WPX_SEEK_SET);
-  while (!m_input->atEOS())
-    tmpBuffer.push_back(readU8(m_input));
-  void *result = OpenZip(&tmpBuffer[0], tmpBuffer.size());
-  m_input->seek(position, WPX_SEEK_SET);
+  void *result = libcdr::CDRUnzip::OpenZip(this);
   if (!result)
     return false;
-  CloseZip(result);
+  libcdr::CDRUnzip::CloseZip(result);
   return true;
 }
 
 WPXInputStream *libcdr::CDRZipStream::getDocumentOLEStream(const char *name)
 {
-  std::vector<unsigned char> tmpBuffer;
-  long position = m_input->tell();
   m_input->seek(0, WPX_SEEK_SET);
-  while (!m_input->atEOS())
-    tmpBuffer.push_back(readU8(m_input));
-  void *result = OpenZip(&tmpBuffer[0], tmpBuffer.size());
-  m_input->seek(position, WPX_SEEK_SET);
+  void *result = libcdr::CDRUnzip::OpenZip(this);
   if (!result)
     return 0;
   int i;
-  ZIPENTRY ze;
-  if(FindZipItem(result, name, &i, &ze))
+  ZipEntry ze;
+  if (libcdr::CDRUnzip::FindZipItem(result, name, &i, &ze))
   {
-    CloseZip(result);
+    libcdr::CDRUnzip::CloseZip(result);
     return 0;
   }
   std::vector<unsigned char> newBuffer(ze.unc_size);
-  if (UnzipItem(result, i, &newBuffer[0], ze.unc_size))
+  libcdr::CDRUnzip::UnzipItem(result, ze.index, &newBuffer[0], ze.unc_size);
+
+#if 0
+  FILE *f = fopen("dumpstream.bin", "wb");
+  if (f)
   {
-    CloseZip(result);
-    return 0;
+    for (long k = 0; k < ze.unc_size; k++)
+      fprintf(f, "%c",newBuffer[k]);
+    fclose(f);
   }
+#endif
   WPXInputStream *tmpStream = new libcdr::CDRInternalStream(newBuffer);
   if (!tmpStream)
   {
-    CloseZip(result);
+    libcdr::CDRUnzip::CloseZip(result);
     return 0;
   }
-  CloseZip(result);
+  libcdr::CDRUnzip::CloseZip(result);
   return tmpStream;
 }
 
