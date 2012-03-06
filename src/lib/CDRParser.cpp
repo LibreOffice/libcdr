@@ -231,10 +231,7 @@ double libcdr::CDRParser::readCoordinate(WPXInputStream *input)
 
 double libcdr::CDRParser::readAngle(WPXInputStream *input)
 {
-  if (m_version < 1500)
-    return M_PI * (double)readS32(input) / 180000000.0;
-  else
-    return M_PI * (double)readS32(input) / 180000000.0;
+  return M_PI * (double)readS32(input) / 180000000.0;
 }
 
 void libcdr::CDRParser::readRectangle(WPXInputStream *input)
@@ -285,8 +282,8 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
 
   double x = (double)readS32(input) / 254000.0;
   double y = (double)readS32(input) / 254000.0;
-  double angle1 = M_PI * (double)readS32(input) / 180000000.0;
-  double angle2 = M_PI * (double)readS32(input) / 180000000.0;
+  double angle1 = readAngle(input);
+  double angle2 = readAngle(input);
   bool pie(0 != readU32(input));
 
   double cx = x/2.0;
