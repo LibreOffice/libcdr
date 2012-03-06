@@ -38,7 +38,7 @@
 
 libcdr::CDRZipStream::CDRZipStream(WPXInputStream *input) :
   WPXInputStream(),
-  m_input(input) 
+  m_input(input)
 {
 }
 
