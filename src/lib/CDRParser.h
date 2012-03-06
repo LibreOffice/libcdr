@@ -55,6 +55,8 @@ private:
   CDRParser &operator=(const CDRParser &);
   bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
   void readRecord(WPXString fourCC, unsigned length, WPXInputStream *input);
+  double readCoordinate(WPXInputStream *input);
+  double readAngle(WPXInputStream *input);
 
   void readRectangle(WPXInputStream *input);
   void readEllipse(WPXInputStream *input);

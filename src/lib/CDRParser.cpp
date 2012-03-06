@@ -221,6 +221,22 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
+double libcdr::CDRParser::readCoordinate(WPXInputStream *input)
+{
+  if (m_version < 1500)
+    return (double)readS32(input) / 254000.0;
+  else
+    return readDouble(input) / 254000.0;
+}
+
+double libcdr::CDRParser::readAngle(WPXInputStream *input)
+{
+  if (m_version < 1500)
+    return M_PI * (double)readS32(input) / 180000000.0;
+  else
+    return M_PI * (double)readS32(input) / 180000000.0;
+}
+
 void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 {
   double x0 = (double)readS32(input) / 254000.0;
