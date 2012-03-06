@@ -594,6 +594,10 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
   libcdr::CDRColor color1;
   libcdr::CDRColor color2;
   unsigned patternId = 0;
+  // double patternWidth = 0.0;
+  // double patternHeight = 0.0;
+  // double rcpOffset = 0.0;
+  // unsigned char flags = 0;
   libcdr::CDRGradient gradient;
   if (fillType == 1) // Solid
   {
@@ -661,15 +665,35 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
   else if (fillType == 7) // Pattern
   {
     if (m_version >= 1300)
-      input->seek(13, WPX_SEEK_CUR);
+      input->seek(8, WPX_SEEK_CUR);
     else
       input->seek(2, WPX_SEEK_CUR);
     patternId = readU32(input);
-    input->seek(16, WPX_SEEK_CUR);
+#if 0
+    patternWidth = readS32(input) / 254000.0;
+    patternHeight = readS32(input) / 254000.0;
+    input->seek(4, WPX_SEEK_CUR);
+    rcpOffset = (double)readU8(input) / 100.0;
+    input->seek(1, WPX_SEEK_CUR);
+    flags = readU8(input);
+#else
+    input->seek(15, WPX_SEEK_CUR);
+#endif
+    if (m_version >= 1300)
+      input->seek(6, WPX_SEEK_CUR);
+    else
+      input->seek(1, WPX_SEEK_CUR);
     unsigned short colorModel = readU16(input);
     input->seek(6, WPX_SEEK_CUR);
     unsigned colorValue = readU32(input);
     color1 = libcdr::CDRColor(colorModel, colorValue);
+    if (m_version >= 1300)
+    {
+      if (v13flag == 0x94)
+        input->seek(31, WPX_SEEK_CUR);
+      else
+        input->seek(10, WPX_SEEK_CUR);
+    }
     colorModel = readU16(input);
     input->seek(6, WPX_SEEK_CUR);
     colorValue = readU32(input);
@@ -677,7 +701,20 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
   }
   else if (fillType == 9) // bitmap
   {
-    input->seek(42, WPX_SEEK_CUR);
+    if (m_version >= 1300)
+      input->seek(8, WPX_SEEK_CUR);
+    else
+      input->seek(6, WPX_SEEK_CUR);
+#if 0
+    patternWidth = readS32(input) / 254000.0;
+    patternHeight = readS32(input) / 254000.0;
+#else
+    input->seek(8, WPX_SEEK_CUR);
+#endif
+    if (m_version >= 1300)
+      input->seek(24, WPX_SEEK_CUR);
+    else
+      input->seek(28, WPX_SEEK_CUR);
     patternId = readU32(input);
   }
   m_collector->collectFild(fillId, fillType, color1, color2, gradient, patternId);
