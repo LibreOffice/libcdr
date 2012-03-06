@@ -819,7 +819,15 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
         propList.insert("draw:stroke", "dash");
       else
         propList.insert("draw:stroke", "solid");
-      propList.insert("svg:stroke-width", iter->second.lineWidth);
+      double scale = 1.0;
+      if (iter->second.lineType & 0x20) // scale line with image
+      {
+        scale = sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
+        double scaleY = sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
+        if (scaleY > scale)
+          scale = scaleY;
+      }
+      propList.insert("svg:stroke-width", iter->second.lineWidth * scale);
       propList.insert("svg:stroke-color", _getRGBColorString(iter->second.color));
 
       switch (iter->second.capsType)
@@ -891,10 +899,10 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
           dots2len = dots1len;
         }
         propList.insert("draw:dots1", dots1);
-        propList.insert("draw:dots1-length", 72.0*(iter->second.lineWidth)*dots1len, WPX_POINT);
+        propList.insert("draw:dots1-length", 72.0*(iter->second.lineWidth * scale)*dots1len, WPX_POINT);
         propList.insert("draw:dots2", dots2);
-        propList.insert("draw:dots2-length", 72.0*(iter->second.lineWidth)*dots2len, WPX_POINT);
-        propList.insert("draw:distance", 72.0*(iter->second.lineWidth)*gap, WPX_POINT);
+        propList.insert("draw:dots2-length", 72.0*(iter->second.lineWidth * scale)*dots2len, WPX_POINT);
+        propList.insert("draw:distance", 72.0*(iter->second.lineWidth * scale)*gap, WPX_POINT);
       }
     }
     else
