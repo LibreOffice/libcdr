@@ -81,7 +81,7 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_currentImage(), m_currentPath(), m_currentTransform(),
   m_fillStyles(), m_lineStyles(), m_polygon(0),
   m_bmps(), m_patterns(), m_isInPolygon(false), m_outputElements(),
-  m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
+  m_bSplineData(), m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
 {
   cmsHPROFILE tmpCMYKProfile = cmsOpenProfileFromMem(SWOP_icc, sizeof(SWOP_icc)/sizeof(SWOP_icc[0]));
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
@@ -338,6 +338,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
   m_currentImage = libcdr::CDRImage();
   if (!outputElement.empty())
     m_outputElements.push(outputElement);
+  m_bSplineData.clear();
 
 }
 
@@ -1122,6 +1123,11 @@ void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorModel, uns
 void libcdr::CDRCollector::collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern)
 {
   m_patterns[patternId] = CDRPattern(width, height, pattern);
+}
+
+void libcdr::CDRCollector::collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &pointTypes)
+{
+  m_bSplineData = CDRBSplineData(points, pointTypes);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

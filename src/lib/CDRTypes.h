@@ -188,6 +188,26 @@ struct CDRPattern
     : width(w), height(h), pattern(p) {}
 };
 
+struct CDRBSplineData
+{
+  std::vector<std::pair<double, double> > points;
+  std::vector<unsigned char> pointTypes;
+  CDRBSplineData() : points(), pointTypes() {}
+  CDRBSplineData(const std::vector<std::pair<double, double> > &ps, const std::vector<unsigned char> &ptps)
+    : points(ps), pointTypes(ptps) {}
+  CDRBSplineData(const CDRBSplineData &data)
+    : points(data.points), pointTypes(data.pointTypes) {}
+  void clear()
+  {
+    points.clear();
+    pointTypes.clear();
+  }
+  bool empty()
+  {
+    return (points.empty() || pointTypes.empty());
+  }
+};
+
 } // namespace libcdr
 
 #endif /* __CDRTYPES_H__ */

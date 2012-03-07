@@ -218,6 +218,8 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     readBmp(input);
   else if (fourCC == "bmpf")
     readBmpf(input);
+  else if (fourCC == "ppdt")
+    readPpdt(input);
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
@@ -956,5 +958,22 @@ void libcdr::CDRParser::readBmpf(WPXInputStream *input)
   m_collector->collectBmpf(patternId, width, height, pattern);
 }
 
+void libcdr::CDRParser::readPpdt(WPXInputStream *input)
+{
+  unsigned short pointNum = readU16(input);
+  input->seek(4, WPX_SEEK_CUR);
+  std::vector<std::pair<double, double> > points;
+  std::vector<unsigned char> pointTypes;
+  for (unsigned j=0; j<pointNum; j++)
+  {
+    std::pair<double, double> point;
+    point.first = (double)readS32(input) / 254000.0;
+    point.second = (double)readS32(input) / 254000.0;
+    points.push_back(point);
+  }
+  for (unsigned k=0; k<pointNum; k++)
+    pointTypes.push_back(readU8(input));
+  m_collector->collectPpdt(points, pointTypes);
+}
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

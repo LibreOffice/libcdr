@@ -74,6 +74,7 @@ private:
   void readPolygonTransform(WPXInputStream *input);
   void readBmp(WPXInputStream *input);
   void readBmpf(WPXInputStream *input);
+  void readPpdt(WPXInputStream *input);
 
   WPXInputStream *m_input;
   CDRCollector *m_collector;

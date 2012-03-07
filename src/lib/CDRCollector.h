@@ -73,6 +73,7 @@ public:
   void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2);
   void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap);
   void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern);
+  void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &pointTypes);
   void collectPolygon();
 
 private:
@@ -112,6 +113,7 @@ private:
   std::map<unsigned, CDRPattern> m_patterns;
   bool m_isInPolygon;
   std::stack<CDROutputElementList> m_outputElements;
+  CDRBSplineData m_bSplineData;
 
   cmsHTRANSFORM m_colorTransformCMYK2RGB;
   cmsHTRANSFORM m_colorTransformLab2RGB;
