@@ -1125,9 +1125,9 @@ void libcdr::CDRCollector::collectBmpf(unsigned patternId, unsigned width, unsig
   m_patterns[patternId] = CDRPattern(width, height, pattern);
 }
 
-void libcdr::CDRCollector::collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &pointTypes)
+void libcdr::CDRCollector::collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector)
 {
-  m_bSplineData = CDRBSplineData(points, pointTypes);
+  m_bSplineData = CDRBSplineData(points, knotVector);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

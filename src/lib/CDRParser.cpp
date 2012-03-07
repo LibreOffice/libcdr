@@ -963,7 +963,7 @@ void libcdr::CDRParser::readPpdt(WPXInputStream *input)
   unsigned short pointNum = readU16(input);
   input->seek(4, WPX_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
-  std::vector<unsigned> pointTypes;
+  std::vector<unsigned> knotVector;
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
@@ -972,8 +972,8 @@ void libcdr::CDRParser::readPpdt(WPXInputStream *input)
     points.push_back(point);
   }
   for (unsigned k=0; k<pointNum; k++)
-    pointTypes.push_back(readU32(input));
-  m_collector->collectPpdt(points, pointTypes);
+    knotVector.push_back(readU32(input));
+  m_collector->collectPpdt(points, knotVector);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

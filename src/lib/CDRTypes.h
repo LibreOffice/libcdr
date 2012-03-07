@@ -191,20 +191,20 @@ struct CDRPattern
 struct CDRBSplineData
 {
   std::vector<std::pair<double, double> > points;
-  std::vector<unsigned> pointTypes;
-  CDRBSplineData() : points(), pointTypes() {}
-  CDRBSplineData(const std::vector<std::pair<double, double> > &ps, const std::vector<unsigned> &ptps)
-    : points(ps), pointTypes(ptps) {}
+  std::vector<unsigned> knotVector;
+  CDRBSplineData() : points(), knotVector() {}
+  CDRBSplineData(const std::vector<std::pair<double, double> > &ps, const std::vector<unsigned> &kntv)
+    : points(ps), knotVector(kntv) {}
   CDRBSplineData(const CDRBSplineData &data)
-    : points(data.points), pointTypes(data.pointTypes) {}
+    : points(data.points), knotVector(data.knotVector) {}
   void clear()
   {
     points.clear();
-    pointTypes.clear();
+    knotVector.clear();
   }
   bool empty()
   {
-    return (points.empty() || pointTypes.empty());
+    return (points.empty() || knotVector.empty());
   }
 };
 
