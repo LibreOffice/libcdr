@@ -1125,7 +1125,7 @@ void libcdr::CDRCollector::collectBmpf(unsigned patternId, unsigned width, unsig
   m_patterns[patternId] = CDRPattern(width, height, pattern);
 }
 
-void libcdr::CDRCollector::collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &pointTypes)
+void libcdr::CDRCollector::collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &pointTypes)
 {
   m_bSplineData = CDRBSplineData(points, pointTypes);
 }

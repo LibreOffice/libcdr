@@ -191,9 +191,9 @@ struct CDRPattern
 struct CDRBSplineData
 {
   std::vector<std::pair<double, double> > points;
-  std::vector<unsigned char> pointTypes;
+  std::vector<unsigned> pointTypes;
   CDRBSplineData() : points(), pointTypes() {}
-  CDRBSplineData(const std::vector<std::pair<double, double> > &ps, const std::vector<unsigned char> &ptps)
+  CDRBSplineData(const std::vector<std::pair<double, double> > &ps, const std::vector<unsigned> &ptps)
     : points(ps), pointTypes(ptps) {}
   CDRBSplineData(const CDRBSplineData &data)
     : points(data.points), pointTypes(data.pointTypes) {}
