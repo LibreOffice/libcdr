@@ -58,10 +58,10 @@ public:
 
   void appendMoveTo(double x, double y);
   void appendLineTo(double x, double y);
-  void appendCubicBezierTo(double x1, double y1, double x2, double x3, double x, double y);
+  void appendCubicBezierTo(double x1, double y1, double x2, double y2, double x, double y);
   void appendQuadraticBezierTo(double x1, double y1, double x, double y);
+  void appendSplineTo(std::vector<std::pair<double, double> > &points);
   void appendArcTo(double rx, double ry, double rotation, bool longAngle, bool sweep, double x, double y);
-  void appendBSplineTo(std::vector<std::pair<double, double> > &points);
   void appendClosePath();
   void appendPath(const CDRPath &path);
 

@@ -75,6 +75,7 @@ public:
   void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern);
   void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector);
   void collectPolygon();
+  void collectSpline();
 
 private:
   CDRCollector(const CDRCollector &);
@@ -112,8 +113,9 @@ private:
   std::map<unsigned, WPXBinaryData> m_bmps;
   std::map<unsigned, CDRPattern> m_patterns;
   bool m_isInPolygon;
+  bool m_isInSpline;
   std::stack<CDROutputElementList> m_outputElements;
-  CDRBSplineData m_bSplineData;
+  CDRSplineData m_splineData;
 
   cmsHTRANSFORM m_colorTransformCMYK2RGB;
   cmsHTRANSFORM m_colorTransformLab2RGB;

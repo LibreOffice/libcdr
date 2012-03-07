@@ -79,9 +79,9 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_currentFildId(0.0), m_currentOutlId(0),
   m_currentObjectLevel(0), m_currentPageLevel(0),
   m_currentImage(), m_currentPath(), m_currentTransform(),
-  m_fillStyles(), m_lineStyles(), m_polygon(0),
-  m_bmps(), m_patterns(), m_isInPolygon(false), m_outputElements(),
-  m_bSplineData(), m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
+  m_fillStyles(), m_lineStyles(), m_polygon(0), m_bmps(), m_patterns(),
+  m_isInPolygon(false), m_isInSpline(false), m_outputElements(), m_splineData(),
+  m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
 {
   cmsHPROFILE tmpCMYKProfile = cmsOpenProfileFromMem(SWOP_icc, sizeof(SWOP_icc)/sizeof(SWOP_icc[0]));
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
@@ -209,7 +209,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
 {
   CDR_DEBUG_MSG(("CDRCollector::collectFlushPath\n"));
   CDROutputElementList outputElement;
-  if (!m_currentPath.empty())
+  if (!m_currentPath.empty() || (!m_splineData.empty() && m_isInSpline))
   {
     if (m_polygon && m_isInPolygon)
       m_polygon->create(m_currentPath);
@@ -219,6 +219,10 @@ void libcdr::CDRCollector::_flushCurrentPath()
       m_polygon = 0;
     }
     m_isInPolygon = false;
+    if (!m_splineData.empty() && m_isInSpline)
+      m_splineData.create(m_currentPath);
+    m_splineData.clear();
+    m_isInSpline = false;
     bool firstPoint = true;
     double initialX = 0.0;
     double initialY = 0.0;
@@ -338,8 +342,6 @@ void libcdr::CDRCollector::_flushCurrentPath()
   m_currentImage = libcdr::CDRImage();
   if (!outputElement.empty())
     m_outputElements.push(outputElement);
-  m_bSplineData.clear();
-
 }
 
 void libcdr::CDRCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0)
@@ -390,6 +392,11 @@ void libcdr::CDRCollector::collectRotate(double /* angle */)
 void libcdr::CDRCollector::collectPolygon()
 {
   m_isInPolygon = true;
+}
+
+void libcdr::CDRCollector::collectSpline()
+{
+  m_isInSpline = true;
 }
 
 void libcdr::CDRCollector::collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy)
@@ -1127,7 +1134,7 @@ void libcdr::CDRCollector::collectBmpf(unsigned patternId, unsigned width, unsig
 
 void libcdr::CDRCollector::collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector)
 {
-  m_bSplineData = CDRBSplineData(points, knotVector);
+  m_splineData = CDRSplineData(points, knotVector);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

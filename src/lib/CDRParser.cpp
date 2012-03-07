@@ -764,6 +764,8 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
   unsigned startOfArgs = readU32(input);
   unsigned startOfArgTypes = readU32(input);
   unsigned chunkType = readU32(input);
+  if (chunkType == 0x26)
+    m_collector->collectSpline();
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   std::vector<unsigned> argTypes(numOfArgs, 0);
   unsigned i = 0;

@@ -188,14 +188,14 @@ struct CDRPattern
     : width(w), height(h), pattern(p) {}
 };
 
-struct CDRBSplineData
+struct CDRSplineData
 {
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned> knotVector;
-  CDRBSplineData() : points(), knotVector() {}
-  CDRBSplineData(const std::vector<std::pair<double, double> > &ps, const std::vector<unsigned> &kntv)
+  CDRSplineData() : points(), knotVector() {}
+  CDRSplineData(const std::vector<std::pair<double, double> > &ps, const std::vector<unsigned> &kntv)
     : points(ps), knotVector(kntv) {}
-  CDRBSplineData(const CDRBSplineData &data)
+  CDRSplineData(const CDRSplineData &data)
     : points(data.points), knotVector(data.knotVector) {}
   void clear()
   {
@@ -206,6 +206,7 @@ struct CDRBSplineData
   {
     return (points.empty() || knotVector.empty());
   }
+  void create(CDRPath &path) const;
 };
 
 } // namespace libcdr

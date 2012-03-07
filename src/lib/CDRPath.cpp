@@ -109,6 +109,29 @@ private:
   double m_y;
 };
 
+class CDRSplineToElement : public CDRPathElement
+{
+public:
+  CDRSplineToElement(const std::vector<std::pair<double, double> > &points)
+    : m_points(points) {}
+  ~CDRSplineToElement() {}
+  void writeOut(WPXPropertyListVector &vec) const;
+  void transform(const CDRTransform &trafo);
+  CDRPathElement *clone();
+private:
+  std::vector<std::pair<double, double> > m_points;
+};
+
+class CDRClosePathElement : public CDRPathElement
+{
+public:
+  CDRClosePathElement() {}
+  ~CDRClosePathElement() {}
+  void writeOut(WPXPropertyListVector &vec) const;
+  void transform(const CDRTransform &trafo);
+  CDRPathElement *clone();
+};
+
 class CDRArcToElement : public CDRPathElement
 {
 public:
@@ -132,29 +155,6 @@ private:
   bool m_sweep;
   double m_x;
   double m_y;
-};
-
-class CDRBSplineToElement : public CDRPathElement
-{
-public:
-  CDRBSplineToElement(const std::vector<std::pair<double, double> > &points)
-    : m_points(points) {}
-  ~CDRBSplineToElement() {}
-  void writeOut(WPXPropertyListVector &vec) const;
-  void transform(const CDRTransform &trafo);
-  CDRPathElement *clone();
-private:
-  std::vector<std::pair<double, double> > m_points;
-};
-
-class CDRClosePathElement : public CDRPathElement
-{
-public:
-  CDRClosePathElement() {}
-  ~CDRClosePathElement() {}
-  void writeOut(WPXPropertyListVector &vec) const;
-  void transform(const CDRTransform &trafo);
-  CDRPathElement *clone();
 };
 
 } // namespace libcdr
@@ -245,6 +245,70 @@ libcdr::CDRPathElement *libcdr::CDRQuadraticBezierToElement::clone()
   return new CDRQuadraticBezierToElement(m_x1, m_y1, m_x, m_y);
 }
 
+void libcdr::CDRSplineToElement::writeOut(WPXPropertyListVector &vec) const
+{
+  WPXPropertyList node;
+
+#if 0
+  node.insert("libwpg:path-action", "M");
+  node.insert("svg:x", m_points[0].first);
+  node.insert("svg:y", m_points[0].second);
+  vec.append(node);
+
+  for (unsigned j = 0; j < m_points.size(); ++j)
+  {
+    node.clear();
+    node.insert("libwpg:path-action", "L");
+    node.insert("svg:x", m_points[j].first);
+    node.insert("svg:y", m_points[j].second);
+    vec.append(node);
+  }
+
+  node.clear();
+  node.insert("libwpg:path-action", "M");
+  node.insert("svg:x", m_points[0].first);
+  node.insert("svg:y", m_points[0].second);
+  vec.append(node);
+#endif
+  for (unsigned i = 1; i < m_points.size()-1; i++)
+  {
+    node.clear();
+    node.insert("libwpg:path-action", "Q");
+    node.insert("svg:x1", m_points[i].first);
+    node.insert("svg:y1", m_points[i].second);
+    if (i < m_points.size() - 2)
+    {
+      node.insert("svg:x", (m_points[i].first+m_points[i+1].first)/2.0);
+      node.insert("svg:y", (m_points[i].second+m_points[i+1].second)/2.0);
+    }
+    else
+    {
+      node.insert("svg:x", m_points[i+1].first);
+      node.insert("svg:y", m_points[i+1].second);
+    }
+    vec.append(node);
+  }
+
+  // For the while, just move to the end point
+  node.clear();
+  node.insert("libwpg:path-action", "L");
+  node.insert("svg:x", m_points.back().first);
+  node.insert("svg:y", m_points.back().second);
+  vec.append(node);
+}
+
+void libcdr::CDRSplineToElement::transform(const CDRTransform &trafo)
+{
+  for (std::vector<std::pair<double, double> >::iterator iter = m_points.begin();
+       iter != m_points.end(); ++iter)
+    trafo.applyToPoint(iter->first, iter->second);
+}
+
+libcdr::CDRPathElement *libcdr::CDRSplineToElement::clone()
+{
+  return new CDRSplineToElement(m_points);
+}
+
 void libcdr::CDRArcToElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
@@ -262,23 +326,6 @@ void libcdr::CDRArcToElement::writeOut(WPXPropertyListVector &vec) const
 void libcdr::CDRArcToElement::transform(const CDRTransform &trafo)
 {
   trafo.applyToArc(m_rx, m_ry, m_rotation, m_sweep, m_x, m_y);
-}
-
-void libcdr::CDRBSplineToElement::writeOut(WPXPropertyListVector &vec) const
-{
-  WPXPropertyList node;
-  // For the while, just move to the end point
-  node.insert("libwpg:path-action", "M");
-  node.insert("svg:x", m_points.back().first);
-  node.insert("svg:y", m_points.back().second);
-  vec.append(node);
-}
-
-void libcdr::CDRBSplineToElement::transform(const CDRTransform &trafo)
-{
-  for (std::vector<std::pair<double, double> >::iterator iter = m_points.begin();
-       iter != m_points.end(); ++iter)
-    trafo.applyToPoint(iter->first, iter->second);
 }
 
 libcdr::CDRPathElement *libcdr::CDRArcToElement::clone()
@@ -327,9 +374,9 @@ void libcdr::CDRPath::appendArcTo(double rx, double ry, double rotation, bool lo
   m_elements.push_back(new libcdr::CDRArcToElement(rx, ry, rotation, longAngle, sweep, x, y));
 }
 
-void libcdr::CDRPath::appendBSplineTo(std::vector<std::pair<double, double> > &points)
+void libcdr::CDRPath::appendSplineTo(std::vector<std::pair<double, double> > &points)
 {
-  m_elements.push_back(new libcdr::CDRBSplineToElement(points));
+  m_elements.push_back(new libcdr::CDRSplineToElement(points));
 }
 
 void libcdr::CDRPath::appendClosePath()

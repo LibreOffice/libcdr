@@ -139,4 +139,36 @@ void libcdr::CDRPolygon::create(libcdr::CDRPath &path) const
   path.transform(trafo);
 }
 
+void libcdr::CDRSplineData::create(libcdr::CDRPath &path) const
+{
+  if (points.empty() || knotVector.empty())
+    return;
+  path.appendMoveTo(points[0].first, points[0].second);
+  std::vector<std::pair<double, double> > tmpPoints;
+  tmpPoints.push_back(points[0]);
+  for (unsigned i = 1; i<points.size() && i<knotVector.size(); ++i)
+  {
+    tmpPoints.push_back(points[i]);
+    if (knotVector[i])
+    {
+      if (tmpPoints.size() == 2)
+        path.appendLineTo(tmpPoints[1].first, tmpPoints[1].second);
+      else if (tmpPoints.size() == 3)
+        path.appendQuadraticBezierTo(tmpPoints[1].first, tmpPoints[1].second,
+                                     tmpPoints[2].first, tmpPoints[3].second);
+      else
+        path.appendSplineTo(tmpPoints);
+      tmpPoints.clear();
+      tmpPoints.push_back(points[i]);
+    }
+  }
+  if (tmpPoints.size() == 2)
+    path.appendLineTo(tmpPoints[1].first, tmpPoints[1].second);
+  else if (tmpPoints.size() == 3)
+    path.appendQuadraticBezierTo(tmpPoints[1].first, tmpPoints[1].second,
+                                 tmpPoints[2].first, tmpPoints[3].second);
+  else if (tmpPoints.size() > 3)
+    path.appendSplineTo(tmpPoints);
+}
+
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
