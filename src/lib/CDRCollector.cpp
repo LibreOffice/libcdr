@@ -373,9 +373,10 @@ void libcdr::CDRCollector::collectOutlId(unsigned id)
   m_currentOutlId = id;
 }
 
-void libcdr::CDRCollector::collectFild(unsigned id, unsigned short fillType, const libcdr::CDRColor &color1, const libcdr::CDRColor &color2, const libcdr::CDRGradient &gradient, unsigned patternId)
+void libcdr::CDRCollector::collectFild(unsigned id, unsigned short fillType, const libcdr::CDRColor &color1, const libcdr::CDRColor &color2,
+                                       const libcdr::CDRGradient &gradient, const libcdr::CDRImageFill &imageFill)
 {
-  m_fillStyles[id] = CDRFillStyle(fillType, color1, color2, gradient, patternId);
+  m_fillStyles[id] = CDRFillStyle(fillType, color1, color2, gradient, imageFill);
 }
 
 void libcdr::CDRCollector::collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType,
@@ -757,7 +758,7 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
         break;
       case 7: // Pattern
       {
-        std::map<unsigned, CDRPattern>::iterator iterPattern = m_patterns.find(iter->second.patternId);
+        std::map<unsigned, CDRPattern>::iterator iterPattern = m_patterns.find(iter->second.imageFill.id);
         if (iterPattern != m_patterns.end())
         {
           propList.insert("draw:fill", "bitmap");
@@ -766,8 +767,8 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           propList.insert("draw:fill-image", image.getBase64Data());
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
-          propList.insert("svg:width", 0.5);
-          propList.insert("svg:height", 0.5);
+          propList.insert("svg:width", iter->second.imageFill.width);
+          propList.insert("svg:height", iter->second.imageFill.height);
         }
         else
         {
@@ -780,15 +781,15 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
       break;
       case 9: // Bitmap
       {
-        std::map<unsigned, WPXBinaryData>::iterator iterBmp = m_bmps.find(iter->second.patternId);
+        std::map<unsigned, WPXBinaryData>::iterator iterBmp = m_bmps.find(iter->second.imageFill.id);
         if (iterBmp != m_bmps.end())
         {
           propList.insert("draw:fill", "bitmap");
           propList.insert("draw:fill-image", iterBmp->second.getBase64Data());
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
-          propList.insert("svg:width", 1.0);
-          propList.insert("svg:height", 1.0);
+          propList.insert("svg:width", iter->second.imageFill.width);
+          propList.insert("svg:height", iter->second.imageFill.height);
         }
         else
           propList.insert("draw:fill", "none");

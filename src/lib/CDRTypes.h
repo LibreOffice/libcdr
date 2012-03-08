@@ -96,18 +96,30 @@ struct CDRGradient
       m_stops(gradient.m_stops) {}
 };
 
+struct CDRImageFill
+{
+  unsigned id;
+  double width;
+  double height;
+  double rcpOffset;
+  unsigned char flags;
+  CDRImageFill() : id(0), width(0.0), height(0.0), rcpOffset(0.0), flags(0) {}
+  CDRImageFill(unsigned i, double w, double h, double o, unsigned char f)
+    : id(i), width(w), height(h), rcpOffset(o), flags(f) {}
+};
+
 struct CDRFillStyle
 {
   unsigned short fillType;
   CDRColor color1, color2;
   CDRGradient gradient;
-  unsigned patternId;
+  CDRImageFill imageFill;
   CDRFillStyle()
-    : fillType(0), color1(), color2(), gradient(), patternId(0) {}
-  CDRFillStyle(unsigned short ft, CDRColor c1, CDRColor c2, const CDRGradient &gr, unsigned pI)
-    : fillType(ft), color1(c1), color2(c2), gradient(gr), patternId(pI) {}
+    : fillType(0), color1(), color2(), gradient(), imageFill() {}
+  CDRFillStyle(unsigned short ft, CDRColor c1, CDRColor c2, const CDRGradient &gr, const CDRImageFill &img)
+    : fillType(ft), color1(c1), color2(c2), gradient(gr), imageFill(img) {}
   CDRFillStyle(const CDRFillStyle &style)
-    : fillType(style.fillType), color1(style.color1), color2(style.color2), gradient(style.gradient), patternId(style.patternId) {}
+    : fillType(style.fillType), color1(style.color1), color2(style.color2), gradient(style.gradient), imageFill(style.imageFill) {}
 };
 
 struct CDRLineStyle

@@ -592,11 +592,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
   unsigned short fillType = readU16(input);
   libcdr::CDRColor color1;
   libcdr::CDRColor color2;
-  unsigned patternId = 0;
-  // double patternWidth = 0.0;
-  // double patternHeight = 0.0;
-  // double rcpOffset = 0.0;
-  // unsigned char flags = 0;
+  libcdr::CDRImageFill imageFill;
   libcdr::CDRGradient gradient;
   if (fillType == 1) // Solid
   {
@@ -667,17 +663,13 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
       input->seek(8, WPX_SEEK_CUR);
     else
       input->seek(2, WPX_SEEK_CUR);
-    patternId = readU32(input);
-#if 0
-    patternWidth = readS32(input) / 254000.0;
-    patternHeight = readS32(input) / 254000.0;
+    unsigned patternId = readU32(input);
+    double patternWidth = readS32(input) / 254000.0;
+    double patternHeight = readS32(input) / 254000.0;
     input->seek(4, WPX_SEEK_CUR);
-    rcpOffset = (double)readU8(input) / 100.0;
+    double rcpOffset = (double)readU8(input) / 100.0;
     input->seek(1, WPX_SEEK_CUR);
-    flags = readU8(input);
-#else
-    input->seek(15, WPX_SEEK_CUR);
-#endif
+    unsigned char flags = readU8(input);
     if (m_version >= 1300)
       input->seek(6, WPX_SEEK_CUR);
     else
@@ -697,6 +689,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
     input->seek(6, WPX_SEEK_CUR);
     colorValue = readU32(input);
     color2 = libcdr::CDRColor(colorModel, colorValue);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, rcpOffset, flags);
   }
   else if (fillType == 9) // bitmap
   {
@@ -704,19 +697,20 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
       input->seek(8, WPX_SEEK_CUR);
     else
       input->seek(6, WPX_SEEK_CUR);
-#if 0
-    patternWidth = readS32(input) / 254000.0;
-    patternHeight = readS32(input) / 254000.0;
-#else
-    input->seek(8, WPX_SEEK_CUR);
-#endif
+    double patternWidth = readS32(input) / 254000.0;
+    double patternHeight = readS32(input) / 254000.0;
+    input->seek(4, WPX_SEEK_CUR);
+    double rcpOffset = (double)readU8(input) / 100.0;
+    input->seek(1, WPX_SEEK_CUR);
+    unsigned char flags = readU8(input);
     if (m_version >= 1300)
-      input->seek(24, WPX_SEEK_CUR);
+      input->seek(17, WPX_SEEK_CUR);
     else
-      input->seek(28, WPX_SEEK_CUR);
-    patternId = readU32(input);
+      input->seek(21, WPX_SEEK_CUR);
+    unsigned patternId = readU32(input);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, rcpOffset, flags);
   }
-  m_collector->collectFild(fillId, fillType, color1, color2, gradient, patternId);
+  m_collector->collectFild(fillId, fillType, color1, color2, gradient, imageFill);
 }
 
 void libcdr::CDRParser::readOutl(WPXInputStream *input)
