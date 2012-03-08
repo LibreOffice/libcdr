@@ -279,7 +279,7 @@ static int lufclose(LUFILE *stream)
   return 0;
 }
 
-static int luferror(LUFILE *stream)
+static int luferror(LUFILE * /* stream */)
 {
   return 0;
 }

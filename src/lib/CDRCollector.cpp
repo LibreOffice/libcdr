@@ -687,7 +687,7 @@ WPXString libcdr::CDRCollector::_getRGBColorString(const libcdr::CDRColor &color
   return tempString;
 }
 
-void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropertyListVector &vec)
+void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropertyListVector & /* vec */)
 {
   if (m_currentFildId == 0)
     propList.insert("draw:fill", "none");
