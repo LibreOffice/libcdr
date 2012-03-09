@@ -770,7 +770,7 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           _generateBitmapFromPattern(image, iterPattern->second, iter->second.color1, iter->second.color2);
 #if DUMP_PATTERN
           WPXString filename;
-          filename.sprintf("pattern%.16x.bmp", iter->second.imageFill.id);
+          filename.sprintf("pattern%.8x.bmp", iter->second.imageFill.id);
           FILE *f = fopen(filename.cstr(), "wb");
           if (f)
           {
