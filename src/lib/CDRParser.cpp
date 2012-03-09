@@ -41,10 +41,6 @@
 #define DUMP_PREVIEW_IMAGE 0
 #endif
 
-#ifndef DUMP_IMAGE
-#define DUMP_IMAGE 0
-#endif
-
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -217,7 +213,7 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   else if (fourCC == "bmp ")
     readBmp(input);
   else if (fourCC == "bmpf")
-    readBmpf(input);
+    readBmpf(input, length);
   else if (fourCC == "ppdt")
     readPpdt(input);
   input->seek(recordStart + length, WPX_SEEK_CUR);
@@ -933,11 +929,11 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input)
   m_collector->collectBmp(imageId, colorModel, width, height, bpp, palette, bitmap);
 }
 
-void libcdr::CDRParser::readBmpf(WPXInputStream *input)
+void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
 {
   unsigned patternId = readU32(input);
   unsigned headerLength = readU32(input);
-  if (headerLength < 24)
+  if (headerLength != 40)
     return;
   unsigned width = readU32(input);
   unsigned height = readU32(input);
@@ -946,10 +942,10 @@ void libcdr::CDRParser::readBmpf(WPXInputStream *input)
   if (bpp != 1)
     return;
   input->seek(4, WPX_SEEK_CUR);
-  unsigned imageSize = readU32(input);
-  input->seek((int)(headerLength - 24), WPX_SEEK_CUR);
+  unsigned dataSize = readU32(input);
+  input->seek(length - dataSize - 28, WPX_SEEK_CUR);
   std::vector<unsigned char> pattern;
-  for (unsigned i = 0; i < imageSize; ++i)
+  for (unsigned i = 0; i < dataSize; ++i)
     pattern.push_back(readU8(input));
   m_collector->collectBmpf(patternId, width, height, pattern);
 }

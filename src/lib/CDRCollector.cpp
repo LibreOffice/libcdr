@@ -40,6 +40,10 @@
 #define DUMP_IMAGE 0
 #endif
 
+#ifndef DUMP_PATTERN
+#define DUMP_PATTERN 0
+#endif
+
 namespace
 {
 int cdr_round(double d)
@@ -764,6 +768,18 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           propList.insert("draw:fill", "bitmap");
           WPXBinaryData image;
           _generateBitmapFromPattern(image, iterPattern->second, iter->second.color1, iter->second.color2);
+#if DUMP_PATTERN
+          WPXString filename;
+          filename.sprintf("pattern%.16x.bmp", iter->second.imageFill.id);
+          FILE *f = fopen(filename.cstr(), "wb");
+          if (f)
+          {
+            const unsigned char *tmpBuffer = image.getDataBuffer();
+            for (unsigned long k = 0; k < image.size(); k++)
+              fprintf(f, "%c",tmpBuffer[k]);
+            fclose(f);
+          }
+#endif
           propList.insert("draw:fill-image", image.getBase64Data());
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
@@ -976,7 +992,7 @@ void libcdr::CDRCollector::_generateBitmapFromPattern(WPXBinaryData &bitmap, con
     while (i <lineWidth && k < width)
     {
       unsigned l = 0;
-      unsigned char c = pattern.pattern[j*lineWidth+i];
+      unsigned char c = pattern.pattern[(j-1)*lineWidth+i];
       i++;
       while (k < width && l < 8)
       {

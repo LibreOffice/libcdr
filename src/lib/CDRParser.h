@@ -73,7 +73,7 @@ private:
   void readPolygonCoords(WPXInputStream *input);
   void readPolygonTransform(WPXInputStream *input);
   void readBmp(WPXInputStream *input);
-  void readBmpf(WPXInputStream *input);
+  void readBmpf(WPXInputStream *input, unsigned length);
   void readPpdt(WPXInputStream *input);
 
   WPXInputStream *m_input;
