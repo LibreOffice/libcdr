@@ -785,6 +785,7 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           propList.insert("style:repeat", "repeat");
           propList.insert("svg:width", iter->second.imageFill.width);
           propList.insert("svg:height", iter->second.imageFill.height);
+          propList.insert("draw:fill-image-ref-point", "bottom-left");
         }
         else
         {
@@ -806,6 +807,7 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           propList.insert("style:repeat", "repeat");
           propList.insert("svg:width", iter->second.imageFill.width);
           propList.insert("svg:height", iter->second.imageFill.height);
+          propList.insert("draw:fill-image-ref-point", "bottom-left");
         }
         else
           propList.insert("draw:fill", "none");
