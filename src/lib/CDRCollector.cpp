@@ -740,13 +740,16 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
             while (angle > 360.0)
               angle -= 360.0;
             propList.insert("draw:angle", (int)angle);
+            propList.insert("draw:border", (double)(iter->second.gradient.m_edgeOffset)/100.0, WPX_PERCENT);
             break;
           case 2: // radial
+            propList.insert("draw:border", (2.0 * (double)(iter->second.gradient.m_edgeOffset)/100.0), WPX_PERCENT);
             propList.insert("draw:style", "radial");
             propList.insert("svg:cx", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
             propList.insert("svg:cy", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
             break;
           case 4: // square
+            propList.insert("draw:border", (2.0 * (double)(iter->second.gradient.m_edgeOffset)/100.0), WPX_PERCENT);
             propList.insert("draw:style", "square");
             propList.insert("svg:cx", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
             propList.insert("svg:cy", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
