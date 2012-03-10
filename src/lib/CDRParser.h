@@ -75,6 +75,7 @@ private:
   void readBmp(WPXInputStream *input);
   void readBmpf(WPXInputStream *input, unsigned length);
   void readPpdt(WPXInputStream *input);
+  void readFtil(WPXInputStream *input);
 
   WPXInputStream *m_input;
   CDRCollector *m_collector;

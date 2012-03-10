@@ -74,6 +74,7 @@ public:
   void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap);
   void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern);
   void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector);
+  void collectFillTransform(double v0, double v1, double x, double v3, double v4, double y);
   void collectPolygon();
   void collectSpline();
 
@@ -106,7 +107,7 @@ private:
   CDRImage m_currentImage;
 
   CDRPath m_currentPath;
-  CDRTransform m_currentTransform;
+  CDRTransform m_currentTransform, m_fillTransform;
   std::map<unsigned, CDRFillStyle> m_fillStyles;
   std::map<unsigned, CDRLineStyle> m_lineStyles;
   CDRPolygon *m_polygon;

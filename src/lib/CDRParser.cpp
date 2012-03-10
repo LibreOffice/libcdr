@@ -216,6 +216,8 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     readBmpf(input, length);
   else if (fourCC == "ppdt")
     readPpdt(input);
+  else if (fourCC == "ftil")
+    readFtil(input);
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
@@ -1010,6 +1012,17 @@ void libcdr::CDRParser::readPpdt(WPXInputStream *input)
   for (unsigned k=0; k<pointNum; k++)
     knotVector.push_back(readU32(input));
   m_collector->collectPpdt(points, knotVector);
+}
+
+void libcdr::CDRParser::readFtil(WPXInputStream *input)
+{
+  double v0 = readDouble(input);
+  double v1 = readDouble(input);
+  double x0 = readDouble(input) / 254000.0;
+  double v3 = readDouble(input);
+  double v4 = readDouble(input);
+  double y0 = readDouble(input) / 254000.0;
+  m_collector->collectFillTransform(v0, v1, x0, v3, v4, y0);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

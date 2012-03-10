@@ -82,7 +82,7 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_pageWidth(8.5), m_pageHeight(11.0),
   m_currentFildId(0.0), m_currentOutlId(0),
   m_currentObjectLevel(0), m_currentPageLevel(0),
-  m_currentImage(), m_currentPath(), m_currentTransform(),
+  m_currentImage(), m_currentPath(), m_currentTransform(), m_fillTransform(),
   m_fillStyles(), m_lineStyles(), m_polygon(0), m_bmps(), m_patterns(),
   m_isInPolygon(false), m_isInSpline(false), m_outputElements(), m_splineData(),
   m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
@@ -346,11 +346,18 @@ void libcdr::CDRCollector::_flushCurrentPath()
   m_currentImage = libcdr::CDRImage();
   if (!outputElement.empty())
     m_outputElements.push(outputElement);
+  m_currentTransform = libcdr::CDRTransform();
+  m_fillTransform = libcdr::CDRTransform();
 }
 
 void libcdr::CDRCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0)
 {
-  m_currentTransform = CDRTransform(v0, v1, x0, v3, v4, y0);
+  m_currentTransform = libcdr::CDRTransform(v0, v1, x0, v3, v4, y0);
+}
+
+void libcdr::CDRCollector::collectFillTransform(double v0, double v1, double x0, double v3, double v4, double y0)
+{
+  m_fillTransform = libcdr::CDRTransform(v0, v1, x0, v3, v4, y0);
 }
 
 void libcdr::CDRCollector::collectLevel(unsigned level)
