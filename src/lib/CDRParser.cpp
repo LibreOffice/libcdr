@@ -560,19 +560,63 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 
 void libcdr::CDRParser::readTrfd(WPXInputStream *input)
 {
-  int offset = 32;
-  if (m_version >= 1300)
-    offset = 40;
-  if (m_version == 500)
-    offset = 18;
-  input->seek(offset, WPX_SEEK_CUR);
-  double v0 = readDouble(input);
-  double v1 = readDouble(input);
-  double x0 = readDouble(input) / 254000.0;
-  double v3 = readDouble(input);
-  double v4 = readDouble(input);
-  double y0 = readDouble(input) / 254000.0;
-  m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
+  long startPosition = input->tell();
+  unsigned chunkLength = readU32(input);
+  unsigned numOfArgs = readU32(input);
+  unsigned startOfArgs = readU32(input);
+  input->seek(4, WPX_SEEK_CUR);
+  std::vector<unsigned> argOffsets(numOfArgs, 0);
+  unsigned i = 0;
+  input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
+  while (i<numOfArgs)
+    argOffsets[i++] = readU32(input);
+
+  for (i=0; i < argOffsets.size(); i++)
+  {
+    input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
+    if (m_version >= 1300)
+      input->seek(8, WPX_SEEK_CUR);
+    unsigned short tmpType = readU16(input);
+    if (tmpType == 0x08) // trafo
+    {
+      input->seek(6, WPX_SEEK_CUR);
+      double v0 = readDouble(input);
+      double v1 = readDouble(input);
+      double x0 = readDouble(input) / 254000.0;
+      double v3 = readDouble(input);
+      double v4 = readDouble(input);
+      double y0 = readDouble(input) / 254000.0;
+      m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
+    }
+    else if (tmpType == 0x0a)
+    {
+#if 0
+      input->seek(6, WPX_SEEK_CUR);
+      unsigned short type = readU16(input);
+      double x = readS32(input) / 254000.0;
+      double y = readS32(input) / 254000.0;
+      unsigned subType = readU32(input);
+      if (!subType)
+      {
+      }
+      else
+      {
+        if (subType&1) // Smooth
+        {
+        }
+        if (subType&2) // Random
+        {
+        }
+        if (subType&4) // Local
+        {
+        }
+      }
+      unsigned opt1 = readU32(input);
+      unsigned opt2 = readU32(input);
+#endif
+    }
+  }
+  input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
 
 void libcdr::CDRParser::readFild(WPXInputStream *input)
