@@ -992,7 +992,7 @@ void libcdr::CDRCollector::_generateBitmapFromPattern(WPXBinaryData &bitmap, con
   writeU32(bitmap, 0); // ColorsImportant
 
   // The Bitmaps in CDR are padded to 32bit border
-  unsigned lineWidth = ((width + 31) / 32) * 4;
+  unsigned lineWidth = (width + 7) / 8;
 
   unsigned foreground = _getRGBColor(fgColor);
   unsigned background = _getRGBColor(bgColor);
