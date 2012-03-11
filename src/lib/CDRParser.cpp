@@ -590,7 +590,7 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input)
       double y0 = readDouble(input) / 254000.0;
       m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
     }
-    else if (tmpType == 0x0a)
+    else if (tmpType == 0x10)
     {
 #if 0
       input->seek(6, WPX_SEEK_CUR);
