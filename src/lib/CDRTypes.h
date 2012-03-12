@@ -106,9 +106,10 @@ struct CDRImageFill
   double yOffset;
   double rcpOffset;
   unsigned char flags;
-  CDRImageFill() : id(0), width(0.0), height(0.0), isRelative(false), xOffset(0.0), yOffset(0.0), rcpOffset(0.0), flags(0) {}
-  CDRImageFill(unsigned i, double w, double h, bool r, double x, double y, double o, unsigned char f)
-    : id(i), width(w), height(h), isRelative(r), xOffset(x), yOffset(y), rcpOffset(o), flags(f) {}
+  bool refPoint;
+  CDRImageFill() : id(0), width(0.0), height(0.0), isRelative(false), xOffset(0.0), yOffset(0.0), rcpOffset(0.0), flags(0), refPoint(false) {}
+  CDRImageFill(unsigned i, double w, double h, bool r, double x, double y, double o, unsigned char f, bool rp)
+    : id(i), width(w), height(h), isRelative(r), xOffset(x), yOffset(y), rcpOffset(o), flags(f), refPoint(rp) {}
 };
 
 struct CDRFillStyle
