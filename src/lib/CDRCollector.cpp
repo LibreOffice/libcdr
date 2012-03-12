@@ -793,9 +793,21 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           propList.insert("draw:fill-image", image.getBase64Data());
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
-          propList.insert("svg:width", iter->second.imageFill.width);
-          propList.insert("svg:height", iter->second.imageFill.height);
+          if (iter->second.imageFill.isRelative)
+          {
+            propList.insert("svg:width", iter->second.imageFill.width, WPX_PERCENT);
+            propList.insert("svg:height", iter->second.imageFill.height, WPX_PERCENT);
+          }
+          else
+          {
+            propList.insert("svg:width", iter->second.imageFill.width);
+            propList.insert("svg:height", iter->second.imageFill.height);
+          }
           propList.insert("draw:fill-image-ref-point", "bottom-left");
+          if (iter->second.imageFill.xOffset != 0.0)
+            propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
+          if (iter->second.imageFill.yOffset != 0.0)
+            propList.insert("draw:fill-image-ref-point-y", 1.0 - iter->second.imageFill.yOffset, WPX_PERCENT);
         }
         else
         {
@@ -815,9 +827,21 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           propList.insert("draw:fill-image", iterBmp->second.getBase64Data());
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
-          propList.insert("svg:width", iter->second.imageFill.width);
-          propList.insert("svg:height", iter->second.imageFill.height);
+          if (iter->second.imageFill.isRelative)
+          {
+            propList.insert("svg:width", iter->second.imageFill.width, WPX_PERCENT);
+            propList.insert("svg:height", iter->second.imageFill.height, WPX_PERCENT);
+          }
+          else
+          {
+            propList.insert("svg:width", iter->second.imageFill.width);
+            propList.insert("svg:height", iter->second.imageFill.height);
+          }
           propList.insert("draw:fill-image-ref-point", "bottom-left");
+          if (iter->second.imageFill.xOffset != 0.0)
+            propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
+          if (iter->second.imageFill.yOffset != 0.0)
+            propList.insert("draw:fill-image-ref-point-y", 1.0 - iter->second.imageFill.yOffset, WPX_PERCENT);
         }
         else
           propList.insert("draw:fill", "none");
