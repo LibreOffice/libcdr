@@ -32,6 +32,7 @@
 #include <zlib.h>
 #include "CDRInternalStream.h"
 #include "libcdr_utils.h"
+#include <string.h>  // for memcpy
 
 
 #define CHUNK 16384
@@ -39,10 +40,8 @@
 libcdr::CDRInternalStream::CDRInternalStream(const std::vector<unsigned char> &buffer) :
   WPXInputStream(),
   m_offset(0),
-  m_buffer()
+  m_buffer(buffer)
 {
-  for (unsigned long i=0; i<buffer.size(); ++i)
-    m_buffer.push_back(buffer[i]);
 }
 
 libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned long size, bool compressed) :
@@ -61,8 +60,8 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
     if (size != tmpNumBytesRead)
       return;
 
-    for (unsigned long i=0; i<size; i++)
-      m_buffer.push_back(tmpBuffer[i]);
+    m_buffer = std::vector<unsigned char>(size);
+    memcpy(&m_buffer[0], &tmpBuffer[0], size);
   }
   else
   {
