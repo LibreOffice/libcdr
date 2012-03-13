@@ -8,4 +8,8 @@ cdr2svg
 cdr2svg.exe
 cdr2xhtml
 cdr2xhtml.exe
+cmx2svg
+cmx2svg.exe
+cmx2xhtml
+cmx2xhtml.exe
 *.rc
