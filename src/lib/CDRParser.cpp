@@ -804,10 +804,13 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input)
   if (m_version < 1300)
     input->seek(2, WPX_SEEK_CUR);
   double lineWidth = (double)readS32(input) / 254000.0;
+  double stretch = (double)readU16(input) / 100.0;
+  input->seek(2, WPX_SEEK_CUR);
+  double angle = readAngle(input);
   if (m_version < 1300)
-    input->seek(60, WPX_SEEK_CUR);
+    input->seek(52, WPX_SEEK_CUR);
   else
-    input->seek(54, WPX_SEEK_CUR);
+    input->seek(46, WPX_SEEK_CUR);
   unsigned short colorModel = readU16(input);
   input->seek(6, WPX_SEEK_CUR);
   unsigned colorValue = readU32(input);
@@ -821,7 +824,7 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input)
   input->seek(fixPosition + 22, WPX_SEEK_SET);
   unsigned startMarkerId = readU32(input);
   unsigned endMarkerId = readU32(input);
-  m_collector->collectOutl(lineId, lineType, capsType, joinType, lineWidth, color, dashArray, startMarkerId, endMarkerId);
+  m_collector->collectOutl(lineId, lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
 }
 
 void libcdr::CDRParser::readLoda(WPXInputStream *input)

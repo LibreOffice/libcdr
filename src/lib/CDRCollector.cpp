@@ -390,11 +390,11 @@ void libcdr::CDRCollector::collectFild(unsigned id, unsigned short fillType, con
   m_fillStyles[id] = CDRFillStyle(fillType, color1, color2, gradient, imageFill);
 }
 
-void libcdr::CDRCollector::collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType,
-                                       double lineWidth, const CDRColor &color, const std::vector<unsigned short> &dashArray,
+void libcdr::CDRCollector::collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
+                                       double stretch, double angle, const CDRColor &color, const std::vector<unsigned short> &dashArray,
                                        unsigned startMarkerId, unsigned endMarkerId)
 {
-  m_lineStyles[id] = CDRLineStyle(lineType, capsType, joinType, lineWidth, color, dashArray, startMarkerId, endMarkerId);
+  m_lineStyles[id] = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
 }
 
 void libcdr::CDRCollector::collectRotate(double /* angle */)
@@ -894,6 +894,7 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
         if (scaleY > scale)
           scale = scaleY;
       }
+	  scale *= iter->second.stretch;
       propList.insert("svg:stroke-width", iter->second.lineWidth * scale);
       propList.insert("svg:stroke-color", _getRGBColorString(iter->second.color));
 
