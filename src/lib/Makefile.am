@@ -9,7 +9,8 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_includedir = $(includedir)/libcdr
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_include_HEADERS = \
 	libcdr.h \
 	CDRDocument.h \
-	CDRStringVector.h
+	CDRStringVector.h \
+	CMXDocument.h
 
 AM_CXXFLAGS = $(LIBCDR_CXXFLAGS) $(ZLIB_CFLAGS) $(DEBUG_CXXFLAGS)
 
@@ -28,6 +29,8 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRTypes.cpp \
 	CDRUnzip.cpp \
 	CDRZipStream.cpp \
+	CMXDocument.cpp \
+	CMXParser.cpp \
 	libcdr_utils.cpp \
 	CDRCollector.h \
 	CDRColorProfiles.h \
@@ -39,6 +42,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRTypes.h \
 	CDRUnzip.h \
 	CDRZipStream.h \
+	CMXParser.h \
 	libcdr_utils.h
 
 if OS_WIN32

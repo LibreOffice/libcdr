@@ -6,7 +6,7 @@ VS_VERSION_INFO VERSIONINFO
   FILEFLAGSMASK 0
   FILEFLAGS 0
   FILEOS VOS__WINDOWS32
-  FILETYPE VFT_DLL
+  FILETYPE VFT_APP
   FILESUBTYPE VFT2_UNKNOWN
   BEGIN
     BLOCK "StringFileInfo"
@@ -14,11 +14,11 @@ VS_VERSION_INFO VERSIONINFO
       BLOCK "040904B0"
       BEGIN
 	VALUE "CompanyName", "The libcdr developer community"
-	VALUE "FileDescription", "libcdr"
+	VALUE "FileDescription", "cmx2xhtml"
 	VALUE "FileVersion", "@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.@CDR_MICRO_VERSION@.BUILDNUMBER"
-	VALUE "InternalName", "libcdr-0.1"
-	VALUE "LegalCopyright", "Copyright (C) 2012 Fridrich Strba, other contributers"
-	VALUE "OriginalFilename", "libcdr-0.1.dll"
+	VALUE "InternalName", "cmx2xhtml"
+	VALUE "LegalCopyright", "Copyright (C) 2011 Fridrich Strba, other contribut0rs"
+	VALUE "OriginalFilename", "cmx2xhtml.exe"
 	VALUE "ProductName", "libcdr"
 	VALUE "ProductVersion", "@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.@CDR_MICRO_VERSION@"
       END

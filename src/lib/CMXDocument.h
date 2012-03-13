@@ -1,7 +1,6 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* libcdr
  * Copyright (C) 2006 Ariya Hidayat (ariya@kde.org)
- * Copyright (C) 2004 Marc Oude Kotte (marc@solcon.nl)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -14,8 +13,8 @@
  * Library General Public License for more details.
  *
  * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA  02111-1301 USA
  *
  * For further information visit http://libcdr.sourceforge.net
@@ -25,13 +24,29 @@
  * Corel Corporation or Corel Corporation Limited."
  */
 
-#ifndef __LIBCDR_H__
-#define __LIBCDR_H__
+#ifndef __CMXDOCUMENT_H__
+#define __CMXDOCUMENT_H__
 
-#include "CDRDocument.h"
-#include "CMXDocument.h"
 #include <libwpd/libwpd.h>
 #include <libwpg/libwpg.h>
+#include "CDRStringVector.h"
 
-#endif
+class WPXInputStream;
+
+namespace libcdr
+{
+class CMXDocument
+{
+public:
+
+  static bool isSupported(WPXInputStream *input);
+
+  static bool parse(WPXInputStream *input, libwpg::WPGPaintInterface *painter);
+
+  static bool generateSVG(WPXInputStream *input, CDRStringVector &output);
+};
+
+} // namespace libcdr
+
+#endif //  __CMXDOCUMENT_H__
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

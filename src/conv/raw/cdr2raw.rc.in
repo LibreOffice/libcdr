@@ -17,7 +17,7 @@ VS_VERSION_INFO VERSIONINFO
 	VALUE "FileDescription", "cdr2raw"
 	VALUE "FileVersion", "@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.@CDR_MICRO_VERSION@.BUILDNUMBER"
 	VALUE "InternalName", "cdr2raw"
-	VALUE "LegalCopyright", "Copyright (C) 2004 Marc Oude Kotte, other contributers"
+	VALUE "LegalCopyright", "Copyright (C) 2012 Fridrich Strba, other contributers"
 	VALUE "OriginalFilename", "cdr2raw.exe"
 	VALUE "ProductName", "libcdr"
 	VALUE "ProductVersion", "@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.@CDR_MICRO_VERSION@"
