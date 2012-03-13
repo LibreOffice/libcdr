@@ -56,8 +56,16 @@ private:
   bool parseRecord(WPXInputStream *input, unsigned level = 0);
   void readRecord(WPXString fourCC, unsigned length, WPXInputStream *input);
 
+  void readCMXHeader(WPXInputStream *input);
+
   WPXInputStream *m_input;
   CDRCollector *m_collector;
+
+  bool m_bigEndian;
+  unsigned short m_coordSize;
+  unsigned short m_unit;
+  double m_scale;
+  double m_xmin, m_xmax, m_ymin, m_ymax;
 };
 } // namespace libcdr
 

@@ -32,6 +32,7 @@
 #include <math.h>
 #include <set>
 #include <string.h>
+#include <stdlib.h>
 #include "libcdr_utils.h"
 #include "CDRInternalStream.h"
 #include "CMXParser.h"
@@ -47,7 +48,8 @@
 
 libcdr::CMXParser::CMXParser(WPXInputStream *input, libcdr::CDRCollector *collector)
   : m_input(input),
-    m_collector(collector) {}
+    m_collector(collector), m_bigEndian(false), m_coordSize(0), m_unit(0),
+    m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0) {}
 
 libcdr::CMXParser::~CMXParser()
 {
@@ -112,10 +114,55 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
   }
 }
 
-void libcdr::CMXParser::readRecord(WPXString /* fourCC */, unsigned length, WPXInputStream *input)
+void libcdr::CMXParser::readRecord(WPXString fourCC, unsigned length, WPXInputStream *input)
 {
   long recordStart = input->tell();
+  if (fourCC == "cont")
+    readCMXHeader(input);
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
+
+void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
+{
+  WPXString tmpString;
+  unsigned i = 0;
+  for (i = 0; i < 32; i++)
+    tmpString.append((char)readU8(input));
+  CDR_DEBUG_MSG(("CMX File ID: %s\n", tmpString.cstr()));
+  tmpString.clear();
+  for (i = 0; i < 16; i++)
+    tmpString.append((char)readU8(input));
+  CDR_DEBUG_MSG(("CMX Platform: %s\n", tmpString.cstr()));
+  tmpString.clear();
+  for (i = 0; i < 4; i++)
+    tmpString.append((char)readU8(input));
+  CDR_DEBUG_MSG(("CMX Byte Order: %s\n", tmpString.cstr()));
+  if (4 == atoi(tmpString.cstr()))
+    m_bigEndian = true;
+  tmpString.clear();
+  for (i = 0; i < 2; i++)
+    tmpString.append((char)readU8(input));
+  CDR_DEBUG_MSG(("CMX Coordinate Size: %s\n", tmpString.cstr()));
+  m_coordSize = (unsigned short)atoi(tmpString.cstr());
+  tmpString.clear();
+  for (i = 0; i < 4; i++)
+    tmpString.append((char)readU8(input));
+  CDR_DEBUG_MSG(("CMX Version Major: %s\n", tmpString.cstr()));
+  tmpString.clear();
+  for (i = 0; i < 4; i++)
+    tmpString.append((char)readU8(input));
+  CDR_DEBUG_MSG(("CMX Version Minor: %s\n", tmpString.cstr()));
+  m_unit = readU16(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMX Base Units: %i\n", unit));
+  m_scale = readDouble(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMX Units Scale: %.9f\n", m_scale));
+  input->seek(24, WPX_SEEK_CUR);
+  m_xmin = (double)readS32(input, m_bigEndian);
+  m_ymax = (double)readS32(input, m_bigEndian);
+  m_xmax = (double)readS32(input, m_bigEndian);
+  m_ymin = (double)readS32(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMX Bouding Box: xmin: %f, xmax: %f, ymin: %f, ymax: %f\n", m_xmin, m_xmax, m_ymin, m_ymax));
+}
+
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
