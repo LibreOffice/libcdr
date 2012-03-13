@@ -1097,8 +1097,8 @@ void libcdr::CDRCollector::collectBmp(unsigned imageId, unsigned colorModel, uns
   writeU32(image, 0); // ColorsUsed
   writeU32(image, 0); // ColorsImportant
 
-  // The Bitmaps in CDR are padded to 32bit border
-  unsigned lineWidth = ((width * bpp + 32 - bpp) / 32) * 4;
+  // Cater for eventual padding
+  unsigned lineWidth = bitmap.size() / height;
 
   bool storeBMP = true;
 

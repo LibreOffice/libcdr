@@ -1001,9 +1001,12 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input)
     for (unsigned short i = 0; i <palettesize; ++i)
       palette.push_back(readU8(input) | (readU8(input) << 8) | (readU8(input) << 16));
   }
-  std::vector<unsigned char> bitmap;
-  for (unsigned j = 0; j<bmpsize; ++j)
-    bitmap.push_back(readU8(input));
+  std::vector<unsigned char> bitmap(bmpsize);
+  unsigned long tmpNumBytesRead = 0;
+  const unsigned char *tmpBuffer = input->read(bmpsize, tmpNumBytesRead);
+  if (bmpsize != tmpNumBytesRead)
+    return;
+  memcpy(&bitmap[0], tmpBuffer, bmpsize);
   m_collector->collectBmp(imageId, colorModel, width, height, bpp, palette, bitmap);
 }
 
@@ -1022,9 +1025,12 @@ void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
   input->seek(4, WPX_SEEK_CUR);
   unsigned dataSize = readU32(input);
   input->seek(length - dataSize - 28, WPX_SEEK_CUR);
-  std::vector<unsigned char> pattern;
-  for (unsigned i = 0; i < dataSize; ++i)
-    pattern.push_back(readU8(input));
+  std::vector<unsigned char> pattern(dataSize);
+  unsigned long tmpNumBytesRead = 0;
+  const unsigned char *tmpBuffer = input->read(dataSize, tmpNumBytesRead);
+  if (dataSize != tmpNumBytesRead)
+    return;
+  memcpy(&pattern[0], tmpBuffer, dataSize);
   m_collector->collectBmpf(patternId, width, height, pattern);
 }
 
