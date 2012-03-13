@@ -43,6 +43,36 @@ Package=<4>
     End Project Dependency
 }}}
 
+###############################################################################
+
+Project: "cmx2xhtml"=.\cmx2xhtml.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libcdr
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "cmx2raw"=.\cmx2raw.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libcdr
+    End Project Dependency
+}}}
+
 Global:
 
 Package=<5>

@@ -131,6 +131,14 @@ SOURCE=..\..\src\lib\CDRZipStream.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CMXDocument.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CMXParser.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\libcdr_utils.cpp
 # End Source File
 # End Group
@@ -184,6 +192,14 @@ SOURCE=..\..\src\lib\CDRUnzip.h
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRZipStream.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CMXDocument.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CMXParser.h
 # End Source File
 # Begin Source File
 
