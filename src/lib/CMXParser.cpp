@@ -119,6 +119,8 @@ void libcdr::CMXParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   long recordStart = input->tell();
   if (fourCC == "cont")
     readCMXHeader(input);
+  else if (fourCC == "DISP")
+    readDisp(input, length);
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
@@ -153,7 +155,7 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
     tmpString.append((char)readU8(input));
   CDR_DEBUG_MSG(("CMX Version Minor: %s\n", tmpString.cstr()));
   m_unit = readU16(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMX Base Units: %i\n", unit));
+  CDR_DEBUG_MSG(("CMX Base Units: %i\n", m_unit));
   m_scale = readDouble(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMX Units Scale: %.9f\n", m_scale));
   input->seek(24, WPX_SEEK_CUR);
@@ -162,6 +164,47 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
   m_xmax = (double)readS32(input, m_bigEndian);
   m_ymin = (double)readS32(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMX Bouding Box: xmin: %f, xmax: %f, ymin: %f, ymax: %f\n", m_xmin, m_xmax, m_ymin, m_ymax));
+}
+
+void libcdr::CMXParser::readDisp(WPXInputStream *input, unsigned length)
+{
+  WPXBinaryData previewImage;
+  previewImage.append(0x42);
+  previewImage.append(0x4d);
+
+  previewImage.append((unsigned char)((length+8) & 0x000000ff));
+  previewImage.append((unsigned char)(((length+8) & 0x0000ff00) >> 8));
+  previewImage.append((unsigned char)(((length+8) & 0x00ff0000) >> 16));
+  previewImage.append((unsigned char)(((length+8) & 0xff000000) >> 24));
+
+  previewImage.append(0x00);
+  previewImage.append(0x00);
+  previewImage.append(0x00);
+  previewImage.append(0x00);
+
+  long startPosition = input->tell();
+  input->seek(0x18, WPX_SEEK_CUR);
+  int lengthX = length + 10 - readU32(input);
+  input->seek(startPosition, WPX_SEEK_SET);
+
+  previewImage.append((unsigned char)((lengthX) & 0x000000ff));
+  previewImage.append((unsigned char)(((lengthX) & 0x0000ff00) >> 8));
+  previewImage.append((unsigned char)(((lengthX) & 0x00ff0000) >> 16));
+  previewImage.append((unsigned char)(((lengthX) & 0xff000000) >> 24));
+
+  input->seek(4, WPX_SEEK_CUR);
+  for (unsigned i = 4; i<length; i++)
+    previewImage.append(readU8(input));
+#if DUMP_PREVIEW_IMAGE
+  FILE *f = fopen("previewImage.bmp", "wb");
+  if (f)
+  {
+    const unsigned char *tmpBuffer = previewImage.getDataBuffer();
+    for (unsigned long k = 0; k < previewImage.size(); k++)
+      fprintf(f, "%c",tmpBuffer[k]);
+    fclose(f);
+  }
+#endif
 }
 
 

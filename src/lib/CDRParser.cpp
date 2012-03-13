@@ -155,45 +155,7 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
 {
   long recordStart = input->tell();
   if (fourCC == "DISP")
-  {
-    WPXBinaryData previewImage;
-    previewImage.append(0x42);
-    previewImage.append(0x4d);
-
-    previewImage.append((unsigned char)((length+8) & 0x000000ff));
-    previewImage.append((unsigned char)(((length+8) & 0x0000ff00) >> 8));
-    previewImage.append((unsigned char)(((length+8) & 0x00ff0000) >> 16));
-    previewImage.append((unsigned char)(((length+8) & 0xff000000) >> 24));
-
-    previewImage.append(0x00);
-    previewImage.append(0x00);
-    previewImage.append(0x00);
-    previewImage.append(0x00);
-
-    long startPosition = input->tell();
-    input->seek(0x18, WPX_SEEK_CUR);
-    int lengthX = length + 10 - readU32(input);
-    input->seek(startPosition, WPX_SEEK_SET);
-
-    previewImage.append((unsigned char)((lengthX) & 0x000000ff));
-    previewImage.append((unsigned char)(((lengthX) & 0x0000ff00) >> 8));
-    previewImage.append((unsigned char)(((lengthX) & 0x00ff0000) >> 16));
-    previewImage.append((unsigned char)(((lengthX) & 0xff000000) >> 24));
-
-    input->seek(4, WPX_SEEK_CUR);
-    for (unsigned i = 4; i<length; i++)
-      previewImage.append(readU8(input));
-#if DUMP_PREVIEW_IMAGE
-    FILE *f = fopen("previewImage.bmp", "wb");
-    if (f)
-    {
-      const unsigned char *tmpBuffer = previewImage.getDataBuffer();
-      for (unsigned long k = 0; k < previewImage.size(); k++)
-        fprintf(f, "%c",tmpBuffer[k]);
-      fclose(f);
-    }
-#endif
-  }
+    readDisp(input, length);
   else if (fourCC == "loda")
     readLoda(input);
   else if (fourCC == "vrsn")
@@ -324,6 +286,47 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
     m_collector->collectArcTo(rx, ry, false, true, x1, y1);
     m_collector->collectArcTo(rx, ry, true, true, x0, y0);
   }
+}
+
+void libcdr::CDRParser::readDisp(WPXInputStream *input, unsigned length)
+{
+  WPXBinaryData previewImage;
+  previewImage.append(0x42);
+  previewImage.append(0x4d);
+
+  previewImage.append((unsigned char)((length+8) & 0x000000ff));
+  previewImage.append((unsigned char)(((length+8) & 0x0000ff00) >> 8));
+  previewImage.append((unsigned char)(((length+8) & 0x00ff0000) >> 16));
+  previewImage.append((unsigned char)(((length+8) & 0xff000000) >> 24));
+
+  previewImage.append(0x00);
+  previewImage.append(0x00);
+  previewImage.append(0x00);
+  previewImage.append(0x00);
+
+  long startPosition = input->tell();
+  input->seek(0x18, WPX_SEEK_CUR);
+  int lengthX = length + 10 - readU32(input);
+  input->seek(startPosition, WPX_SEEK_SET);
+
+  previewImage.append((unsigned char)((lengthX) & 0x000000ff));
+  previewImage.append((unsigned char)(((lengthX) & 0x0000ff00) >> 8));
+  previewImage.append((unsigned char)(((lengthX) & 0x00ff0000) >> 16));
+  previewImage.append((unsigned char)(((lengthX) & 0xff000000) >> 24));
+
+  input->seek(4, WPX_SEEK_CUR);
+  for (unsigned i = 4; i<length; i++)
+    previewImage.append(readU8(input));
+#if DUMP_PREVIEW_IMAGE
+  FILE *f = fopen("previewImage.bmp", "wb");
+  if (f)
+  {
+    const unsigned char *tmpBuffer = previewImage.getDataBuffer();
+    for (unsigned long k = 0; k < previewImage.size(); k++)
+      fprintf(f, "%c",tmpBuffer[k]);
+    fclose(f);
+  }
+#endif
 }
 
 void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)

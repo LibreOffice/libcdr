@@ -57,6 +57,7 @@ private:
   void readRecord(WPXString fourCC, unsigned length, WPXInputStream *input);
 
   void readCMXHeader(WPXInputStream *input);
+  void readDisp(WPXInputStream *input, unsigned length);
 
   WPXInputStream *m_input;
   CDRCollector *m_collector;
@@ -67,6 +68,7 @@ private:
   double m_scale;
   double m_xmin, m_xmax, m_ymin, m_ymax;
 };
+
 } // namespace libcdr
 
 #endif // __CMXPARSER_H__

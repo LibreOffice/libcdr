@@ -894,7 +894,7 @@ void libcdr::CDRCollector::_lineProperties(WPXPropertyList &propList)
         if (scaleY > scale)
           scale = scaleY;
       }
-	  scale *= iter->second.stretch;
+      scale *= iter->second.stretch;
       propList.insert("svg:stroke-width", iter->second.lineWidth * scale);
       propList.insert("svg:stroke-color", _getRGBColorString(iter->second.color));
 
