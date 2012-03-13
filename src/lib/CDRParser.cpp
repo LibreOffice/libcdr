@@ -166,6 +166,8 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
     readOutl(input);
   else if (fourCC == "fild")
     readFild(input);
+  else if (fourCC == "fill")
+    readFild(input);
   /*  else if (fourCC == "arrw")
       ; */
   else if (fourCC == "flgs")
@@ -894,6 +896,8 @@ void libcdr::CDRParser::readMcfg(WPXInputStream *input)
     input->seek(12, WPX_SEEK_CUR);
   else if (m_version >= 900)
     input->seek(4, WPX_SEEK_CUR);
+  else if (m_version < 700)
+    input->seek(0x1c, WPX_SEEK_CUR);
   double width = (double)readS32(input) / 254000.0;
   double height = (double)readS32(input) / 254000.0;
   m_collector->collectPageSize(width, height);
