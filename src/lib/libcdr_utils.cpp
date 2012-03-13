@@ -32,7 +32,7 @@
 
 #define CDR_NUM_ELEMENTS(array) sizeof(array)/sizeof(array[0])
 
-uint8_t libcdr::readU8(WPXInputStream *input)
+uint8_t libcdr::readU8(WPXInputStream *input, bool /* bigEndian */)
 {
   if (!input || input->atEOS())
   {
@@ -47,28 +47,32 @@ uint8_t libcdr::readU8(WPXInputStream *input)
   throw EndOfStreamException();
 }
 
-uint16_t libcdr::readU16(WPXInputStream *input)
+uint16_t libcdr::readU16(WPXInputStream *input, bool bigEndian)
 {
   uint16_t p0 = (uint16_t)readU8(input);
   uint16_t p1 = (uint16_t)readU8(input);
+  if (bigEndian)
+    return (uint16_t)(p1|(p0<<8));
   return (uint16_t)(p0|(p1<<8));
 }
 
-uint32_t libcdr::readU32(WPXInputStream *input)
+uint32_t libcdr::readU32(WPXInputStream *input, bool bigEndian)
 {
   uint32_t p0 = (uint32_t)readU8(input);
   uint32_t p1 = (uint32_t)readU8(input);
   uint32_t p2 = (uint32_t)readU8(input);
   uint32_t p3 = (uint32_t)readU8(input);
+  if (bigEndian)
+    return (uint32_t)(p3|(p2<<8)|(p1<<16)|(p0<<24));
   return (uint32_t)(p0|(p1<<8)|(p2<<16)|(p3<<24));
 }
 
-int32_t libcdr::readS32(WPXInputStream *input)
+int32_t libcdr::readS32(WPXInputStream *input, bool bigEndian)
 {
-  return (int32_t)readU32(input);
+  return (int32_t)readU32(input, bigEndian);
 }
 
-uint64_t libcdr::readU64(WPXInputStream *input)
+uint64_t libcdr::readU64(WPXInputStream *input, bool bigEndian)
 {
   uint64_t p0 = (uint64_t)readU8(input);
   uint64_t p1 = (uint64_t)readU8(input);
@@ -78,10 +82,12 @@ uint64_t libcdr::readU64(WPXInputStream *input)
   uint64_t p5 = (uint64_t)readU8(input);
   uint64_t p6 = (uint64_t)readU8(input);
   uint64_t p7 = (uint64_t)readU8(input);
+  if (bigEndian)
+    return (uint64_t)(p7|(p6<<8)|(p5<<16)|(p4<<24)|(p3<<32)|(p2<<40)|(p1<<48)|(p0<<56));
   return (uint64_t)(p0|(p1<<8)|(p2<<16)|(p3<<24)|(p4<<32)|(p5<<40)|(p6<<48)|(p7<<56));
 }
 
-double libcdr::readDouble(WPXInputStream *input)
+double libcdr::readDouble(WPXInputStream *input, bool bigEndian)
 {
   union
   {
@@ -89,7 +95,7 @@ double libcdr::readDouble(WPXInputStream *input)
     double d;
   } tmpUnion;
 
-  tmpUnion.u = readU64(input);
+  tmpUnion.u = readU64(input, bigEndian);
 
   return tmpUnion.d;
 }

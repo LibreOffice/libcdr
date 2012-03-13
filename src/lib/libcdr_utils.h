@@ -88,13 +88,13 @@ typedef unsigned __int64 uint64_t;
 namespace libcdr
 {
 
-uint8_t readU8(WPXInputStream *input);
-uint16_t readU16(WPXInputStream *input);
-uint32_t readU32(WPXInputStream *input);
-uint64_t readU64(WPXInputStream *input);
-int32_t readS32(WPXInputStream *input);
+uint8_t readU8(WPXInputStream *input, bool bigEndian=false);
+uint16_t readU16(WPXInputStream *input, bool bigEndian=false);
+uint32_t readU32(WPXInputStream *input, bool bigEndian=false);
+uint64_t readU64(WPXInputStream *input, bool bigEndian=false);
+int32_t readS32(WPXInputStream *input, bool bigEndian=false);
 
-double readDouble(WPXInputStream *input);
+double readDouble(WPXInputStream *input, bool bigEndian=false);
 
 ::WPXString readFourCC(WPXInputStream *input);
 
