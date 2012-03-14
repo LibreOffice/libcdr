@@ -29,6 +29,7 @@
 
 #include <string>
 #include <string.h>
+#include <stdlib.h>
 #include "CDRDocument.h"
 #include "CDRParser.h"
 #include "CDRSVGGenerator.h"
@@ -66,6 +67,10 @@ bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
     soFarSoGood = false;
   if (soFarSoGood && signature.cstr()[2] != 'R' && signature.cstr()[2] != 'r')
     soFarSoGood = false;
+#ifndef DEBUG
+  if (soFarSoGood && (unsigned char)(signature.cstr()[3]) < 0x36)
+    soFarSoGood = false;
+#endif
   if (input != tmpInput)
     delete input;
   input = tmpInput;
