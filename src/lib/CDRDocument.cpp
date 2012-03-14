@@ -29,7 +29,6 @@
 
 #include <string>
 #include <string.h>
-#include <stdlib.h>
 #include "CDRDocument.h"
 #include "CDRParser.h"
 #include "CDRSVGGenerator.h"
