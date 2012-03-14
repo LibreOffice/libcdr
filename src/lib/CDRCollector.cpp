@@ -699,7 +699,7 @@ WPXString libcdr::CDRCollector::_getRGBColorString(const libcdr::CDRColor &color
   return tempString;
 }
 
-void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropertyListVector & /* vec */)
+void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropertyListVector &vec)
 {
   if (m_fillOpacity < 1.0)
     propList.insert("draw:opacity", m_fillOpacity, WPX_PERCENT);
@@ -765,12 +765,45 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
             propList.insert("svg:cy", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
             break;
           default:
-            propList.insert("draw:fill", "none");
+            propList.insert("draw:style", "linear");
+            angle += 90.0;
+            while (angle < 0.0)
+              angle += 360.0;
+            while (angle > 360.0)
+              angle -= 360.0;
+            propList.insert("draw:angle", (int)angle);
+            for (unsigned i = 0; i < iter->second.gradient.m_stops.size(); i++)
+            {
+              libcdr::CDRGradientStop &gradStop = iter->second.gradient.m_stops[i];
+              WPXPropertyList stopElement;
+              stopElement.insert("svg:offset", gradStop.m_offset, WPX_PERCENT);
+              stopElement.insert("svg:stop-color", _getRGBColorString(gradStop.m_color));
+              stopElement.insert("svg:stop-opacity", m_fillOpacity, WPX_PERCENT);
+              vec.append(stopElement);
+            }
             break;
           }
         }
         else // output svg gradient as a hail mary pass towards ODG that does not really support it
         {
+          propList.insert("draw:fill", "gradient");
+          propList.insert("draw:style", "linear");
+          double angle = iter->second.gradient.m_angle;
+          angle += 90.0;
+          while (angle < 0.0)
+            angle += 360.0;
+          while (angle > 360.0)
+            angle -= 360.0;
+          propList.insert("draw:angle", (int)angle);
+          for (unsigned i = 0; i < iter->second.gradient.m_stops.size(); i++)
+          {
+            libcdr::CDRGradientStop &gradStop = iter->second.gradient.m_stops[i];
+            WPXPropertyList stopElement;
+            stopElement.insert("svg:offset", gradStop.m_offset, WPX_PERCENT);
+            stopElement.insert("svg:stop-color", _getRGBColorString(gradStop.m_color));
+            stopElement.insert("svg:stop-opacity", m_fillOpacity, WPX_PERCENT);
+            vec.append(stopElement);
+          }
         }
         break;
       case 7: // Pattern
