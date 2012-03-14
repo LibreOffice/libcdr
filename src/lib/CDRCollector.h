@@ -75,6 +75,7 @@ public:
   void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern);
   void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector);
   void collectFillTransform(double v0, double v1, double x, double v3, double v4, double y);
+  void collectFillOpacity(double opacity);
   void collectPolygon();
   void collectSpline();
 
@@ -117,6 +118,7 @@ private:
   bool m_isInSpline;
   std::stack<CDROutputElementList> m_outputElements;
   CDRSplineData m_splineData;
+  double m_fillOpacity;
 
   cmsHTRANSFORM m_colorTransformCMYK2RGB;
   cmsHTRANSFORM m_colorTransformLab2RGB;

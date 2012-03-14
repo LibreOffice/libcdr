@@ -85,7 +85,7 @@ libcdr::CDRCollector::CDRCollector(libwpg::WPGPaintInterface *painter) :
   m_currentImage(), m_currentPath(), m_currentTransform(), m_fillTransform(),
   m_fillStyles(), m_lineStyles(), m_polygon(0), m_bmps(), m_patterns(),
   m_isInPolygon(false), m_isInSpline(false), m_outputElements(), m_splineData(),
-  m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
+  m_fillOpacity(1.0), m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
 {
   cmsHPROFILE tmpCMYKProfile = cmsOpenProfileFromMem(SWOP_icc, sizeof(SWOP_icc)/sizeof(SWOP_icc[0]));
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
@@ -348,6 +348,7 @@ void libcdr::CDRCollector::_flushCurrentPath()
     m_outputElements.push(outputElement);
   m_currentTransform = libcdr::CDRTransform();
   m_fillTransform = libcdr::CDRTransform();
+  m_fillOpacity = 1.0;
 }
 
 void libcdr::CDRCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0)
@@ -700,6 +701,8 @@ WPXString libcdr::CDRCollector::_getRGBColorString(const libcdr::CDRColor &color
 
 void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropertyListVector & /* vec */)
 {
+  if (m_fillOpacity < 1.0)
+    propList.insert("draw:opacity", m_fillOpacity, WPX_PERCENT);
   if (m_currentFildId == 0)
     propList.insert("draw:fill", "none");
   else
@@ -1195,6 +1198,11 @@ void libcdr::CDRCollector::collectBmpf(unsigned patternId, unsigned width, unsig
 void libcdr::CDRCollector::collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector)
 {
   m_splineData = CDRSplineData(points, knotVector);
+}
+
+void libcdr::CDRCollector::collectFillOpacity(double opacity)
+{
+  m_fillOpacity = opacity;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

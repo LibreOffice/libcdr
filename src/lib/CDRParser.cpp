@@ -880,6 +880,8 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input)
       m_collector->collectRotate((double)readU32(input)*M_PI / 180000000.0);
     else if (argTypes[i] == 0x2af8)
       readPolygonTransform(input);
+    else if (argTypes[i] == 0x1f40)
+      readOpacity(input);
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
@@ -1021,6 +1023,16 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input)
     return;
   memcpy(&bitmap[0], tmpBuffer, bmpsize);
   m_collector->collectBmp(imageId, colorModel, width, height, bpp, palette, bitmap);
+}
+
+void libcdr::CDRParser::readOpacity(WPXInputStream *input)
+{
+  if (m_version < 1300)
+    input->seek(10, WPX_SEEK_CUR);
+  else
+    input->seek(14, WPX_SEEK_CUR);
+  double opacity = (double)readU16(input) / 1000.0;
+  m_collector->collectFillOpacity(opacity);
 }
 
 void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
