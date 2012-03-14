@@ -30,7 +30,7 @@ if OS_WIN32
 
 @CDR2RAW_WIN32_RESOURCE@ : cdr2raw.rc $(cdr2raw_OBJECTS)
 	chmod +x $(top_srcdir)/build/win32/*compile-resource
-	WINDRES=@WINDRES@ $(top_srcdir)/build/win32/lt-compile-resource cdr2raw.rc @CMX2RAW_WIN32_RESOURCE@
+	WINDRES=@WINDRES@ $(top_srcdir)/build/win32/lt-compile-resource cdr2raw.rc @CDR2RAW_WIN32_RESOURCE@
 
 @CMX2RAW_WIN32_RESOURCE@ : cmx2raw.rc $(cmx2raw_OBJECTS)
 	chmod +x $(top_srcdir)/build/win32/*compile-resource

@@ -32,7 +32,7 @@ if OS_WIN32
 	chmod +x $(top_srcdir)/build/win32/*compile-resource
 	WINDRES=@WINDRES@ $(top_srcdir)/build/win32/lt-compile-resource cdr2xhtml.rc @CDR2XHTML_WIN32_RESOURCE@
 
-@CMXHTML_WIN32_RESOURCE@ : cmx2xhtml.rc $(cmx2xhtml_OBJECTS)
+@CMX2XHTML_WIN32_RESOURCE@ : cmx2xhtml.rc $(cmx2xhtml_OBJECTS)
 	chmod +x $(top_srcdir)/build/win32/*compile-resource
 	WINDRES=@WINDRES@ $(top_srcdir)/build/win32/lt-compile-resource cmx2xhtml.rc @CMX2XHTML_WIN32_RESOURCE@
 endif
