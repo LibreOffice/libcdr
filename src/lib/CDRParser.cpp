@@ -495,7 +495,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 
   input->seek(16, WPX_SEEK_CUR);
   unsigned imageId = readU32(input);
-  if (m_version == 700)
+  if (m_version < 800)
     input->seek(8, WPX_SEEK_CUR);
   else if (m_version >= 800 && m_version < 900)
     input->seek(12, WPX_SEEK_CUR);
@@ -993,7 +993,10 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
 void libcdr::CDRParser::readBmp(WPXInputStream *input)
 {
   unsigned imageId = readU32(input);
-  input->seek(50, WPX_SEEK_CUR);
+  if (m_version < 700)
+    input->seek(46, WPX_SEEK_CUR);
+  else
+    input->seek(50, WPX_SEEK_CUR);
   unsigned colorModel = readU32(input);
   input->seek(4, WPX_SEEK_CUR);
   unsigned width = readU32(input);
