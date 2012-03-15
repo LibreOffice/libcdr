@@ -88,20 +88,14 @@
 namespace libcdr
 {
 
-typedef struct
-{
-  int index;  // index of this file within the zip
-  long size;  // uncompressed size of item
-} ZipEntry;
-
 class CDRUnzip
 {
 public:
   static void *OpenZip(WPXInputStream *is);
 
-  static unsigned FindZipItem(void *hz, const char *name, ZipEntry &ze);
+  static unsigned FindZipItem(void *hz, const char *name, int &index, unsigned long &size);
 
-  static unsigned UnzipItem(void *hz, void *dst, ZipEntry ze);
+  static unsigned UnzipItem(void *hz, void *dst, int index, unsigned long size);
 
   static unsigned CloseZip(void *hz);
 };

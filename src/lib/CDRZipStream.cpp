@@ -78,19 +78,20 @@ WPXInputStream *libcdr::CDRZipStream::getDocumentOLEStream(const char *name)
   void *result = libcdr::CDRUnzip::OpenZip(this);
   if (!result)
     return 0;
-  ZipEntry ze;
-  if (libcdr::CDRUnzip::FindZipItem(result, name, ze))
+  int index = 0;
+  unsigned long size = 0;
+  if (libcdr::CDRUnzip::FindZipItem(result, name, index, size))
   {
     libcdr::CDRUnzip::CloseZip(result);
     return 0;
   }
-  std::vector<unsigned char> newBuffer(ze.size);
-  libcdr::CDRUnzip::UnzipItem(result, &newBuffer[0], ze);
+  std::vector<unsigned char> newBuffer(size);
+  libcdr::CDRUnzip::UnzipItem(result, &newBuffer[0], index, size);
 #if 0
   FILE *f = fopen("dumpstream.bin", "wb");
   if (f)
   {
-    for (long k = 0; k < ze.size; k++)
+    for (long k = 0; k < size; k++)
       fprintf(f, "%c",newBuffer[k]);
     fclose(f);
   }
