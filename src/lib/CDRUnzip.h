@@ -90,9 +90,8 @@ namespace libcdr
 
 typedef struct
 {
-  int index;                 // index of this file within the zip
-  long comp_size;            // sizes of item, compressed and uncompressed. These
-  long unc_size;             // may be -1 if not yet known (e.g. being streamed in)
+  int index;  // index of this file within the zip
+  long size;  // uncompressed size of item
 } ZipEntry;
 
 class CDRUnzip
@@ -100,12 +99,13 @@ class CDRUnzip
 public:
   static void *OpenZip(WPXInputStream *is);
 
-  static unsigned FindZipItem(void *hz, const char *name, int *index, ZipEntry *ze);
+  static unsigned FindZipItem(void *hz, const char *name, ZipEntry &ze);
 
-  static unsigned UnzipItem(void *hz, int index, void *dst, unsigned int len);
+  static unsigned UnzipItem(void *hz, void *dst, ZipEntry ze);
 
   static unsigned CloseZip(void *hz);
 };
+
 } //namespace libcdr
 
 #endif //CDRUNZIP_H
