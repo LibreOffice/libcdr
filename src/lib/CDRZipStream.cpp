@@ -339,9 +339,7 @@ bool libcdr::CDRZipStream::atEOS()
 
 bool libcdr::CDRZipStream::isOLEStream()
 {
-  if (!isZipStream(m_input, m_cdir_offset))
-    return false;
-  return true;
+  return isZipStream(m_input, m_cdir_offset);
 }
 
 WPXInputStream *libcdr::CDRZipStream::getDocumentOLEStream(const char *name)
