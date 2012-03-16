@@ -123,10 +123,6 @@ SOURCE=..\..\src\lib\CDRTypes.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\lib\CDRUnzip.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\lib\CDRZipStream.cpp
 # End Source File
 # Begin Source File
@@ -184,10 +180,6 @@ SOURCE=..\..\src\lib\CDRSVGGenerator.h
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRTypes.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\CDRUnzip.h
 # End Source File
 # Begin Source File
 

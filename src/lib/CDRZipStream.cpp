@@ -29,16 +29,291 @@
  */
 
 
-#include <zlib.h>
+#include <string.h>
 #include "CDRZipStream.h"
 #include "CDRInternalStream.h"
-#include "CDRUnzip.h"
 #include "libcdr_utils.h"
 
 
+using namespace libcdr;
+
+namespace
+{
+
+struct LocalFileHeader
+{
+  unsigned short min_version;
+  unsigned short general_flag;
+  unsigned short compression;
+  unsigned short lastmod_time;
+  unsigned short lastmod_date;
+  unsigned crc32;
+  unsigned compressed_size;
+  unsigned uncompressed_size;
+  unsigned short filename_size;
+  unsigned short extra_field_size;
+  WPXString filename;
+  WPXString extra_field;
+  LocalFileHeader()
+    : min_version(0), general_flag(0), compression(0), lastmod_time(0), lastmod_date(0),
+      crc32(0), compressed_size(0), uncompressed_size(0), filename_size(0), extra_field_size(0),
+      filename(), extra_field() {}
+  ~LocalFileHeader() {}
+};
+
+struct CentralDirectoryEntry
+{
+  unsigned short creator_version;
+  unsigned short min_version;
+  unsigned short general_flag;
+  unsigned short compression;
+  unsigned short lastmod_time;
+  unsigned short lastmod_date;
+  unsigned crc32;
+  unsigned compressed_size;
+  unsigned uncompressed_size;
+  unsigned short filename_size;
+  unsigned short extra_field_size;
+  unsigned short file_comment_size;
+  unsigned short disk_num;
+  unsigned short internal_attr;
+  unsigned external_attr;
+  unsigned offset;
+  WPXString filename;
+  WPXString extra_field;
+  WPXString file_comment;
+  CentralDirectoryEntry()
+    : creator_version(0), min_version(0), general_flag(0), compression(0), lastmod_time(0),
+      lastmod_date(0), crc32(0), compressed_size(0), uncompressed_size(0), filename_size(0),
+      extra_field_size(0), file_comment_size(0), disk_num(0), internal_attr(0),
+      external_attr(0), offset(0), filename(), extra_field(), file_comment() {}
+  ~CentralDirectoryEntry() {}
+};
+
+struct CentralDirectoryEnd
+{
+  unsigned short disk_num;
+  unsigned short cdir_disk;
+  unsigned short disk_entries;
+  unsigned short cdir_entries;
+  unsigned cdir_size;
+  unsigned cdir_offset;
+  unsigned short comment_size;
+  WPXString comment;
+  CentralDirectoryEnd()
+    : disk_num(0), cdir_disk(0), disk_entries(0), cdir_entries(0),
+      cdir_size(0), cdir_offset(0), comment_size(0), comment() {}
+  ~CentralDirectoryEnd() {}
+};
+
+#define CDIR_ENTRY_SIG 0x02014b50
+#define LOC_FILE_HEADER_SIG 0x04034b50
+#define CDIR_END_SIG 0x06054b50
+
+static bool readCentralDirectoryEnd(WPXInputStream *input, CentralDirectoryEnd &end)
+{
+  try
+  {
+    unsigned signature = readU32(input);
+    if (signature != CDIR_END_SIG)
+      return false;
+
+    end.disk_num = readU16(input);
+    end.cdir_disk = readU16(input);
+    end.disk_entries = readU16(input);
+    end.cdir_entries = readU16(input);
+    end.cdir_size = readU32(input);
+    end.cdir_offset = readU32(input);
+    end.comment_size = readU16(input);
+    end.comment.clear();
+    for (unsigned short i = 0; i < end.comment_size; i++)
+      end.comment.append((char)readU8(input));
+  }
+  catch (...)
+  {
+    return false;
+  }
+  return true;
+}
+
+static bool readCentralDirectoryEntry(WPXInputStream *input, CentralDirectoryEntry &entry)
+{
+  try
+  {
+    unsigned signature = readU32(input);
+    if (signature != CDIR_ENTRY_SIG)
+      return false;
+
+    entry.creator_version = readU16(input);
+    entry.min_version = readU16(input);
+    entry.general_flag = readU16(input);
+    entry.compression = readU16(input);
+    entry.lastmod_time = readU16(input);
+    entry.lastmod_date = readU16(input);
+    entry.crc32 = readU32(input);
+    entry.compressed_size = readU32(input);
+    entry.uncompressed_size = readU32(input);
+    entry.filename_size = readU16(input);
+    entry.extra_field_size = readU16(input);
+    entry.file_comment_size = readU16(input);
+    entry.disk_num = readU16(input);
+    entry.internal_attr = readU16(input);
+    entry.external_attr = readU32(input);
+    entry.offset = readU32(input);
+    unsigned short i = 0;
+    entry.filename.clear();
+    for (i=0; i < entry.filename_size; i++)
+      entry.filename.append((char)readU8(input));
+    entry.extra_field.clear();
+    for (i=0; i < entry.extra_field_size; i++)
+      entry.extra_field.append((char)readU8(input));
+    entry.file_comment.clear();
+    for (i=0; i < entry.file_comment_size; i++)
+      entry.file_comment.append((char)readU8(input));
+  }
+  catch (...)
+  {
+    return false;
+  }
+  return true;
+}
+
+static bool readLocalFileHeader(WPXInputStream *input, LocalFileHeader &header)
+{
+  try
+  {
+    unsigned signature = readU32(input);
+    if (signature != LOC_FILE_HEADER_SIG)
+      return false;
+
+    header.min_version = readU16(input);
+    header.general_flag = readU16(input);
+    header.compression = readU16(input);
+    header.lastmod_time = readU16(input);
+    header.lastmod_date = readU16(input);
+    header.crc32 = readU32(input);
+    header.compressed_size = readU32(input);
+    header.uncompressed_size = readU32(input);
+    header.filename_size = readU16(input);
+    header.extra_field_size = readU16(input);
+    unsigned short i = 0;
+    header.filename.clear();
+    for (i=0; i < header.filename_size; i++)
+      header.filename.append((char)readU8(input));
+    header.extra_field.clear();
+    for (i=0; i < header.extra_field_size; i++)
+      header.extra_field.append((char)readU8(input));
+  }
+  catch (...)
+  {
+    return false;
+  }
+  return true;
+}
+
+static bool areHeadersConsistent(const LocalFileHeader &header, const CentralDirectoryEntry &entry)
+{
+  if (header.min_version != entry.min_version)
+    return false;
+  if (header.general_flag != entry.general_flag)
+    return false;
+  if (header.compression != entry.compression)
+    return false;
+  if (!(header.general_flag & 0x08))
+  {
+    if (header.crc32 != entry.crc32)
+      return false;
+    if (header.compressed_size != entry.compressed_size)
+      return false;
+    if (header.uncompressed_size != entry.uncompressed_size)
+      return false;
+  }
+  return true;
+}
+
+static bool findCentralDirectoryEnd(WPXInputStream *input, long &startOffset)
+{
+  input->seek(startOffset, WPX_SEEK_SET);
+  try
+  {
+    while (!input->atEOS())
+    {
+      unsigned signature = readU32(input);
+      if (signature == CDIR_END_SIG)
+      {
+        input->seek(-4, WPX_SEEK_CUR);
+        startOffset = input->tell();
+        return true;
+      }
+      else
+        input->seek(-3, WPX_SEEK_CUR);
+    }
+  }
+  catch (...)
+  {
+    return false;
+  }
+  return false;
+}
+
+static bool isZipStream(WPXInputStream *input, long &startOffset)
+{
+  if (!findCentralDirectoryEnd(input, startOffset))
+    return false;
+  CentralDirectoryEnd end;
+  if (!readCentralDirectoryEnd(input, end))
+    return false;
+  input->seek(end.cdir_offset, WPX_SEEK_SET);
+  CentralDirectoryEntry entry;
+  if (!readCentralDirectoryEntry(input, entry))
+    return false;
+  input->seek(entry.offset, WPX_SEEK_SET);
+  LocalFileHeader header;
+  if (!readLocalFileHeader(input, header))
+    return false;
+  if (!areHeadersConsistent(header, entry))
+    return false;
+  return true;
+}
+
+static bool findDataStream(WPXInputStream *input, unsigned &size, bool &compressed, long &startOffset, const char *name)
+{
+  unsigned short name_size = strlen(name);
+  if (!findCentralDirectoryEnd(input, startOffset))
+    return false;
+  CentralDirectoryEnd end;
+  if (!readCentralDirectoryEnd(input, end))
+    return false;
+  input->seek(end.cdir_offset, WPX_SEEK_SET);
+  CentralDirectoryEntry entry;
+  while (!input->atEOS() && input->tell() < startOffset && input->tell() < end.cdir_offset + end.cdir_size)
+  {
+    if (!readCentralDirectoryEntry(input, entry))
+      return false;
+    if (name_size == entry.filename_size && entry.filename == name)
+      break;
+  }
+  if (name_size != entry.filename_size)
+    return false;
+  if (entry.filename != name)
+    return false;
+  input->seek(entry.offset, WPX_SEEK_SET);
+  LocalFileHeader header;
+  if (!readLocalFileHeader(input, header))
+    return false;
+  if (!areHeadersConsistent(header, entry))
+    return false;
+  size = entry.uncompressed_size;
+  compressed = (entry.compression != 0);
+  return true;
+}
+
+} // anonymous namespace
+
 libcdr::CDRZipStream::CDRZipStream(WPXInputStream *input) :
   WPXInputStream(),
-  m_input(input)
+  m_input(input),
+  m_cdir_offset(0)
 {
 }
 
@@ -64,46 +339,18 @@ bool libcdr::CDRZipStream::atEOS()
 
 bool libcdr::CDRZipStream::isOLEStream()
 {
-  m_input->seek(0, WPX_SEEK_SET);
-  void *result = libcdr::CDRUnzip::OpenZip(this);
-  if (!result)
+  if (!isZipStream(m_input, m_cdir_offset))
     return false;
-  libcdr::CDRUnzip::CloseZip(result);
   return true;
 }
 
 WPXInputStream *libcdr::CDRZipStream::getDocumentOLEStream(const char *name)
 {
-  m_input->seek(0, WPX_SEEK_SET);
-  void *result = libcdr::CDRUnzip::OpenZip(this);
-  if (!result)
+  unsigned size = 0;
+  bool compressed = false;
+  if (!findDataStream(m_input, size, compressed, m_cdir_offset, name))
     return 0;
-  int index = 0;
-  unsigned long size = 0;
-  if (libcdr::CDRUnzip::FindZipItem(result, name, index, size))
-  {
-    libcdr::CDRUnzip::CloseZip(result);
-    return 0;
-  }
-  std::vector<unsigned char> newBuffer(size);
-  libcdr::CDRUnzip::UnzipItem(result, &newBuffer[0], index, size);
-#if 0
-  FILE *f = fopen("dumpstream.bin", "wb");
-  if (f)
-  {
-    for (long k = 0; k < size; k++)
-      fprintf(f, "%c",newBuffer[k]);
-    fclose(f);
-  }
-#endif
-  WPXInputStream *tmpStream = new libcdr::CDRInternalStream(newBuffer);
-  if (!tmpStream)
-  {
-    libcdr::CDRUnzip::CloseZip(result);
-    return 0;
-  }
-  libcdr::CDRUnzip::CloseZip(result);
-  return tmpStream;
+  return new CDRInternalStream(m_input, size, compressed);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

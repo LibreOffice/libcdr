@@ -27,7 +27,6 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRStringVector.cpp \
 	CDRSVGGenerator.cpp \
 	CDRTypes.cpp \
-	CDRUnzip.cpp \
 	CDRZipStream.cpp \
 	CMXDocument.cpp \
 	CMXParser.cpp \
@@ -40,7 +39,6 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRPath.h \
 	CDRSVGGenerator.h \
 	CDRTypes.h \
-	CDRUnzip.h \
 	CDRZipStream.h \
 	CMXParser.h \
 	libcdr_utils.h
