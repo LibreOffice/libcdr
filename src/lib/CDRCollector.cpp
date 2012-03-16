@@ -836,17 +836,48 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           }
           else
           {
-            propList.insert("svg:width", iter->second.imageFill.width);
-            propList.insert("svg:height", iter->second.imageFill.height);
+            double scaleX = 1.0;
+            double scaleY = 1.0;
+            if (iter->second.imageFill.flags & 0x04) // scale fill with image
+            {
+              scaleX = sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
+              scaleY = sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
+            }
+            propList.insert("svg:width", iter->second.imageFill.width * scaleX);
+            propList.insert("svg:height", iter->second.imageFill.height * scaleY);
           }
           if (iter->second.imageFill.refPoint)
             propList.insert("draw:fill-image-ref-point", "top-left");
           else
             propList.insert("draw:fill-image-ref-point", "bottom-left");
-          if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
-            propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
-          if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 0.0)
-            propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
+          if (iter->second.imageFill.isRelative)
+          {
+            if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
+              propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
+            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 0.0)
+              propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
+          }
+          else
+          {
+            if (m_fillTransform.m_x0 != 0.0)
+            {
+              double xOffset = m_fillTransform.m_x0 / iter->second.imageFill.width;
+              while (xOffset < 0.0)
+                xOffset += 1.0;
+              while (xOffset > 1.0)
+                xOffset -= 1.0;
+              propList.insert("draw:fill-image-ref-point-x", xOffset, WPX_PERCENT);
+            }
+            if (m_fillTransform.m_y0 != 0.0)
+            {
+              double yOffset = m_fillTransform.m_y0 / iter->second.imageFill.width;
+              while (yOffset < 0.0)
+                yOffset += 1.0;
+              while (yOffset > 1.0)
+                yOffset -= 1.0;
+              propList.insert("draw:fill-image-ref-point-y", 1.0 - yOffset, WPX_PERCENT);
+            }
+          }
         }
         else
         {
@@ -873,17 +904,48 @@ void libcdr::CDRCollector::_fillProperties(WPXPropertyList &propList, WPXPropert
           }
           else
           {
-            propList.insert("svg:width", iter->second.imageFill.width);
-            propList.insert("svg:height", iter->second.imageFill.height);
+            double scaleX = 1.0;
+            double scaleY = 1.0;
+            if (iter->second.imageFill.flags & 0x04) // scale fill with image
+            {
+              scaleX = sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
+              scaleY = sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
+            }
+            propList.insert("svg:width", iter->second.imageFill.width * scaleX);
+            propList.insert("svg:height", iter->second.imageFill.height * scaleY);
           }
           if (iter->second.imageFill.refPoint)
             propList.insert("draw:fill-image-ref-point", "top-left");
           else
             propList.insert("draw:fill-image-ref-point", "bottom-left");
-          if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
-            propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
-          if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 0.0)
-            propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
+          if (iter->second.imageFill.isRelative)
+          {
+            if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
+              propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
+            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 0.0)
+              propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
+          }
+          else
+          {
+            if (m_fillTransform.m_x0 != 0.0)
+            {
+              double xOffset = m_fillTransform.m_x0 / iter->second.imageFill.width;
+              while (xOffset < 0.0)
+                xOffset += 1.0;
+              while (xOffset > 1.0)
+                xOffset -= 1.0;
+              propList.insert("draw:fill-image-ref-point-x", xOffset, WPX_PERCENT);
+            }
+            if (m_fillTransform.m_y0 != 0.0)
+            {
+              double yOffset = m_fillTransform.m_y0 / iter->second.imageFill.width;
+              while (yOffset < 0.0)
+                yOffset += 1.0;
+              while (yOffset > 1.0)
+                yOffset -= 1.0;
+              propList.insert("draw:fill-image-ref-point-y", 1.0 - yOffset, WPX_PERCENT);
+            }
+          }
         }
         else
           propList.insert("draw:fill", "none");
