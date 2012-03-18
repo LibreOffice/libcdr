@@ -286,7 +286,7 @@ static bool findDataStream(WPXInputStream *input, unsigned &size, bool &compress
     return false;
   input->seek(end.cdir_offset, WPX_SEEK_SET);
   CentralDirectoryEntry entry;
-  while (!input->atEOS() && input->tell() < startOffset && input->tell() < end.cdir_offset + end.cdir_size)
+  while (!input->atEOS() && input->tell() < startOffset && (unsigned)input->tell() < end.cdir_offset + end.cdir_size)
   {
     if (!readCentralDirectoryEntry(input, entry))
       return false;
