@@ -303,7 +303,7 @@ static bool findDataStream(WPXInputStream *input, unsigned &size, bool &compress
     return false;
   if (!areHeadersConsistent(header, entry))
     return false;
-  size = entry.uncompressed_size;
+  size = entry.compressed_size;
   compressed = (entry.compression != 0);
   return true;
 }
