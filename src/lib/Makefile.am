@@ -40,6 +40,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRSVGGenerator.h \
 	CDRTypes.h \
 	CDRZipStream.h \
+	CMXDocumentStructure.h \
 	CMXParser.h \
 	libcdr_utils.h
 
