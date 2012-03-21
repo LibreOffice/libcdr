@@ -358,8 +358,7 @@ WPXInputStream *getSubstream(WPXInputStream *input, const char *name)
 
 libcdr::CDRZipStream::CDRZipStream(WPXInputStream *input) :
   WPXInputStream(),
-  m_input(input),
-  m_cdir_offset(0)
+  m_input(input)
 {
 }
 
