@@ -30,6 +30,7 @@
 
 
 #include <string.h>
+#include <zlib.h>
 #include "CDRZipStream.h"
 #include "CDRInternalStream.h"
 #include "libcdr_utils.h"
@@ -231,9 +232,9 @@ static bool areHeadersConsistent(const LocalFileHeader &header, const CentralDir
   return true;
 }
 
-static bool findCentralDirectoryEnd(WPXInputStream *input, long &startOffset)
+static bool findCentralDirectoryEnd(WPXInputStream *input)
 {
-  input->seek(startOffset, WPX_SEEK_SET);
+  input->seek(0, WPX_SEEK_SET);
   try
   {
     while (!input->atEOS())
@@ -242,7 +243,6 @@ static bool findCentralDirectoryEnd(WPXInputStream *input, long &startOffset)
       if (signature == CDIR_END_SIG)
       {
         input->seek(-4, WPX_SEEK_CUR);
-        startOffset = input->tell();
         return true;
       }
       else
@@ -256,9 +256,9 @@ static bool findCentralDirectoryEnd(WPXInputStream *input, long &startOffset)
   return false;
 }
 
-static bool isZipStream(WPXInputStream *input, long &startOffset)
+static bool isZipStream(WPXInputStream *input)
 {
-  if (!findCentralDirectoryEnd(input, startOffset))
+  if (!findCentralDirectoryEnd(input))
     return false;
   CentralDirectoryEnd end;
   if (!readCentralDirectoryEnd(input, end))
@@ -276,17 +276,16 @@ static bool isZipStream(WPXInputStream *input, long &startOffset)
   return true;
 }
 
-static bool findDataStream(WPXInputStream *input, unsigned &size, bool &compressed, long &startOffset, const char *name)
+static bool findDataStream(WPXInputStream *input, CentralDirectoryEntry &entry, const char *name)
 {
   unsigned short name_size = strlen(name);
-  if (!findCentralDirectoryEnd(input, startOffset))
+  if (!findCentralDirectoryEnd(input))
     return false;
   CentralDirectoryEnd end;
   if (!readCentralDirectoryEnd(input, end))
     return false;
   input->seek(end.cdir_offset, WPX_SEEK_SET);
-  CentralDirectoryEntry entry;
-  while (!input->atEOS() && input->tell() < startOffset && (unsigned)input->tell() < end.cdir_offset + end.cdir_size)
+  while (!input->atEOS() && (unsigned)input->tell() < end.cdir_offset + end.cdir_size)
   {
     if (!readCentralDirectoryEntry(input, entry))
       return false;
@@ -303,9 +302,56 @@ static bool findDataStream(WPXInputStream *input, unsigned &size, bool &compress
     return false;
   if (!areHeadersConsistent(header, entry))
     return false;
-  size = entry.compressed_size;
-  compressed = (entry.compression != 0);
   return true;
+}
+
+WPXInputStream *getSubstream(WPXInputStream *input, const char *name)
+{
+  CentralDirectoryEntry entry;
+  if (!findDataStream(input, entry, name))
+    return 0;
+  if (!entry.compression)
+    return new CDRInternalStream(input, entry.compressed_size);
+  else
+  {
+    int ret;
+    z_stream strm;
+
+    /* allocate inflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    strm.avail_in = 0;
+    strm.next_in = Z_NULL;
+    ret = inflateInit2(&strm,-MAX_WBITS);
+    if (ret != Z_OK)
+      return 0;
+
+    unsigned long numBytesRead = 0;
+    const unsigned char *compressedData = input->read(entry.compressed_size, numBytesRead);
+    if (numBytesRead != entry.compressed_size)
+      return 0;
+
+    strm.avail_in = numBytesRead;
+    strm.next_in = (Bytef *)compressedData;
+
+    std::vector<unsigned char>data(entry.uncompressed_size);
+
+    strm.avail_out = entry.uncompressed_size;
+    strm.next_out = reinterpret_cast<Bytef *>(&data[0]);
+    ret = inflate(&strm, Z_FINISH);
+    switch (ret)
+    {
+    case Z_NEED_DICT:
+    case Z_DATA_ERROR:
+    case Z_MEM_ERROR:
+      (void)inflateEnd(&strm);
+      data.clear();
+      return 0;
+    }
+
+    return new CDRInternalStream(data);
+  }
 }
 
 } // anonymous namespace
@@ -339,16 +385,12 @@ bool libcdr::CDRZipStream::atEOS()
 
 bool libcdr::CDRZipStream::isOLEStream()
 {
-  return isZipStream(m_input, m_cdir_offset);
+  return isZipStream(m_input);
 }
 
 WPXInputStream *libcdr::CDRZipStream::getDocumentOLEStream(const char *name)
 {
-  unsigned size = 0;
-  bool compressed = false;
-  if (!findDataStream(m_input, size, compressed, m_cdir_offset, name))
-    return 0;
-  return new CDRInternalStream(m_input, size, compressed);
+  return getSubstream(m_input, name);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
