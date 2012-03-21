@@ -349,7 +349,7 @@ WPXInputStream *getSubstream(WPXInputStream *input, const char *name)
       data.clear();
       return 0;
     }
-
+    (void)inflateEnd(&strm);
     return new CDRInternalStream(data);
   }
 }

@@ -49,6 +49,8 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
   m_offset(0),
   m_buffer()
 {
+  if (!size)
+    return;
   unsigned long tmpNumBytesRead = 0;
 
   const unsigned char *tmpBuffer = 0;
@@ -99,6 +101,7 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
       case Z_DATA_ERROR:
       case Z_MEM_ERROR:
         (void)inflateEnd(&strm);
+	m_buffer.clear();
         return;
       }
 
@@ -109,7 +112,7 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
 
     }
     while (strm.avail_out == 0);
-
+    (void)inflateEnd(&strm);
   }
 }
 
