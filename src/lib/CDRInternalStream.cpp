@@ -51,19 +51,17 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
 {
   if (!size)
     return;
-  unsigned long tmpNumBytesRead = 0;
-
-  const unsigned char *tmpBuffer = 0;
 
   if (!compressed)
   {
-    tmpBuffer = input->read(size, tmpNumBytesRead);
+    unsigned long tmpNumBytesRead = 0;
+    const unsigned char *tmpBuffer = input->read(size, tmpNumBytesRead);
 
     if (size != tmpNumBytesRead)
       return;
 
     m_buffer = std::vector<unsigned char>(size);
-    memcpy(&m_buffer[0], &tmpBuffer[0], size);
+    memcpy(&m_buffer[0], tmpBuffer, size);
   }
   else
   {
@@ -82,7 +80,8 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
     if (ret != Z_OK)
       return;
 
-    tmpBuffer = input->read(size, tmpNumBytesRead);
+    unsigned long tmpNumBytesRead = 0;
+    const unsigned char *tmpBuffer = input->read(size, tmpNumBytesRead);
 
     if (size != tmpNumBytesRead)
       return;
@@ -101,7 +100,7 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
       case Z_DATA_ERROR:
       case Z_MEM_ERROR:
         (void)inflateEnd(&strm);
-	m_buffer.clear();
+        m_buffer.clear();
         return;
       }
 
