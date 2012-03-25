@@ -22,7 +22,7 @@
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPLv2+"), or
  * the GNU Lesser General Public License Version 2 or later (the "LGPLv2+"),
- * in which case the procdrns of the GPLv2+ or the LGPLv2+ are applicable
+ * in which case the provisions of the GPLv2+ or the LGPLv2+ are applicable
  * instead of those above.
  */
 
