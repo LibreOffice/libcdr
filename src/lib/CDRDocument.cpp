@@ -32,7 +32,8 @@
 #include "CDRDocument.h"
 #include "CDRParser.h"
 #include "CDRSVGGenerator.h"
-#include "CDRCollector.h"
+#include "CDRContentCollector.h"
+#include "CDRStylesCollector.h"
 #include "CDRZipStream.h"
 #include "libcdr_utils.h"
 
@@ -94,9 +95,17 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   if (!input)
     input = tmpInput;
   input->seek(0, WPX_SEEK_SET);
-  CDRCollector collector(painter);
-  CDRParser parser(input, &collector);
-  bool retVal = parser.parseRecords(input);
+  CDRParserState ps;
+  CDRStylesCollector stylesCollector(ps);
+  CDRParser stylesParser(input, &stylesCollector);
+  bool retVal = stylesParser.parseRecords(input);
+  if (retVal)
+  {
+    input->seek(0, WPX_SEEK_SET);
+    CDRContentCollector contentCollector(ps, painter);
+    CDRParser contentParser(input, &contentCollector);
+    retVal = contentParser.parseRecords(input);
+  }
   if (input != tmpInput)
     delete input;
   input = tmpInput;

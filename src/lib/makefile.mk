@@ -40,12 +40,14 @@ INCPRE+=-I$(SOLARVER)$/$(INPATH)$/inc$/external/zlib
 
 SLOFILES= \
     $(SLO)$/CDRCollector.obj \
+    $(SLO)$/CDRContentCollector.obj \
     $(SLO)$/CDRDocument.obj \
     $(SLO)$/CDRInternalStream.obj \
     $(SLO)$/CDROutputElementList.obj \
     $(SLO)$/CDRParser.obj \
     $(SLO)$/CDRPath.obj \
     $(SLO)$/CDRStringVector.obj \
+    $(SLO)$/CDRStylesCollector.obj \
     $(SLO)$/CDRSVGGenerator.obj \
     $(SLO)$/CDRTypes.obj \
     $(SLO)$/CDRZipStream.obj \

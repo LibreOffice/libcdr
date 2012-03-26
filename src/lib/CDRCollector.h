@@ -39,89 +39,96 @@
 #include "CDRPath.h"
 #include "CDROutputElementList.h"
 
+namespace
+{
+int cdr_round(double d)
+{
+  return (d>0) ? int(d+0.5) : int(d-0.5);
+}
+
+void writeU16(WPXBinaryData &buffer, const int value)
+{
+  buffer.append((unsigned char)(value & 0xFF));
+  buffer.append((unsigned char)((value >> 8) & 0xFF));
+}
+
+void writeU32(WPXBinaryData &buffer, const int value)
+{
+  buffer.append((unsigned char)(value & 0xFF));
+  buffer.append((unsigned char)((value >> 8) & 0xFF));
+  buffer.append((unsigned char)((value >> 16) & 0xFF));
+  buffer.append((unsigned char)((value >> 24) & 0xFF));
+}
+
+void writeU8(WPXBinaryData &buffer, const int value)
+{
+  buffer.append((unsigned char)(value & 0xFF));
+}
+
+#include "CDRColorProfiles.h"
+
+}
+
 namespace libcdr
 {
+
+class CDRParserState
+{
+public:
+  CDRParserState();
+  ~CDRParserState();
+  std::map<unsigned, CDRFillStyle> m_fillStyles;
+  std::map<unsigned, CDRLineStyle> m_lineStyles;
+  std::map<unsigned, WPXBinaryData> m_bmps;
+  std::map<unsigned, CDRPattern> m_patterns;
+
+  unsigned _getRGBColor(const CDRColor &color);
+  unsigned getBMPColor(const CDRColor &color);
+  WPXString getRGBColorString(const CDRColor &color);
+  cmsHTRANSFORM m_colorTransformCMYK2RGB;
+  cmsHTRANSFORM m_colorTransformLab2RGB;
+
+private:
+  CDRParserState(const CDRParserState &);
+  CDRParserState &operator=(const CDRParserState &);
+};
 
 class CDRCollector
 {
 public:
-  CDRCollector(::libwpg::WPGPaintInterface *painter);
-  virtual ~CDRCollector();
+  CDRCollector() {};
+  virtual ~CDRCollector() {};
 
   // collector functions
-  void collectPage(unsigned level);
-  void collectObject(unsigned level);
-  void collectOtherList();
-  void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y);
-  void collectQuadraticBezier(double x1, double y1, double x, double y);
-  void collectMoveTo(double x, double y);
-  void collectLineTo(double x, double y);
-  void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y);
-  void collectClosePath();
-  void collectLevel(unsigned level);
-  void collectTransform(double v0, double v1, double x, double v3, double v4, double y);
-  void collectFildId(unsigned id);
-  void collectOutlId(unsigned id);
-  void collectFild(unsigned id, unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill);
-  void collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
-                   double stretch, double angle, const CDRColor &color, const std::vector<unsigned short> &dashArray,
-                   unsigned startMarkerId, unsigned endMarkerId);
-  void collectRotate(double angle);
-  void collectFlags(unsigned flags);
-  void collectPageSize(double width, double height);
-  void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
-  void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2);
-  void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> palette, const std::vector<unsigned char> bitmap);
-  void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern);
-  void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector);
-  void collectFillTransform(double v0, double v1, double x, double v3, double v4, double y);
-  void collectFillOpacity(double opacity);
-  void collectPolygon();
-  void collectSpline();
-
-private:
-  CDRCollector(const CDRCollector &);
-  CDRCollector &operator=(const CDRCollector &);
-
-  // helper functions
-  void _startPage(double width, double height);
-  void _endPage();
-  void _flushCurrentPath();
-
-  unsigned _getRGBColor(const CDRColor &color);
-  unsigned _getBMPColor(const CDRColor &color);
-  WPXString _getRGBColorString(const CDRColor &color);
-
-  void _fillProperties(WPXPropertyList &propList, WPXPropertyListVector &vec);
-  void _lineProperties(WPXPropertyList &propList);
-  void _generateBitmapFromPattern(WPXBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor);
-
-  libwpg::WPGPaintInterface *m_painter;
-
-  bool m_isPageProperties;
-  bool m_isPageStarted;
-
-  double m_pageOffsetX, m_pageOffsetY;
-  double m_pageWidth, m_pageHeight;
-  unsigned m_currentFildId, m_currentOutlId;
-  unsigned m_currentObjectLevel, m_currentPageLevel;
-  CDRImage m_currentImage;
-
-  CDRPath m_currentPath;
-  CDRTransform m_currentTransform, m_fillTransform;
-  std::map<unsigned, CDRFillStyle> m_fillStyles;
-  std::map<unsigned, CDRLineStyle> m_lineStyles;
-  CDRPolygon *m_polygon;
-  std::map<unsigned, WPXBinaryData> m_bmps;
-  std::map<unsigned, CDRPattern> m_patterns;
-  bool m_isInPolygon;
-  bool m_isInSpline;
-  std::stack<CDROutputElementList> m_outputElements;
-  CDRSplineData m_splineData;
-  double m_fillOpacity;
-
-  cmsHTRANSFORM m_colorTransformCMYK2RGB;
-  cmsHTRANSFORM m_colorTransformLab2RGB;
+  virtual void collectPage(unsigned level) = 0;
+  virtual void collectObject(unsigned level) = 0;
+  virtual void collectOtherList() = 0;
+  virtual void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y) = 0;
+  virtual void collectQuadraticBezier(double x1, double y1, double x, double y) = 0;
+  virtual void collectMoveTo(double x, double y) = 0;
+  virtual void collectLineTo(double x, double y) = 0;
+  virtual void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y) = 0;
+  virtual void collectClosePath() = 0;
+  virtual void collectLevel(unsigned level) = 0;
+  virtual void collectTransform(double v0, double v1, double x, double v3, double v4, double y) = 0;
+  virtual void collectFildId(unsigned id) = 0;
+  virtual void collectOutlId(unsigned id) = 0;
+  virtual void collectFild(unsigned id, unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill) = 0;
+  virtual void collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
+                           double stretch, double angle, const CDRColor &color, const std::vector<unsigned short> &dashArray,
+                           unsigned startMarkerId, unsigned endMarkerId) = 0;
+  virtual void collectRotate(double angle) = 0;
+  virtual void collectFlags(unsigned flags) = 0;
+  virtual void collectPageSize(double width, double height) = 0;
+  virtual void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy) = 0;
+  virtual void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2) = 0;
+  virtual void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap) = 0;
+  virtual void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern) = 0;
+  virtual void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector) = 0;
+  virtual void collectFillTransform(double v0, double v1, double x, double v3, double v4, double y) = 0;
+  virtual void collectFillOpacity(double opacity) = 0;
+  virtual void collectPolygon() = 0;
+  virtual void collectSpline() = 0;
 };
 
 } // namespace libcdr

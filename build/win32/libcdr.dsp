@@ -91,6 +91,10 @@ SOURCE=..\..\src\lib\CDRCollector.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDRContentCollector.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\CDRDocument.cpp
 # End Source File
 # Begin Source File
@@ -112,6 +116,10 @@ SOURCE=..\..\src\lib\CDRPath.cpp
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRStringVector.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRStylesCollector.cpp
 # End Source File
 # Begin Source File
 
@@ -151,6 +159,10 @@ SOURCE=..\..\src\lib\CDRColorProfiles.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDRContentCollector.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\CDRDocument.h
 # End Source File
 # Begin Source File
@@ -175,6 +187,10 @@ SOURCE=..\..\src\lib\CDRStringVector.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CDRStylesCollector.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\CDRSVGGenerator.h
 # End Source File
 # Begin Source File
@@ -188,6 +204,10 @@ SOURCE=..\..\src\lib\CDRZipStream.h
 # Begin Source File
 
 SOURCE=..\..\src\lib\CMXDocument.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CMXDocumentStructure.h
 # End Source File
 # Begin Source File
 

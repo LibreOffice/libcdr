@@ -19,12 +19,14 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_DEPENDENCIES = @LIBCDR_WIN32_R
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LDFLAGS = $(version_info) -export-dynamic -no-undefined
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRCollector.cpp \
+	CDRContentCollector.cpp \
 	CDRDocument.cpp \
 	CDRInternalStream.cpp \
 	CDROutputElementList.cpp \
 	CDRParser.cpp \
 	CDRPath.cpp \
 	CDRStringVector.cpp \
+	CDRStylesCollector.cpp \
 	CDRSVGGenerator.cpp \
 	CDRTypes.cpp \
 	CDRZipStream.cpp \
@@ -33,10 +35,12 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	libcdr_utils.cpp \
 	CDRCollector.h \
 	CDRColorProfiles.h \
+	CDRContentCollector.h \
 	CDRInternalStream.h \
 	CDROutputElementList.h \
 	CDRParser.h \
 	CDRPath.h \
+	CDRStylesCollector.h \
 	CDRSVGGenerator.h \
 	CDRTypes.h \
 	CDRZipStream.h \

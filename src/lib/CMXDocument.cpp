@@ -32,7 +32,8 @@
 #include "CMXDocument.h"
 #include "CMXParser.h"
 #include "CDRSVGGenerator.h"
-#include "CDRCollector.h"
+#include "CDRContentCollector.h"
+#include "CDRStylesCollector.h"
 #include "CDRZipStream.h"
 #include "libcdr_utils.h"
 
@@ -71,9 +72,17 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 bool libcdr::CMXDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterface *painter)
 {
   input->seek(0, WPX_SEEK_SET);
-  CDRCollector collector(painter);
-  CMXParser parser(input, &collector);
-  bool retVal = parser.parseRecords(input);
+  CDRParserState ps;
+  CDRStylesCollector stylesCollector(ps);
+  CMXParser stylesParser(input, &stylesCollector);
+  bool retVal = stylesParser.parseRecords(input);
+  if (retVal)
+  {
+    input->seek(0, WPX_SEEK_SET);
+    CDRContentCollector contentCollector(ps, painter);
+    CMXParser contentParser(input, &contentCollector);
+    retVal = contentParser.parseRecords(input);
+  }
   return retVal;
 }
 
