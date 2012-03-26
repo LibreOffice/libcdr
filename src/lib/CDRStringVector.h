@@ -15,7 +15,6 @@
  * Major Contributor(s):
  * Copyright (C) 2012 Fridrich Strba <fridrich.strba@bluewin.ch>
  *
- *
  * All Rights Reserved.
  *
  * For minor contributions see the git repository.

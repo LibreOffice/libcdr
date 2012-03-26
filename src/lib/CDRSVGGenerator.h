@@ -16,7 +16,6 @@
  * Copyright (C) 2011 Fridrich Strba <fridrich.strba@bluewin.ch>
  * Copyright (C) 2011 Eilidh McAdam <tibbylickle@gmail.com>
  *
- *
  * All Rights Reserved.
  *
  * For minor contributions see the git repository.

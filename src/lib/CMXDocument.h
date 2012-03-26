@@ -12,10 +12,8 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- *
  * Major Contributor(s):
  * Copyright (C) 2012 Fridrich Strba <fridrich.strba@bluewin.ch>
- *
  *
  * All Rights Reserved.
  *
