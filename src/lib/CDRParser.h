@@ -78,6 +78,7 @@ private:
   void readPpdt(WPXInputStream *input);
   void readFtil(WPXInputStream *input);
   void readDisp(WPXInputStream *input, unsigned length);
+  void readVersion(WPXInputStream *input, unsigned length);
 
   WPXInputStream *m_input;
   CDRCollector *m_collector;

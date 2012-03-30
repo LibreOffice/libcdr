@@ -159,7 +159,7 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   else if (fourCC == "loda")
     readLoda(input);
   else if (fourCC == "vrsn")
-    m_version = readU16(input);
+    readVersion(input, length);
   else if (fourCC == "trfd")
     readTrfd(input);
   else if (fourCC == "outl")
@@ -567,6 +567,8 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 
 void libcdr::CDRParser::readTrfd(WPXInputStream *input)
 {
+  if (m_version >= 1600)
+    return;
   long startPosition = input->tell();
   unsigned chunkLength = readU32(input);
   unsigned numOfArgs = readU32(input);
@@ -794,6 +796,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input)
 
 void libcdr::CDRParser::readOutl(WPXInputStream *input)
 {
+  if (m_version >= 1600)
+    return;
   unsigned lineId = readU32(input);
   if (m_version >= 1300)
   {
@@ -834,6 +838,8 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input)
 
 void libcdr::CDRParser::readLoda(WPXInputStream *input)
 {
+  if (m_version >= 1600)
+    return;
   long startPosition = input->tell();
   unsigned chunkLength = readU32(input);
   unsigned numOfArgs = readU32(input);
@@ -994,6 +1000,8 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
 
 void libcdr::CDRParser::readBmp(WPXInputStream *input)
 {
+  if (m_version >= 1600)
+    return;
   unsigned imageId = readU32(input);
   if (m_version < 700)
     input->seek(46, WPX_SEEK_CUR);
@@ -1061,6 +1069,8 @@ void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
 
 void libcdr::CDRParser::readPpdt(WPXInputStream *input)
 {
+  if (m_version >= 1600)
+    return;
   unsigned short pointNum = readU16(input);
   input->seek(4, WPX_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
@@ -1086,6 +1096,20 @@ void libcdr::CDRParser::readFtil(WPXInputStream *input)
   double v4 = readDouble(input);
   double y0 = readDouble(input) / 254000.0;
   m_collector->collectFillTransform(v0, v1, x0, v3, v4, y0);
+}
+
+void libcdr::CDRParser::readVersion(WPXInputStream *input, unsigned length)
+{
+  if (length == 2)
+    m_version = readU16(input);
+  else if (length >= 0x10)
+  {
+    if (!(0xffffffff == readU32(input)))
+      return;
+    length = readU32(input);
+    if (length == 2)
+      m_version = readU16(input);
+  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
