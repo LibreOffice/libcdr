@@ -45,7 +45,7 @@ class CDRCollector;
 class CDRParser
 {
 public:
-  explicit CDRParser(WPXInputStream *input, CDRCollector *collector);
+  explicit CDRParser(WPXInputStream *input, const std::vector<WPXInputStream *> &externalStreams, CDRCollector *collector);
   virtual ~CDRParser();
   bool parseRecords(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
 
@@ -65,11 +65,11 @@ private:
   void readBitmap(WPXInputStream *input);
   void readOpacity(WPXInputStream *input);
   void readTrfd(WPXInputStream *input, unsigned length);
-  void readFild(WPXInputStream *input);
+  void readFild(WPXInputStream *input, unsigned length);
   void readOutl(WPXInputStream *input, unsigned length);
   void readLoda(WPXInputStream *input, unsigned length);
   void readFlags(WPXInputStream *input);
-  void readMcfg(WPXInputStream *input);
+  void readMcfg(WPXInputStream *input, unsigned length);
   void readPath(WPXInputStream *input);
   void readPolygonCoords(WPXInputStream *input);
   void readPolygonTransform(WPXInputStream *input);
@@ -81,6 +81,7 @@ private:
   void readVersion(WPXInputStream *input, unsigned length);
 
   WPXInputStream *m_input;
+  std::vector<WPXInputStream *> m_externalStreams;
   CDRCollector *m_collector;
 
   unsigned m_version;

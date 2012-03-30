@@ -94,29 +94,64 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   input->seek(0, WPX_SEEK_SET);
   WPXInputStream *tmpInput = input;
   CDRZipStream zinput(input);
-  if (zinput.isOLEStream())
+  bool isZipDocument = zinput.isOLEStream();
+  std::vector<std::string> dataFiles;
+  if (isZipDocument)
   {
     input = zinput.getDocumentOLEStream("content/riffData.cdr");
     if (!input)
+    {
       input = zinput.getDocumentOLEStream("content/root.dat");
+      if (input)
+      {
+        WPXInputStream *tmpInput = zinput.getDocumentOLEStream("content/dataFileList.dat");
+        if (tmpInput)
+        {
+          std::string dataFileName;
+          while (!tmpInput->atEOS())
+          {
+            unsigned char character = readU8(tmpInput);
+            if (character == 0x0a)
+            {
+              dataFiles.push_back(dataFileName);
+              dataFileName.clear();
+            }
+            else
+              dataFileName += (char)character;
+          }
+          if (!dataFileName.empty())
+            dataFiles.push_back(dataFileName);
+        }
+      }
+    }
+  }
+  std::vector<WPXInputStream *> dataStreams;
+  for (unsigned i=0; i<dataFiles.size(); i++)
+  {
+    std::string streamName("content/data/");
+    streamName += dataFiles[i];
+    CDR_DEBUG_MSG(("Extracting stream: %s\n", streamName.c_str()));
+    dataStreams.push_back(zinput.getDocumentOLEStream(streamName.c_str()));
   }
   if (!input)
     input = tmpInput;
   input->seek(0, WPX_SEEK_SET);
   CDRParserState ps;
   CDRStylesCollector stylesCollector(ps);
-  CDRParser stylesParser(input, &stylesCollector);
+  CDRParser stylesParser(input, dataStreams, &stylesCollector);
   bool retVal = stylesParser.parseRecords(input);
   if (retVal)
   {
     input->seek(0, WPX_SEEK_SET);
     CDRContentCollector contentCollector(ps, painter);
-    CDRParser contentParser(input, &contentCollector);
+    CDRParser contentParser(input, dataStreams, &contentCollector);
     retVal = contentParser.parseRecords(input);
   }
   if (input != tmpInput)
     delete input;
   input = tmpInput;
+  for (std::vector<WPXInputStream *>::iterator iter = dataStreams.begin(); iter != dataStreams.end(); ++iter)
+    delete *iter;
   return retVal;
 }
 

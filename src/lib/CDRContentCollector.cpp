@@ -98,6 +98,8 @@ void libcdr::CDRContentCollector::collectPage(unsigned level)
 
 void libcdr::CDRContentCollector::collectObject(unsigned level)
 {
+  if (!m_isPageStarted)
+    _startPage(m_pageWidth, m_pageHeight);
   m_currentObjectLevel = level;
   m_currentFildId = 0;
   m_currentOutlId = 0;
