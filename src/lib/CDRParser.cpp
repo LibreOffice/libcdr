@@ -571,12 +571,13 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
   if (m_version >= 1600 && length == 0x10)
   {
     unsigned streamNumber = readU32(input);
-    if (streamNumber >= m_externalStreams.size())
-      return;
-    input->seek(4, WPX_SEEK_CUR);
-    unsigned streamOffset = readU32(input);
-    input = m_externalStreams[streamNumber];
-    input->seek(streamOffset, WPX_SEEK_SET);
+    length = readU32(input);
+    if (streamNumber < m_externalStreams.size())
+    {
+      unsigned streamOffset = readU32(input);
+      input = m_externalStreams[streamNumber];
+      input->seek(streamOffset, WPX_SEEK_SET);
+    }
   }
   long startPosition = input->tell();
   unsigned chunkLength = readU32(input);
@@ -642,12 +643,13 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   if (m_version >= 1600 && length == 0x10)
   {
     unsigned streamNumber = readU32(input);
-    if (streamNumber >= m_externalStreams.size())
-      return;
-    input->seek(4, WPX_SEEK_CUR);
-    unsigned streamOffset = readU32(input);
-    input = m_externalStreams[streamNumber];
-    input->seek(streamOffset, WPX_SEEK_SET);
+    length = readU32(input);
+    if (streamNumber < m_externalStreams.size())
+    {
+      unsigned streamOffset = readU32(input);
+      input = m_externalStreams[streamNumber];
+      input->seek(streamOffset, WPX_SEEK_SET);
+    }
   }
   unsigned fillId = readU32(input);
   unsigned short v13flag = 0;
@@ -868,12 +870,13 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
   if (m_version >= 1600 && length == 0x10)
   {
     unsigned streamNumber = readU32(input);
-    if (streamNumber >= m_externalStreams.size())
-      return;
-    input->seek(4, WPX_SEEK_CUR);
-    unsigned streamOffset = readU32(input);
-    input = m_externalStreams[streamNumber];
-    input->seek(streamOffset, WPX_SEEK_SET);
+    length = readU32(input);
+    if (streamNumber < m_externalStreams.size())
+    {
+      unsigned streamOffset = readU32(input);
+      input = m_externalStreams[streamNumber];
+      input->seek(streamOffset, WPX_SEEK_SET);
+    }
   }
   long startPosition = input->tell();
   unsigned chunkLength = readU32(input);
@@ -922,7 +925,7 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
     else if (argTypes[i] == 0x2af8)
       readPolygonTransform(input);
     else if (argTypes[i] == 0x1f40)
-      readOpacity(input);
+      readOpacity(input, length);
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
@@ -938,12 +941,13 @@ void libcdr::CDRParser::readMcfg(WPXInputStream *input, unsigned length)
   if (m_version >= 1600 && length == 0x10)
   {
     unsigned streamNumber = readU32(input);
-    if (streamNumber >= m_externalStreams.size())
-      return;
-    input->seek(4, WPX_SEEK_CUR);
-    unsigned streamOffset = readU32(input);
-    input = m_externalStreams[streamNumber];
-    input->seek(streamOffset, WPX_SEEK_SET);
+    length = readU32(input);
+    if (streamNumber < m_externalStreams.size())
+    {
+      unsigned streamOffset = readU32(input);
+      input = m_externalStreams[streamNumber];
+      input->seek(streamOffset, WPX_SEEK_SET);
+    }
   }
   if (m_version >= 1300)
     input->seek(12, WPX_SEEK_CUR);
@@ -1048,12 +1052,13 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
   if (m_version >= 1600 && length == 0x10)
   {
     unsigned streamNumber = readU32(input);
-    if (streamNumber >= m_externalStreams.size())
-      return;
-    input->seek(4, WPX_SEEK_CUR);
-    unsigned streamOffset = readU32(input);
-    input = m_externalStreams[streamNumber];
-    input->seek(streamOffset, WPX_SEEK_SET);
+    length = readU32(input);
+    if (streamNumber < m_externalStreams.size())
+    {
+      unsigned streamOffset = readU32(input);
+      input = m_externalStreams[streamNumber];
+      input->seek(streamOffset, WPX_SEEK_SET);
+    }
   }
   unsigned imageId = readU32(input);
   if (m_version < 700)
@@ -1086,7 +1091,7 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
   m_collector->collectBmp(imageId, colorModel, width, height, bpp, palette, bitmap);
 }
 
-void libcdr::CDRParser::readOpacity(WPXInputStream *input)
+void libcdr::CDRParser::readOpacity(WPXInputStream *input, unsigned /* length */)
 {
   if (m_version < 1300)
     input->seek(10, WPX_SEEK_CUR);
@@ -1098,6 +1103,17 @@ void libcdr::CDRParser::readOpacity(WPXInputStream *input)
 
 void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
 {
+  if (m_version >= 1600 && length == 0x10)
+  {
+    unsigned streamNumber = readU32(input);
+    length = readU32(input);
+    if (streamNumber < m_externalStreams.size())
+    {
+      unsigned streamOffset = readU32(input);
+      input = m_externalStreams[streamNumber];
+      input->seek(streamOffset, WPX_SEEK_SET);
+    }
+  }
   unsigned patternId = readU32(input);
   unsigned headerLength = readU32(input);
   if (headerLength != 40)
@@ -1125,12 +1141,13 @@ void libcdr::CDRParser::readPpdt(WPXInputStream *input, unsigned length)
   if (m_version >= 1600 && length == 0x10)
   {
     unsigned streamNumber = readU32(input);
-    if (streamNumber >= m_externalStreams.size())
-      return;
-    input->seek(4, WPX_SEEK_CUR);
-    unsigned streamOffset = readU32(input);
-    input = m_externalStreams[streamNumber];
-    input->seek(streamOffset, WPX_SEEK_SET);
+    length = readU32(input);
+    if (streamNumber < m_externalStreams.size())
+    {
+      unsigned streamOffset = readU32(input);
+      input = m_externalStreams[streamNumber];
+      input->seek(streamOffset, WPX_SEEK_SET);
+    }
   }
   unsigned short pointNum = readU16(input);
   input->seek(4, WPX_SEEK_CUR);
@@ -1161,16 +1178,18 @@ void libcdr::CDRParser::readFtil(WPXInputStream *input)
 
 void libcdr::CDRParser::readVersion(WPXInputStream *input, unsigned length)
 {
-  if (length == 2)
-    m_version = readU16(input);
-  else if (length >= 0x10)
+  if (m_version >= 1600 && length == 0x10)
   {
-    if (!(0xffffffff == readU32(input)))
-      return;
+    unsigned streamNumber = readU32(input);
     length = readU32(input);
-    if (length == 2)
-      m_version = readU16(input);
+    if (streamNumber < m_externalStreams.size())
+    {
+      unsigned streamOffset = readU32(input);
+      input = m_externalStreams[streamNumber];
+      input->seek(streamOffset, WPX_SEEK_SET);
+    }
   }
+  m_version = readU16(input);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
