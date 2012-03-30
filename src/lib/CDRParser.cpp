@@ -172,7 +172,7 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   /*  else if (fourCC == "arrw")
       ; */
   else if (fourCC == "flgs")
-    readFlags(input);
+    readFlags(input, length);
   else if (fourCC == "mcfg")
     readMcfg(input, length);
   else if (fourCC == "bmp ")
@@ -182,7 +182,7 @@ void libcdr::CDRParser::readRecord(WPXString fourCC, unsigned length, WPXInputSt
   else if (fourCC == "ppdt")
     readPpdt(input, length);
   else if (fourCC == "ftil")
-    readFtil(input);
+    readFtil(input, length);
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
@@ -930,8 +930,19 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
 
-void libcdr::CDRParser::readFlags(WPXInputStream *input)
+void libcdr::CDRParser::readFlags(WPXInputStream *input, unsigned length)
 {
+  if (m_version >= 1600 && length == 0x10)
+  {
+    unsigned streamNumber = readU32(input);
+    length = readU32(input);
+    if (streamNumber < m_externalStreams.size())
+    {
+      unsigned streamOffset = readU32(input);
+      input = m_externalStreams[streamNumber];
+      input->seek(streamOffset, WPX_SEEK_SET);
+    }
+  }
   unsigned flags = readU32(input);
   m_collector->collectFlags(flags);
 }
@@ -1165,8 +1176,19 @@ void libcdr::CDRParser::readPpdt(WPXInputStream *input, unsigned length)
   m_collector->collectPpdt(points, knotVector);
 }
 
-void libcdr::CDRParser::readFtil(WPXInputStream *input)
+void libcdr::CDRParser::readFtil(WPXInputStream *input, unsigned length)
 {
+  if (m_version >= 1600 && length == 0x10)
+  {
+    unsigned streamNumber = readU32(input);
+    length = readU32(input);
+    if (streamNumber < m_externalStreams.size())
+    {
+      unsigned streamOffset = readU32(input);
+      input = m_externalStreams[streamNumber];
+      input->seek(streamOffset, WPX_SEEK_SET);
+    }
+  }
   double v0 = readDouble(input);
   double v1 = readDouble(input);
   double x0 = readDouble(input) / 254000.0;
@@ -1178,7 +1200,7 @@ void libcdr::CDRParser::readFtil(WPXInputStream *input)
 
 void libcdr::CDRParser::readVersion(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
+  if (length == 0x10)
   {
     unsigned streamNumber = readU32(input);
     length = readU32(input);

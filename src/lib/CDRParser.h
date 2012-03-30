@@ -68,7 +68,7 @@ private:
   void readFild(WPXInputStream *input, unsigned length);
   void readOutl(WPXInputStream *input, unsigned length);
   void readLoda(WPXInputStream *input, unsigned length);
-  void readFlags(WPXInputStream *input);
+  void readFlags(WPXInputStream *input, unsigned length);
   void readMcfg(WPXInputStream *input, unsigned length);
   void readPath(WPXInputStream *input);
   void readPolygonCoords(WPXInputStream *input);
@@ -76,7 +76,7 @@ private:
   void readBmp(WPXInputStream *input, unsigned length);
   void readBmpf(WPXInputStream *input, unsigned length);
   void readPpdt(WPXInputStream *input, unsigned length);
-  void readFtil(WPXInputStream *input);
+  void readFtil(WPXInputStream *input, unsigned length);
   void readDisp(WPXInputStream *input, unsigned length);
   void readVersion(WPXInputStream *input, unsigned length);
 
