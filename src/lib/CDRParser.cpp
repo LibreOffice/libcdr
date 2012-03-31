@@ -766,7 +766,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     color1 = libcdr::CDRColor(colorModel, colorValue);
     if (m_version >= 1300)
     {
-      if (v13flag == 0x94)
+      if (v13flag == 0x94 || (m_version >= 1600 && v13flag == 0x8c))
         input->seek(31, WPX_SEEK_CUR);
       else
         input->seek(10, WPX_SEEK_CUR);
