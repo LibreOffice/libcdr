@@ -779,7 +779,9 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   }
   else if (fillType == 9) // bitmap
   {
-    if (m_version >= 1300)
+    if (m_version >= 1600)
+      input->seek(32, WPX_SEEK_CUR);
+    else if (m_version >= 1300)
       input->seek(8, WPX_SEEK_CUR);
     else
       input->seek(6, WPX_SEEK_CUR);
