@@ -54,11 +54,10 @@ struct LocalFileHeader
   unsigned short filename_size;
   unsigned short extra_field_size;
   WPXString filename;
-  WPXString extra_field;
   LocalFileHeader()
     : min_version(0), general_flag(0), compression(0), lastmod_time(0), lastmod_date(0),
       crc32(0), compressed_size(0), uncompressed_size(0), filename_size(0), extra_field_size(0),
-      filename(), extra_field() {}
+      filename() {}
   ~LocalFileHeader() {}
 };
 
@@ -81,13 +80,11 @@ struct CentralDirectoryEntry
   unsigned external_attr;
   unsigned offset;
   WPXString filename;
-  WPXString extra_field;
-  WPXString file_comment;
   CentralDirectoryEntry()
     : creator_version(0), min_version(0), general_flag(0), compression(0), lastmod_time(0),
       lastmod_date(0), crc32(0), compressed_size(0), uncompressed_size(0), filename_size(0),
       extra_field_size(0), file_comment_size(0), disk_num(0), internal_attr(0),
-      external_attr(0), offset(0), filename(), extra_field(), file_comment() {}
+      external_attr(0), offset(0), filename() {}
   ~CentralDirectoryEntry() {}
 };
 
@@ -100,10 +97,9 @@ struct CentralDirectoryEnd
   unsigned cdir_size;
   unsigned cdir_offset;
   unsigned short comment_size;
-  WPXString comment;
   CentralDirectoryEnd()
     : disk_num(0), cdir_disk(0), disk_entries(0), cdir_entries(0),
-      cdir_size(0), cdir_offset(0), comment_size(0), comment() {}
+      cdir_size(0), cdir_offset(0), comment_size(0) {}
   ~CentralDirectoryEnd() {}
 };
 
@@ -126,9 +122,7 @@ static bool readCentralDirectoryEnd(WPXInputStream *input, CentralDirectoryEnd &
     end.cdir_size = readU32(input);
     end.cdir_offset = readU32(input);
     end.comment_size = readU16(input);
-    end.comment.clear();
-    for (unsigned short i = 0; i < end.comment_size; i++)
-      end.comment.append((char)readU8(input));
+	input->seek(end.comment_size, WPX_SEEK_CUR);
   }
   catch (...)
   {
@@ -165,12 +159,8 @@ static bool readCentralDirectoryEntry(WPXInputStream *input, CentralDirectoryEnt
     entry.filename.clear();
     for (i=0; i < entry.filename_size; i++)
       entry.filename.append((char)readU8(input));
-    entry.extra_field.clear();
-    for (i=0; i < entry.extra_field_size; i++)
-      entry.extra_field.append((char)readU8(input));
-    entry.file_comment.clear();
-    for (i=0; i < entry.file_comment_size; i++)
-      entry.file_comment.append((char)readU8(input));
+	input->seek(entry.extra_field_size, WPX_SEEK_CUR);
+    input->seek(entry.file_comment_size, WPX_SEEK_CUR);
   }
   catch (...)
   {
@@ -201,9 +191,7 @@ static bool readLocalFileHeader(WPXInputStream *input, LocalFileHeader &header)
     header.filename.clear();
     for (i=0; i < header.filename_size; i++)
       header.filename.append((char)readU8(input));
-    header.extra_field.clear();
-    for (i=0; i < header.extra_field_size; i++)
-      header.extra_field.append((char)readU8(input));
+	input->seek(header.extra_field_size, WPX_SEEK_CUR);
   }
   catch (...)
   {
@@ -232,9 +220,9 @@ static bool areHeadersConsistent(const LocalFileHeader &header, const CentralDir
   return true;
 }
 
-static bool findCentralDirectoryEnd(WPXInputStream *input)
+static bool findCentralDirectoryEnd(WPXInputStream *input, unsigned &offset)
 {
-  input->seek(0, WPX_SEEK_SET);
+  input->seek(offset, WPX_SEEK_SET);
   try
   {
     while (!input->atEOS())
@@ -243,6 +231,7 @@ static bool findCentralDirectoryEnd(WPXInputStream *input)
       if (signature == CDIR_END_SIG)
       {
         input->seek(-4, WPX_SEEK_CUR);
+		offset = input->tell();
         return true;
       }
       else
@@ -256,9 +245,9 @@ static bool findCentralDirectoryEnd(WPXInputStream *input)
   return false;
 }
 
-static bool isZipStream(WPXInputStream *input)
+static bool isZipStream(WPXInputStream *input, unsigned &offset)
 {
-  if (!findCentralDirectoryEnd(input))
+  if (!findCentralDirectoryEnd(input, offset))
     return false;
   CentralDirectoryEnd end;
   if (!readCentralDirectoryEnd(input, end))
@@ -276,10 +265,10 @@ static bool isZipStream(WPXInputStream *input)
   return true;
 }
 
-static bool findDataStream(WPXInputStream *input, CentralDirectoryEntry &entry, const char *name)
+static bool findDataStream(WPXInputStream *input, CentralDirectoryEntry &entry, const char *name, unsigned &offset)
 {
   unsigned short name_size = strlen(name);
-  if (!findCentralDirectoryEnd(input))
+  if (!findCentralDirectoryEnd(input, offset))
     return false;
   CentralDirectoryEnd end;
   if (!readCentralDirectoryEnd(input, end))
@@ -305,10 +294,10 @@ static bool findDataStream(WPXInputStream *input, CentralDirectoryEntry &entry, 
   return true;
 }
 
-WPXInputStream *getSubstream(WPXInputStream *input, const char *name)
+WPXInputStream *getSubstream(WPXInputStream *input, const char *name, unsigned &offset)
 {
   CentralDirectoryEntry entry;
-  if (!findDataStream(input, entry, name))
+  if (!findDataStream(input, entry, name, offset))
     return 0;
   if (!entry.compression)
     return new CDRInternalStream(input, entry.compressed_size);
@@ -358,7 +347,8 @@ WPXInputStream *getSubstream(WPXInputStream *input, const char *name)
 
 libcdr::CDRZipStream::CDRZipStream(WPXInputStream *input) :
   WPXInputStream(),
-  m_input(input)
+  m_input(input),
+  m_cdir_offset(0)
 {
 }
 
@@ -384,12 +374,12 @@ bool libcdr::CDRZipStream::atEOS()
 
 bool libcdr::CDRZipStream::isOLEStream()
 {
-  return isZipStream(m_input);
+  return isZipStream(m_input, m_cdir_offset);
 }
 
 WPXInputStream *libcdr::CDRZipStream::getDocumentOLEStream(const char *name)
 {
-  return getSubstream(m_input, name);
+  return getSubstream(m_input, name, m_cdir_offset);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

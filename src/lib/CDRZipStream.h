@@ -56,6 +56,7 @@ private:
   CDRZipStream(const CDRZipStream &);
   CDRZipStream &operator=(const CDRZipStream &);
   WPXInputStream *m_input;
+  unsigned m_cdir_offset;
 };
 
 } // namespace libcdr
