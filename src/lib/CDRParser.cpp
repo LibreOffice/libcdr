@@ -207,12 +207,40 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
   double r2 = 0.0;
   double r1 = 0.0;
   double r0 = 0.0;
+  
   if (m_version < 1500)
   {
     r3 = readCoordinate(input);
     r2 = m_version < 900 ? r3 : readCoordinate(input);
     r1 = m_version < 900 ? r3 : readCoordinate(input);
     r0 = m_version < 900 ? r3 : readCoordinate(input);
+  }
+  else
+  {
+    double scaleX = readCoordinate(input);
+    double scaleY = readCoordinate(input);
+    unsigned int scale_with = readU8(input);
+    input->seek(7, WPX_SEEK_CUR);
+    r3 = readCoordinate(input);
+    //unsigned int corner_type = readU8(input);
+    input->seek(16, WPX_SEEK_CUR);
+    r2 = readCoordinate(input);
+    input->seek(16, WPX_SEEK_CUR);
+    r1 = readCoordinate(input);
+    input->seek(16, WPX_SEEK_CUR);
+    r0 = readCoordinate(input);
+    if (scale_with == 0)
+    {
+    // need to convert radii based on size
+      if (scaleX >= scaleY)
+      {
+        // r *= width;
+      }
+      else
+      {
+         // r *= height;
+      }
+    }
   }
   if (r0 > 0.0)
     m_collector->collectMoveTo(0.0, -r0);
