@@ -122,7 +122,7 @@ static bool readCentralDirectoryEnd(WPXInputStream *input, CentralDirectoryEnd &
     end.cdir_size = readU32(input);
     end.cdir_offset = readU32(input);
     end.comment_size = readU16(input);
-	input->seek(end.comment_size, WPX_SEEK_CUR);
+    input->seek(end.comment_size, WPX_SEEK_CUR);
   }
   catch (...)
   {
@@ -159,7 +159,7 @@ static bool readCentralDirectoryEntry(WPXInputStream *input, CentralDirectoryEnt
     entry.filename.clear();
     for (i=0; i < entry.filename_size; i++)
       entry.filename.append((char)readU8(input));
-	input->seek(entry.extra_field_size, WPX_SEEK_CUR);
+    input->seek(entry.extra_field_size, WPX_SEEK_CUR);
     input->seek(entry.file_comment_size, WPX_SEEK_CUR);
   }
   catch (...)
@@ -191,7 +191,7 @@ static bool readLocalFileHeader(WPXInputStream *input, LocalFileHeader &header)
     header.filename.clear();
     for (i=0; i < header.filename_size; i++)
       header.filename.append((char)readU8(input));
-	input->seek(header.extra_field_size, WPX_SEEK_CUR);
+    input->seek(header.extra_field_size, WPX_SEEK_CUR);
   }
   catch (...)
   {
@@ -231,7 +231,7 @@ static bool findCentralDirectoryEnd(WPXInputStream *input, unsigned &offset)
       if (signature == CDIR_END_SIG)
       {
         input->seek(-4, WPX_SEEK_CUR);
-		offset = input->tell();
+        offset = input->tell();
         return true;
       }
       else
