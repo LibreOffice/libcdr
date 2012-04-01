@@ -203,10 +203,17 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 {
   double x0 = readCoordinate(input);
   double y0 = readCoordinate(input);
-  double r3 = readCoordinate(input);
-  double r2 = m_version < 900 ? r3 : readCoordinate(input);
-  double r1 = m_version < 900 ? r3 : readCoordinate(input);
-  double r0 = m_version < 900 ? r3 : readCoordinate(input);
+  double r3 = 0.0;
+  double r2 = 0.0;
+  double r1 = 0.0;
+  double r0 = 0.0;
+  if (m_version < 1500)
+  {
+    r3 = readCoordinate(input);
+    r2 = m_version < 900 ? r3 : readCoordinate(input);
+    r1 = m_version < 900 ? r3 : readCoordinate(input);
+    r0 = m_version < 900 ? r3 : readCoordinate(input);
+  }
   if (r0 > 0.0)
     m_collector->collectMoveTo(0.0, -r0);
   else
