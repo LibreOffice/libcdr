@@ -37,6 +37,31 @@
 #include "CDRZipStream.h"
 #include "libcdr_utils.h"
 
+using namespace libcdr;
+
+namespace
+{
+
+static unsigned getCDRVersion(WPXInputStream *input)
+{
+  unsigned riff = readU32(input);
+  if (riff != 0x46464952) // "RIFF"
+    return 0;
+  input->seek(4, WPX_SEEK_CUR);
+  char signature_c = (char)readU8(input);
+  if (signature_c != 'C' && signature_c != 'c')
+    return 0;
+  char signature_d = (char)readU8(input);
+  if (signature_d != 'D' && signature_d != 'd')
+    return 0;
+  char signature_r = (char)readU8(input);
+  if (signature_r != 'R' && signature_r != 'r')
+    return 0;
+  return (readU8(input) - 0x30)*100;
+}
+
+} // anonymous namespace
+
 /**
 Analyzes the content of an input stream to see if it can be parsed
 \param input The input stream
@@ -46,6 +71,15 @@ stream is a Corel Draw Document that libcdr is able to parse
 bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
 {
   input->seek(0, WPX_SEEK_SET);
+  unsigned version = getCDRVersion(input);
+  if (version)
+  {
+#ifndef DEBUG
+    if (version < 600)
+      return false;
+#endif
+    return true;
+  }
   WPXInputStream *tmpInput = input;
   CDRZipStream zinput(input);
   // Yes, we are kidnapping here the OLE document API and extending
@@ -57,28 +91,15 @@ bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
       input = zinput.getDocumentOLEStream("content/root.dat");
   }
   if (!input)
-    input = tmpInput;
+    return false;
   input->seek(0, WPX_SEEK_SET);
-  bool soFarSoGood = true;
-  WPXString riff = readFourCC(input);
-  if (riff != "RIFF")
-    soFarSoGood = false;
-  input->seek(4, WPX_SEEK_CUR);
-  WPXString signature = readFourCC(input);
-  if (soFarSoGood && signature.cstr()[0] != 'C' && signature.cstr()[0] != 'c')
-    soFarSoGood = false;
-  if (soFarSoGood && signature.cstr()[1] != 'D' && signature.cstr()[1] != 'd')
-    soFarSoGood = false;
-  if (soFarSoGood && signature.cstr()[2] != 'R' && signature.cstr()[2] != 'r')
-    soFarSoGood = false;
-#ifndef DEBUG
-  if (soFarSoGood && (unsigned char)(signature.cstr()[3]) < 0x36)
-    soFarSoGood = false;
-#endif
+  version = getCDRVersion(input);
   if (input != tmpInput)
     delete input;
   input = tmpInput;
-  return soFarSoGood;
+  if (!version)
+    return false;
+  return true;
 }
 
 /**
@@ -92,6 +113,29 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterface *painter)
 {
   input->seek(0, WPX_SEEK_SET);
+  bool retVal = false;
+  unsigned version = getCDRVersion(input);
+  if (version)
+  {
+#ifndef DEBUG
+    if (version < 600)
+      return false;
+#endif
+    input->seek(0, WPX_SEEK_SET);
+    CDRParserState ps;
+    CDRStylesCollector stylesCollector(ps);
+    CDRParser stylesParser(input, std::vector<WPXInputStream *>(), &stylesCollector);
+    retVal = stylesParser.parseRecords(input);
+    if (retVal)
+    {
+      input->seek(0, WPX_SEEK_SET);
+      CDRContentCollector contentCollector(ps, painter);
+      CDRParser contentParser(input, std::vector<WPXInputStream *>(), &contentCollector);
+      retVal = contentParser.parseRecords(input);
+    }
+    return retVal;
+  }
+
   WPXInputStream *tmpInput = input;
   CDRZipStream zinput(input);
   bool isZipDocument = zinput.isOLEStream();
@@ -139,7 +183,7 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   CDRParserState ps;
   CDRStylesCollector stylesCollector(ps);
   CDRParser stylesParser(input, dataStreams, &stylesCollector);
-  bool retVal = stylesParser.parseRecords(input);
+  retVal = stylesParser.parseRecords(input);
   if (retVal)
   {
     input->seek(0, WPX_SEEK_SET);
