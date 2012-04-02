@@ -104,13 +104,13 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
       input = zinput.getDocumentOLEStream("content/root.dat");
       if (input)
       {
-        WPXInputStream *tmpInput = zinput.getDocumentOLEStream("content/dataFileList.dat");
-        if (tmpInput)
+        WPXInputStream *tmpStream = zinput.getDocumentOLEStream("content/dataFileList.dat");
+        if (tmpStream)
         {
           std::string dataFileName;
-          while (!tmpInput->atEOS())
+          while (!tmpStream->atEOS())
           {
-            unsigned char character = readU8(tmpInput);
+            unsigned char character = readU8(tmpStream);
             if (character == 0x0a)
             {
               dataFiles.push_back(dataFileName);
@@ -125,13 +125,13 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
       }
     }
   }
-  std::vector<WPXInputStream *> dataStreams;
+  std::vector<WPXInputStream *> dataStreams(dataFiles.size());
   for (unsigned i=0; i<dataFiles.size(); i++)
   {
     std::string streamName("content/data/");
     streamName += dataFiles[i];
     CDR_DEBUG_MSG(("Extracting stream: %s\n", streamName.c_str()));
-    dataStreams.push_back(zinput.getDocumentOLEStream(streamName.c_str()));
+    dataStreams[i] = zinput.getDocumentOLEStream(streamName.c_str());
   }
   if (!input)
     input = tmpInput;

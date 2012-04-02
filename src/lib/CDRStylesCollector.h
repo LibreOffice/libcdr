@@ -59,7 +59,7 @@ public:
   void collectLineTo(double, double) {}
   void collectArcTo(double, double, bool, bool, double, double) {}
   void collectClosePath() {}
-  void collectLevel(unsigned level) {}
+  void collectLevel(unsigned) {}
   void collectTransform(double, double, double, double, double, double) {}
   void collectFildId(unsigned) {}
   void collectOutlId(unsigned) {}
