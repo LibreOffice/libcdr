@@ -234,24 +234,13 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
       r1 = readDouble(input);
       input->seek(16, WPX_SEEK_CUR);
       r0 = readDouble(input);
-	  
-	  double width = x0*scaleX / 2.0;
-	  double height = y0*scaleY / 2.0;
 
-      if (fabs(width) < fabs(height))
-      {
-        r3 *= fabs(width);
-        r2 *= fabs(width);
-        r1 *= fabs(width);
-        r0 *= fabs(width);
-      }
-      else
-      {
-        r3 *= fabs(height);
-        r2 *= fabs(height);
-        r1 *= fabs(height);
-        r0 *= fabs(height);
-      }
+      double width = fabs(x0*scaleX / 2.0);
+      double height = fabs(y0*scaleY / 2.0);
+      r3 *= width < height ? width : height;
+      r2 *= width < height ? width : height;
+      r1 *= width < height ? width : height;
+      r0 *= width < height ? width : height;
     }
     else
     {
