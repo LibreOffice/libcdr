@@ -43,63 +43,37 @@ namespace
 
 struct LocalFileHeader
 {
-  unsigned short min_version;
   unsigned short general_flag;
   unsigned short compression;
-  unsigned short lastmod_time;
-  unsigned short lastmod_date;
   unsigned crc32;
   unsigned compressed_size;
   unsigned uncompressed_size;
-  unsigned short filename_size;
-  unsigned short extra_field_size;
   WPXString filename;
   LocalFileHeader()
-    : min_version(0), general_flag(0), compression(0), lastmod_time(0), lastmod_date(0),
-      crc32(0), compressed_size(0), uncompressed_size(0), filename_size(0), extra_field_size(0),
-      filename() {}
+    : general_flag(0), compression(0), crc32(0), compressed_size(0), uncompressed_size(0), filename() {}
   ~LocalFileHeader() {}
 };
 
 struct CentralDirectoryEntry
 {
-  unsigned short creator_version;
-  unsigned short min_version;
   unsigned short general_flag;
   unsigned short compression;
-  unsigned short lastmod_time;
-  unsigned short lastmod_date;
   unsigned crc32;
   unsigned compressed_size;
   unsigned uncompressed_size;
-  unsigned short filename_size;
-  unsigned short extra_field_size;
-  unsigned short file_comment_size;
-  unsigned short disk_num;
-  unsigned short internal_attr;
-  unsigned external_attr;
   unsigned offset;
   WPXString filename;
   CentralDirectoryEntry()
-    : creator_version(0), min_version(0), general_flag(0), compression(0), lastmod_time(0),
-      lastmod_date(0), crc32(0), compressed_size(0), uncompressed_size(0), filename_size(0),
-      extra_field_size(0), file_comment_size(0), disk_num(0), internal_attr(0),
-      external_attr(0), offset(0), filename() {}
+    : general_flag(0), compression(0), crc32(0), compressed_size(0), uncompressed_size(0), offset(0), filename() {}
   ~CentralDirectoryEntry() {}
 };
 
 struct CentralDirectoryEnd
 {
-  unsigned short disk_num;
-  unsigned short cdir_disk;
-  unsigned short disk_entries;
-  unsigned short cdir_entries;
   unsigned cdir_size;
   unsigned cdir_offset;
-  unsigned short comment_size;
   CentralDirectoryEnd()
-    : disk_num(0), cdir_disk(0), disk_entries(0), cdir_entries(0),
-      cdir_size(0), cdir_offset(0), comment_size(0) {}
+    : cdir_size(0), cdir_offset(0) {}
   ~CentralDirectoryEnd() {}
 };
 
@@ -115,14 +89,11 @@ static bool readCentralDirectoryEnd(WPXInputStream *input, CentralDirectoryEnd &
     if (signature != CDIR_END_SIG)
       return false;
 
-    end.disk_num = readU16(input);
-    end.cdir_disk = readU16(input);
-    end.disk_entries = readU16(input);
-    end.cdir_entries = readU16(input);
+    input->seek(8, WPX_SEEK_CUR);
     end.cdir_size = readU32(input);
     end.cdir_offset = readU32(input);
-    end.comment_size = readU16(input);
-    input->seek(end.comment_size, WPX_SEEK_CUR);
+    unsigned short comment_size = readU16(input);
+    input->seek(comment_size, WPX_SEEK_CUR);
   }
   catch (...)
   {
@@ -139,28 +110,23 @@ static bool readCentralDirectoryEntry(WPXInputStream *input, CentralDirectoryEnt
     if (signature != CDIR_ENTRY_SIG)
       return false;
 
-    entry.creator_version = readU16(input);
-    entry.min_version = readU16(input);
+    input->seek(4, WPX_SEEK_CUR);
     entry.general_flag = readU16(input);
     entry.compression = readU16(input);
-    entry.lastmod_time = readU16(input);
-    entry.lastmod_date = readU16(input);
+    input->seek(4, WPX_SEEK_CUR);
     entry.crc32 = readU32(input);
     entry.compressed_size = readU32(input);
     entry.uncompressed_size = readU32(input);
-    entry.filename_size = readU16(input);
-    entry.extra_field_size = readU16(input);
-    entry.file_comment_size = readU16(input);
-    entry.disk_num = readU16(input);
-    entry.internal_attr = readU16(input);
-    entry.external_attr = readU32(input);
+    unsigned short filename_size = readU16(input);
+    unsigned short extra_field_size = readU16(input);
+    unsigned short file_comment_size = readU16(input);
+    input->seek(8, WPX_SEEK_CUR);
     entry.offset = readU32(input);
     unsigned short i = 0;
     entry.filename.clear();
-    for (i=0; i < entry.filename_size; i++)
+    for (i=0; i < filename_size; i++)
       entry.filename.append((char)readU8(input));
-    input->seek(entry.extra_field_size, WPX_SEEK_CUR);
-    input->seek(entry.file_comment_size, WPX_SEEK_CUR);
+    input->seek(extra_field_size+file_comment_size, WPX_SEEK_CUR);
   }
   catch (...)
   {
@@ -177,21 +143,20 @@ static bool readLocalFileHeader(WPXInputStream *input, LocalFileHeader &header)
     if (signature != LOC_FILE_HEADER_SIG)
       return false;
 
-    header.min_version = readU16(input);
+    input->seek(2, WPX_SEEK_CUR);
     header.general_flag = readU16(input);
     header.compression = readU16(input);
-    header.lastmod_time = readU16(input);
-    header.lastmod_date = readU16(input);
+    input->seek(4, WPX_SEEK_CUR);
     header.crc32 = readU32(input);
     header.compressed_size = readU32(input);
     header.uncompressed_size = readU32(input);
-    header.filename_size = readU16(input);
-    header.extra_field_size = readU16(input);
+    unsigned short filename_size = readU16(input);
+    unsigned short extra_field_size = readU16(input);
     unsigned short i = 0;
     header.filename.clear();
-    for (i=0; i < header.filename_size; i++)
+    for (i=0; i < filename_size; i++)
       header.filename.append((char)readU8(input));
-    input->seek(header.extra_field_size, WPX_SEEK_CUR);
+    input->seek(extra_field_size, WPX_SEEK_CUR);
   }
   catch (...)
   {
@@ -202,8 +167,6 @@ static bool readLocalFileHeader(WPXInputStream *input, LocalFileHeader &header)
 
 static bool areHeadersConsistent(const LocalFileHeader &header, const CentralDirectoryEntry &entry)
 {
-  if (header.min_version != entry.min_version)
-    return false;
   if (header.general_flag != entry.general_flag)
     return false;
   if (header.compression != entry.compression)
@@ -267,7 +230,6 @@ static bool isZipStream(WPXInputStream *input, unsigned &offset)
 
 static bool findDataStream(WPXInputStream *input, CentralDirectoryEntry &entry, const char *name, unsigned &offset)
 {
-  unsigned short name_size = strlen(name);
   if (!findCentralDirectoryEnd(input, offset))
     return false;
   CentralDirectoryEnd end;
@@ -278,11 +240,9 @@ static bool findDataStream(WPXInputStream *input, CentralDirectoryEntry &entry, 
   {
     if (!readCentralDirectoryEntry(input, entry))
       return false;
-    if (name_size == entry.filename_size && entry.filename == name)
+    if (entry.filename == name)
       break;
   }
-  if (name_size != entry.filename_size)
-    return false;
   if (entry.filename != name)
     return false;
   input->seek(entry.offset, WPX_SEEK_SET);
