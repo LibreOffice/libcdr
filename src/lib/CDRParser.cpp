@@ -208,6 +208,8 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
   double r1 = 0.0;
   double r0 = 0.0;
   unsigned int corner_type = 0;
+  double scaleX = 1.0;
+  double scaleY = 1.0;
 
   if (m_version < 1500)
   {
@@ -218,10 +220,8 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
   }
   else
   {
-    double scaleX = readDouble(input);
-    double scaleY = readDouble(input);
-    x0 *= scaleX;
-    y0 *= scaleY;
+    scaleX = readDouble(input);
+    scaleY = readDouble(input);
     unsigned int scale_with = readU8(input);
     input->seek(7, WPX_SEEK_CUR);
     if (scale_with == 0)
@@ -234,20 +234,23 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
       r1 = readDouble(input);
       input->seek(16, WPX_SEEK_CUR);
       r0 = readDouble(input);
+	  
+	  double width = x0*scaleX / 2.0;
+	  double height = y0*scaleY / 2.0;
 
-      if (fabs(x0) < fabs(y0))
+      if (fabs(width) < fabs(height))
       {
-        r3 *= fabs(x0);
-        r2 *= fabs(x0);
-        r1 *= fabs(x0);
-        r0 *= fabs(x0);
+        r3 *= fabs(width);
+        r2 *= fabs(width);
+        r1 *= fabs(width);
+        r0 *= fabs(width);
       }
       else
       {
-        r3 *= fabs(y0);
-        r2 *= fabs(y0);
-        r1 *= fabs(y0);
-        r0 *= fabs(y0);
+        r3 *= fabs(height);
+        r2 *= fabs(height);
+        r1 *= fabs(height);
+        r0 *= fabs(height);
       }
     }
     else
@@ -263,54 +266,54 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
     }
   }
   if (r0 > 0.0)
-    m_collector->collectMoveTo(0.0, -r0);
+    m_collector->collectMoveTo(0.0, -r0/scaleY);
   else
     m_collector->collectMoveTo(0.0, 0.0);
   if (r1 > 0.0)
   {
-    m_collector->collectLineTo(0.0, y0+r1);
+    m_collector->collectLineTo(0.0, y0+r1/scaleY);
     if (corner_type == 0)
-      m_collector->collectQuadraticBezier(0.0, y0, r1, y0);
+      m_collector->collectQuadraticBezier(0.0, y0, r1/scaleX, y0);
     else if (corner_type == 1)
-      m_collector->collectQuadraticBezier(r1, y0+r1, r1, y0);
+      m_collector->collectQuadraticBezier(r1/scaleX, y0+r1/scaleY, r1/scaleX, y0);
     else if (corner_type == 2)
-      m_collector->collectLineTo(r1, y0);
+      m_collector->collectLineTo(r1/scaleX, y0);
   }
   else
     m_collector->collectLineTo(0.0, y0);
   if (r2 > 0.0)
   {
-    m_collector->collectLineTo(x0-r2, y0);
+    m_collector->collectLineTo(x0-r2/scaleX, y0);
     if (corner_type == 0)
-      m_collector->collectQuadraticBezier(x0, y0, x0, y0+r2);
+      m_collector->collectQuadraticBezier(x0, y0, x0, y0+r2/scaleY);
     else if (corner_type == 1)
-      m_collector->collectQuadraticBezier(x0-r2, y0+r2, x0, y0+r2);
+      m_collector->collectQuadraticBezier(x0-r2/scaleX, y0+r2/scaleY, x0, y0+r2/scaleY);
     else if (corner_type == 2)
-      m_collector->collectLineTo(x0, y0+r2);
+      m_collector->collectLineTo(x0, y0+r2/scaleY);
   }
   else
     m_collector->collectLineTo(x0, y0);
   if (r3 > 0.0)
   {
-    m_collector->collectLineTo(x0, -r3);
+    m_collector->collectLineTo(x0, -r3/scaleY);
     if (corner_type == 0)
-      m_collector->collectQuadraticBezier(x0, 0.0, x0-r3, 0.0);
+      m_collector->collectQuadraticBezier(x0, 0.0, x0-r3/scaleX, 0.0);
     else if (corner_type == 1)
-      m_collector->collectQuadraticBezier(x0-r3, -r3, x0-r3, 0.0);
+      m_collector->collectQuadraticBezier(x0-r3/scaleX, -r3/scaleY, x0-r3/scaleX, 0.0);
     else if (corner_type == 2)
-      m_collector->collectLineTo(x0-r3, 0.0);
+      m_collector->collectLineTo(x0-r3/scaleX, 0.0);
   }
   else
     m_collector->collectLineTo(x0, 0.0);
   if (r0 > 0.0)
   {
-    m_collector->collectLineTo(r0, 0.0);
+    m_collector->collectLineTo(r0/scaleX, 0.0);
     if (corner_type == 0)
-      m_collector->collectQuadraticBezier(0.0, 0.0, 0.0, -r0);
+      m_collector->collectQuadraticBezier(0.0, 0.0, 0.0, -r0/scaleY);
     else if (corner_type == 1)
-      m_collector->collectQuadraticBezier(r0, -r0, 0.0, -r0);
+      m_collector->collectQuadraticBezier(r0/scaleX, -r0/scaleY, 0.0, -r0/scaleY);
     else if (corner_type == 2)
-      m_collector->collectLineTo(0.0, -r0);
+      m_collector->collectLineTo(0.0, -r0/scaleY);
   }
   else
     m_collector->collectLineTo(0.0, 0.0);
