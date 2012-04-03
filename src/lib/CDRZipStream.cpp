@@ -31,12 +31,10 @@
 
 #include <string.h>
 #include <zlib.h>
+#include <map>
 #include "CDRZipStream.h"
 #include "CDRInternalStream.h"
 #include "libcdr_utils.h"
-
-
-using namespace libcdr;
 
 namespace
 {
@@ -48,7 +46,7 @@ struct LocalFileHeader
   unsigned crc32;
   unsigned compressed_size;
   unsigned uncompressed_size;
-  WPXString filename;
+  std::string filename;
   LocalFileHeader()
     : general_flag(0), compression(0), crc32(0), compressed_size(0), uncompressed_size(0), filename() {}
   ~LocalFileHeader() {}
@@ -62,7 +60,7 @@ struct CentralDirectoryEntry
   unsigned compressed_size;
   unsigned uncompressed_size;
   unsigned offset;
-  WPXString filename;
+  std::string filename;
   CentralDirectoryEntry()
     : general_flag(0), compression(0), crc32(0), compressed_size(0), uncompressed_size(0), offset(0), filename() {}
   ~CentralDirectoryEntry() {}
@@ -77,128 +75,104 @@ struct CentralDirectoryEnd
   ~CentralDirectoryEnd() {}
 };
 
+} // anonymous namespace
+
+namespace libcdr
+{
+
+struct CDRZipStreamImpl
+{
+  WPXInputStream *m_input;
+  unsigned m_cdir_offset;
+  std::map<std::string, CentralDirectoryEntry> m_cdir;
+  bool m_isZip;
+  CDRZipStreamImpl(WPXInputStream *input)
+    : m_input(input), m_cdir_offset(0), m_cdir() {}
+  ~CDRZipStreamImpl() {}
+
+  bool isZipStream();
+  bool findCentralDirectoryEnd();
+  bool readCentralDirectoryEnd(CentralDirectoryEnd &end);
+  bool readCentralDirectory(const CentralDirectoryEnd &end);
+  bool readLocalFileHeader(LocalFileHeader &header);
+  bool areHeadersConsistent(const LocalFileHeader &header, const CentralDirectoryEntry &entry);
+  WPXInputStream *getSubstream(const char *name);
+private:
+  CDRZipStreamImpl(const CDRZipStreamImpl &);
+  CDRZipStreamImpl &operator=(const CDRZipStreamImpl &);
+
+};
+
+} // namespace libcdr
+
+
+using namespace libcdr;
+
+
+libcdr::CDRZipStream::CDRZipStream(WPXInputStream *input) :
+  WPXInputStream(),
+  m_pImpl(new CDRZipStreamImpl(input))
+{
+}
+
+libcdr::CDRZipStream::~CDRZipStream()
+{
+  if (m_pImpl)
+    delete m_pImpl;
+}
+
+const unsigned char *libcdr::CDRZipStream::read(unsigned long numBytes, unsigned long &numBytesRead)
+{
+  return m_pImpl->m_input->read(numBytes, numBytesRead);
+}
+
+int libcdr::CDRZipStream::seek(long offset, WPX_SEEK_TYPE seekType)
+{
+  return m_pImpl->m_input->seek(offset, seekType);
+}
+
+long libcdr::CDRZipStream::tell()
+{
+  return m_pImpl->m_input->tell();
+}
+
+bool libcdr::CDRZipStream::atEOS()
+{
+  return m_pImpl->m_input->atEOS();
+}
+
+bool libcdr::CDRZipStream::isOLEStream()
+{
+  return m_pImpl->isZipStream();
+}
+
+WPXInputStream *libcdr::CDRZipStream::getDocumentOLEStream(const char *name)
+{
+  if (!m_pImpl->isZipStream())
+    return 0;
+  return m_pImpl->getSubstream(name);
+}
+
 #define CDIR_ENTRY_SIG 0x02014b50
 #define LOC_FILE_HEADER_SIG 0x04034b50
 #define CDIR_END_SIG 0x06054b50
 
-static bool readCentralDirectoryEnd(WPXInputStream *input, CentralDirectoryEnd &end)
+bool libcdr::CDRZipStreamImpl::findCentralDirectoryEnd()
 {
+  m_input->seek(m_cdir_offset, WPX_SEEK_SET);
   try
   {
-    unsigned signature = readU32(input);
-    if (signature != CDIR_END_SIG)
-      return false;
-
-    input->seek(8, WPX_SEEK_CUR);
-    end.cdir_size = readU32(input);
-    end.cdir_offset = readU32(input);
-    unsigned short comment_size = readU16(input);
-    input->seek(comment_size, WPX_SEEK_CUR);
-  }
-  catch (...)
-  {
-    return false;
-  }
-  return true;
-}
-
-static bool readCentralDirectoryEntry(WPXInputStream *input, CentralDirectoryEntry &entry)
-{
-  try
-  {
-    unsigned signature = readU32(input);
-    if (signature != CDIR_ENTRY_SIG)
-      return false;
-
-    input->seek(4, WPX_SEEK_CUR);
-    entry.general_flag = readU16(input);
-    entry.compression = readU16(input);
-    input->seek(4, WPX_SEEK_CUR);
-    entry.crc32 = readU32(input);
-    entry.compressed_size = readU32(input);
-    entry.uncompressed_size = readU32(input);
-    unsigned short filename_size = readU16(input);
-    unsigned short extra_field_size = readU16(input);
-    unsigned short file_comment_size = readU16(input);
-    input->seek(8, WPX_SEEK_CUR);
-    entry.offset = readU32(input);
-    unsigned short i = 0;
-    entry.filename.clear();
-    for (i=0; i < filename_size; i++)
-      entry.filename.append((char)readU8(input));
-    input->seek(extra_field_size+file_comment_size, WPX_SEEK_CUR);
-  }
-  catch (...)
-  {
-    return false;
-  }
-  return true;
-}
-
-static bool readLocalFileHeader(WPXInputStream *input, LocalFileHeader &header)
-{
-  try
-  {
-    unsigned signature = readU32(input);
-    if (signature != LOC_FILE_HEADER_SIG)
-      return false;
-
-    input->seek(2, WPX_SEEK_CUR);
-    header.general_flag = readU16(input);
-    header.compression = readU16(input);
-    input->seek(4, WPX_SEEK_CUR);
-    header.crc32 = readU32(input);
-    header.compressed_size = readU32(input);
-    header.uncompressed_size = readU32(input);
-    unsigned short filename_size = readU16(input);
-    unsigned short extra_field_size = readU16(input);
-    unsigned short i = 0;
-    header.filename.clear();
-    for (i=0; i < filename_size; i++)
-      header.filename.append((char)readU8(input));
-    input->seek(extra_field_size, WPX_SEEK_CUR);
-  }
-  catch (...)
-  {
-    return false;
-  }
-  return true;
-}
-
-static bool areHeadersConsistent(const LocalFileHeader &header, const CentralDirectoryEntry &entry)
-{
-  if (header.general_flag != entry.general_flag)
-    return false;
-  if (header.compression != entry.compression)
-    return false;
-  if (!(header.general_flag & 0x08))
-  {
-    if (header.crc32 != entry.crc32)
-      return false;
-    if (header.compressed_size != entry.compressed_size)
-      return false;
-    if (header.uncompressed_size != entry.uncompressed_size)
-      return false;
-  }
-  return true;
-}
-
-static bool findCentralDirectoryEnd(WPXInputStream *input, unsigned &offset)
-{
-  input->seek(offset, WPX_SEEK_SET);
-  try
-  {
-    while (!input->atEOS())
+    while (!m_input->atEOS())
     {
-      unsigned signature = readU32(input);
+      unsigned signature = readU32(m_input);
       if (signature == CDIR_END_SIG)
       {
-        input->seek(-4, WPX_SEEK_CUR);
-        offset = input->tell();
+        m_input->seek(-4, WPX_SEEK_CUR);
+        m_cdir_offset = m_input->tell();
         return true;
       }
       else
-        input->seek(-3, WPX_SEEK_CUR);
+        m_input->seek(-3, WPX_SEEK_CUR);
     }
   }
   catch (...)
@@ -208,59 +182,88 @@ static bool findCentralDirectoryEnd(WPXInputStream *input, unsigned &offset)
   return false;
 }
 
-static bool isZipStream(WPXInputStream *input, unsigned &offset)
+bool libcdr::CDRZipStreamImpl::isZipStream()
 {
-  if (!findCentralDirectoryEnd(input, offset))
+  if (m_cdir_offset && !m_cdir.empty())
+    return true;
+  if (!findCentralDirectoryEnd())
     return false;
   CentralDirectoryEnd end;
-  if (!readCentralDirectoryEnd(input, end))
+  if (!readCentralDirectoryEnd(end))
     return false;
-  input->seek(end.cdir_offset, WPX_SEEK_SET);
-  CentralDirectoryEntry entry;
-  if (!readCentralDirectoryEntry(input, entry))
+  if (!readCentralDirectory(end))
     return false;
-  input->seek(entry.offset, WPX_SEEK_SET);
+  CentralDirectoryEntry entry = m_cdir.begin()->second;
+  m_input->seek(entry.offset, WPX_SEEK_SET);
   LocalFileHeader header;
-  if (!readLocalFileHeader(input, header))
+  if (!readLocalFileHeader(header))
     return false;
   if (!areHeadersConsistent(header, entry))
     return false;
   return true;
 }
 
-static bool findDataStream(WPXInputStream *input, CentralDirectoryEntry &entry, const char *name, unsigned &offset)
+bool libcdr::CDRZipStreamImpl::readCentralDirectory(const CentralDirectoryEnd &end)
 {
-  if (!findCentralDirectoryEnd(input, offset))
-    return false;
-  CentralDirectoryEnd end;
-  if (!readCentralDirectoryEnd(input, end))
-    return false;
-  input->seek(end.cdir_offset, WPX_SEEK_SET);
-  while (!input->atEOS() && (unsigned)input->tell() < end.cdir_offset + end.cdir_size)
+  try
   {
-    if (!readCentralDirectoryEntry(input, entry))
-      return false;
-    if (entry.filename == name)
-      break;
+    m_input->seek(end.cdir_offset, WPX_SEEK_SET);
+    while (!m_input->atEOS())
+    {
+      unsigned signature = readU32(m_input);
+      if (signature != CDIR_ENTRY_SIG)
+      {
+        if (m_cdir.empty())
+          return false;
+        else
+          return true;
+      }
+
+      CentralDirectoryEntry entry;
+      m_input->seek(4, WPX_SEEK_CUR);
+      entry.general_flag = readU16(m_input);
+      entry.compression = readU16(m_input);
+      m_input->seek(4, WPX_SEEK_CUR);
+      entry.crc32 = readU32(m_input);
+      entry.compressed_size = readU32(m_input);
+      entry.uncompressed_size = readU32(m_input);
+      unsigned short filename_size = readU16(m_input);
+      unsigned short extra_field_size = readU16(m_input);
+      unsigned short file_comment_size = readU16(m_input);
+      m_input->seek(8, WPX_SEEK_CUR);
+      entry.offset = readU32(m_input);
+      unsigned short i = 0;
+      entry.filename.clear();
+      for (i=0; i < filename_size; i++)
+        entry.filename += ((char)readU8(m_input));
+      m_input->seek(extra_field_size+file_comment_size, WPX_SEEK_CUR);
+
+      m_cdir[entry.filename] = entry;
+    }
   }
-  if (entry.filename != name)
+  catch (...)
+  {
     return false;
-  input->seek(entry.offset, WPX_SEEK_SET);
-  LocalFileHeader header;
-  if (!readLocalFileHeader(input, header))
-    return false;
-  if (!areHeadersConsistent(header, entry))
-    return false;
+  }
   return true;
 }
 
-WPXInputStream *getSubstream(WPXInputStream *input, const char *name, unsigned &offset)
+WPXInputStream *libcdr::CDRZipStreamImpl::getSubstream(const char *name)
 {
-  CentralDirectoryEntry entry;
-  if (!findDataStream(input, entry, name, offset))
+  if (m_cdir.empty())
+    return 0;
+  std::map<std::string, CentralDirectoryEntry>::const_iterator iter = m_cdir.find(name);
+  if (iter == m_cdir.end())
+    return 0;
+  CentralDirectoryEntry entry = iter->second;
+  m_input->seek(entry.offset, WPX_SEEK_SET);
+  LocalFileHeader header;
+  if (!readLocalFileHeader(header))
+    return 0;
+  if (!areHeadersConsistent(header, entry))
     return 0;
   if (!entry.compression)
-    return new CDRInternalStream(input, entry.compressed_size);
+    return new CDRInternalStream(m_input, entry.compressed_size);
   else
   {
     int ret;
@@ -277,7 +280,7 @@ WPXInputStream *getSubstream(WPXInputStream *input, const char *name, unsigned &
       return 0;
 
     unsigned long numBytesRead = 0;
-    const unsigned char *compressedData = input->read(entry.compressed_size, numBytesRead);
+    const unsigned char *compressedData = m_input->read(entry.compressed_size, numBytesRead);
     if (numBytesRead != entry.compressed_size)
       return 0;
 
@@ -303,43 +306,74 @@ WPXInputStream *getSubstream(WPXInputStream *input, const char *name, unsigned &
   }
 }
 
-} // anonymous namespace
-
-libcdr::CDRZipStream::CDRZipStream(WPXInputStream *input) :
-  WPXInputStream(),
-  m_input(input),
-  m_cdir_offset(0)
+bool libcdr::CDRZipStreamImpl::readCentralDirectoryEnd(CentralDirectoryEnd &end)
 {
+  try
+  {
+    unsigned signature = readU32(m_input);
+    if (signature != CDIR_END_SIG)
+      return false;
+
+    m_input->seek(8, WPX_SEEK_CUR);
+    end.cdir_size = readU32(m_input);
+    end.cdir_offset = readU32(m_input);
+    unsigned short comment_size = readU16(m_input);
+    m_input->seek(comment_size, WPX_SEEK_CUR);
+  }
+  catch (...)
+  {
+    return false;
+  }
+  return true;
 }
 
-const unsigned char *libcdr::CDRZipStream::read(unsigned long numBytes, unsigned long &numBytesRead)
+bool libcdr::CDRZipStreamImpl::readLocalFileHeader(LocalFileHeader &header)
 {
-  return m_input->read(numBytes, numBytesRead);
+  try
+  {
+    unsigned signature = readU32(m_input);
+    if (signature != LOC_FILE_HEADER_SIG)
+      return false;
+
+    m_input->seek(2, WPX_SEEK_CUR);
+    header.general_flag = readU16(m_input);
+    header.compression = readU16(m_input);
+    m_input->seek(4, WPX_SEEK_CUR);
+    header.crc32 = readU32(m_input);
+    header.compressed_size = readU32(m_input);
+    header.uncompressed_size = readU32(m_input);
+    unsigned short filename_size = readU16(m_input);
+    unsigned short extra_field_size = readU16(m_input);
+    unsigned short i = 0;
+    header.filename.clear();
+    for (i=0; i < filename_size; i++)
+      header.filename += ((char)readU8(m_input));
+    m_input->seek(extra_field_size, WPX_SEEK_CUR);
+  }
+  catch (...)
+  {
+    return false;
+  }
+  return true;
 }
 
-int libcdr::CDRZipStream::seek(long offset, WPX_SEEK_TYPE seekType)
+bool libcdr::CDRZipStreamImpl::areHeadersConsistent(const LocalFileHeader &header, const CentralDirectoryEntry &entry)
 {
-  return m_input->seek(offset, seekType);
+  if (header.general_flag != entry.general_flag)
+    return false;
+  if (header.compression != entry.compression)
+    return false;
+  if (!(header.general_flag & 0x08))
+  {
+    if (header.crc32 != entry.crc32)
+      return false;
+    if (header.compressed_size != entry.compressed_size)
+      return false;
+    if (header.uncompressed_size != entry.uncompressed_size)
+      return false;
+  }
+  return true;
 }
 
-long libcdr::CDRZipStream::tell()
-{
-  return m_input->tell();
-}
-
-bool libcdr::CDRZipStream::atEOS()
-{
-  return m_input->atEOS();
-}
-
-bool libcdr::CDRZipStream::isOLEStream()
-{
-  return isZipStream(m_input, m_cdir_offset);
-}
-
-WPXInputStream *libcdr::CDRZipStream::getDocumentOLEStream(const char *name)
-{
-  return getSubstream(m_input, name, m_cdir_offset);
-}
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

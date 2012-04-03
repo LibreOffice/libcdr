@@ -36,13 +36,13 @@
 
 namespace libcdr
 {
-class CDRZipStreamImpl;
+struct CDRZipStreamImpl;
 
 class CDRZipStream : public WPXInputStream
 {
 public:
   CDRZipStream(WPXInputStream *input);
-  ~CDRZipStream() {}
+  ~CDRZipStream();
 
   bool isOLEStream();
   WPXInputStream *getDocumentOLEStream(const char *);
@@ -55,8 +55,7 @@ public:
 private:
   CDRZipStream(const CDRZipStream &);
   CDRZipStream &operator=(const CDRZipStream &);
-  WPXInputStream *m_input;
-  unsigned m_cdir_offset;
+  CDRZipStreamImpl *m_pImpl;
 };
 
 } // namespace libcdr
