@@ -239,10 +239,11 @@ bool libcdr::CDRZipStreamImpl::readCentralDirectory(const CentralDirectoryEnd &e
       unsigned short file_comment_size = readU16(m_input);
       m_input->seek(8, WPX_SEEK_CUR);
       entry.offset = readU32(m_input);
-      unsigned short i = 0;
       entry.filename.clear();
-      for (i=0; i < filename_size; i++)
-        entry.filename += ((char)readU8(m_input));
+      entry.filename.reserve(filename_size);
+      unsigned long bytesRead = 0;
+      const unsigned char *buffer = m_input->read(filename_size, bytesRead);
+      entry.filename.assign((const char *)buffer, bytesRead);
       m_input->seek(extra_field_size+file_comment_size, WPX_SEEK_CUR);
 
       m_cdir[entry.filename] = entry;
@@ -351,10 +352,11 @@ bool libcdr::CDRZipStreamImpl::readLocalFileHeader(LocalFileHeader &header)
     header.uncompressed_size = readU32(m_input);
     unsigned short filename_size = readU16(m_input);
     unsigned short extra_field_size = readU16(m_input);
-    unsigned short i = 0;
     header.filename.clear();
-    for (i=0; i < filename_size; i++)
-      header.filename += ((char)readU8(m_input));
+    header.filename.reserve(filename_size);
+    unsigned long bytesRead = 0;
+    const unsigned char *buffer = m_input->read(filename_size, bytesRead);
+    header.filename.assign((const char *)buffer, bytesRead);
     m_input->seek(extra_field_size, WPX_SEEK_CUR);
   }
   catch (...)
