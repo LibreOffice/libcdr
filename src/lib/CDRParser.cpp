@@ -45,6 +45,22 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+namespace
+{
+
+unsigned getCDRVersion(char c)
+{
+  if (c < 0x31)
+    return 0;
+  else if (c < 0x3a)
+    return 100 * ((unsigned char)c - 0x30);
+  else if (c < 0x41)
+    return 0;
+  return 100 * ((unsigned char)c - 0x37);
+}
+
+} // anonymous namespace
+
 libcdr::CDRParser::CDRParser(WPXInputStream *input, const std::vector<WPXInputStream *> &externalStreams, libcdr::CDRCollector *collector)
   : m_input(input),
     m_externalStreams(externalStreams),
@@ -121,6 +137,8 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
         m_collector->collectPage(level);
       else if (listType == "obj ")
         m_collector->collectObject(level);
+      else if (!strncmp(listType.cstr(), "CDR", 3) || !strncmp(listType.cstr(), "cdr", 3))
+        m_version = getCDRVersion(listType.cstr()[3]);
 
       bool compressed = (listType == "cmpr" ? true : false);
       CDRInternalStream tmpStream(input, cmprsize, compressed);
@@ -360,6 +378,9 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
 
 void libcdr::CDRParser::readDisp(WPXInputStream *input, unsigned length)
 {
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+#if DUMP_PREVIEW_IMAGE
   WPXBinaryData previewImage;
   previewImage.append(0x42);
   previewImage.append(0x4d);
@@ -387,7 +408,6 @@ void libcdr::CDRParser::readDisp(WPXInputStream *input, unsigned length)
   input->seek(4, WPX_SEEK_CUR);
   for (unsigned i = 4; i<length; i++)
     previewImage.append(readU8(input));
-#if DUMP_PREVIEW_IMAGE
   FILE *f = fopen("previewImage.bmp", "wb");
   if (f)
   {
@@ -635,17 +655,8 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 
 void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
-  {
-    unsigned streamNumber = readU32(input);
-    length = readU32(input);
-    if (streamNumber < m_externalStreams.size())
-    {
-      unsigned streamOffset = readU32(input);
-      input = m_externalStreams[streamNumber];
-      input->seek(streamOffset, WPX_SEEK_SET);
-    }
-  }
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   long startPosition = input->tell();
   unsigned chunkLength = readU32(input);
   unsigned numOfArgs = readU32(input);
@@ -707,17 +718,8 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
 
 void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
-  {
-    unsigned streamNumber = readU32(input);
-    length = readU32(input);
-    if (streamNumber < m_externalStreams.size())
-    {
-      unsigned streamOffset = readU32(input);
-      input = m_externalStreams[streamNumber];
-      input->seek(streamOffset, WPX_SEEK_SET);
-    }
-  }
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   unsigned fillId = readU32(input);
   unsigned short v13flag = 0;
   if (m_version >= 1300)
@@ -886,16 +888,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
 
 void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
-  {
-    unsigned streamNumber = readU32(input);
-    if (streamNumber >= m_externalStreams.size())
-      return;
-    input->seek(4, WPX_SEEK_CUR);
-    unsigned streamOffset = readU32(input);
-    input = m_externalStreams[streamNumber];
-    input->seek(streamOffset, WPX_SEEK_SET);
-  }
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   unsigned lineId = readU32(input);
   if (m_version >= 1300)
   {
@@ -938,17 +932,8 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
 
 void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
-  {
-    unsigned streamNumber = readU32(input);
-    length = readU32(input);
-    if (streamNumber < m_externalStreams.size())
-    {
-      unsigned streamOffset = readU32(input);
-      input = m_externalStreams[streamNumber];
-      input->seek(streamOffset, WPX_SEEK_SET);
-    }
-  }
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   long startPosition = input->tell();
   unsigned chunkLength = readU32(input);
   unsigned numOfArgs = readU32(input);
@@ -1003,34 +988,16 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
 
 void libcdr::CDRParser::readFlags(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
-  {
-    unsigned streamNumber = readU32(input);
-    length = readU32(input);
-    if (streamNumber < m_externalStreams.size())
-    {
-      unsigned streamOffset = readU32(input);
-      input = m_externalStreams[streamNumber];
-      input->seek(streamOffset, WPX_SEEK_SET);
-    }
-  }
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   unsigned flags = readU32(input);
   m_collector->collectFlags(flags);
 }
 
 void libcdr::CDRParser::readMcfg(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
-  {
-    unsigned streamNumber = readU32(input);
-    length = readU32(input);
-    if (streamNumber < m_externalStreams.size())
-    {
-      unsigned streamOffset = readU32(input);
-      input = m_externalStreams[streamNumber];
-      input->seek(streamOffset, WPX_SEEK_SET);
-    }
-  }
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   if (m_version >= 1300)
     input->seek(12, WPX_SEEK_CUR);
   else if (m_version >= 900)
@@ -1131,17 +1098,8 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
 
 void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
-  {
-    unsigned streamNumber = readU32(input);
-    length = readU32(input);
-    if (streamNumber < m_externalStreams.size())
-    {
-      unsigned streamOffset = readU32(input);
-      input = m_externalStreams[streamNumber];
-      input->seek(streamOffset, WPX_SEEK_SET);
-    }
-  }
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   unsigned imageId = readU32(input);
   if (m_version < 700)
     input->seek(46, WPX_SEEK_CUR);
@@ -1185,17 +1143,8 @@ void libcdr::CDRParser::readOpacity(WPXInputStream *input, unsigned /* length */
 
 void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
-  {
-    unsigned streamNumber = readU32(input);
-    length = readU32(input);
-    if (streamNumber < m_externalStreams.size())
-    {
-      unsigned streamOffset = readU32(input);
-      input = m_externalStreams[streamNumber];
-      input->seek(streamOffset, WPX_SEEK_SET);
-    }
-  }
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   unsigned patternId = readU32(input);
   unsigned headerLength = readU32(input);
   if (headerLength != 40)
@@ -1220,17 +1169,8 @@ void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
 
 void libcdr::CDRParser::readPpdt(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
-  {
-    unsigned streamNumber = readU32(input);
-    length = readU32(input);
-    if (streamNumber < m_externalStreams.size())
-    {
-      unsigned streamOffset = readU32(input);
-      input = m_externalStreams[streamNumber];
-      input->seek(streamOffset, WPX_SEEK_SET);
-    }
-  }
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   unsigned short pointNum = readU16(input);
   input->seek(4, WPX_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
@@ -1249,17 +1189,8 @@ void libcdr::CDRParser::readPpdt(WPXInputStream *input, unsigned length)
 
 void libcdr::CDRParser::readFtil(WPXInputStream *input, unsigned length)
 {
-  if (m_version >= 1600 && length == 0x10)
-  {
-    unsigned streamNumber = readU32(input);
-    length = readU32(input);
-    if (streamNumber < m_externalStreams.size())
-    {
-      unsigned streamOffset = readU32(input);
-      input = m_externalStreams[streamNumber];
-      input->seek(streamOffset, WPX_SEEK_SET);
-    }
-  }
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   double v0 = readDouble(input);
   double v1 = readDouble(input);
   double x0 = readDouble(input) / 254000.0;
@@ -1271,18 +1202,29 @@ void libcdr::CDRParser::readFtil(WPXInputStream *input, unsigned length)
 
 void libcdr::CDRParser::readVersion(WPXInputStream *input, unsigned length)
 {
-  if (length == 0x10)
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  m_version = readU16(input);
+}
+
+bool libcdr::CDRParser::_redirectX6Chunk(WPXInputStream **input, unsigned &length)
+{
+  if (m_version >= 1600 && length == 0x10)
   {
-    unsigned streamNumber = readU32(input);
-    length = readU32(input);
+    unsigned streamNumber = readU32(*input);
+    length = readU32(*input);
     if (streamNumber < m_externalStreams.size())
     {
-      unsigned streamOffset = readU32(input);
-      input = m_externalStreams[streamNumber];
-      input->seek(streamOffset, WPX_SEEK_SET);
+      unsigned streamOffset = readU32(*input);
+      *input = m_externalStreams[streamNumber];
+      (*input)->seek(streamOffset, WPX_SEEK_SET);
+      return true;
     }
+    else if (streamNumber == 0xffffffff)
+      return true;
+    return false;
   }
-  m_version = readU16(input);
+  return true;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

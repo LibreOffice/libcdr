@@ -80,6 +80,8 @@ private:
   void readDisp(WPXInputStream *input, unsigned length);
   void readVersion(WPXInputStream *input, unsigned length);
 
+  bool _redirectX6Chunk(WPXInputStream **input, unsigned &length);
+
   WPXInputStream *m_input;
   std::vector<WPXInputStream *> m_externalStreams;
   CDRCollector *m_collector;
