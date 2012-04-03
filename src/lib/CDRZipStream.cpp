@@ -85,7 +85,6 @@ struct CDRZipStreamImpl
   WPXInputStream *m_input;
   unsigned m_cdir_offset;
   std::map<std::string, CentralDirectoryEntry> m_cdir;
-  bool m_isZip;
   CDRZipStreamImpl(WPXInputStream *input)
     : m_input(input), m_cdir_offset(0), m_cdir() {}
   ~CDRZipStreamImpl() {}
