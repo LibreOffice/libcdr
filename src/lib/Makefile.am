@@ -36,6 +36,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRCollector.h \
 	CDRColorProfiles.h \
 	CDRContentCollector.h \
+	CDRDocumentStructure.h \
 	CDRInternalStream.h \
 	CDROutputElementList.h \
 	CDRParser.h \

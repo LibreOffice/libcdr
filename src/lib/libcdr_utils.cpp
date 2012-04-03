@@ -100,11 +100,16 @@ double libcdr::readDouble(WPXInputStream *input, bool bigEndian)
   return tmpUnion.d;
 }
 
-::WPXString libcdr::readFourCC(WPXInputStream *input)
+#ifdef DEBUG
+const char *libcdr::toFourCC(unsigned value)
 {
-  ::WPXString tmpStr;
-  for (unsigned char i = 0; i<4 && !input->atEOS(); i++)
-    tmpStr.append((char)readU8(input));
-  return tmpStr;
+  static char sValue[5] = { 0, 0, 0, 0, 0 };
+  sValue[0] = value & 0xff;
+  sValue[1] = (value & 0xff00) >> 8;
+  sValue[2] = (value & 0xff0000) >> 16;
+  sValue[3] = (value & 0xff000000) >> 24;
+  return sValue;
 }
+#endif
+
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

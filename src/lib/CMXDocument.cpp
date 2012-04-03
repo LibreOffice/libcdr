@@ -30,6 +30,7 @@
 #include <string>
 #include <string.h>
 #include "CMXDocument.h"
+#include "CDRDocumentStructure.h"
 #include "CMXParser.h"
 #include "CDRSVGGenerator.h"
 #include "CDRContentCollector.h"
@@ -45,20 +46,20 @@ stream is a Corel Draw Document that libcdr is able to parse
 */
 bool libcdr::CMXDocument::isSupported(WPXInputStream *input)
 {
-  input->seek(0, WPX_SEEK_SET);
-  bool soFarSoGood = true;
-  WPXString riff = readFourCC(input);
-  if (riff != "RIFF")
-    soFarSoGood = false;
+  unsigned riff = readU32(input);
+  if (riff != CDR_FOURCC_RIFF)
+    return false;
   input->seek(4, WPX_SEEK_CUR);
-  WPXString signature = readFourCC(input);
-  if (soFarSoGood && signature.cstr()[0] != 'C' && signature.cstr()[0] != 'c')
-    soFarSoGood = false;
-  if (soFarSoGood && signature.cstr()[1] != 'M' && signature.cstr()[1] != 'm')
-    soFarSoGood = false;
-  if (soFarSoGood && signature.cstr()[2] != 'X' && signature.cstr()[2] != 'x')
-    soFarSoGood = false;
-  return soFarSoGood;
+  char signature_c = (char)readU8(input);
+  if (signature_c != 'C' && signature_c != 'c')
+    return false;
+  char signature_d = (char)readU8(input);
+  if (signature_d != 'M' && signature_d != 'm')
+    return false;
+  char signature_r = (char)readU8(input);
+  if (signature_r != 'X' && signature_r != 'x')
+    return false;
+  return true;
 }
 
 /**

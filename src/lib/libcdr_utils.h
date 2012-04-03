@@ -34,7 +34,6 @@
 #include <stdio.h>
 #include <string>
 #include <math.h>
-#include <libwpd/libwpd.h>
 #include <libwpd-stream/libwpd-stream.h>
 
 #ifndef M_PI
@@ -96,7 +95,9 @@ int32_t readS32(WPXInputStream *input, bool bigEndian=false);
 
 double readDouble(WPXInputStream *input, bool bigEndian=false);
 
-::WPXString readFourCC(WPXInputStream *input);
+#ifdef DEBUG
+const char *toFourCC(unsigned value);
+#endif
 
 class EndOfStreamException
 {

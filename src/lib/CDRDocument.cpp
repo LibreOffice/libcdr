@@ -36,6 +36,7 @@
 #include "CDRStylesCollector.h"
 #include "CDRZipStream.h"
 #include "libcdr_utils.h"
+#include "CDRDocumentStructure.h"
 
 using namespace libcdr;
 
@@ -45,7 +46,7 @@ namespace
 static unsigned getCDRVersion(WPXInputStream *input)
 {
   unsigned riff = readU32(input);
-  if (riff != 0x46464952) // "RIFF"
+  if (riff != CDR_FOURCC_RIFF)
     return 0;
   input->seek(4, WPX_SEEK_CUR);
   char signature_c = (char)readU8(input);

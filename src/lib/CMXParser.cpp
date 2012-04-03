@@ -37,6 +37,7 @@
 #include "CDRInternalStream.h"
 #include "CMXParser.h"
 #include "CDRCollector.h"
+#include "CDRDocumentStructure.h"
 
 #ifndef DUMP_PREVIEW_IMAGE
 #define DUMP_PREVIEW_IMAGE 0
@@ -86,17 +87,20 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
       input->seek(-1, WPX_SEEK_CUR);
     else
       return true;
-    WPXString fourCC = readFourCC(input);
+    unsigned fourCC = readU32(input);
     unsigned length = readU32(input);
     unsigned long position = input->tell();
-    WPXString listType;
 
-    CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, fourCC.cstr(), length, length));
+    CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, toFourCC(fourCC), length, length));
 
-    if (fourCC == "RIFF" || fourCC == "LIST")
+    if (fourCC == CDR_FOURCC_RIFF || fourCC == CDR_FOURCC_LIST)
     {
-      listType = readFourCC(input);
-      CDR_DEBUG_MSG(("CMX listType: %s\n", listType.cstr()));
+#ifdef DEBUG
+      unsigned listType = readU32(input);
+#else
+      input->seek(4, WPX_SEEK_CUR);
+#endif
+      CDR_DEBUG_MSG(("CMX listType: %s\n", toFourCC(listType)));
       unsigned dataSize = length-4;
       CDRInternalStream tmpStream(input, dataSize);
       if (!parseRecords(&tmpStream, level+1))
@@ -114,13 +118,20 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
   }
 }
 
-void libcdr::CMXParser::readRecord(WPXString fourCC, unsigned length, WPXInputStream *input)
+void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned length, WPXInputStream *input)
 {
   long recordStart = input->tell();
-  if (fourCC == "cont")
+  switch (fourCC)
+  {
+  case CDR_FOURCC_cont:
     readCMXHeader(input);
-  else if (fourCC == "DISP")
+    break;
+  case CDR_FOURCC_DISP:
     readDisp(input, length);
+    break;
+  default:
+    break;
+  }
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 

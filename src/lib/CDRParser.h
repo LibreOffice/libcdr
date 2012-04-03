@@ -34,7 +34,6 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <libwpd/libwpd.h>
 #include <libwpd-stream/libwpd-stream.h>
 
 namespace libcdr
@@ -54,7 +53,7 @@ private:
   CDRParser(const CDRParser &);
   CDRParser &operator=(const CDRParser &);
   bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
-  void readRecord(WPXString fourCC, unsigned length, WPXInputStream *input);
+  void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
   double readCoordinate(WPXInputStream *input);
   double readAngle(WPXInputStream *input);
 

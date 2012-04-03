@@ -34,7 +34,6 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <libwpd/libwpd.h>
 #include <libwpd-stream/libwpd-stream.h>
 
 namespace libcdr
@@ -54,7 +53,7 @@ private:
   CMXParser(const CMXParser &);
   CMXParser &operator=(const CMXParser &);
   bool parseRecord(WPXInputStream *input, unsigned level = 0);
-  void readRecord(WPXString fourCC, unsigned length, WPXInputStream *input);
+  void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
 
   void readCMXHeader(WPXInputStream *input);
   void readDisp(WPXInputStream *input, unsigned length);

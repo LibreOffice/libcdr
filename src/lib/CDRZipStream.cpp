@@ -85,21 +85,22 @@ struct CDRZipStreamImpl
   WPXInputStream *m_input;
   unsigned m_cdir_offset;
   std::map<std::string, CentralDirectoryEntry> m_cdir;
+  bool m_initialized;
   CDRZipStreamImpl(WPXInputStream *input)
-    : m_input(input), m_cdir_offset(0), m_cdir() {}
+    : m_input(input), m_cdir_offset(0), m_cdir(), m_initialized(false) {}
   ~CDRZipStreamImpl() {}
 
   bool isZipStream();
-  bool findCentralDirectoryEnd();
-  bool readCentralDirectoryEnd(CentralDirectoryEnd &end);
-  bool readCentralDirectory(const CentralDirectoryEnd &end);
-  bool readLocalFileHeader(LocalFileHeader &header);
-  bool areHeadersConsistent(const LocalFileHeader &header, const CentralDirectoryEntry &entry);
   WPXInputStream *getSubstream(const char *name);
 private:
   CDRZipStreamImpl(const CDRZipStreamImpl &);
   CDRZipStreamImpl &operator=(const CDRZipStreamImpl &);
 
+  bool findCentralDirectoryEnd();
+  bool readCentralDirectoryEnd(CentralDirectoryEnd &end);
+  bool readCentralDirectory(const CentralDirectoryEnd &end);
+  bool readLocalFileHeader(LocalFileHeader &header);
+  bool areHeadersConsistent(const LocalFileHeader &header, const CentralDirectoryEntry &entry);
 };
 
 } // namespace libcdr
@@ -183,8 +184,15 @@ bool libcdr::CDRZipStreamImpl::findCentralDirectoryEnd()
 
 bool libcdr::CDRZipStreamImpl::isZipStream()
 {
-  if (m_cdir_offset && !m_cdir.empty())
+  if (m_cdir_offset)
+  {
+    if(m_cdir.empty())
+      return false;
     return true;
+  }
+  if (m_initialized)
+    return false;
+  m_initialized = true;
   if (!findCentralDirectoryEnd())
     return false;
   CentralDirectoryEnd end;
