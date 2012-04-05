@@ -44,27 +44,48 @@ uint8_t libcdr::readU8(WPXInputStream *input, bool /* bigEndian */)
 
   if (p && numBytesRead == sizeof(uint8_t))
     return *(uint8_t const *)(p);
+  CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
   throw EndOfStreamException();
 }
 
 uint16_t libcdr::readU16(WPXInputStream *input, bool bigEndian)
 {
-  uint16_t p0 = (uint16_t)readU8(input);
-  uint16_t p1 = (uint16_t)readU8(input);
-  if (bigEndian)
-    return (uint16_t)(p1|(p0<<8));
-  return (uint16_t)(p0|(p1<<8));
+  if (!input || input->atEOS())
+  {
+    CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
+    throw EndOfStreamException();
+  }
+  unsigned long numBytesRead;
+  uint8_t const *p = input->read(sizeof(uint16_t), numBytesRead);
+
+  if (p && numBytesRead == sizeof(uint16_t))
+  {
+    if (bigEndian)
+      return (uint16_t)p[1]|((uint16_t)p[0]<<8);
+    return (uint16_t)p[0]|((uint16_t)p[1]<<8);
+  }
+  CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
+  throw EndOfStreamException();
 }
 
 uint32_t libcdr::readU32(WPXInputStream *input, bool bigEndian)
 {
-  uint32_t p0 = (uint32_t)readU8(input);
-  uint32_t p1 = (uint32_t)readU8(input);
-  uint32_t p2 = (uint32_t)readU8(input);
-  uint32_t p3 = (uint32_t)readU8(input);
-  if (bigEndian)
-    return (uint32_t)(p3|(p2<<8)|(p1<<16)|(p0<<24));
-  return (uint32_t)(p0|(p1<<8)|(p2<<16)|(p3<<24));
+  if (!input || input->atEOS())
+  {
+    CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
+    throw EndOfStreamException();
+  }
+  unsigned long numBytesRead;
+  uint8_t const *p = input->read(sizeof(uint32_t), numBytesRead);
+
+  if (p && numBytesRead == sizeof(uint32_t))
+  {
+    if (bigEndian)
+      return (uint32_t)p[3]|((uint32_t)p[2]<<8)|((uint32_t)p[1]<<16)|((uint32_t)p[0]<<24);
+    return (uint32_t)p[0]|((uint32_t)p[1]<<8)|((uint32_t)p[2]<<16)|((uint32_t)p[3]<<24);
+  }
+  CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
+  throw EndOfStreamException();
 }
 
 int32_t libcdr::readS32(WPXInputStream *input, bool bigEndian)
@@ -74,17 +95,22 @@ int32_t libcdr::readS32(WPXInputStream *input, bool bigEndian)
 
 uint64_t libcdr::readU64(WPXInputStream *input, bool bigEndian)
 {
-  uint64_t p0 = (uint64_t)readU8(input);
-  uint64_t p1 = (uint64_t)readU8(input);
-  uint64_t p2 = (uint64_t)readU8(input);
-  uint64_t p3 = (uint64_t)readU8(input);
-  uint64_t p4 = (uint64_t)readU8(input);
-  uint64_t p5 = (uint64_t)readU8(input);
-  uint64_t p6 = (uint64_t)readU8(input);
-  uint64_t p7 = (uint64_t)readU8(input);
-  if (bigEndian)
-    return (uint64_t)(p7|(p6<<8)|(p5<<16)|(p4<<24)|(p3<<32)|(p2<<40)|(p1<<48)|(p0<<56));
-  return (uint64_t)(p0|(p1<<8)|(p2<<16)|(p3<<24)|(p4<<32)|(p5<<40)|(p6<<48)|(p7<<56));
+  if (!input || input->atEOS())
+  {
+    CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
+    throw EndOfStreamException();
+  }
+  unsigned long numBytesRead;
+  uint8_t const *p = input->read(sizeof(uint64_t), numBytesRead);
+
+  if (p && numBytesRead == sizeof(uint64_t))
+  {
+    if (bigEndian)
+      return (uint64_t)p[7]|((uint64_t)p[6]<<8)|((uint64_t)p[5]<<16)|((uint64_t)p[4]<<24)|((uint64_t)p[3]<<32)|((uint64_t)p[2]<<40)|((uint64_t)p[1]<<48)|((uint64_t)p[0]<<56);
+    return (uint64_t)p[0]|((uint64_t)p[1]<<8)|((uint64_t)p[2]<<16)|((uint64_t)p[3]<<24)|((uint64_t)p[4]<<32)|((uint64_t)p[5]<<40)|((uint64_t)p[6]<<48)|((uint64_t)p[7]<<56);
+  }
+  CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
+  throw EndOfStreamException();
 }
 
 double libcdr::readDouble(WPXInputStream *input, bool bigEndian)
