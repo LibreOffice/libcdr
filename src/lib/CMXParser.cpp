@@ -93,7 +93,7 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
 
     CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, toFourCC(fourCC), length, length));
 
-    if (fourCC == CDR_FOURCC_RIFF || fourCC == CDR_FOURCC_LIST)
+    if (fourCC == FOURCC_RIFF || fourCC == FOURCC_LIST)
     {
 #ifdef DEBUG
       unsigned listType = readU32(input);
@@ -123,10 +123,10 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   long recordStart = input->tell();
   switch (fourCC)
   {
-  case CDR_FOURCC_cont:
+  case FOURCC_cont:
     readCMXHeader(input);
     break;
-  case CDR_FOURCC_DISP:
+  case FOURCC_DISP:
     readDisp(input, length);
     break;
   default:

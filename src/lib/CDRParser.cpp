@@ -109,39 +109,39 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       length=blockLengths[length];
     unsigned long position = input->tell();
     unsigned listType;
-    if (fourCC == CDR_FOURCC_RIFF || fourCC == CDR_FOURCC_LIST)
+    if (fourCC == FOURCC_RIFF || fourCC == FOURCC_LIST)
     {
       listType = readU32(input);
-      if (listType == CDR_FOURCC_stlt)
+      if (listType == FOURCC_stlt)
         fourCC = listType;
       else
         m_collector->collectOtherList();
     }
     CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, toFourCC(fourCC), length, length));
 
-    if (fourCC == CDR_FOURCC_RIFF || fourCC == CDR_FOURCC_LIST)
+    if (fourCC == FOURCC_RIFF || fourCC == FOURCC_LIST)
     {
       CDR_DEBUG_MSG(("CDR listType: %s\n", toFourCC(listType)));
       unsigned cmprsize = length-4;
-      if (listType == CDR_FOURCC_cmpr)
+      if (listType == FOURCC_cmpr)
       {
         cmprsize  = readU32(input);
         input->seek(12, WPX_SEEK_CUR);
-        if (readU32(input) != CDR_FOURCC_CPng)
+        if (readU32(input) != FOURCC_CPng)
           return false;
         if (readU16(input) != 1)
           return false;
         if (readU16(input) != 4)
           return false;
       }
-      else if (listType == CDR_FOURCC_page)
+      else if (listType == FOURCC_page)
         m_collector->collectPage(level);
-      else if (listType == CDR_FOURCC_obj)
+      else if (listType == FOURCC_obj)
         m_collector->collectObject(level);
-      else if ((listType & 0xffffff) == CDR_FOURCC_CDR || (listType && 0xffffff) == CDR_FOURCC_cdr)
+      else if ((listType & 0xffffff) == FOURCC_CDR || (listType && 0xffffff) == FOURCC_cdr)
         m_version = getCDRVersion((listType & 0xff000000) >> 24);
 
-      bool compressed = (listType == CDR_FOURCC_cmpr ? true : false);
+      bool compressed = (listType == FOURCC_cmpr ? true : false);
       CDRInternalStream tmpStream(input, cmprsize, compressed);
       if (!compressed)
       {
@@ -176,43 +176,43 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   long recordStart = input->tell();
   switch (fourCC)
   {
-  case CDR_FOURCC_DISP:
+  case FOURCC_DISP:
     readDisp(input, length);
     break;
-  case CDR_FOURCC_loda:
+  case FOURCC_loda:
     readLoda(input, length);
     break;
-  case CDR_FOURCC_vrsn:
+  case FOURCC_vrsn:
     readVersion(input, length);
     break;
-  case CDR_FOURCC_trfd:
+  case FOURCC_trfd:
     readTrfd(input, length);
     break;
-  case CDR_FOURCC_outl:
+  case FOURCC_outl:
     readOutl(input, length);
     break;
-  case CDR_FOURCC_fild:
-  case CDR_FOURCC_fill:
+  case FOURCC_fild:
+  case FOURCC_fill:
     readFild(input, length);
     break;
-  case CDR_FOURCC_arrw:
+  case FOURCC_arrw:
     break;
-  case CDR_FOURCC_flgs:
+  case FOURCC_flgs:
     readFlags(input, length);
     break;
-  case CDR_FOURCC_mcfg:
+  case FOURCC_mcfg:
     readMcfg(input, length);
     break;
-  case CDR_FOURCC_bmp:
+  case FOURCC_bmp:
     readBmp(input, length);
     break;
-  case CDR_FOURCC_bmpf:
+  case FOURCC_bmpf:
     readBmpf(input, length);
     break;
-  case CDR_FOURCC_ppdt:
+  case FOURCC_ppdt:
     readPpdt(input, length);
     break;
-  case CDR_FOURCC_ftil:
+  case FOURCC_ftil:
     readFtil(input, length);
     break;
   default:
