@@ -223,12 +223,7 @@ bool libcdr::CDRZipStreamImpl::readCentralDirectory(const CentralDirectoryEnd &e
         if (m_cdir.empty())
           return false;
         else
-        {
-          for (std::map<std::string, CentralDirectoryEntry>::const_iterator iter = m_cdir.begin(); iter != m_cdir.end(); ++iter)
-            printf("Fridrich 2 %s\n", iter->first.c_str());
-
           return true;
-        }
       }
 
       CentralDirectoryEntry entry;
@@ -249,7 +244,6 @@ bool libcdr::CDRZipStreamImpl::readCentralDirectory(const CentralDirectoryEnd &e
       unsigned long bytesRead = 0;
       const unsigned char *buffer = m_input->read(filename_size, bytesRead);
       entry.filename.assign((const char *)buffer, bytesRead);
-      printf("Fridrich %s\n", entry.filename.c_str());
       m_input->seek(extra_field_size+file_comment_size, WPX_SEEK_CUR);
 
       m_cdir[entry.filename] = entry;
