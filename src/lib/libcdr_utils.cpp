@@ -127,13 +127,23 @@ double libcdr::readDouble(WPXInputStream *input, bool bigEndian)
 }
 
 #ifdef DEBUG
-const char *libcdr::toFourCC(unsigned value)
+const char *libcdr::toFourCC(unsigned value, bool bigEndian)
 {
   static char sValue[5] = { 0, 0, 0, 0, 0 };
-  sValue[0] = value & 0xff;
-  sValue[1] = (value & 0xff00) >> 8;
-  sValue[2] = (value & 0xff0000) >> 16;
-  sValue[3] = (value & 0xff000000) >> 24;
+  if (bigEndian)
+  {
+    sValue[3] = value & 0xff;
+    sValue[2] = (value & 0xff00) >> 8;
+    sValue[1] = (value & 0xff0000) >> 16;
+    sValue[0] = (value & 0xff000000) >> 24;
+  }
+  else
+  {
+    sValue[0] = value & 0xff;
+    sValue[1] = (value & 0xff00) >> 8;
+    sValue[2] = (value & 0xff0000) >> 16;
+    sValue[3] = (value & 0xff000000) >> 24;
+  }
   return sValue;
 }
 #endif

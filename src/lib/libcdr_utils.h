@@ -96,7 +96,7 @@ int32_t readS32(WPXInputStream *input, bool bigEndian=false);
 double readDouble(WPXInputStream *input, bool bigEndian=false);
 
 #ifdef DEBUG
-const char *toFourCC(unsigned value);
+const char *toFourCC(unsigned value, bool bigEndian=false);
 #endif
 
 class EndOfStreamException

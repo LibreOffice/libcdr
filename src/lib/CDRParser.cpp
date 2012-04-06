@@ -32,6 +32,7 @@
 #include <math.h>
 #include <set>
 #include <string.h>
+#include <lcms2.h>
 #include "libcdr_utils.h"
 #include "CDRDocumentStructure.h"
 #include "CDRInternalStream.h"
@@ -214,6 +215,9 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
     break;
   case FOURCC_ftil:
     readFtil(input, length);
+    break;
+  case FOURCC_iccd:
+    readIccd(input, length);
     break;
   default:
     break;
@@ -1242,6 +1246,19 @@ bool libcdr::CDRParser::_redirectX6Chunk(WPXInputStream **input, unsigned &lengt
     return false;
   }
   return true;
+}
+
+void libcdr::CDRParser::readIccd(WPXInputStream *input, unsigned length)
+{
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  unsigned long numBytesRead = 0;
+  const unsigned char *profile = input->read(length, numBytesRead);
+  if (length != numBytesRead)
+    throw EndOfStreamException();
+  cmsHPROFILE tmpProfile = cmsOpenProfileFromMem(profile, numBytesRead);
+  CDR_DEBUG_MSG(("Profile color space %s\n", toFourCC(cmsGetColorSpace(tmpProfile), true)));
+  cmsCloseProfile(tmpProfile);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
