@@ -842,7 +842,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     double rcpOffset = (double)readU16(input) / 100.0;
     unsigned char flags = readU8(input);
     double patternWidth = (double)tmpWidth / 254000.0;
-    double patternHeight = (double)tmpWidth / 254000.0;
+    double patternHeight = (double)tmpHeight / 254000.0;
     bool isRelative = false;
     if ((flags & 0x04) && (m_version < 900))
     {
@@ -894,7 +894,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     double rcpOffset = (double)readU16(input) / 100.0;
     unsigned char flags = readU8(input);
     double patternWidth = (double)tmpWidth / 254000.0;
-    double patternHeight = (double)tmpWidth / 254000.0;
+    double patternHeight = (double)tmpHeight / 254000.0;
     bool isRelative = false;
     if ((flags & 0x04) && (m_version < 900))
     {
@@ -935,7 +935,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     double rcpOffset = (double)readU16(input) / 100.0;
     unsigned char flags = readU8(input);
     double patternWidth = (double)tmpWidth / 254000.0;
-    double patternHeight = (double)tmpWidth / 254000.0;
+    double patternHeight = (double)tmpHeight / 254000.0;
     bool isRelative = false;
     if ((flags & 0x04) && (m_version < 900))
     {
