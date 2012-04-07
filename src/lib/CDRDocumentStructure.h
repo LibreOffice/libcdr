@@ -39,6 +39,7 @@
 #define FOURCC_bmp  0x20706d62
 #define FOURCC_bmpf 0x66706d62
 #define FOURCC_bmpt 0x74706d62
+#define FOURCC_bmpx 0x78706d62
 #define FOURCC_bmrk 0x6b726d62
 #define FOURCC_bpft 0x74667062
 

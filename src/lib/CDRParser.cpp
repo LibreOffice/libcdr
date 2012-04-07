@@ -754,7 +754,9 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   libcdr::CDRColor color2;
   libcdr::CDRImageFill imageFill;
   libcdr::CDRGradient gradient;
-  if (fillType == 1) // Solid
+  switch (fillType)
+  {
+  case 1: // Solid
   {
     if (m_version >= 1300)
       input->seek(13, WPX_SEEK_CUR);
@@ -765,7 +767,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     unsigned colorValue = readU32(input);
     color1 = libcdr::CDRColor(colorModel, colorValue);
   }
-  else if (fillType == 2) // Gradient
+  break;
+  case 2: // Gradient
   {
     if (m_version >= 1300)
       input->seek(8, WPX_SEEK_CUR);
@@ -817,7 +820,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       gradient.m_stops.push_back(stop);
     }
   }
-  else if (fillType == 7) // Pattern
+  break;
+  case 7: // Pattern
   {
     if (m_version >= 1300)
       input->seek(8, WPX_SEEK_CUR);
@@ -867,7 +871,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     color2 = libcdr::CDRColor(colorModel, colorValue);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
   }
-  else if (fillType == 9) // bitmap
+  break;
+  case 9: // bitmap
   {
     if (m_version >= 1600)
       input->seek(32, WPX_SEEK_CUR);
@@ -903,6 +908,51 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(21, WPX_SEEK_CUR);
     unsigned patternId = readU32(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
+  }
+  break;
+  case 11: // Texture
+  {
+    if (m_version >= 1300)
+    {
+      if (v13flag == 0x18e)
+        input->seek(40, WPX_SEEK_CUR);
+      else
+        input->seek(16, WPX_SEEK_CUR);
+    }
+    else
+      input->seek(6, WPX_SEEK_CUR);
+    int tmpWidth = readS32(input);
+    int tmpHeight = readS32(input);
+    double tileOffsetX = 0.0;
+    double tileOffsetY = 0.0;
+    if (m_version < 900)
+    {
+      tileOffsetX = (double)readU16(input) / 100.0;
+      tileOffsetY = (double)readU16(input) / 100.0;
+    }
+    else
+      input->seek(4, WPX_SEEK_CUR);
+    double rcpOffset = (double)readU16(input) / 100.0;
+    unsigned char flags = readU8(input);
+    double patternWidth = (double)tmpWidth / 254000.0;
+    double patternHeight = (double)tmpWidth / 254000.0;
+    bool isRelative = false;
+    if ((flags & 0x04) && (m_version < 900))
+    {
+      isRelative = true;
+      patternWidth = (double)tmpWidth / 100.0;
+      patternHeight = (double)tmpHeight / 100.0;
+    }
+    if (m_version >= 1300)
+      input->seek(17, WPX_SEEK_CUR);
+    else
+      input->seek(21, WPX_SEEK_CUR);
+    unsigned patternId = readU32(input);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
+  }
+  break;
+  default:
+    break;
   }
   m_collector->collectFild(fillId, fillType, color1, color2, gradient, imageFill);
 }

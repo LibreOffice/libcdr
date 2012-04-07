@@ -553,6 +553,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
       }
       break;
       case 9: // Bitmap
+      case 11: // Texture
       {
         std::map<unsigned, WPXBinaryData>::iterator iterBmp = m_ps.m_bmps.find(iter->second.imageFill.id);
         if (iterBmp != m_ps.m_bmps.end())
