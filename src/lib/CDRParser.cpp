@@ -32,7 +32,6 @@
 #include <math.h>
 #include <set>
 #include <string.h>
-#include <lcms2.h>
 #include "libcdr_utils.h"
 #include "CDRDocumentStructure.h"
 #include "CDRInternalStream.h"
@@ -1303,12 +1302,14 @@ void libcdr::CDRParser::readIccd(WPXInputStream *input, unsigned length)
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned long numBytesRead = 0;
-  const unsigned char *profile = input->read(length, numBytesRead);
+  const unsigned char *tmpProfile = input->read(length, numBytesRead);
   if (length != numBytesRead)
     throw EndOfStreamException();
-  cmsHPROFILE tmpProfile = cmsOpenProfileFromMem(profile, numBytesRead);
-  CDR_DEBUG_MSG(("Profile color space %s\n", toFourCC(cmsGetColorSpace(tmpProfile), true)));
-  cmsCloseProfile(tmpProfile);
+  if (!numBytesRead)
+    return;
+  std::vector<unsigned char> profile(numBytesRead);
+  memcpy(&profile[0], tmpProfile, numBytesRead);
+  m_collector->collectColorProfile(profile);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

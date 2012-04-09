@@ -182,6 +182,20 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
     input = tmpInput;
   input->seek(0, WPX_SEEK_SET);
   CDRParserState ps;
+  // libcdr extension to the getDocumentOLEStream. Will extract the first stream in the
+  // given directory
+  WPXInputStream *cmykProfile = zinput.getDocumentOLEStream("color/profiles/cmyk/");
+  if (cmykProfile)
+  {
+    ps.setColorTransform(cmykProfile);
+    delete cmykProfile;
+  }
+  WPXInputStream *rgbProfile = zinput.getDocumentOLEStream("color/profiles/rgb/");
+  if (rgbProfile)
+  {
+    ps.setColorTransform(rgbProfile);
+    delete rgbProfile;
+  }
   CDRStylesCollector stylesCollector(ps);
   CDRParser stylesParser(input, dataStreams, &stylesCollector);
   retVal = stylesParser.parseRecords(input);

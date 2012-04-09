@@ -79,6 +79,7 @@ public:
   void collectFillOpacity(double) {}
   void collectPolygon() {}
   void collectSpline() {}
+  void collectColorProfile(const std::vector<unsigned char> &profile);
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);

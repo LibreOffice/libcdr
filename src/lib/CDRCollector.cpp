@@ -28,14 +28,16 @@
  */
 
 #include <math.h>
+#include <string.h>
 #include "CDRCollector.h"
 
 libcdr::CDRParserState::CDRParserState()
   : m_fillStyles(), m_lineStyles(), m_bmps(), m_patterns(),
-    m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0)
+    m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0), m_colorTransformRGB2RGB(0)
 {
-  cmsHPROFILE tmpCMYKProfile = cmsOpenProfileFromMem(SWOP_icc, sizeof(SWOP_icc)/sizeof(SWOP_icc[0]));
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
+  m_colorTransformRGB2RGB = cmsCreateTransform(tmpRGBProfile, TYPE_RGB_8, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
+  cmsHPROFILE tmpCMYKProfile = cmsOpenProfileFromMem(SWOP_icc, sizeof(SWOP_icc)/sizeof(SWOP_icc[0]));
   m_colorTransformCMYK2RGB = cmsCreateTransform(tmpCMYKProfile, TYPE_CMYK_DBL, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
   cmsHPROFILE tmpLabProfile = cmsCreateLab4Profile(0);
   m_colorTransformLab2RGB = cmsCreateTransform(tmpLabProfile, TYPE_Lab_DBL, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
@@ -50,6 +52,51 @@ libcdr::CDRParserState::~CDRParserState()
     cmsDeleteTransform(m_colorTransformCMYK2RGB);
   if (m_colorTransformLab2RGB)
     cmsDeleteTransform(m_colorTransformLab2RGB);
+  if (m_colorTransformRGB2RGB)
+    cmsDeleteTransform(m_colorTransformRGB2RGB);
+}
+
+void libcdr::CDRParserState::setColorTransform(const std::vector<unsigned char> &profile)
+{
+  if (profile.empty())
+    return;
+  cmsHPROFILE tmpProfile = cmsOpenProfileFromMem(&profile[0], profile.size());
+  cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
+  cmsColorSpaceSignature signature = cmsGetColorSpace(tmpProfile);
+  switch (signature)
+  {
+  case cmsSigCmykData:
+  {
+    if (m_colorTransformCMYK2RGB)
+      cmsDeleteTransform(m_colorTransformCMYK2RGB);
+    m_colorTransformCMYK2RGB = cmsCreateTransform(tmpProfile, TYPE_CMYK_DBL, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
+  }
+  break;
+  case cmsSigRgbData:
+  {
+    if (m_colorTransformRGB2RGB)
+      cmsDeleteTransform(m_colorTransformRGB2RGB);
+    m_colorTransformRGB2RGB = cmsCreateTransform(tmpProfile, TYPE_RGB_8, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
+  }
+  break;
+  default:
+    break;
+  }
+  cmsCloseProfile(tmpProfile);
+  cmsCloseProfile(tmpRGBProfile);
+}
+
+void libcdr::CDRParserState::setColorTransform(WPXInputStream *input)
+{
+  if (!input)
+    return;
+  unsigned long numBytesRead = 0;
+  const unsigned char *tmpProfile = input->read((unsigned long)-1, numBytesRead);
+  if (!numBytesRead)
+    return;
+  std::vector<unsigned char> profile(numBytesRead);
+  memcpy(&profile[0], tmpProfile, numBytesRead);
+  setColorTransform(profile);
 }
 
 unsigned libcdr::CDRParserState::getBMPColor(const CDRColor &color)
@@ -132,9 +179,12 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
   }
   else if (color.m_colorModel == 0x05) // RGB
   {
-    red = col2;
-    green = col1;
-    blue = col0;
+    unsigned char input[3] = { col2, col1, col0 };
+    unsigned char output[3] = { 0, 0, 0 };
+    cmsDoTransform(m_colorTransformRGB2RGB, input, output, 1);
+    red = output[0];
+    green = output[1];
+    blue = output[2];
   }
   else if (color.m_colorModel == 0x06) // HSB
   {

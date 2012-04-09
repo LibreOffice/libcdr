@@ -34,6 +34,7 @@
 #include <vector>
 #include <stack>
 #include <libwpg/libwpg.h>
+#include <libwpd-stream/libwpd-stream.h>
 #include <lcms2.h>
 #include "CDRTypes.h"
 #include "CDRPath.h"
@@ -87,6 +88,10 @@ public:
   WPXString getRGBColorString(const CDRColor &color);
   cmsHTRANSFORM m_colorTransformCMYK2RGB;
   cmsHTRANSFORM m_colorTransformLab2RGB;
+  cmsHTRANSFORM m_colorTransformRGB2RGB;
+
+  void setColorTransform(const std::vector<unsigned char> &profile);
+  void setColorTransform(WPXInputStream *input);
 
 private:
   CDRParserState(const CDRParserState &);
@@ -129,6 +134,7 @@ public:
   virtual void collectFillOpacity(double opacity) = 0;
   virtual void collectPolygon() = 0;
   virtual void collectSpline() = 0;
+  virtual void collectColorProfile(const std::vector<unsigned char> &profile) = 0;
 };
 
 } // namespace libcdr

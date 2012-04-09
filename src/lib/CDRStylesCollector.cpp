@@ -200,4 +200,9 @@ void libcdr::CDRStylesCollector::collectBmpf(unsigned patternId, unsigned width,
   m_ps.m_patterns[patternId] = CDRPattern(width, height, pattern);
 }
 
+void libcdr::CDRStylesCollector::collectColorProfile(const std::vector<unsigned char> &profile)
+{
+  if (!profile.empty())
+    m_ps.setColorTransform(profile);
+}
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
