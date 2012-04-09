@@ -965,13 +965,14 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
   unsigned lineId = readU32(input);
   if (m_version >= 1300)
   {
-    unsigned flag = readU32(input);
-    if (flag == 5)
-      input->seek(123, WPX_SEEK_CUR);
-    else if (m_version >= 1600)
-      input->seek(67, WPX_SEEK_CUR);
-    else
-      input->seek(16, WPX_SEEK_CUR);
+    unsigned id = 0;
+    unsigned length = 0;
+    while (id != 1)
+    {
+      input->seek(length, WPX_SEEK_CUR);
+      id = readU32(input);
+      length = readU32(input);
+    }
   }
   unsigned short lineType = readU16(input);
   unsigned short capsType = readU16(input);
