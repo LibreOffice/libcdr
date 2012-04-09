@@ -335,7 +335,7 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
     _flushCurrentPath();
     m_currentObjectLevel = 0;
   }
-  if (!m_groupLevels.empty() && level <= m_groupLevels.top())
+  while (!m_groupLevels.empty() && level <= m_groupLevels.top())
   {
     WPXPropertyList propList;
     CDROutputElementList outputElement;
