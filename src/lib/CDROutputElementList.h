@@ -60,6 +60,8 @@ public:
   void addEndTextSpan();
   void addEndTextLine();
   void addEndTextObject();
+  void addStartGroup(const WPXPropertyList &propList);
+  void addEndGroup();
   bool empty() const
   {
     return m_elements.empty();

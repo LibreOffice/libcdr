@@ -338,10 +338,12 @@ void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const 
 
 void libcdr::CDRSVGGenerator::startLayer(const ::WPXPropertyList &propList)
 {
-  m_outputSink << "<svg:g id=\"Layer" << propList["svg:id"]->getInt() << "\"";
+  m_outputSink << "<svg:g";
+  if (propList["svg:id"])
+    m_outputSink << " id=\"Layer" << propList["svg:id"]->getInt() << "\"";
   if (propList["svg:fill-rule"])
     m_outputSink << " fill-rule=\"" << propList["svg:fill-rule"]->getStr().cstr() << "\"";
-  m_outputSink << " >\n";
+  m_outputSink << ">\n";
 }
 
 void libcdr::CDRSVGGenerator::endLayer()

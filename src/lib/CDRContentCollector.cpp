@@ -51,10 +51,10 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   m_pageOffsetX(-4.25), m_pageOffsetY(-5.5),
   m_pageWidth(8.5), m_pageHeight(11.0),
   m_currentFildId(0.0), m_currentOutlId(0),
-  m_currentObjectLevel(0), m_currentPageLevel(0),
+  m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentPageLevel(0),
   m_currentImage(), m_currentPath(), m_currentTransform(), m_fillTransform(),
   m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(),
-  m_splineData(), m_fillOpacity(1.0), m_ps(ps)
+  m_groupLevels(), m_splineData(), m_fillOpacity(1.0), m_ps(ps)
 {
 }
 
@@ -101,6 +101,16 @@ void libcdr::CDRContentCollector::collectObject(unsigned level)
   m_currentObjectLevel = level;
   m_currentFildId = 0;
   m_currentOutlId = 0;
+}
+
+void libcdr::CDRContentCollector::collectGroup(unsigned level)
+{
+  WPXPropertyList propList;
+  CDROutputElementList outputElement;
+  // Since the CDR objects are drawn in reverse order, reverse the logic of groups too
+  outputElement.addEndGroup();
+  m_outputElements.push(outputElement);
+  m_groupLevels.push(level);
 }
 
 void libcdr::CDRContentCollector::collectFlags(unsigned flags)
@@ -324,6 +334,15 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
   {
     _flushCurrentPath();
     m_currentObjectLevel = 0;
+  }
+  if (!m_groupLevels.empty() && level <= m_groupLevels.top())
+  {
+    WPXPropertyList propList;
+    CDROutputElementList outputElement;
+    // since the CDR objects are drawn in reverse order, reverse group marks too
+    outputElement.addStartGroup(propList);
+    m_outputElements.push(outputElement);
+    m_groupLevels.pop();
   }
   if (level <= m_currentPageLevel)
   {

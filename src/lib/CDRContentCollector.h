@@ -52,6 +52,7 @@ public:
   // collector functions
   void collectPage(unsigned level);
   void collectObject(unsigned level);
+  void collectGroup(unsigned level);
   void collectOtherList();
   void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y);
   void collectQuadraticBezier(double x1, double y1, double x, double y);
@@ -101,7 +102,7 @@ private:
   double m_pageOffsetX, m_pageOffsetY;
   double m_pageWidth, m_pageHeight;
   unsigned m_currentFildId, m_currentOutlId;
-  unsigned m_currentObjectLevel, m_currentPageLevel;
+  unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentPageLevel;
   CDRImage m_currentImage;
 
   CDRPath m_currentPath;
@@ -110,6 +111,7 @@ private:
   bool m_isInPolygon;
   bool m_isInSpline;
   std::stack<CDROutputElementList> m_outputElements;
+  std::stack<unsigned> m_groupLevels;
   CDRSplineData m_splineData;
   double m_fillOpacity;
 

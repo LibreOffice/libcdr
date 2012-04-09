@@ -188,6 +188,32 @@ public:
   }
 };
 
+class CDRStartLayerOutputElement : public CDROutputElement
+{
+public:
+  CDRStartLayerOutputElement(const WPXPropertyList &propList);
+  virtual ~CDRStartLayerOutputElement() {}
+  virtual void draw(libwpg::WPGPaintInterface *painter);
+  virtual CDROutputElement *clone()
+  {
+    return new CDRStartLayerOutputElement(m_propList);
+  }
+private:
+  WPXPropertyList m_propList;
+};
+
+class CDREndLayerOutputElement : public CDROutputElement
+{
+public:
+  CDREndLayerOutputElement();
+  virtual ~CDREndLayerOutputElement() {}
+  virtual void draw(libwpg::WPGPaintInterface *painter);
+  virtual CDROutputElement *clone()
+  {
+    return new CDREndLayerOutputElement();
+  }
+};
+
 } // namespace libcdr
 
 libcdr::CDRStyleOutputElement::CDRStyleOutputElement(const WPXPropertyList &propList, const WPXPropertyListVector &propListVec) :
@@ -285,6 +311,25 @@ void libcdr::CDREndTextObjectOutputElement::draw(libwpg::WPGPaintInterface *pain
 }
 
 
+libcdr::CDREndLayerOutputElement::CDREndLayerOutputElement() {}
+
+void libcdr::CDREndLayerOutputElement::draw(libwpg::WPGPaintInterface *painter)
+{
+  if (painter)
+    painter->endLayer();
+}
+
+
+libcdr::CDRStartLayerOutputElement::CDRStartLayerOutputElement(const WPXPropertyList &propList) :
+  m_propList(propList) {}
+
+void libcdr::CDRStartLayerOutputElement::draw(libwpg::WPGPaintInterface *painter)
+{
+  if (painter)
+    painter->startLayer(m_propList);
+}
+
+
 libcdr::CDROutputElementList::CDROutputElementList()
   : m_elements()
 {
@@ -378,6 +423,16 @@ void libcdr::CDROutputElementList::addEndTextLine()
 void libcdr::CDROutputElementList::addEndTextObject()
 {
   m_elements.push_back(new CDREndTextObjectOutputElement());
+}
+
+void libcdr::CDROutputElementList::addStartGroup(const WPXPropertyList &propList)
+{
+  m_elements.push_back(new CDRStartLayerOutputElement(propList));
+}
+
+void libcdr::CDROutputElementList::addEndGroup()
+{
+  m_elements.push_back(new CDREndLayerOutputElement());
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

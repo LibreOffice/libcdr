@@ -52,6 +52,7 @@ public:
   // collector functions
   void collectPage(unsigned) {}
   void collectObject(unsigned) {}
+  void collectGroup(unsigned) {}
   void collectOtherList() {}
   void collectCubicBezier(double, double, double, double, double, double) {}
   void collectQuadraticBezier(double, double, double, double) {}
