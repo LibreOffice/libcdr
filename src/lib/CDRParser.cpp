@@ -711,7 +711,7 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
     unsigned short tmpType = readU16(input);
     if (tmpType == 0x08) // trafo
     {
-      if (m_version > 600)
+      if (m_version >= 600)
         input->seek(6, WPX_SEEK_CUR);
       double v0 = readDouble(input);
       double v1 = readDouble(input);
