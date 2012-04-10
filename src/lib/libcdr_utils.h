@@ -47,6 +47,7 @@
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
+typedef short int16_t;
 typedef unsigned uint32_t;
 typedef int int32_t;
 typedef unsigned __int64 uint64_t;
@@ -92,6 +93,7 @@ uint16_t readU16(WPXInputStream *input, bool bigEndian=false);
 uint32_t readU32(WPXInputStream *input, bool bigEndian=false);
 uint64_t readU64(WPXInputStream *input, bool bigEndian=false);
 int32_t readS32(WPXInputStream *input, bool bigEndian=false);
+int16_t readS16(WPXInputStream *input, bool bigEndian=false);
 
 double readDouble(WPXInputStream *input, bool bigEndian=false);
 

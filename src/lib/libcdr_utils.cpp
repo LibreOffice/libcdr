@@ -68,6 +68,11 @@ uint16_t libcdr::readU16(WPXInputStream *input, bool bigEndian)
   throw EndOfStreamException();
 }
 
+int16_t libcdr::readS16(WPXInputStream *input, bool bigEndian)
+{
+  return (int16_t)readU16(input, bigEndian);
+}
+
 uint32_t libcdr::readU32(WPXInputStream *input, bool bigEndian)
 {
   if (!input || input->atEOS())

@@ -226,23 +226,31 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   input->seek(recordStart + length, WPX_SEEK_CUR);
 }
 
-double libcdr::CDRParser::readCoordinate(WPXInputStream *input)
+double libcdr::CDRParser::readRectCoord(WPXInputStream *input)
 {
   if (m_version < 1500)
-    return (double)readS32(input) / 254000.0;
-  else
-    return readDouble(input) / 254000.0;
+    return readCoordinate(input);
+  return readDouble(input) / 254000.0;
+}
+
+double libcdr::CDRParser::readCoordinate(WPXInputStream *input)
+{
+  if (m_version < 600)
+    return (double)readS16(input) / 1000.0;
+  return (double)readS32(input) / 254000.0;
 }
 
 double libcdr::CDRParser::readAngle(WPXInputStream *input)
 {
+  if (m_version < 600)
+    return M_PI * (double)readS16(input) / 180000000.0;
   return M_PI * (double)readS32(input) / 180000000.0;
 }
 
 void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 {
-  double x0 = readCoordinate(input);
-  double y0 = readCoordinate(input);
+  double x0 = readRectCoord(input);
+  double y0 = readRectCoord(input);
   double r3 = 0.0;
   double r2 = 0.0;
   double r1 = 0.0;
@@ -253,10 +261,10 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 
   if (m_version < 1500)
   {
-    r3 = readCoordinate(input);
-    r2 = m_version < 900 ? r3 : readCoordinate(input);
-    r1 = m_version < 900 ? r3 : readCoordinate(input);
-    r0 = m_version < 900 ? r3 : readCoordinate(input);
+    r3 = readRectCoord(input);
+    r2 = m_version < 900 ? r3 : readRectCoord(input);
+    r1 = m_version < 900 ? r3 : readRectCoord(input);
+    r0 = m_version < 900 ? r3 : readRectCoord(input);
   }
   else
   {
@@ -284,14 +292,14 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
     }
     else
     {
-      r3 = readCoordinate(input);
+      r3 = readRectCoord(input);
       corner_type = readU8(input);
       input->seek(15, WPX_SEEK_CUR);
-      r2 = readCoordinate(input);
+      r2 = readRectCoord(input);
       input->seek(16, WPX_SEEK_CUR);
-      r1 = readCoordinate(input);
+      r1 = readRectCoord(input);
       input->seek(16, WPX_SEEK_CUR);
-      r0 = readCoordinate(input);
+      r0 = readRectCoord(input);
     }
   }
   if (r0 > 0.0)
@@ -352,8 +360,8 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readEllipse\n"));
 
-  double x = (double)readS32(input) / 254000.0;
-  double y = (double)readS32(input) / 254000.0;
+  double x = readCoordinate(input);
+  double y = (double)readCoordinate(input);
   double angle1 = readAngle(input);
   double angle2 = readAngle(input);
   bool pie(0 != readU32(input));
@@ -453,8 +461,8 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
-    point.first = (double)readS32(input) / 254000.0;
-    point.second = (double)readS32(input) / 254000.0;
+    point.first = (double)readCoordinate(input);
+    point.second = (double)readCoordinate(input);
     points.push_back(point);
   }
   for (unsigned k=0; k<pointNum; k++)
@@ -521,8 +529,8 @@ void libcdr::CDRParser::readPath(WPXInputStream *input)
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
-    point.first = (double)readS32(input) / 254000.0;
-    point.second = (double)readS32(input) / 254000.0;
+    point.first = (double)readCoordinate(input);
+    point.second = (double)readCoordinate(input);
     points.push_back(point);
   }
   for (unsigned k=0; k<pointNum; k++)
@@ -590,15 +598,15 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
   CDR_DEBUG_MSG(("CDRParser::readBitmap\n"));
 
   bool isClosedPath = false;
-  double x1 = (double)readS32(input) / 254000.0;
-  double y1 = (double)readS32(input) / 254000.0;
-  double x2 = (double)readS32(input) / 254000.0;
-  double y2 = (double)readS32(input) / 254000.0;
+  double x1 = (double)readCoordinate(input);
+  double y1 = (double)readCoordinate(input);
+  double x2 = (double)readCoordinate(input);
+  double y2 = (double)readCoordinate(input);
 #if 0
-  double x3 = (double)readS32(input) / 254000.0;
-  double y3 = (double)readS32(input) / 254000.0;
-  double x4 = (double)readS32(input) / 254000.0;
-  double y4 = (double)readS32(input) / 254000.0;
+  double x3 = (double)readCoordinate(input);
+  double y3 = (double)readCoordinate(input);
+  double x4 = (double)readCoordinate(input);
+  double y4 = (double)readCoordinate(input);
 #else
   input->seek(16, WPX_SEEK_CUR);
 #endif
@@ -619,8 +627,8 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
-    point.first = (double)readS32(input) / 254000.0;
-    point.second = (double)readS32(input) / 254000.0;
+    point.first = (double)readCoordinate(input);
+    point.second = (double)readCoordinate(input);
     points.push_back(point);
   }
   for (unsigned k=0; k<pointNum; k++)
@@ -680,15 +688,18 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   long startPosition = input->tell();
-  unsigned chunkLength = readU32(input);
-  unsigned numOfArgs = readU32(input);
-  unsigned startOfArgs = readU32(input);
-  input->seek(4, WPX_SEEK_CUR);
+  unsigned chunkLength = m_version < 600 ? readU16(input) : readU32(input);
+  unsigned numOfArgs = m_version < 600 ? readU16(input) : readU32(input);
+  unsigned startOfArgs = m_version < 600 ? readU16(input) : readU32(input);
+  if (m_version < 600)
+    input->seek(2, WPX_SEEK_CUR);
+  else
+    input->seek(4, WPX_SEEK_CUR);
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   unsigned i = 0;
   input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
   while (i<numOfArgs)
-    argOffsets[i++] = readU32(input);
+    argOffsets[i++] = m_version < 600 ? readU16(input) : readU32(input);
 
   for (i=0; i < argOffsets.size(); i++)
   {
@@ -698,13 +709,14 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
     unsigned short tmpType = readU16(input);
     if (tmpType == 0x08) // trafo
     {
-      input->seek(6, WPX_SEEK_CUR);
+      if (m_version > 600)
+        input->seek(6, WPX_SEEK_CUR);
       double v0 = readDouble(input);
       double v1 = readDouble(input);
-      double x0 = readDouble(input) / 254000.0;
+      double x0 = readDouble(input) / (m_version < 600 ? 1000.0 : 254000.0);
       double v3 = readDouble(input);
       double v4 = readDouble(input);
-      double y0 = readDouble(input) / 254000.0;
+      double y0 = readDouble(input) / (m_version < 600 ? 1000.0 : 254000.0);
       m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
     }
     else if (tmpType == 0x10)
@@ -712,8 +724,8 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
 #if 0
       input->seek(6, WPX_SEEK_CUR);
       unsigned short type = readU16(input);
-      double x = readS32(input) / 254000.0;
-      double y = readS32(input) / 254000.0;
+      double x = readCoordinate(input);
+      double y = readCoordinate(input);
       unsigned subType = readU32(input);
       if (!subType)
       {
@@ -977,27 +989,34 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
   unsigned short lineType = readU16(input);
   unsigned short capsType = readU16(input);
   unsigned short joinType = readU16(input);
-  if (m_version < 1300)
+  if (m_version < 1300 && m_version >= 600)
     input->seek(2, WPX_SEEK_CUR);
-  double lineWidth = (double)readS32(input) / 254000.0;
+  double lineWidth = (double)readCoordinate(input);
   double stretch = (double)readU16(input) / 100.0;
-  input->seek(2, WPX_SEEK_CUR);
+  if (m_version >= 600)
+    input->seek(2, WPX_SEEK_CUR);
   double angle = readAngle(input);
-  if (m_version < 1300)
-    input->seek(52, WPX_SEEK_CUR);
-  else
+  if (m_version >= 1300)
     input->seek(46, WPX_SEEK_CUR);
+  else if (m_version >= 600)
+    input->seek(52, WPX_SEEK_CUR);
   unsigned short colorModel = readU16(input);
   input->seek(6, WPX_SEEK_CUR);
   unsigned colorValue = readU32(input);
   libcdr::CDRColor color(colorModel, colorValue);
-  input->seek(16, WPX_SEEK_CUR);
+  if (m_version < 600)
+    input->seek(10, WPX_SEEK_CUR);
+  else
+    input->seek(16, WPX_SEEK_CUR);
   unsigned short numDash = readU16(input);
   int fixPosition = input->tell();
   std::vector<unsigned short> dashArray;
   for (unsigned short i = 0; i < numDash; ++i)
     dashArray.push_back(readU16(input));
-  input->seek(fixPosition + 22, WPX_SEEK_SET);
+  if (m_version < 600)
+    input->seek(fixPosition + 20, WPX_SEEK_SET);
+  else
+    input->seek(fixPosition + 22, WPX_SEEK_SET);
   unsigned startMarkerId = readU32(input);
   unsigned endMarkerId = readU32(input);
   m_collector->collectOutl(lineId, lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
@@ -1008,11 +1027,11 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   long startPosition = input->tell();
-  unsigned chunkLength = readU32(input);
-  unsigned numOfArgs = readU32(input);
-  unsigned startOfArgs = readU32(input);
-  unsigned startOfArgTypes = readU32(input);
-  unsigned chunkType = readU32(input);
+  unsigned chunkLength = m_version < 600 ? readU16(input) : readU32(input);
+  unsigned numOfArgs = m_version < 600 ? readU16(input) : readU32(input);
+  unsigned startOfArgs = m_version < 600 ? readU16(input) : readU32(input);
+  unsigned startOfArgTypes = m_version < 600 ? readU16(input) : readU32(input);
+  unsigned chunkType = m_version < 600 ? readU16(input) : readU32(input);
   if (chunkType == 0x26)
     m_collector->collectSpline();
   std::vector<unsigned> argOffsets(numOfArgs, 0);
@@ -1020,10 +1039,10 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
   unsigned i = 0;
   input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
   while (i<numOfArgs)
-    argOffsets[i++] = readU32(input);
+    argOffsets[i++] = m_version < 600 ? readU16(input) : readU32(input);
   input->seek(startPosition+startOfArgTypes, WPX_SEEK_SET);
   while (i>0)
-    argTypes[--i] = readU32(input);
+    argTypes[--i] = m_version < 600 ? readU16(input) : readU32(input);
 
   for (i=0; i < argTypes.size(); i++)
   {
@@ -1075,10 +1094,10 @@ void libcdr::CDRParser::readMcfg(WPXInputStream *input, unsigned length)
     input->seek(12, WPX_SEEK_CUR);
   else if (m_version >= 900)
     input->seek(4, WPX_SEEK_CUR);
-  else if (m_version < 700)
+  else if (m_version < 700 && m_version >= 600)
     input->seek(0x1c, WPX_SEEK_CUR);
-  double width = (double)readS32(input) / 254000.0;
-  double height = (double)readS32(input) / 254000.0;
+  double width = (double)readCoordinate(input);
+  double height = (double)readCoordinate(input);
   m_collector->collectPageSize(width, height);
 }
 
@@ -1094,8 +1113,8 @@ void libcdr::CDRParser::readPolygonCoords(WPXInputStream *input)
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
-    point.first = (double)readS32(input) / 254000.0;
-    point.second = (double)readS32(input) / 254000.0;
+    point.first = (double)readCoordinate(input);
+    point.second = (double)readCoordinate(input);
     points.push_back(point);
   }
   for (unsigned k=0; k<pointNum; k++)
@@ -1164,8 +1183,8 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
     input->seek(4, WPX_SEEK_CUR);
   double rx = readDouble(input);
   double ry = readDouble(input);
-  double cx = (double)readS32(input) / 254000.0;
-  double cy = (double)readS32(input) / 254000.0;
+  double cx = (double)readCoordinate(input);
+  double cy = (double)readCoordinate(input);
   m_collector->collectPolygonTransform(numAngles, nextPoint, rx, ry, cx, cy);
 }
 
@@ -1251,8 +1270,8 @@ void libcdr::CDRParser::readPpdt(WPXInputStream *input, unsigned length)
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
-    point.first = (double)readS32(input) / 254000.0;
-    point.second = (double)readS32(input) / 254000.0;
+    point.first = (double)readCoordinate(input);
+    point.second = (double)readCoordinate(input);
     points.push_back(point);
   }
   for (unsigned k=0; k<pointNum; k++)
