@@ -876,8 +876,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(4, WPX_SEEK_CUR);
     double rcpOffset = (double)readU16(input) / 100.0;
     unsigned char flags = readU8(input);
-    double patternWidth = (double)tmpWidth / 254000.0;
-    double patternHeight = (double)tmpHeight / 254000.0;
+    double patternWidth = (double)tmpWidth / (m_version < 600 ? 1000.0 : 254000.0);
+    double patternHeight = (double)tmpHeight / (m_version < 600 ? 1000.0 : 254000.0);
     bool isRelative = false;
     if ((flags & 0x04) && (m_version < 900))
     {
