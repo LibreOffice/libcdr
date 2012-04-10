@@ -597,6 +597,8 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readBitmap\n"));
 
+  if (m_version < 600)
+    return;
   bool isClosedPath = false;
   double x1 = (double)readCoordinate(input);
   double y1 = (double)readCoordinate(input);
@@ -612,7 +614,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 #endif
 
   input->seek(16, WPX_SEEK_CUR);
-  unsigned imageId = readU32(input);
+  unsigned imageId = m_version < 600 ? readU16(input) : readU32(input);
   if (m_version < 800)
     input->seek(8, WPX_SEEK_CUR);
   else if (m_version >= 800 && m_version < 900)
@@ -1192,8 +1194,10 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
-  unsigned imageId = readU32(input);
-  if (m_version < 700)
+  unsigned imageId = m_version < 600 ? readU16(input) : readU32(input);
+  if (m_version < 600)
+    input->seek(14, WPX_SEEK_CUR);
+  else if (m_version < 700)
     input->seek(46, WPX_SEEK_CUR);
   else
     input->seek(50, WPX_SEEK_CUR);
