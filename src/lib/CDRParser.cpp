@@ -620,6 +620,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
   {
     input->seek(12, WPX_SEEK_CUR);
     imageId = readUnsigned(input);
+    input->seek(20, WPX_SEEK_CUR);
     x1 = readCoordinate(input);
     y1 = readCoordinate(input);
     x2 = readCoordinate(input);
@@ -720,10 +721,6 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
   unsigned chunkLength = readUnsigned(input);
   unsigned numOfArgs = readUnsigned(input);
   unsigned startOfArgs = readUnsigned(input);
-  if (m_version < 600)
-    input->seek(2, WPX_SEEK_CUR);
-  else
-    input->seek(4, WPX_SEEK_CUR);
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   unsigned i = 0;
   input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
@@ -738,14 +735,32 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
     unsigned short tmpType = readU16(input);
     if (tmpType == 0x08) // trafo
     {
+      double v0 = 0.0;
+      double v1 = 0.0;
+      double x0 = 0.0;
+      double v3 = 0.0;
+      double v4 = 0.0;
+      double y0 = 0.0;
       if (m_version >= 600)
         input->seek(6, WPX_SEEK_CUR);
-      double v0 = readDouble(input);
-      double v1 = readDouble(input);
-      double x0 = readDouble(input) / (m_version < 600 ? 1000.0 : 254000.0);
-      double v3 = readDouble(input);
-      double v4 = readDouble(input);
-      double y0 = readDouble(input) / (m_version < 600 ? 1000.0 : 254000.0);
+      if (m_version >= 500)
+      {
+        v0 = readDouble(input);
+        v1 = readDouble(input);
+        x0 = readDouble(input) / (m_version < 600 ? 1000.0 : 254000.0);
+        v3 = readDouble(input);
+        v4 = readDouble(input);
+        y0 = readDouble(input) / (m_version < 600 ? 1000.0 : 254000.0);
+      }
+      else
+      {
+        v0 = readFixedPoint(input);
+        v1 = readFixedPoint(input);
+        x0 = (double)readS32(input) / 1000.0;
+        v3 = readFixedPoint(input);
+        v4 = readFixedPoint(input);
+        y0 = (double)readS32(input) / 1000.0;
+      }
       m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
     }
     else if (tmpType == 0x10)
@@ -1223,6 +1238,23 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned imageId = readUnsigned(input);
+  if (m_version < 500)
+  {
+    if (readU8(input) != 0x42)
+      return;
+    if (readU8(input) != 0x4d)
+      return;
+    unsigned length = readU32(input);
+    input->seek(-6, WPX_SEEK_CUR);
+    unsigned long tmpNumBytesRead = 0;
+    const unsigned char *tmpBuffer = input->read(length, tmpNumBytesRead);
+    if (!tmpNumBytesRead || length != tmpNumBytesRead)
+      return;
+    std::vector<unsigned char> bitmap(tmpNumBytesRead);
+    memcpy(&bitmap[0], tmpBuffer, tmpNumBytesRead);
+    m_collector->collectBmp(imageId, bitmap);
+    return;
+  }
   if (m_version < 600)
     input->seek(14, WPX_SEEK_CUR);
   else if (m_version < 700)

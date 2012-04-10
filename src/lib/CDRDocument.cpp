@@ -63,6 +63,7 @@ static unsigned getCDRVersion(WPXInputStream *input)
 
 } // anonymous namespace
 
+#define SUPPORTED_CDR_VERSION 400
 /**
 Analyzes the content of an input stream to see if it can be parsed
 \param input The input stream
@@ -76,7 +77,7 @@ bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
   if (version)
   {
 #ifndef DEBUG
-    if (version < 500)
+    if (version < SUPPORTED_CDR_VERSION)
       return false;
 #endif
     return true;
@@ -119,7 +120,7 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   if (version)
   {
 #ifndef DEBUG
-    if (version < 600)
+    if (version < SUPPORTED_CDR_VERSION)
       return false;
 #endif
     input->seek(0, WPX_SEEK_SET);

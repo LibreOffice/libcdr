@@ -74,6 +74,7 @@ public:
   void collectPolygonTransform(unsigned, unsigned, double, double, double, double) {}
   void collectBitmap(unsigned, double, double, double, double) {}
   void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap);
+  void collectBmp(unsigned imageId, const std::vector<unsigned char> &bitmap);
   void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern);
   void collectPpdt(const std::vector<std::pair<double, double> > &, const std::vector<unsigned> &) {}
   void collectFillTransform(double, double, double, double, double, double) {}

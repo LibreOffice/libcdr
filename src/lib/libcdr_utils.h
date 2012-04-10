@@ -97,6 +97,8 @@ int16_t readS16(WPXInputStream *input, bool bigEndian=false);
 
 double readDouble(WPXInputStream *input, bool bigEndian=false);
 
+double readFixedPoint(WPXInputStream *input, bool bigEndian=false);
+
 #ifdef DEBUG
 const char *toFourCC(unsigned value, bool bigEndian=false);
 #endif

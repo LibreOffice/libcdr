@@ -129,6 +129,7 @@ public:
   virtual void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy) = 0;
   virtual void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2) = 0;
   virtual void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap) = 0;
+  virtual void collectBmp(unsigned imageId, const std::vector<unsigned char> &bitmap) = 0;
   virtual void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern) = 0;
   virtual void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector) = 0;
   virtual void collectFillTransform(double v0, double v1, double x, double v3, double v4, double y) = 0;

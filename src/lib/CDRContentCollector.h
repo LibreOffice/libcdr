@@ -73,6 +73,7 @@ public:
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
   void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2);
   void collectBmp(unsigned, unsigned, unsigned, unsigned, unsigned, const std::vector<unsigned>&, const std::vector<unsigned char>&) {}
+  void collectBmp(unsigned, const std::vector<unsigned char>&) {}
   void collectBmpf(unsigned, unsigned, unsigned, const std::vector<unsigned char> &) {}
   void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector);
   void collectFillTransform(double v0, double v1, double x, double v3, double v4, double y);

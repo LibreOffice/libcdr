@@ -195,6 +195,25 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
   }
 }
 
+void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, const std::vector<unsigned char> &bitmap)
+{
+  WPXBinaryData image(&bitmap[0], bitmap.size());
+#if DUMP_IMAGE
+  WPXString filename;
+  filename.sprintf("bitmap%.8x.bmp", imageId);
+  FILE *f = fopen(filename.cstr(), "wb");
+  if (f)
+  {
+    const unsigned char *tmpBuffer = image.getDataBuffer();
+    for (unsigned long k = 0; k < image.size(); k++)
+      fprintf(f, "%c",tmpBuffer[k]);
+    fclose(f);
+  }
+#endif
+
+  m_ps.m_bmps[imageId] = image;
+}
+
 void libcdr::CDRStylesCollector::collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern)
 {
   m_ps.m_patterns[patternId] = CDRPattern(width, height, pattern);

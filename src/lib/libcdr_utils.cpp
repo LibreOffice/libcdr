@@ -131,6 +131,14 @@ double libcdr::readDouble(WPXInputStream *input, bool bigEndian)
   return tmpUnion.d;
 }
 
+double libcdr::readFixedPoint(WPXInputStream *input, bool bigEndian)
+{
+  unsigned fixedPointNumber = readU32(input, bigEndian);
+  short fixedPointNumberIntegerPart = (short)((fixedPointNumber & 0xFFFF0000) >> 16);
+  double fixedPointNumberFractionalPart = (double)((double)(fixedPointNumber & 0x0000FFFF)/(double)0xFFFF);
+  return ((double)fixedPointNumberIntegerPart + fixedPointNumberFractionalPart);
+}
+
 #ifdef DEBUG
 const char *libcdr::toFourCC(unsigned value, bool bigEndian)
 {
