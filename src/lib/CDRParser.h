@@ -56,6 +56,7 @@ private:
   void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
   double readRectCoord(WPXInputStream *input);
   double readCoordinate(WPXInputStream *input);
+  unsigned readInteger(WPXInputStream *input);
   double readAngle(WPXInputStream *input);
 
   void readRectangle(WPXInputStream *input);
