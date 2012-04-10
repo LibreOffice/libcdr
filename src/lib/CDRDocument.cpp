@@ -76,7 +76,7 @@ bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
   if (version)
   {
 #ifndef DEBUG
-    if (version < 600)
+    if (version < 500)
       return false;
 #endif
     return true;
