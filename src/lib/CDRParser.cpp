@@ -250,7 +250,7 @@ unsigned libcdr::CDRParser::readInteger(WPXInputStream *input)
 double libcdr::CDRParser::readAngle(WPXInputStream *input)
 {
   if (m_version < 600)
-    return M_PI * (double)readS16(input) / 180000000.0;
+    return M_PI * (double)readS16(input) / 1800.0;
   return M_PI * (double)readS32(input) / 180000000.0;
 }
 
@@ -820,7 +820,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(19, WPX_SEEK_CUR);
       gradient.m_edgeOffset = readS32(input);
     }
-    gradient.m_angle = (double)readS32(input) / 1000000.0;
+    gradient.m_angle = readAngle(input);
     gradient.m_centerXOffset = readS32(input);
     gradient.m_centerYOffset = readS32(input);
     input->seek(2, WPX_SEEK_CUR);
