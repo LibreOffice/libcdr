@@ -863,8 +863,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     else
       input->seek(2, WPX_SEEK_CUR);
     unsigned patternId = readU32(input);
-    int tmpWidth = readS32(input);
-    int tmpHeight = readS32(input);
+    int tmpWidth = (int)readInteger(input);
+    int tmpHeight = (int)readInteger(input);
     double tileOffsetX = 0.0;
     double tileOffsetY = 0.0;
     if (m_version < 900)
