@@ -1127,9 +1127,9 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
     {
       if ((m_version >= 400 && chunkType == 0x01) || (m_version < 400 && chunkType == 0x00)) // Rectangle
         readRectangle(input);
-      else if (chunkType == 0x02) // Ellipse
+      else if ((m_version >= 400 && chunkType == 0x02) || (m_version < 400 && chunkType == 0x01)) // Ellipse
         readEllipse(input);
-      else if (chunkType == 0x03) // Line and curve
+      else if ((m_version >= 400 && chunkType == 0x03) || (m_version < 400 && chunkType == 0x02)) // Line and curve
         readLineAndCurve(input);
       else if (chunkType == 0x25) // Path
         readPath(input);
