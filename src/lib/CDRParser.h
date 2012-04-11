@@ -35,6 +35,7 @@
 #include <vector>
 #include <map>
 #include <libwpd-stream/libwpd-stream.h>
+#include "CDRTypes.h"
 
 namespace libcdr
 {
@@ -59,6 +60,7 @@ private:
   unsigned readUnsigned(WPXInputStream *input);
   int readInteger(WPXInputStream *input);
   double readAngle(WPXInputStream *input);
+  CDRColor readColor(WPXInputStream *input);
 
   void readRectangle(WPXInputStream *input);
   void readEllipse(WPXInputStream *input);

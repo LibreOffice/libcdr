@@ -70,6 +70,7 @@ libcdr::CDRParser::CDRParser(WPXInputStream *input, const std::vector<WPXInputSt
 
 libcdr::CDRParser::~CDRParser()
 {
+  m_collector->collectLevel(0);
 }
 
 bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengths, unsigned level)
@@ -261,6 +262,34 @@ double libcdr::CDRParser::readAngle(WPXInputStream *input)
   return M_PI * (double)readS32(input) / 180000000.0;
 }
 
+libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
+{
+  unsigned short colorModel = readU16(input);
+  unsigned colorValue = 0;
+  if (m_version >= 500)
+  {
+    input->seek(6, WPX_SEEK_CUR);
+    colorValue = readU32(input);
+  }
+  else
+  {
+    unsigned short c = readU16(input);
+    unsigned short m = readU16(input);
+    unsigned short y = readU16(input);
+    unsigned short k = readU16(input);
+    colorValue = (k & 0xff);
+    colorValue <<= 8;
+    colorValue |= (y & 0xff);
+    colorValue <<= 8;
+    colorValue |= (m & 0xff);
+    colorValue <<= 8;
+    colorValue |= (c & 0xff);
+    input->seek(2, WPX_SEEK_CUR);
+    colorModel = 2;
+  }
+  return libcdr::CDRColor(colorModel, colorValue);
+}
+
 void libcdr::CDRParser::readRectangle(WPXInputStream *input)
 {
   double x0 = readRectCoord(input);
@@ -378,7 +407,7 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   double y = (double)readCoordinate(input);
   double angle1 = readAngle(input);
   double angle2 = readAngle(input);
-  bool pie(0 != readU32(input));
+  bool pie(0 != readUnsigned(input));
 
   double cx = x/2.0;
   double cy = y/2.0;
@@ -819,10 +848,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(13, WPX_SEEK_CUR);
     else
       input->seek(2, WPX_SEEK_CUR);
-    unsigned short colorModel = readU16(input);
-    input->seek(6, WPX_SEEK_CUR);
-    unsigned colorValue = readU32(input);
-    color1 = libcdr::CDRColor(colorModel, colorValue);
+    color1 = readColor(input);
   }
   break;
   case 2: // Gradient
@@ -861,10 +887,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     for (unsigned short i = 0; i < numStops; ++i)
     {
       libcdr::CDRGradientStop stop;
-      unsigned short colorModel = readU16(input);
-      input->seek(6, WPX_SEEK_CUR);
-      unsigned colorValue = readU32(input);
-      stop.m_color = libcdr::CDRColor(colorModel, colorValue);
+      stop.m_color = readColor(input);
       if (m_version >= 1300)
       {
         if (v13flag == 0x9e || (m_version >= 1600 && v13flag == 0x96))
@@ -912,10 +935,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(6, WPX_SEEK_CUR);
     else
       input->seek(1, WPX_SEEK_CUR);
-    unsigned short colorModel = readU16(input);
-    input->seek(6, WPX_SEEK_CUR);
-    unsigned colorValue = readU32(input);
-    color1 = libcdr::CDRColor(colorModel, colorValue);
+    color1 = readColor(input);
     if (m_version >= 1300)
     {
       if (v13flag == 0x94 || (m_version >= 1600 && v13flag == 0x8c))
@@ -923,10 +943,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       else
         input->seek(10, WPX_SEEK_CUR);
     }
-    colorModel = readU16(input);
-    input->seek(6, WPX_SEEK_CUR);
-    colorValue = readU32(input);
-    color2 = libcdr::CDRColor(colorModel, colorValue);
+    color2 = readColor(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
   }
   break;
@@ -1045,10 +1062,7 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
     input->seek(46, WPX_SEEK_CUR);
   else if (m_version >= 600)
     input->seek(52, WPX_SEEK_CUR);
-  unsigned short colorModel = readU16(input);
-  input->seek(6, WPX_SEEK_CUR);
-  unsigned colorValue = readU32(input);
-  libcdr::CDRColor color(colorModel, colorValue);
+  libcdr::CDRColor color = readColor(input);
   if (m_version < 600)
     input->seek(10, WPX_SEEK_CUR);
   else
@@ -1114,7 +1128,7 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
     else if (argTypes[i] == 0x0a)
       m_collector->collectOutlId(readU32(input));
     else if (argTypes[i] == 0x2efe)
-      m_collector->collectRotate((double)readU32(input)*M_PI / 180000000.0);
+      m_collector->collectRotate(readAngle(input));
     else if (argTypes[i] == 0x2af8)
       readPolygonTransform(input);
     else if (argTypes[i] == 0x1f40)
