@@ -72,7 +72,7 @@ static unsigned getCDRVersion(WPXInputStream *input)
 
 } // anonymous namespace
 
-#define SUPPORTED_CDR_VERSION 400
+#define SUPPORTED_CDR_VERSION 300
 /**
 Analyzes the content of an input stream to see if it can be parsed
 \param input The input stream
