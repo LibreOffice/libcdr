@@ -274,7 +274,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
     input->seek(6, WPX_SEEK_CUR);
     colorValue = readU32(input);
   }
-  else
+  else if (m_version >= 400)
   {
     unsigned short c = readU16(input);
     unsigned short m = readU16(input);
@@ -288,6 +288,20 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
     colorValue <<= 8;
     colorValue |= (c & 0xff);
     input->seek(2, WPX_SEEK_CUR);
+  }
+  else
+  {
+    unsigned char c = readU8(input);
+    unsigned char m = readU8(input);
+    unsigned char y = readU8(input);
+    unsigned char k = readU8(input);
+    colorValue = (k & 0xff);
+    colorValue <<= 8;
+    colorValue |= (y & 0xff);
+    colorValue <<= 8;
+    colorValue |= (m & 0xff);
+    colorValue <<= 8;
+    colorValue |= (c & 0xff);
   }
   return libcdr::CDRColor(colorModel, colorValue);
 }
@@ -744,7 +758,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
   m_collector->collectBitmap(imageId, x1, x2, y1, y2);
 }
 
-void libcdr::CDRParser::readTrafo(WPXInputStream *input)
+void libcdr::CDRParser::readCDR3Trfd(WPXInputStream *input)
 {
   if (m_version >= 400)
     return;
@@ -758,6 +772,17 @@ void libcdr::CDRParser::readTrafo(WPXInputStream *input)
   m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
 }
 
+void libcdr::CDRParser::readCDR3Outl(WPXInputStream *input)
+{
+  if (m_version >= 400)
+    return;
+}
+
+void libcdr::CDRParser::readCDR3Fill(WPXInputStream *input)
+{
+  if (m_version >= 400)
+    return;
+}
 
 void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
 {
@@ -1135,15 +1160,25 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
         readPath(input);
       /*      else if (chunkType == 0x04) // Text
               readText(input); */
-      else if (chunkType == 0x05)
+      else if ((m_version >= 400 && chunkType == 0x05) || (m_version < 400 && chunkType == 0x04)) // Bitmap
         readBitmap(input);
       else if (chunkType == 0x14) // Polygon
         readPolygonCoords(input);
     }
     else if (argTypes[i] == 0x14)
-      m_collector->collectFildId(readU32(input));
+    {
+      if (m_version < 400)
+        readCDR3Fill(input);
+      else
+        m_collector->collectFildId(readU32(input));
+    }
     else if (argTypes[i] == 0x0a)
-      m_collector->collectOutlId(readU32(input));
+    {
+      if (m_version < 400)
+        readCDR3Outl(input);
+      else
+        m_collector->collectOutlId(readU32(input));
+    }
     else if (argTypes[i] == 0x2efe)
       m_collector->collectRotate(readAngle(input));
     else if (argTypes[i] == 0x2af8)
@@ -1153,7 +1188,7 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
     else if (argTypes[i] == 0x64)
     {
       if (m_version < 400)
-        readTrafo(input);
+        readCDR3Trfd(input);
     }
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
