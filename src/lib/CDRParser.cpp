@@ -285,7 +285,6 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
     colorValue <<= 8;
     colorValue |= (c & 0xff);
     input->seek(2, WPX_SEEK_CUR);
-    colorModel = 2;
   }
   return libcdr::CDRColor(colorModel, colorValue);
 }

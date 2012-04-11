@@ -141,7 +141,7 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
   unsigned char col1 = (color.m_colorValue & 0xff00) >> 8;
   unsigned char col2 = (color.m_colorValue & 0xff0000) >> 16;
   unsigned char col3 = (color.m_colorValue & 0xff000000) >> 24;
-  if (color.m_colorModel == 0x02) // CMYK100
+  if (color.m_colorModel == 0x01 || color.m_colorModel == 0x02) // CMYK100
   {
     double cmyk[4] =
     {
@@ -156,7 +156,7 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     green = rgb[1];
     blue = rgb[2];
   }
-  else if (color.m_colorModel == 0x03 || color.m_colorModel == 0x01 || color.m_colorModel == 0x11) // CMYK255
+  else if (color.m_colorModel == 0x03 || color.m_colorModel == 0x11) // CMYK255
   {
     double cmyk[4] =
     {
