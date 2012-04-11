@@ -58,7 +58,16 @@ static unsigned getCDRVersion(WPXInputStream *input)
   char signature_r = (char)readU8(input);
   if (signature_r != 'R' && signature_r != 'r')
     return 0;
-  return (readU8(input) - 0x30)*100;
+  unsigned char c = readU8(input);
+  if (c == 0x20)
+    return 300;
+  else if (c < 0x31)
+    return 0;
+  else if (c < 0x3a)
+    return 100 * (c - 0x30);
+  else if (c < 0x41)
+    return 0;
+  return 100 * (c - 0x37);
 }
 
 } // anonymous namespace

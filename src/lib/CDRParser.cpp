@@ -51,7 +51,9 @@ namespace
 
 unsigned getCDRVersion(char c)
 {
-  if (c < 0x31)
+  if (c == 0x20)
+    return 300;
+  else if (c < 0x31)
     return 0;
   else if (c < 0x3a)
     return 100 * ((unsigned char)c - 0x30);
@@ -183,6 +185,7 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
     readDisp(input, length);
     break;
   case FOURCC_loda:
+  case FOURCC_lobj:
     readLoda(input, length);
     break;
   case FOURCC_vrsn:
@@ -741,6 +744,21 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
   m_collector->collectBitmap(imageId, x1, x2, y1, y2);
 }
 
+void libcdr::CDRParser::readTrafo(WPXInputStream *input)
+{
+  if (m_version >= 400)
+    return;
+  input->seek(0x0e, WPX_SEEK_CUR);
+  double v0 = readFixedPoint(input);
+  double v1 = readFixedPoint(input);
+  double x0 = (double)readS32(input) / 1000.0;
+  double v3 = readFixedPoint(input);
+  double v4 = readFixedPoint(input);
+  double y0 = (double)readS32(input) / 1000.0;
+  m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
+}
+
+
 void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
@@ -1105,9 +1123,9 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
   for (i=0; i < argTypes.size(); i++)
   {
     input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
-    if (argTypes[i] == 0x001e) // loda coords
+    if (argTypes[i] == 0x1e) // loda coords
     {
-      if (chunkType == 0x01) // Rectangle
+      if ((m_version >= 400 && chunkType == 0x01) || (m_version < 400 && chunkType == 0x00)) // Rectangle
         readRectangle(input);
       else if (chunkType == 0x02) // Ellipse
         readEllipse(input);
@@ -1132,6 +1150,11 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
       readPolygonTransform(input);
     else if (argTypes[i] == 0x1f40)
       readOpacity(input, length);
+    else if (argTypes[i] == 0x64)
+    {
+      if (m_version < 400)
+        readTrafo(input);
+    }
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
@@ -1154,8 +1177,23 @@ void libcdr::CDRParser::readMcfg(WPXInputStream *input, unsigned length)
     input->seek(4, WPX_SEEK_CUR);
   else if (m_version < 700 && m_version >= 600)
     input->seek(0x1c, WPX_SEEK_CUR);
-  double width = (double)readCoordinate(input);
-  double height = (double)readCoordinate(input);
+  double width = 0.0;
+  double height = 0.0;
+  if (m_version < 400)
+  {
+    input->seek(2, WPX_SEEK_CUR);
+    double x0 = readCoordinate(input);
+    double y0 = readCoordinate(input);
+    double x1 = readCoordinate(input);
+    double y1 = readCoordinate(input);
+    width = fabs(x1-x0);
+    height = fabs(y1-y0);
+  }
+  else
+  {
+    width = readCoordinate(input);
+    height = readCoordinate(input);
+  }
   m_collector->collectPageSize(width, height);
 }
 

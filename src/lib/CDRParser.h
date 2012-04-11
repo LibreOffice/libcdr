@@ -67,6 +67,7 @@ private:
   void readLineAndCurve(WPXInputStream *input);
 //  void readText(WPXInputStream *input);
   void readBitmap(WPXInputStream *input);
+  void readTrafo(WPXInputStream *input);
   void readOpacity(WPXInputStream *input, unsigned length);
   void readTrfd(WPXInputStream *input, unsigned length);
   void readFild(WPXInputStream *input, unsigned length);

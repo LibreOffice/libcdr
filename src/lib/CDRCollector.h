@@ -78,6 +78,7 @@ class CDRParserState
 public:
   CDRParserState();
   ~CDRParserState();
+  double m_pageWidth, m_pageHeight, m_pageOffsetX, m_pageOffsetY;
   std::map<unsigned, CDRFillStyle> m_fillStyles;
   std::map<unsigned, CDRLineStyle> m_lineStyles;
   std::map<unsigned, WPXBinaryData> m_bmps;

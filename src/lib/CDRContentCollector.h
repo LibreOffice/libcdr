@@ -69,7 +69,7 @@ public:
                    const std::vector<unsigned short> &, unsigned, unsigned) {}
   void collectRotate(double angle);
   void collectFlags(unsigned flags);
-  void collectPageSize(double width, double height);
+  void collectPageSize(double, double) {}
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
   void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2);
   void collectBmp(unsigned, unsigned, unsigned, unsigned, unsigned, const std::vector<unsigned>&, const std::vector<unsigned char>&) {}
@@ -100,8 +100,6 @@ private:
   bool m_isPageProperties;
   bool m_isPageStarted;
 
-  double m_pageOffsetX, m_pageOffsetY;
-  double m_pageWidth, m_pageHeight;
   unsigned m_currentFildId, m_currentOutlId;
   unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentPageLevel;
   CDRImage m_currentImage;

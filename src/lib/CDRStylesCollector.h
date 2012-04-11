@@ -70,7 +70,7 @@ public:
                    unsigned startMarkerId, unsigned endMarkerId);
   void collectRotate(double) {}
   void collectFlags(unsigned) {}
-  void collectPageSize(double, double) {}
+  void collectPageSize(double width, double height);
   void collectPolygonTransform(unsigned, unsigned, double, double, double, double) {}
   void collectBitmap(unsigned, double, double, double, double) {}
   void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap);

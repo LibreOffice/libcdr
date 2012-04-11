@@ -214,6 +214,14 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, const std::vector<
   m_ps.m_bmps[imageId] = image;
 }
 
+void libcdr::CDRStylesCollector::collectPageSize(double width, double height)
+{
+  m_ps.m_pageWidth = width;
+  m_ps.m_pageHeight = height;
+  m_ps.m_pageOffsetX = -width / 2.0;
+  m_ps.m_pageOffsetY = -height / 2.0;
+}
+
 void libcdr::CDRStylesCollector::collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern)
 {
   m_ps.m_patterns[patternId] = CDRPattern(width, height, pattern);

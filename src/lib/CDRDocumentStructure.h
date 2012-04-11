@@ -86,6 +86,7 @@
 #define FOURCC_lnkg 0x676b6e6c
 #define FOURCC_lnkt 0x746b6e6c
 #define FOURCC_loda 0x61646f6c
+#define FOURCC_lobj 0x6a626f6c
 
 #define FOURCC_mcfg 0x6766636d
 
