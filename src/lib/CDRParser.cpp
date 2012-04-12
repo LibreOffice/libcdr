@@ -805,8 +805,8 @@ void libcdr::CDRParser::readCDR3Outl(WPXInputStream *input)
   for (unsigned short i = 0; i < numDash; ++i)
     dashArray.push_back(readU8(input));
   input->seek(fixPosition + 10, WPX_SEEK_SET);
-  unsigned short capsType = readU16(input);
   unsigned short joinType = readU16(input);
+  unsigned short capsType = readU16(input);
   unsigned startMarkerId = readU32(input);
   unsigned endMarkerId = readU32(input);
   m_collector->collectOutl(++m_outlId, lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
