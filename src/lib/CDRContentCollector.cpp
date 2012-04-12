@@ -49,7 +49,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   m_isPageProperties(false),
   m_isPageStarted(false),
   m_currentFildId(0.0), m_currentOutlId(0),
-  m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentPageLevel(0),
+  m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
   m_currentImage(), m_currentPath(), m_currentTransform(), m_fillTransform(),
   m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(0),
   m_contentOutputElements(), m_vectorFills(), m_vectorFill(),
@@ -98,7 +98,7 @@ void libcdr::CDRContentCollector::collectPage(unsigned level)
 
 void libcdr::CDRContentCollector::collectObject(unsigned level)
 {
-  if (!m_isPageStarted)
+  if (!m_isPageStarted && !m_currentVectLevel)
     _startPage(m_ps.m_pageWidth, m_ps.m_pageHeight);
   m_currentObjectLevel = level;
   m_currentFildId = 0;
@@ -107,7 +107,7 @@ void libcdr::CDRContentCollector::collectObject(unsigned level)
 
 void libcdr::CDRContentCollector::collectGroup(unsigned level)
 {
-  if (!m_isPageStarted)
+  if (!m_isPageStarted && !m_currentVectLevel)
     _startPage(m_ps.m_pageWidth, m_ps.m_pageHeight);
   WPXPropertyList propList;
   CDROutputElementList outputElement;
@@ -115,6 +115,12 @@ void libcdr::CDRContentCollector::collectGroup(unsigned level)
   outputElement.addEndGroup();
   m_outputElements->push(outputElement);
   m_groupLevels.push(level);
+}
+
+void libcdr::CDRContentCollector::collectVect(unsigned level)
+{
+  m_currentVectLevel = level;
+  m_outputElements = &m_vectorFill;
 }
 
 void libcdr::CDRContentCollector::collectFlags(unsigned flags)
@@ -339,6 +345,11 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
     outputElement.addStartGroup(propList);
     m_outputElements->push(outputElement);
     m_groupLevels.pop();
+  }
+  if (level <= m_currentVectLevel)
+  {
+    m_currentVectLevel = 0;
+    m_outputElements = &m_contentOutputElements;
   }
   if (level <= m_currentPageLevel)
   {

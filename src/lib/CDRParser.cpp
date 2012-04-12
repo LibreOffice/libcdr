@@ -145,6 +145,8 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
         m_collector->collectGroup(level);
       else if ((listType & 0xffffff) == FOURCC_CDR || (listType && 0xffffff) == FOURCC_cdr)
         m_version = getCDRVersion((listType & 0xff000000) >> 24);
+      else if (listType == FOURCC_vect)
+        m_collector->collectVect(level);
 
       bool compressed = (listType == FOURCC_cmpr ? true : false);
       CDRInternalStream tmpStream(input, cmprsize, compressed);

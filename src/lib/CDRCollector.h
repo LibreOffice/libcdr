@@ -109,6 +109,7 @@ public:
   virtual void collectPage(unsigned level) = 0;
   virtual void collectObject(unsigned level) = 0;
   virtual void collectGroup(unsigned level) = 0;
+  virtual void collectVect(unsigned level) = 0;
   virtual void collectOtherList() = 0;
   virtual void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y) = 0;
   virtual void collectQuadraticBezier(double x1, double y1, double x, double y) = 0;

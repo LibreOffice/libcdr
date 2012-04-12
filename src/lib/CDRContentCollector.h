@@ -53,6 +53,7 @@ public:
   void collectPage(unsigned level);
   void collectObject(unsigned level);
   void collectGroup(unsigned level);
+  void collectVect(unsigned level);
   void collectOtherList();
   void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y);
   void collectQuadraticBezier(double x1, double y1, double x, double y);
@@ -101,7 +102,7 @@ private:
   bool m_isPageStarted;
 
   unsigned m_currentFildId, m_currentOutlId;
-  unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentPageLevel;
+  unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentVectLevel, m_currentPageLevel;
   CDRImage m_currentImage;
 
   CDRPath m_currentPath;
