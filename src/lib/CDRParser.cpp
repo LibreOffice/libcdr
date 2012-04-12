@@ -666,13 +666,15 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
   unsigned imageId = 0;
   if (m_version < 600)
   {
-    input->seek(12, WPX_SEEK_CUR);
-    imageId = readUnsigned(input);
-    input->seek(20, WPX_SEEK_CUR);
     x1 = readCoordinate(input);
     y1 = readCoordinate(input);
-    x2 = readCoordinate(input);
-    y2 = readCoordinate(input);
+    x2 = 0.0;
+    y2 = 0.0;
+    if (m_version < 400)
+      input->seek(2, WPX_SEEK_CUR);
+    input->seek(8, WPX_SEEK_CUR);
+    imageId = readUnsigned(input);
+    input->seek(20, WPX_SEEK_CUR);
     m_collector->collectMoveTo(x1, y1);
     m_collector->collectLineTo(x1, y2);
     m_collector->collectLineTo(x2, y2);
@@ -783,6 +785,7 @@ void libcdr::CDRParser::readCDR3Outl(WPXInputStream *input)
   if (m_version >= 400)
     return;
   unsigned short lineType = readU8(input);
+  lineType <<= 1;
   double lineWidth = (double)readCoordinate(input);
   double stretch = (double)readU16(input) / 100.0;
   double angle = readAngle(input);
@@ -791,8 +794,8 @@ void libcdr::CDRParser::readCDR3Outl(WPXInputStream *input)
   input->seek(18, WPX_SEEK_CUR);
   unsigned short capsType = readU16(input);
   unsigned short joinType = readU16(input);
-  unsigned startMarkerId = readU16(input);
-  unsigned endMarkerId = readU16(input);
+  unsigned startMarkerId = readU32(input);
+  unsigned endMarkerId = readU32(input);
   m_collector->collectOutl(++m_outlId, lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
   m_collector->collectOutlId(m_outlId);
 }
@@ -801,6 +804,89 @@ void libcdr::CDRParser::readCDR3Fill(WPXInputStream *input)
 {
   if (m_version >= 400)
     return;
+  unsigned short fillType = readU8(input);
+  libcdr::CDRColor color1;
+  libcdr::CDRColor color2;
+  libcdr::CDRImageFill imageFill;
+  libcdr::CDRGradient gradient;
+  switch (fillType)
+  {
+  case 1: // Solid
+  {
+    color1 = readColor(input);
+  }
+  break;
+  case 2: // Linear Gradient
+  {
+    gradient.m_type = 1;
+    gradient.m_angle = readAngle(input);
+    color1 = readColor(input);
+    color2 = readColor(input);
+    input->seek(7, WPX_SEEK_CUR);
+    gradient.m_edgeOffset = readS16(input);
+    gradient.m_centerXOffset = readInteger(input);
+    gradient.m_centerYOffset = readInteger(input);
+    libcdr::CDRGradientStop stop;
+    stop.m_color = color1;
+    stop.m_offset = 0.0;
+    gradient.m_stops.push_back(stop);
+    stop.m_color = color2;
+    stop.m_offset = 1.0;
+    gradient.m_stops.push_back(stop);
+  }
+  break;
+  case 4: // Radial Gradient
+  {
+    gradient.m_type = 2;
+    fillType = 2;
+    gradient.m_angle = readAngle(input);
+    color1 = readColor(input);
+    color2 = readColor(input);
+    input->seek(7, WPX_SEEK_CUR);
+    gradient.m_edgeOffset = readS16(input);
+    gradient.m_centerXOffset = readInteger(input);
+    gradient.m_centerYOffset = readInteger(input);
+    libcdr::CDRGradientStop stop;
+    stop.m_color = color1;
+    stop.m_offset = 0.0;
+    gradient.m_stops.push_back(stop);
+    stop.m_color = color2;
+    stop.m_offset = 1.0;
+    gradient.m_stops.push_back(stop);
+  }
+  break;
+  case 7: // Pattern
+  {
+    unsigned patternId = readU32(input);
+    double patternWidth = readCoordinate(input);
+    double patternHeight = readCoordinate(input);
+    double tileOffsetX = (double)readU16(input) / 100.0;
+    double tileOffsetY = (double)readU16(input) / 100.0;
+    double rcpOffset = (double)readU16(input) / 100.0;
+    input->seek(1, WPX_SEEK_CUR);
+    color1 = readColor(input);
+    color2 = readColor(input);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, false, tileOffsetX, tileOffsetY, rcpOffset, 0, m_version < 900 ? true : false);
+  }
+  break;
+  case 9: // bitmap
+  case 11: // Texture
+  {
+    unsigned patternId = readU16(input);
+    double patternWidth = readCoordinate(input);
+    double patternHeight = readCoordinate(input);
+    double tileOffsetX = (double)readU16(input) / 100.0;
+    double tileOffsetY = (double)readU16(input) / 100.0;
+    double rcpOffset = (double)readU16(input) / 100.0;
+    input->seek(1, WPX_SEEK_CUR);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, false, tileOffsetX, tileOffsetY, rcpOffset, 0, m_version < 900 ? true : false);
+  }
+  break;
+  default:
+    break;
+  }
+  m_collector->collectFild(++m_fillId, fillType, color1, color2, gradient, imageFill);
+  m_collector->collectFildId(m_fillId);
 }
 
 void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
@@ -1042,7 +1128,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(17, WPX_SEEK_CUR);
     else
       input->seek(21, WPX_SEEK_CUR);
-    unsigned patternId = readU32(input);
+    unsigned patternId = readUnsigned(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
   }
   break;
@@ -1083,7 +1169,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(17, WPX_SEEK_CUR);
     else
       input->seek(21, WPX_SEEK_CUR);
-    unsigned patternId = readU32(input);
+    unsigned patternId = readUnsigned(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
   }
   break;
