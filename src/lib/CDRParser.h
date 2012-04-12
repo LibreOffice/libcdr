@@ -95,6 +95,8 @@ private:
   CDRCollector *m_collector;
 
   unsigned m_version;
+  unsigned m_fillId;
+  unsigned m_outlId;
 };
 } // namespace libcdr
 

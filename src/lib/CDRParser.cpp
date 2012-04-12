@@ -68,7 +68,7 @@ libcdr::CDRParser::CDRParser(WPXInputStream *input, const std::vector<WPXInputSt
   : m_input(input),
     m_externalStreams(externalStreams),
     m_collector(collector),
-    m_version(0) {}
+    m_version(0), m_fillId(0), m_outlId(0) {}
 
 libcdr::CDRParser::~CDRParser()
 {
@@ -782,6 +782,19 @@ void libcdr::CDRParser::readCDR3Outl(WPXInputStream *input)
 {
   if (m_version >= 400)
     return;
+  unsigned short lineType = readU8(input);
+  double lineWidth = (double)readCoordinate(input);
+  double stretch = (double)readU16(input) / 100.0;
+  double angle = readAngle(input);
+  libcdr::CDRColor color = readColor(input);
+  std::vector<unsigned short> dashArray;
+  input->seek(18, WPX_SEEK_CUR);
+  unsigned short capsType = readU16(input);
+  unsigned short joinType = readU16(input);
+  unsigned startMarkerId = readU16(input);
+  unsigned endMarkerId = readU16(input);
+  m_collector->collectOutl(++m_outlId, lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
+  m_collector->collectOutlId(m_outlId);
 }
 
 void libcdr::CDRParser::readCDR3Fill(WPXInputStream *input)
