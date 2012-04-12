@@ -798,8 +798,13 @@ void libcdr::CDRParser::readCDR3Outl(WPXInputStream *input)
   double stretch = (double)readU16(input) / 100.0;
   double angle = readAngle(input);
   libcdr::CDRColor color = readColor(input);
+  input->seek(7, WPX_SEEK_CUR);
+  unsigned short numDash = readU8(input);
+  int fixPosition = input->tell();
   std::vector<unsigned short> dashArray;
-  input->seek(18, WPX_SEEK_CUR);
+  for (unsigned short i = 0; i < numDash; ++i)
+    dashArray.push_back(readU8(input));
+  input->seek(fixPosition + 10, WPX_SEEK_SET);
   unsigned short capsType = readU16(input);
   unsigned short joinType = readU16(input);
   unsigned startMarkerId = readU32(input);
