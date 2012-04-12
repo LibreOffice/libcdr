@@ -267,16 +267,17 @@ double libcdr::CDRParser::readAngle(WPXInputStream *input)
 
 libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
 {
-  unsigned short colorModel = readU8(input);
+  unsigned short colorModel = 0;
   unsigned colorValue = 0;
   if (m_version >= 500)
   {
-    input->seek(7, WPX_SEEK_CUR);
+    colorModel = readU16(input);
+    input->seek(6, WPX_SEEK_CUR);
     colorValue = readU32(input);
   }
   else if (m_version >= 400)
   {
-    input->seek(1, WPX_SEEK_CUR);
+    colorModel = readU16(input);
     unsigned short c = readU16(input);
     unsigned short m = readU16(input);
     unsigned short y = readU16(input);
@@ -292,6 +293,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
   }
   else
   {
+    colorModel = readU8(input);
     unsigned char c = readU8(input);
     unsigned char m = readU8(input);
     unsigned char y = readU8(input);
