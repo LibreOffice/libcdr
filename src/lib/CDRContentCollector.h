@@ -109,7 +109,10 @@ private:
   CDRPolygon *m_polygon;
   bool m_isInPolygon;
   bool m_isInSpline;
-  std::stack<CDROutputElementList> m_outputElements;
+  std::stack<CDROutputElementList> *m_outputElements;
+  std::stack<CDROutputElementList> m_contentOutputElements;
+  std::map<unsigned, std::stack<CDROutputElementList> > m_vectorFills;
+  std::stack<CDROutputElementList> m_vectorFill;
   std::stack<unsigned> m_groupLevels;
   CDRSplineData m_splineData;
   double m_fillOpacity;

@@ -51,9 +51,11 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   m_currentFildId(0.0), m_currentOutlId(0),
   m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentPageLevel(0),
   m_currentImage(), m_currentPath(), m_currentTransform(), m_fillTransform(),
-  m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(),
+  m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(0),
+  m_contentOutputElements(), m_vectorFills(), m_vectorFill(),
   m_groupLevels(), m_splineData(), m_fillOpacity(1.0), m_ps(ps)
 {
+  m_outputElements = &m_contentOutputElements;
 }
 
 libcdr::CDRContentCollector::~CDRContentCollector()
@@ -78,10 +80,10 @@ void libcdr::CDRContentCollector::_endPage()
 {
   if (!m_isPageStarted)
     return;
-  while (!m_outputElements.empty())
+  while (!m_contentOutputElements.empty())
   {
-    m_outputElements.top().draw(m_painter);
-    m_outputElements.pop();
+    m_contentOutputElements.top().draw(m_painter);
+    m_contentOutputElements.pop();
   }
   if (m_painter)
     m_painter->endGraphics();
@@ -111,7 +113,7 @@ void libcdr::CDRContentCollector::collectGroup(unsigned level)
   CDROutputElementList outputElement;
   // Since the CDR objects are drawn in reverse order, reverse the logic of groups too
   outputElement.addEndGroup();
-  m_outputElements.push(outputElement);
+  m_outputElements->push(outputElement);
   m_groupLevels.push(level);
 }
 
@@ -306,7 +308,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   }
   m_currentImage = libcdr::CDRImage();
   if (!outputElement.empty())
-    m_outputElements.push(outputElement);
+    m_outputElements->push(outputElement);
   m_currentTransform = libcdr::CDRTransform();
   m_fillTransform = libcdr::CDRTransform();
   m_fillOpacity = 1.0;
@@ -335,7 +337,7 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
     CDROutputElementList outputElement;
     // since the CDR objects are drawn in reverse order, reverse group marks too
     outputElement.addStartGroup(propList);
-    m_outputElements.push(outputElement);
+    m_outputElements->push(outputElement);
     m_groupLevels.pop();
   }
   if (level <= m_currentPageLevel)
