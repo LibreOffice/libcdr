@@ -72,7 +72,6 @@ static unsigned getCDRVersion(WPXInputStream *input)
 
 } // anonymous namespace
 
-#define SUPPORTED_CDR_VERSION 300
 /**
 Analyzes the content of an input stream to see if it can be parsed
 \param input The input stream
@@ -84,13 +83,7 @@ bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
   input->seek(0, WPX_SEEK_SET);
   unsigned version = getCDRVersion(input);
   if (version)
-  {
-#ifndef DEBUG
-    if (version < SUPPORTED_CDR_VERSION)
-      return false;
-#endif
     return true;
-  }
   WPXInputStream *tmpInput = input;
   CDRZipStream zinput(input);
   // Yes, we are kidnapping here the OLE document API and extending
@@ -128,10 +121,6 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   unsigned version = getCDRVersion(input);
   if (version)
   {
-#ifndef DEBUG
-    if (version < SUPPORTED_CDR_VERSION)
-      return false;
-#endif
     input->seek(0, WPX_SEEK_SET);
     CDRParserState ps;
     CDRStylesCollector stylesCollector(ps);
