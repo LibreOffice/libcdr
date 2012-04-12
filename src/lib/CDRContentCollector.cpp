@@ -28,6 +28,8 @@
  */
 
 #include <math.h>
+#include <string.h>
+#include "CDRSVGGenerator.h"
 #include "CDRContentCollector.h"
 #include "CDRInternalStream.h"
 #include "libcdr_utils.h"
@@ -36,23 +38,25 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#ifndef DUMP_IMAGE
-#define DUMP_IMAGE 0
-#endif
-
 #ifndef DUMP_PATTERN
 #define DUMP_PATTERN 0
+#endif
+
+#ifndef DUMP_VECT
+#define DUMP_VECT 0
 #endif
 
 libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, libwpg::WPGPaintInterface *painter) :
   m_painter(painter),
   m_isPageProperties(false),
   m_isPageStarted(false),
-  m_currentFildId(0.0), m_currentOutlId(0),
+  m_pageWidth(ps.m_pageWidth), m_pageHeight(ps.m_pageHeight),
+  m_pageOffsetX(ps.m_pageOffsetX), m_pageOffsetY(ps.m_pageOffsetY),
+  m_currentFildId(0.0), m_currentOutlId(0), m_spnd(0),
   m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
   m_currentImage(), m_currentPath(), m_currentTransform(), m_fillTransform(),
   m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(0),
-  m_contentOutputElements(), m_vectorFills(), m_vectorFill(),
+  m_contentOutputElements(), m_fillOutputElements(),
   m_groupLevels(), m_splineData(), m_fillOpacity(1.0), m_ps(ps)
 {
   m_outputElements = &m_contentOutputElements;
@@ -99,7 +103,7 @@ void libcdr::CDRContentCollector::collectPage(unsigned level)
 void libcdr::CDRContentCollector::collectObject(unsigned level)
 {
   if (!m_isPageStarted && !m_currentVectLevel)
-    _startPage(m_ps.m_pageWidth, m_ps.m_pageHeight);
+    _startPage(m_pageWidth, m_pageHeight);
   m_currentObjectLevel = level;
   m_currentFildId = 0;
   m_currentOutlId = 0;
@@ -108,7 +112,7 @@ void libcdr::CDRContentCollector::collectObject(unsigned level)
 void libcdr::CDRContentCollector::collectGroup(unsigned level)
 {
   if (!m_isPageStarted && !m_currentVectLevel)
-    _startPage(m_ps.m_pageWidth, m_ps.m_pageHeight);
+    _startPage(m_pageWidth, m_pageHeight);
   WPXPropertyList propList;
   CDROutputElementList outputElement;
   // Since the CDR objects are drawn in reverse order, reverse the logic of groups too
@@ -120,7 +124,11 @@ void libcdr::CDRContentCollector::collectGroup(unsigned level)
 void libcdr::CDRContentCollector::collectVect(unsigned level)
 {
   m_currentVectLevel = level;
-  m_outputElements = &m_vectorFill;
+  m_outputElements = &m_fillOutputElements;
+  m_pageWidth = 0.0;
+  m_pageHeight = 0.0;
+  m_pageOffsetX = 0.0;
+  m_pageOffsetY = 0.0;
 }
 
 void libcdr::CDRContentCollector::collectFlags(unsigned flags)
@@ -133,7 +141,7 @@ void libcdr::CDRContentCollector::collectFlags(unsigned flags)
   {
     m_isPageProperties = false;
     if (!m_isPageStarted)
-      _startPage(m_ps.m_pageWidth, m_ps.m_pageHeight);
+      _startPage(m_pageWidth, m_pageHeight);
   }
 }
 
@@ -209,9 +217,9 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     _lineProperties(style);
     outputElement.addStyle(style, gradient);
     m_currentPath.transform(m_currentTransform);
-    CDRTransform tmpTrafo(1.0, 0.0, -m_ps.m_pageOffsetX, 0.0, 1.0, -m_ps.m_pageOffsetY);
+    CDRTransform tmpTrafo(1.0, 0.0, -m_pageOffsetX, 0.0, 1.0, -m_pageOffsetY);
     m_currentPath.transform(tmpTrafo);
-    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_ps.m_pageHeight);
+    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_pageHeight);
     m_currentPath.transform(tmpTrafo);
     WPXPropertyListVector tmpPath;
     m_currentPath.writeOut(tmpPath);
@@ -270,9 +278,9 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     double cx = m_currentImage.getMiddleX();
     double cy = m_currentImage.getMiddleY();
     m_currentTransform.applyToPoint(cx, cy);
-    CDRTransform tmpTrafo(1.0, 0.0, -m_ps.m_pageOffsetX, 0.0, 1.0, -m_ps.m_pageOffsetY);
+    CDRTransform tmpTrafo(1.0, 0.0, -m_pageOffsetX, 0.0, 1.0, -m_pageOffsetY);
     tmpTrafo.applyToPoint(cx, cy);
-    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_ps.m_pageHeight);
+    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_pageHeight);
     tmpTrafo.applyToPoint(cx, cy);
     double scaleX = (m_currentTransform.m_v0 < 0.0 ? -1.0 : 1.0)*sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
     double scaleY = (m_currentTransform.m_v3 < 0.0 ? -1.0 : 1.0)*sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
@@ -346,10 +354,54 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
     m_outputElements->push(outputElement);
     m_groupLevels.pop();
   }
+  if (m_currentVectLevel && m_spnd && m_groupLevels.empty() && !m_fillOutputElements.empty())
+  {
+    CDRStringVector svgOutput;
+    CDRSVGGenerator generator(svgOutput);
+    WPXPropertyList propList;
+    propList.insert("svg:width", m_pageWidth);
+    propList.insert("svg:height", m_pageHeight);
+    generator.startGraphics(propList);
+    while (!m_fillOutputElements.empty())
+    {
+      m_fillOutputElements.top().draw(&generator);
+      m_fillOutputElements.pop();
+    }
+    generator.endGraphics();
+    if (!svgOutput.empty())
+    {
+      const char *header =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
+      WPXBinaryData output((const unsigned char *)header, strlen(header));
+      output.append((unsigned char *)svgOutput[0].cstr(), strlen(svgOutput[0].cstr()));
+      m_ps.m_vects[m_spnd] = output;
+    }
+#if DUMP_VECT
+    WPXString filename;
+    filename.sprintf("vect%.8x.svg", m_spnd);
+    FILE *f = fopen(filename.cstr(), "wb");
+    if (f)
+    {
+      const unsigned char *tmpBuffer = m_ps.m_vects[m_spnd].getDataBuffer();
+      for (unsigned long k = 0; k < m_ps.m_vects[m_spnd].size(); k++)
+        fprintf(f, "%c",tmpBuffer[k]);
+      fclose(f);
+    }
+#endif
+    m_spnd = 0;
+    m_pageWidth = 0.0;
+    m_pageHeight = 0.0;
+    m_pageOffsetX = 0.0;
+    m_pageOffsetY = 0.0;
+  }
   if (level <= m_currentVectLevel)
   {
     m_currentVectLevel = 0;
     m_outputElements = &m_contentOutputElements;
+    m_pageWidth = m_ps.m_pageWidth;
+    m_pageHeight = m_ps.m_pageHeight;
+    m_pageOffsetX = m_ps.m_pageOffsetX;
+    m_pageOffsetY = m_ps.m_pageOffsetY;
   }
   if (level <= m_currentPageLevel)
   {
@@ -583,10 +635,17 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
       {
         std::map<unsigned, WPXBinaryData>::iterator iterBmp = m_ps.m_bmps.find(iter->second.imageFill.id);
         if (iterBmp != m_ps.m_bmps.end())
+          propList.insert("libwpg:mime-type", "image/bmp");
+        else
+        {
+          iterBmp = m_ps.m_vects.find(iter->second.imageFill.id);
+          if (iterBmp != m_ps.m_vects.end())
+            propList.insert("libwpg:mime-type", "image/svg+xml");
+        }
+        if (propList["libwpg:mime-type"])
         {
           propList.insert("draw:fill", "bitmap");
           propList.insert("draw:fill-image", iterBmp->second.getBase64Data());
-          propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
           if (iter->second.imageFill.isRelative)
           {
@@ -855,6 +914,23 @@ void libcdr::CDRContentCollector::collectPpdt(const std::vector<std::pair<double
 void libcdr::CDRContentCollector::collectFillOpacity(double opacity)
 {
   m_fillOpacity = opacity;
+}
+
+void libcdr::CDRContentCollector::collectBBox(double width, double height, double offsetX, double offsetY)
+{
+  if (m_currentVectLevel && m_pageWidth == 0.0 && m_pageWidth == 0.0)
+  {
+    m_pageWidth = width;
+    m_pageHeight = height;
+    m_pageOffsetX = offsetX;
+    m_pageOffsetY = offsetY;
+  }
+}
+
+void libcdr::CDRContentCollector::collectSpnd(unsigned spnd)
+{
+  if (m_currentVectLevel && !m_spnd)
+    m_spnd = spnd;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

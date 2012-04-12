@@ -226,6 +226,12 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   case FOURCC_iccd:
     readIccd(input, length);
     break;
+  case FOURCC_bbox:
+    readBBox(input, length);
+    break;
+  case FOURCC_spnd:
+    readSpnd(input, length);
+    break;
   default:
     break;
   }
@@ -871,9 +877,9 @@ void libcdr::CDRParser::readCDR3Fill(WPXInputStream *input)
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, false, tileOffsetX, tileOffsetY, rcpOffset, 0, m_version < 900 ? true : false);
   }
   break;
-  case 9: // bitmap
-  case 11: // Texture
+  case 10: // bitmap
   {
+    fillType = 9;
     unsigned patternId = readU16(input);
     double patternWidth = readCoordinate(input);
     double patternHeight = readCoordinate(input);
@@ -1589,6 +1595,29 @@ void libcdr::CDRParser::readIccd(WPXInputStream *input, unsigned length)
   std::vector<unsigned char> profile(numBytesRead);
   memcpy(&profile[0], tmpProfile, numBytesRead);
   m_collector->collectColorProfile(profile);
+}
+
+void libcdr::CDRParser::readBBox(WPXInputStream *input, unsigned length)
+{
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  double x0 = readCoordinate(input);
+  double y0 = readCoordinate(input);
+  double x1 = readCoordinate(input);
+  double y1 = readCoordinate(input);
+  double width = fabs(x1-x0);
+  double height = fabs(y1-y0);
+  double offsetX = x1 < x0 ? x1 : x0;
+  double offsetY = y1 < y0 ? y1 : y0;
+  m_collector->collectBBox(width, height, offsetX, offsetY);
+}
+
+void libcdr::CDRParser::readSpnd(WPXInputStream *input, unsigned length)
+{
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  unsigned spnd = readUnsigned(input);
+  m_collector->collectSpnd(spnd);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -82,6 +82,8 @@ public:
   void collectPolygon();
   void collectSpline();
   void collectColorProfile(const std::vector<unsigned char> &) {}
+  void collectBBox(double width, double height, double offsetX, double offsetY);
+  void collectSpnd(unsigned spnd);
 
 private:
   CDRContentCollector(const CDRContentCollector &);
@@ -101,7 +103,9 @@ private:
   bool m_isPageProperties;
   bool m_isPageStarted;
 
+  double m_pageWidth, m_pageHeight, m_pageOffsetX, m_pageOffsetY;
   unsigned m_currentFildId, m_currentOutlId;
+  unsigned m_spnd;
   unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentVectLevel, m_currentPageLevel;
   CDRImage m_currentImage;
 
@@ -112,8 +116,7 @@ private:
   bool m_isInSpline;
   std::stack<CDROutputElementList> *m_outputElements;
   std::stack<CDROutputElementList> m_contentOutputElements;
-  std::map<unsigned, std::stack<CDROutputElementList> > m_vectorFills;
-  std::stack<CDROutputElementList> m_vectorFill;
+  std::stack<CDROutputElementList> m_fillOutputElements;
   std::stack<unsigned> m_groupLevels;
   CDRSplineData m_splineData;
   double m_fillOpacity;

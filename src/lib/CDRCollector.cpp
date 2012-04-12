@@ -33,7 +33,7 @@
 
 libcdr::CDRParserState::CDRParserState()
   : m_pageWidth(8.5), m_pageHeight(11.0), m_pageOffsetX(-4.25), m_pageOffsetY(-5.5),
-    m_fillStyles(), m_lineStyles(), m_bmps(), m_patterns(),
+    m_fillStyles(), m_lineStyles(), m_bmps(), m_patterns(), m_vects(),
     m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0), m_colorTransformRGB2RGB(0)
 {
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();

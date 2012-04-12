@@ -83,6 +83,7 @@ public:
   std::map<unsigned, CDRLineStyle> m_lineStyles;
   std::map<unsigned, WPXBinaryData> m_bmps;
   std::map<unsigned, CDRPattern> m_patterns;
+  std::map<unsigned, WPXBinaryData> m_vects;
 
   unsigned _getRGBColor(const CDRColor &color);
   unsigned getBMPColor(const CDRColor &color);
@@ -139,6 +140,8 @@ public:
   virtual void collectPolygon() = 0;
   virtual void collectSpline() = 0;
   virtual void collectColorProfile(const std::vector<unsigned char> &profile) = 0;
+  virtual void collectBBox(double width, double height, double offsetX, double offsetY) = 0;
+  virtual void collectSpnd(unsigned spnd) = 0;
 };
 
 } // namespace libcdr

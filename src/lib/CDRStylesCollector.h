@@ -83,6 +83,8 @@ public:
   void collectPolygon() {}
   void collectSpline() {}
   void collectColorProfile(const std::vector<unsigned char> &profile);
+  void collectBBox(double, double, double, double) {}
+  void collectSpnd(unsigned) {}
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);
