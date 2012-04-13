@@ -53,6 +53,7 @@ SLOFILES= \
     $(SLO)$/CDRZipStream.obj \
     $(SLO)$/CMXDocument.obj \
     $(SLO)$/CMXParser.obj \
+    $(SLO)$/WLDParser.obj \
     $(SLO)$/libcdr_utils.obj
 
 LIB1ARCHIV=$(LB)$/libcdrlib.a
