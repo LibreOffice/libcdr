@@ -44,7 +44,7 @@ class CDRCollector;
 class CMXParser
 {
 public:
-  explicit CMXParser(WPXInputStream *input, CDRCollector *collector);
+  explicit CMXParser(CDRCollector *collector);
   virtual ~CMXParser();
   bool parseRecords(WPXInputStream *input, unsigned level = 0);
 
@@ -58,7 +58,6 @@ private:
   void readCMXHeader(WPXInputStream *input);
   void readDisp(WPXInputStream *input, unsigned length);
 
-  WPXInputStream *m_input;
   CDRCollector *m_collector;
 
   bool m_bigEndian;

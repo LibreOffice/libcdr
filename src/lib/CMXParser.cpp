@@ -47,9 +47,8 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-libcdr::CMXParser::CMXParser(WPXInputStream *input, libcdr::CDRCollector *collector)
-  : m_input(input),
-    m_collector(collector), m_bigEndian(false), m_coordSize(0), m_unit(0),
+libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector)
+  : m_collector(collector), m_bigEndian(false), m_coordSize(0), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0) {}
 
 libcdr::CMXParser::~CMXParser()

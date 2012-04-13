@@ -75,13 +75,13 @@ bool libcdr::CMXDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   input->seek(0, WPX_SEEK_SET);
   CDRParserState ps;
   CDRStylesCollector stylesCollector(ps);
-  CMXParser stylesParser(input, &stylesCollector);
+  CMXParser stylesParser(&stylesCollector);
   bool retVal = stylesParser.parseRecords(input);
   if (retVal)
   {
     input->seek(0, WPX_SEEK_SET);
     CDRContentCollector contentCollector(ps, painter);
-    CMXParser contentParser(input, &contentCollector);
+    CMXParser contentParser(&contentCollector);
     retVal = contentParser.parseRecords(input);
   }
   return retVal;
