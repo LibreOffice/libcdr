@@ -31,6 +31,7 @@
 #include <string.h>
 #include "CDRDocument.h"
 #include "CDRParser.h"
+#include "WLDParser.h"
 #include "CDRSVGGenerator.h"
 #include "CDRContentCollector.h"
 #include "CDRStylesCollector.h"
@@ -46,6 +47,10 @@ namespace
 static unsigned getCDRVersion(WPXInputStream *input)
 {
   unsigned riff = readU32(input);
+#ifdef DEBUG
+  if (riff == 0x6c4c57) // "WL1\0"
+    return 200;
+#endif
   if (riff != FOURCC_RIFF)
     return 0;
   input->seek(4, WPX_SEEK_CUR);
@@ -123,17 +128,34 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   {
     input->seek(0, WPX_SEEK_SET);
     CDRParserState ps;
-    CDRStylesCollector stylesCollector(ps);
-    CDRParser stylesParser(input, std::vector<WPXInputStream *>(), &stylesCollector);
-    retVal = stylesParser.parseRecords(input);
-    if (retVal)
+    if (version >= 300)
     {
-      input->seek(0, WPX_SEEK_SET);
-      CDRContentCollector contentCollector(ps, painter);
-      CDRParser contentParser(input, std::vector<WPXInputStream *>(), &contentCollector);
-      retVal = contentParser.parseRecords(input);
+      CDRStylesCollector stylesCollector(ps);
+      CDRParser stylesParser(input, std::vector<WPXInputStream *>(), &stylesCollector);
+      retVal = stylesParser.parseRecords(input);
+      if (retVal)
+      {
+        input->seek(0, WPX_SEEK_SET);
+        CDRContentCollector contentCollector(ps, painter);
+        CDRParser contentParser(input, std::vector<WPXInputStream *>(), &contentCollector);
+        retVal = contentParser.parseRecords(input);
+      }
+      return retVal;
     }
-    return retVal;
+    else
+    {
+      CDRStylesCollector stylesCollector(ps);
+      WLDParser stylesParser(input, &stylesCollector);
+      retVal = stylesParser.parseDocument();
+      if (retVal)
+      {
+        input->seek(0, WPX_SEEK_SET);
+        CDRContentCollector contentCollector(ps, painter);
+        WLDParser contentParser(input, &contentCollector);
+        retVal = contentParser.parseDocument();
+      }
+      return retVal;
+    }
   }
 
   WPXInputStream *tmpInput = input;

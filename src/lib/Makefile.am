@@ -32,6 +32,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRZipStream.cpp \
 	CMXDocument.cpp \
 	CMXParser.cpp \
+	WLDParser.cpp \
 	libcdr_utils.cpp \
 	CDRCollector.h \
 	CDRColorProfiles.h \
@@ -47,6 +48,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRZipStream.h \
 	CMXDocumentStructure.h \
 	CMXParser.h \
+	WLDParser.h \
 	libcdr_utils.h
 
 if OS_WIN32
