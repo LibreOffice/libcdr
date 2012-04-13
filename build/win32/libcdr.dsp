@@ -147,11 +147,6 @@ SOURCE=..\..\src\lib\libcdr_utils.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\lib\WLDParser.cpp
-# End Source File
-# End Group
-# Begin Group "Header Files"
-
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
@@ -228,10 +223,6 @@ SOURCE=..\..\src\lib\libcdr.h
 # Begin Source File
 
 SOURCE=..\..\src\lib\libcdr_utils.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\WLDParser.h
 # End Source File
 # End Group
 # End Target

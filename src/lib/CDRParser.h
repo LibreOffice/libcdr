@@ -45,14 +45,16 @@ class CDRCollector;
 class CDRParser
 {
 public:
-  explicit CDRParser(WPXInputStream *input, const std::vector<WPXInputStream *> &externalStreams, CDRCollector *collector);
+  explicit CDRParser(const std::vector<WPXInputStream *> &externalStreams, CDRCollector *collector);
   virtual ~CDRParser();
   bool parseRecords(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
+  bool parseWaldo(WPXInputStream *input);
 
 private:
   CDRParser();
   CDRParser(const CDRParser &);
   CDRParser &operator=(const CDRParser &);
+  void readWaldoRecord(WPXInputStream *input, unsigned id, unsigned length);
   bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
   void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
   double readRectCoord(WPXInputStream *input);
@@ -92,7 +94,6 @@ private:
 
   bool _redirectX6Chunk(WPXInputStream **input, unsigned &length);
 
-  WPXInputStream *m_input;
   std::vector<WPXInputStream *> m_externalStreams;
   CDRCollector *m_collector;
 

@@ -31,7 +31,6 @@
 #include <string.h>
 #include "CDRDocument.h"
 #include "CDRParser.h"
-#include "WLDParser.h"
 #include "CDRSVGGenerator.h"
 #include "CDRContentCollector.h"
 #include "CDRStylesCollector.h"
@@ -128,34 +127,23 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   {
     input->seek(0, WPX_SEEK_SET);
     CDRParserState ps;
+    CDRStylesCollector stylesCollector(ps);
+    CDRParser stylesParser(std::vector<WPXInputStream *>(), &stylesCollector);
     if (version >= 300)
-    {
-      CDRStylesCollector stylesCollector(ps);
-      CDRParser stylesParser(input, std::vector<WPXInputStream *>(), &stylesCollector);
       retVal = stylesParser.parseRecords(input);
-      if (retVal)
-      {
-        input->seek(0, WPX_SEEK_SET);
-        CDRContentCollector contentCollector(ps, painter);
-        CDRParser contentParser(input, std::vector<WPXInputStream *>(), &contentCollector);
-        retVal = contentParser.parseRecords(input);
-      }
-      return retVal;
-    }
     else
+      retVal = stylesParser.parseWaldo(input);
+    if (retVal)
     {
-      CDRStylesCollector stylesCollector(ps);
-      WLDParser stylesParser(input, &stylesCollector);
-      retVal = stylesParser.parseDocument();
-      if (retVal)
-      {
-        input->seek(0, WPX_SEEK_SET);
-        CDRContentCollector contentCollector(ps, painter);
-        WLDParser contentParser(input, &contentCollector);
-        retVal = contentParser.parseDocument();
-      }
-      return retVal;
+      input->seek(0, WPX_SEEK_SET);
+      CDRContentCollector contentCollector(ps, painter);
+      CDRParser contentParser(std::vector<WPXInputStream *>(), &contentCollector);
+      if (version >= 300)
+        retVal = contentParser.parseRecords(input);
+      else
+        retVal = contentParser.parseWaldo(input);
     }
+    return retVal;
   }
 
   WPXInputStream *tmpInput = input;
@@ -218,13 +206,13 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
     delete rgbProfile;
   }
   CDRStylesCollector stylesCollector(ps);
-  CDRParser stylesParser(input, dataStreams, &stylesCollector);
+  CDRParser stylesParser(dataStreams, &stylesCollector);
   retVal = stylesParser.parseRecords(input);
   if (retVal)
   {
     input->seek(0, WPX_SEEK_SET);
     CDRContentCollector contentCollector(ps, painter);
-    CDRParser contentParser(input, dataStreams, &contentCollector);
+    CDRParser contentParser(dataStreams, &contentCollector);
     retVal = contentParser.parseRecords(input);
   }
   if (input != tmpInput)
