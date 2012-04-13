@@ -335,17 +335,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
   else
   {
     colorModel = readU8(input);
-    unsigned char c = readU8(input);
-    unsigned char m = readU8(input);
-    unsigned char y = readU8(input);
-    unsigned char k = readU8(input);
-    colorValue = (k & 0xff);
-    colorValue <<= 8;
-    colorValue |= (y & 0xff);
-    colorValue <<= 8;
-    colorValue |= (m & 0xff);
-    colorValue <<= 8;
-    colorValue |= (c & 0xff);
+    colorValue = readU32(input);
   }
   return libcdr::CDRColor(colorModel, colorValue);
 }
