@@ -43,7 +43,7 @@
 #endif
 
 #ifndef DUMP_VECT
-#define DUMP_VECT 0
+#define DUMP_VECT 1
 #endif
 
 libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, libwpg::WPGPaintInterface *painter) :
@@ -635,17 +635,73 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
       {
         std::map<unsigned, WPXBinaryData>::iterator iterBmp = m_ps.m_bmps.find(iter->second.imageFill.id);
         if (iterBmp != m_ps.m_bmps.end())
+        {
           propList.insert("libwpg:mime-type", "image/bmp");
-        else
-        {
-          iterBmp = m_ps.m_vects.find(iter->second.imageFill.id);
-          if (iterBmp != m_ps.m_vects.end())
-            propList.insert("libwpg:mime-type", "image/svg+xml");
-        }
-        if (propList["libwpg:mime-type"])
-        {
           propList.insert("draw:fill", "bitmap");
           propList.insert("draw:fill-image", iterBmp->second.getBase64Data());
+          propList.insert("style:repeat", "repeat");
+          if (iter->second.imageFill.isRelative)
+          {
+            propList.insert("svg:width", iter->second.imageFill.width, WPX_PERCENT);
+            propList.insert("svg:height", iter->second.imageFill.height, WPX_PERCENT);
+          }
+          else
+          {
+            double scaleX = 1.0;
+            double scaleY = 1.0;
+            if (iter->second.imageFill.flags & 0x04) // scale fill with image
+            {
+              scaleX = sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
+              scaleY = sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
+            }
+            propList.insert("svg:width", iter->second.imageFill.width * scaleX);
+            propList.insert("svg:height", iter->second.imageFill.height * scaleY);
+          }
+          if (iter->second.imageFill.refPoint)
+            propList.insert("draw:fill-image-ref-point", "top-left");
+          else
+            propList.insert("draw:fill-image-ref-point", "bottom-left");
+          if (iter->second.imageFill.isRelative)
+          {
+            if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
+              propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
+            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 0.0)
+              propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
+          }
+          else
+          {
+            if (m_fillTransform.m_x0 != 0.0)
+            {
+              double xOffset = m_fillTransform.m_x0 / iter->second.imageFill.width;
+              while (xOffset < 0.0)
+                xOffset += 1.0;
+              while (xOffset > 1.0)
+                xOffset -= 1.0;
+              propList.insert("draw:fill-image-ref-point-x", xOffset, WPX_PERCENT);
+            }
+            if (m_fillTransform.m_y0 != 0.0)
+            {
+              double yOffset = m_fillTransform.m_y0 / iter->second.imageFill.width;
+              while (yOffset < 0.0)
+                yOffset += 1.0;
+              while (yOffset > 1.0)
+                yOffset -= 1.0;
+              propList.insert("draw:fill-image-ref-point-y", 1.0 - yOffset, WPX_PERCENT);
+            }
+          }
+        }
+        else
+          propList.insert("draw:fill", "none");
+      }
+      break;
+      case 10: // Full color
+      {
+        std::map<unsigned, WPXBinaryData>::iterator iterVect = m_ps.m_vects.find(iter->second.imageFill.id);
+        if (iterVect != m_ps.m_vects.end())
+        {
+          propList.insert("draw:fill", "bitmap");
+          propList.insert("libwpg:mime-type", "image/svg+xml");
+          propList.insert("draw:fill-image", iterVect->second.getBase64Data());
           propList.insert("style:repeat", "repeat");
           if (iter->second.imageFill.isRelative)
           {

@@ -915,9 +915,8 @@ void libcdr::CDRParser::readCDR3Fill(WPXInputStream *input)
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, false, tileOffsetX, tileOffsetY, rcpOffset, 0, m_version < 900 ? true : false);
   }
   break;
-  case 10: // bitmap
+  case 10: // Full color
   {
-    fillType = 9;
     unsigned patternId = readU16(input);
     double patternWidth = readCoordinate(input);
     double patternHeight = readCoordinate(input);
@@ -1142,14 +1141,16 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   break;
   case 9: // bitmap
   {
+    if (m_version < 600)
+      fillType = 10;
+    input->seek(2, WPX_SEEK_CUR);
+    unsigned patternId = readUnsigned(input);
     if (m_version >= 1600)
-      input->seek(32, WPX_SEEK_CUR);
+      input->seek(26, WPX_SEEK_CUR);
     else if (m_version >= 1300)
-      input->seek(8, WPX_SEEK_CUR);
-    else
-      input->seek(6, WPX_SEEK_CUR);
-    int tmpWidth = readS32(input);
-    int tmpHeight = readS32(input);
+      input->seek(2, WPX_SEEK_CUR);
+    int tmpWidth = readUnsigned(input);
+    int tmpHeight = readUnsigned(input);
     double tileOffsetX = 0.0;
     double tileOffsetY = 0.0;
     if (m_version < 900)
@@ -1161,8 +1162,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(4, WPX_SEEK_CUR);
     double rcpOffset = (double)readU16(input) / 100.0;
     unsigned char flags = readU8(input);
-    double patternWidth = (double)tmpWidth / 254000.0;
-    double patternHeight = (double)tmpHeight / 254000.0;
+    double patternWidth = (double)tmpWidth / (m_version < 600 ? 1000.0 :254000.0);
+    double patternHeight = (double)tmpHeight / (m_version < 600 ? 1000.0 :254000.0);
     bool isRelative = false;
     if ((flags & 0x04) && (m_version < 900))
     {
@@ -1174,23 +1175,70 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(17, WPX_SEEK_CUR);
     else
       input->seek(21, WPX_SEEK_CUR);
+    if (m_version >= 600)
+      patternId = readUnsigned(input);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
+  }
+  break;
+  case 10: // Full color
+  {
+    if (m_version >= 1300)
+    {
+      if (v13flag == 0x18e)
+        input->seek(36, WPX_SEEK_CUR);
+      else
+        input->seek(12, WPX_SEEK_CUR);
+    }
+    else
+      input->seek(2, WPX_SEEK_CUR);
     unsigned patternId = readUnsigned(input);
+    int tmpWidth = readUnsigned(input);
+    int tmpHeight = readUnsigned(input);
+    double tileOffsetX = 0.0;
+    double tileOffsetY = 0.0;
+    if (m_version < 900)
+    {
+      tileOffsetX = (double)readU16(input) / 100.0;
+      tileOffsetY = (double)readU16(input) / 100.0;
+    }
+    else
+      input->seek(4, WPX_SEEK_CUR);
+    double rcpOffset = (double)readU16(input) / 100.0;
+    unsigned char flags = readU8(input);
+    double patternWidth = (double)tmpWidth / (m_version < 600 ? 1000.0 :254000.0);
+    double patternHeight = (double)tmpHeight / (m_version < 600 ? 1000.0 :254000.0);
+    bool isRelative = false;
+    if ((flags & 0x04) && (m_version < 900))
+    {
+      isRelative = true;
+      patternWidth = (double)tmpWidth / 100.0;
+      patternHeight = (double)tmpHeight / 100.0;
+    }
+    if (m_version >= 1300)
+      input->seek(17, WPX_SEEK_CUR);
+    else
+      input->seek(21, WPX_SEEK_CUR);
+    if (m_version >= 600)
+      patternId = readUnsigned(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
   }
   break;
   case 11: // Texture
   {
+    if (m_version < 600)
+      fillType = 10;
     if (m_version >= 1300)
     {
       if (v13flag == 0x18e)
-        input->seek(40, WPX_SEEK_CUR);
+        input->seek(36, WPX_SEEK_CUR);
       else
-        input->seek(16, WPX_SEEK_CUR);
+        input->seek(12, WPX_SEEK_CUR);
     }
     else
-      input->seek(6, WPX_SEEK_CUR);
-    int tmpWidth = readS32(input);
-    int tmpHeight = readS32(input);
+      input->seek(2, WPX_SEEK_CUR);
+    unsigned patternId = readU32(input);
+    int tmpWidth = readUnsigned(input);
+    int tmpHeight = readUnsigned(input);
     double tileOffsetX = 0.0;
     double tileOffsetY = 0.0;
     if (m_version < 900)
@@ -1202,8 +1250,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(4, WPX_SEEK_CUR);
     double rcpOffset = (double)readU16(input) / 100.0;
     unsigned char flags = readU8(input);
-    double patternWidth = (double)tmpWidth / 254000.0;
-    double patternHeight = (double)tmpHeight / 254000.0;
+    double patternWidth = (double)tmpWidth / (m_version < 600 ? 1000.0 :254000.0);
+    double patternHeight = (double)tmpHeight / (m_version < 600 ? 1000.0 :254000.0);
     bool isRelative = false;
     if ((flags & 0x04) && (m_version < 900))
     {
@@ -1215,7 +1263,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(17, WPX_SEEK_CUR);
     else
       input->seek(21, WPX_SEEK_CUR);
-    unsigned patternId = readUnsigned(input);
+    if (m_version >= 600)
+      patternId = readUnsigned(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
   }
   break;
