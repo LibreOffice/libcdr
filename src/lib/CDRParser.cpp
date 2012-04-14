@@ -902,7 +902,7 @@ void libcdr::CDRParser::readCDR3Fill(WPXInputStream *input)
     input->seek(1, WPX_SEEK_CUR);
     color1 = readColor(input);
     color2 = readColor(input);
-    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, false, tileOffsetX, tileOffsetY, rcpOffset, 0, m_version < 900 ? true : false);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, false, tileOffsetX, tileOffsetY, rcpOffset, 0);
   }
   break;
   case 10: // Full color
@@ -914,7 +914,7 @@ void libcdr::CDRParser::readCDR3Fill(WPXInputStream *input)
     double tileOffsetY = (double)readU16(input) / 100.0;
     double rcpOffset = (double)readU16(input) / 100.0;
     input->seek(1, WPX_SEEK_CUR);
-    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, false, tileOffsetX, tileOffsetY, rcpOffset, 0, m_version < 900 ? true : false);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, false, tileOffsetX, tileOffsetY, rcpOffset, 0);
   }
   break;
   default:
@@ -1126,7 +1126,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
         input->seek(10, WPX_SEEK_CUR);
     }
     color2 = readColor(input);
-    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
   }
   break;
   case 9: // bitmap
@@ -1167,7 +1167,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(21, WPX_SEEK_CUR);
     if (m_version >= 600)
       patternId = readUnsigned(input);
-    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
   }
   break;
   case 10: // Full color
@@ -1210,7 +1210,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       input->seek(21, WPX_SEEK_CUR);
     if (m_version >= 600)
       patternId = readUnsigned(input);
-    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
   }
   break;
   case 11: // Texture
@@ -1227,35 +1227,43 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     else
       input->seek(2, WPX_SEEK_CUR);
     unsigned patternId = readU32(input);
-    int tmpWidth = readUnsigned(input);
-    int tmpHeight = readUnsigned(input);
+    double patternWidth = 1.0;
+    double patternHeight = 1.0;
+    bool isRelative = true;
     double tileOffsetX = 0.0;
     double tileOffsetY = 0.0;
-    if (m_version < 900)
-    {
-      tileOffsetX = (double)readU16(input) / 100.0;
-      tileOffsetY = (double)readU16(input) / 100.0;
-    }
-    else
-      input->seek(4, WPX_SEEK_CUR);
-    double rcpOffset = (double)readU16(input) / 100.0;
-    unsigned char flags = readU8(input);
-    double patternWidth = (double)tmpWidth / (m_version < 600 ? 1000.0 :254000.0);
-    double patternHeight = (double)tmpHeight / (m_version < 600 ? 1000.0 :254000.0);
-    bool isRelative = false;
-    if ((flags & 0x04) && (m_version < 900))
-    {
-      isRelative = true;
-      patternWidth = (double)tmpWidth / 100.0;
-      patternHeight = (double)tmpHeight / 100.0;
-    }
-    if (m_version >= 1300)
-      input->seek(17, WPX_SEEK_CUR);
-    else
-      input->seek(21, WPX_SEEK_CUR);
+    double rcpOffset = 0.0;
+    unsigned char flags = 0;
     if (m_version >= 600)
-      patternId = readUnsigned(input);
-    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags, m_version < 900 ? true : false);
+    {
+      int tmpWidth = readUnsigned(input);
+      int tmpHeight = readUnsigned(input);
+      if (m_version < 900)
+      {
+        tileOffsetX = (double)readU16(input) / 100.0;
+        tileOffsetY = (double)readU16(input) / 100.0;
+      }
+      else
+        input->seek(4, WPX_SEEK_CUR);
+      rcpOffset = (double)readU16(input) / 100.0;
+      flags = readU8(input);
+      patternWidth = (double)tmpWidth / (m_version < 600 ? 1000.0 :254000.0);
+      patternHeight = (double)tmpHeight / (m_version < 600 ? 1000.0 :254000.0);
+      isRelative = false;
+      if ((flags & 0x04) && (m_version < 900))
+      {
+        isRelative = true;
+        patternWidth = (double)tmpWidth / 100.0;
+        patternHeight = (double)tmpHeight / 100.0;
+      }
+      if (m_version >= 1300)
+        input->seek(17, WPX_SEEK_CUR);
+      else
+        input->seek(21, WPX_SEEK_CUR);
+      if (m_version >= 600)
+        patternId = readUnsigned(input);
+    }
+    imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
   }
   break;
   default:

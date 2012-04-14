@@ -588,10 +588,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             propList.insert("svg:width", iter->second.imageFill.width * scaleX);
             propList.insert("svg:height", iter->second.imageFill.height * scaleY);
           }
-          if (iter->second.imageFill.refPoint)
-            propList.insert("draw:fill-image-ref-point", "top-left");
-          else
-            propList.insert("draw:fill-image-ref-point", "bottom-left");
+          propList.insert("draw:fill-image-ref-point", "bottom-left");
           if (iter->second.imageFill.isRelative)
           {
             if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
@@ -657,10 +654,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             propList.insert("svg:width", iter->second.imageFill.width * scaleX);
             propList.insert("svg:height", iter->second.imageFill.height * scaleY);
           }
-          if (iter->second.imageFill.refPoint)
-            propList.insert("draw:fill-image-ref-point", "top-left");
-          else
-            propList.insert("draw:fill-image-ref-point", "bottom-left");
+          propList.insert("draw:fill-image-ref-point", "bottom-left");
           if (iter->second.imageFill.isRelative)
           {
             if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
@@ -720,10 +714,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             propList.insert("svg:width", iter->second.imageFill.width * scaleX);
             propList.insert("svg:height", iter->second.imageFill.height * scaleY);
           }
-          if (iter->second.imageFill.refPoint)
-            propList.insert("draw:fill-image-ref-point", "top-left");
-          else
-            propList.insert("draw:fill-image-ref-point", "bottom-left");
+          propList.insert("draw:fill-image-ref-point", "bottom-left");
           if (iter->second.imageFill.isRelative)
           {
             if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
