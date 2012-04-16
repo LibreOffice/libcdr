@@ -43,7 +43,7 @@
 #endif
 
 #ifndef DUMP_VECT
-#define DUMP_VECT 1
+#define DUMP_VECT 0
 #endif
 
 libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, libwpg::WPGPaintInterface *painter) :

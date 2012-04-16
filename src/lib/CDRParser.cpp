@@ -153,6 +153,9 @@ void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, unsigned char typ
     readWaldoBmp(input, length, id);
   }
   break;
+  case 6:
+    readWaldoBmpf(input, id);
+    break;
   default:
     break;
   }
@@ -992,7 +995,7 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
   break;
   case 7: // Pattern
   {
-    unsigned patternId = readU32(input);
+    unsigned patternId = m_version < 300 ? readU16(input) : readU32(input);
     double patternWidth = readCoordinate(input);
     double patternHeight = readCoordinate(input);
     double tileOffsetX = (double)readU16(input) / 100.0;
@@ -1723,6 +1726,28 @@ void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
     return;
   memcpy(&pattern[0], tmpBuffer, dataSize);
   m_collector->collectBmpf(patternId, width, height, pattern);
+}
+
+void libcdr::CDRParser::readWaldoBmpf(WPXInputStream *input, unsigned id)
+{
+  unsigned headerLength = readU32(input);
+  if (headerLength != 40)
+    return;
+  unsigned width = readU32(input);
+  unsigned height = readU32(input);
+  input->seek(2, WPX_SEEK_CUR);
+  unsigned bpp = readU16(input);
+  if (bpp != 1)
+    return;
+  input->seek(4, WPX_SEEK_CUR);
+  unsigned dataSize = readU32(input);
+  std::vector<unsigned char> pattern(dataSize);
+  unsigned long tmpNumBytesRead = 0;
+  const unsigned char *tmpBuffer = input->read(dataSize, tmpNumBytesRead);
+  if (dataSize != tmpNumBytesRead)
+    return;
+  memcpy(&pattern[0], tmpBuffer, dataSize);
+  m_collector->collectBmpf(id, width, height, pattern);
 }
 
 void libcdr::CDRParser::readPpdt(WPXInputStream *input, unsigned length)

@@ -40,10 +40,6 @@
 #define DUMP_IMAGE 0
 #endif
 
-#ifndef DUMP_PATTERN
-#define DUMP_PATTERN 0
-#endif
-
 libcdr::CDRStylesCollector::CDRStylesCollector(libcdr::CDRParserState &ps) :
   m_ps(ps)
 {
