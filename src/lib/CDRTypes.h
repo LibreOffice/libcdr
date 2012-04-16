@@ -226,6 +226,16 @@ struct CDRSplineData
   void create(CDRPath &path) const;
 };
 
+struct WaldoRecordInfo
+{
+  WaldoRecordInfo(unsigned char t, unsigned i, unsigned o)
+    : type(t), id(i), offset(o) {}
+  WaldoRecordInfo() : type(0), id(0), offset(0) {}
+  unsigned char type;
+  unsigned id;
+  unsigned offset;
+};
+
 } // namespace libcdr
 
 #endif /* __CDRTYPES_H__ */

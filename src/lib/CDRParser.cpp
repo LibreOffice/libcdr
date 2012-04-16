@@ -95,6 +95,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     input->seek(offsets[0], WPX_SEEK_SET);
     CDR_DEBUG_MSG(("CDRParser::parseValdo, Mcfg offset 0x%x\n", (unsigned)input->tell()));
     readMcfg(input, 275);
+    std::map<unsigned, WaldoRecordInfo> records;
     if (offsets[3])
     {
       input->seek(offsets[3], WPX_SEEK_SET);
@@ -104,12 +105,8 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
         unsigned char recordType = readU8(input);
         unsigned recordId = readU32(input);
         unsigned recordOffset = readU32(input);
-        long comeBackHere = input->tell();
-        if (comeBackHere == -1)
-          return false;
-        readWaldoRecord(input, recordType, recordId, recordOffset);
-        input->seek(comeBackHere, WPX_SEEK_SET);
-
+        if (recordOffset)
+          records[recordOffset] = WaldoRecordInfo(recordType, recordId, recordOffset);
       }
     }
     if (offsets[5])
@@ -121,14 +118,12 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
         unsigned char recordType = readU8(input);
         unsigned recordId = readU32(input);
         unsigned recordOffset = readU32(input);
-        long comeBackHere = input->tell();
-        if (comeBackHere == -1)
-          return false;
-        readWaldoRecord(input, recordType, recordId, recordOffset);
-        input->seek(comeBackHere, WPX_SEEK_SET);
-
+        if (recordOffset)
+          records[recordOffset] = WaldoRecordInfo(recordType, recordId, recordOffset);
       }
     }
+    for (std::map<unsigned, WaldoRecordInfo>::const_iterator iter = records.begin(); iter != records.end(); ++iter)
+      readWaldoRecord(input, iter->second.type, iter->second.id, iter->second.offset);
     CDR_DEBUG_MSG(("CDRparser::parseValdo, parsing successful!!!\n"));
     return true;
   }
@@ -140,7 +135,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
 
 void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, unsigned char type, unsigned id, unsigned offset)
 {
-  CDR_DEBUG_MSG(("CDRParser::readWaldoRecord, offset 0x%x, type %i, id %x, offset %u\n", (unsigned)input->tell(), type, id, offset));
+  CDR_DEBUG_MSG(("CDRParser::readWaldoRecord, type %i, id %x, offset %x\n", type, id, offset));
   input->seek(offset, WPX_SEEK_SET);
   switch (type)
   {
@@ -150,6 +145,12 @@ void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, unsigned char typ
     m_collector->collectLevel(1);
     m_collector->collectObject(1);
     readWaldoLoda(input, length);
+  }
+  break;
+  case 3:
+  {
+    unsigned length = readU32(input);
+    readWaldoBmp(input, length, id);
   }
   break;
   default:
@@ -820,6 +821,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
       input->seek(2, WPX_SEEK_CUR);
     input->seek(8, WPX_SEEK_CUR);
     imageId = readUnsigned(input);
+	printf("Fridrich %x\n", imageId);
     input->seek(20, WPX_SEEK_CUR);
     m_collector->collectMoveTo(x1, y1);
     m_collector->collectLineTo(x1, y2);
@@ -1613,6 +1615,25 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
   double cx = (double)readCoordinate(input);
   double cy = (double)readCoordinate(input);
   m_collector->collectPolygonTransform(numAngles, nextPoint, rx, ry, cx, cy);
+}
+
+void libcdr::CDRParser::readWaldoBmp(WPXInputStream *input, unsigned length, unsigned id)
+{
+  if (m_version >= 400)
+    return;
+  if (readU8(input) != 0x42)
+    return;
+  if (readU8(input) != 0x4d)
+    return;
+  input->seek(-2, WPX_SEEK_CUR);
+  unsigned long tmpNumBytesRead = 0;
+  const unsigned char *tmpBuffer = input->read(length, tmpNumBytesRead);
+  if (!tmpNumBytesRead || length != tmpNumBytesRead)
+    return;
+  std::vector<unsigned char> bitmap(tmpNumBytesRead);
+  memcpy(&bitmap[0], tmpBuffer, tmpNumBytesRead);
+  m_collector->collectBmp(id, bitmap);
+  return;
 }
 
 void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
