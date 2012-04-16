@@ -821,7 +821,6 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
       input->seek(2, WPX_SEEK_CUR);
     input->seek(8, WPX_SEEK_CUR);
     imageId = readUnsigned(input);
-	printf("Fridrich %x\n", imageId);
     input->seek(20, WPX_SEEK_CUR);
     m_collector->collectMoveTo(x1, y1);
     m_collector->collectLineTo(x1, y2);
