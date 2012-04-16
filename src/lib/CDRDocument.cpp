@@ -46,10 +46,8 @@ namespace
 static unsigned getCDRVersion(WPXInputStream *input)
 {
   unsigned riff = readU32(input);
-#ifdef DEBUG
-  if (riff == 0x6c4c57) // "WL1\0"
+  if ((riff & 0xffff) == 0x4c57) // "WL<micro>\0"
     return 200;
-#endif
   if (riff != FOURCC_RIFF)
     return 0;
   input->seek(4, WPX_SEEK_CUR);

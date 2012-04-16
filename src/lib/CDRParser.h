@@ -54,7 +54,7 @@ private:
   CDRParser();
   CDRParser(const CDRParser &);
   CDRParser &operator=(const CDRParser &);
-  void readWaldoRecord(WPXInputStream *input, unsigned id, unsigned length);
+  void readWaldoRecord(WPXInputStream *input, unsigned char type, unsigned id, unsigned offset);
   bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
   void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
   double readRectCoord(WPXInputStream *input);
@@ -69,9 +69,10 @@ private:
   void readLineAndCurve(WPXInputStream *input);
 //  void readText(WPXInputStream *input);
   void readBitmap(WPXInputStream *input);
-  void readCDR3Trfd(WPXInputStream *input);
-  void readCDR3Outl(WPXInputStream *input);
-  void readCDR3Fill(WPXInputStream *input);
+  void readWaldoTrfd(WPXInputStream *input);
+  void readWaldoOutl(WPXInputStream *input);
+  void readWaldoFill(WPXInputStream *input);
+  void readWaldoLoda(WPXInputStream *input, unsigned length);
   void readOpacity(WPXInputStream *input, unsigned length);
   void readTrfd(WPXInputStream *input, unsigned length);
   void readFild(WPXInputStream *input, unsigned length);

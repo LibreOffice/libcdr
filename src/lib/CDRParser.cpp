@@ -79,22 +79,57 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
   try
   {
     input->seek(0, WPX_SEEK_SET);
-    unsigned magic = readU32(input);
-    if (magic != 0x6c4c57)
+    unsigned short magic = readU16(input);
+    if (magic != 0x4c57)
       return false;
     m_version = 200;
-    unsigned offset = readU32(input);
-    input->seek(offset, WPX_SEEK_SET);
+    input->seek(2, WPX_SEEK_CUR);
+    std::vector<unsigned> offsets;
+    unsigned i = 0;
+    for (i = 0; i < 8; ++i)
+      offsets.push_back(readU32(input));
+    /* unsigned char flag = */
+    readU8(input);
+    for (i = 0; i < 10; i++)
+      offsets.push_back(readU32(input));
+    input->seek(offsets[0], WPX_SEEK_SET);
     CDR_DEBUG_MSG(("CDRParser::parseValdo, Mcfg offset 0x%x\n", (unsigned)input->tell()));
     readMcfg(input, 275);
-    input->seek(offset+275, WPX_SEEK_SET);
-    for(unsigned i = 0; !input->atEOS(); ++i)
+    if (offsets[3])
     {
-      unsigned length = readU32(input);
-      long startPosition = input->tell();
-      readWaldoRecord(input, i, length);
-      input->seek(startPosition + (long)length, WPX_SEEK_SET);
+      input->seek(offsets[3], WPX_SEEK_SET);
+      unsigned short numRecords = readU16(input);
+      for (; numRecords > 0 && !input->atEOS(); --numRecords)
+      {
+        unsigned char recordType = readU8(input);
+        unsigned recordId = readU32(input);
+        unsigned recordOffset = readU32(input);
+        long comeBackHere = input->tell();
+        if (comeBackHere == -1)
+          return false;
+        readWaldoRecord(input, recordType, recordId, recordOffset);
+        input->seek(comeBackHere, WPX_SEEK_SET);
+
+      }
     }
+    if (offsets[5])
+    {
+      input->seek(offsets[5], WPX_SEEK_SET);
+      unsigned short numRecords = readU16(input);
+      for (; numRecords > 0 && !input->atEOS(); --numRecords)
+      {
+        unsigned char recordType = readU8(input);
+        unsigned recordId = readU32(input);
+        unsigned recordOffset = readU32(input);
+        long comeBackHere = input->tell();
+        if (comeBackHere == -1)
+          return false;
+        readWaldoRecord(input, recordType, recordId, recordOffset);
+        input->seek(comeBackHere, WPX_SEEK_SET);
+
+      }
+    }
+    CDR_DEBUG_MSG(("CDRparser::parseValdo, parsing successful!!!\n"));
     return true;
   }
   catch (...)
@@ -103,9 +138,89 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
   }
 }
 
-void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, unsigned id, unsigned length)
+void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, unsigned char type, unsigned id, unsigned offset)
 {
-  CDR_DEBUG_MSG(("CDRParser::readWaldoRecord, offset 0x%x, id %x, length %u\n", (unsigned)input->tell(), id, length));
+  CDR_DEBUG_MSG(("CDRParser::readWaldoRecord, offset 0x%x, type %i, id %x, offset %u\n", (unsigned)input->tell(), type, id, offset));
+  input->seek(offset, WPX_SEEK_SET);
+  switch (type)
+  {
+  case 2:
+  {
+    unsigned length = readU32(input);
+    m_collector->collectLevel(1);
+    m_collector->collectObject(1);
+    readWaldoLoda(input, length);
+  }
+  break;
+  default:
+    break;
+  }
+}
+
+void libcdr::CDRParser::readWaldoTrfd(WPXInputStream *input)
+{
+  if (m_version >= 400)
+    return;
+  double v0 = 0.0;
+  double v1 = 0.0;
+  double x0 = 0.0;
+  double v3 = 0.0;
+  double v4 = 0.0;
+  double y0 = 0.0;
+  if (m_version >= 300)
+  {
+    long startPosition = input->tell();
+    input->seek(0x0a, WPX_SEEK_CUR);
+    unsigned offset = readUnsigned(input);
+    input->seek(startPosition+offset, WPX_SEEK_SET);
+    v0 = readFixedPoint(input);
+    v1 = readFixedPoint(input);
+    x0 = (double)readS32(input) / 1000.0;
+    v3 = readFixedPoint(input);
+    v4 = readFixedPoint(input);
+    y0 = (double)readS32(input) / 1000.0;
+  }
+  else
+  {
+    x0 = readCoordinate(input);
+    y0 = readCoordinate(input);
+    v0 = readFixedPoint(input);
+    v1 = readFixedPoint(input);
+    x0 += readFixedPoint(input) / 1000.0;
+    v3 = readFixedPoint(input);
+    v4 = readFixedPoint(input);
+    y0 += readFixedPoint(input) / 1000.0;
+  }
+  CDR_DEBUG_MSG(("CDRParser::readWaldoTrfd %f %f %f %f %f %f %i\n", v0, v1, x0, v3, v4, y0, m_version));
+  m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
+}
+
+void libcdr::CDRParser::readWaldoLoda(WPXInputStream *input, unsigned length)
+{
+  if (m_version >= 300)
+    return;
+  long startPosition = input->tell();
+  readWaldoTrfd(input);
+  unsigned chunkType = readU8(input);
+  unsigned shapeOffset = readU16(input);
+  unsigned outlOffset = readU16(input);
+  unsigned fillOffset = readU16(input);
+  input->seek(startPosition + outlOffset, WPX_SEEK_SET);
+  readWaldoOutl(input);
+  input->seek(startPosition + fillOffset, WPX_SEEK_SET);
+  readWaldoFill(input);
+  input->seek(startPosition + shapeOffset, WPX_SEEK_SET);
+  if (chunkType == 0x00) // Rectangle
+    readRectangle(input);
+  else if (chunkType == 0x01) // Ellipse
+    readEllipse(input);
+  else if (chunkType == 0x02) // Line and curve
+    readLineAndCurve(input);
+  /* else if (chunkType == 0x03) // Text
+          readText(input); */
+  else if (chunkType == 0x04) // Bitmap
+    readBitmap(input);
+  input->seek(startPosition + length, WPX_SEEK_SET);
 }
 
 bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengths, unsigned level)
@@ -794,24 +909,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
   m_collector->collectBitmap(imageId, x1, x2, y1, y2);
 }
 
-void libcdr::CDRParser::readCDR3Trfd(WPXInputStream *input)
-{
-  if (m_version >= 400)
-    return;
-  long startPosition = input->tell();
-  input->seek(0x0a, WPX_SEEK_CUR);
-  unsigned offset = readUnsigned(input);
-  input->seek(startPosition+offset, WPX_SEEK_SET);
-  double v0 = readFixedPoint(input);
-  double v1 = readFixedPoint(input);
-  double x0 = (double)readS32(input) / 1000.0;
-  double v3 = readFixedPoint(input);
-  double v4 = readFixedPoint(input);
-  double y0 = (double)readS32(input) / 1000.0;
-  m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
-}
-
-void libcdr::CDRParser::readCDR3Outl(WPXInputStream *input)
+void libcdr::CDRParser::readWaldoOutl(WPXInputStream *input)
 {
   if (m_version >= 400)
     return;
@@ -836,7 +934,7 @@ void libcdr::CDRParser::readCDR3Outl(WPXInputStream *input)
   m_collector->collectOutlId(m_outlId);
 }
 
-void libcdr::CDRParser::readCDR3Fill(WPXInputStream *input)
+void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
 {
   if (m_version >= 400)
     return;
@@ -1366,14 +1464,14 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
     else if (argTypes[i] == 0x14)
     {
       if (m_version < 400)
-        readCDR3Fill(input);
+        readWaldoFill(input);
       else
         m_collector->collectFildId(readU32(input));
     }
     else if (argTypes[i] == 0x0a)
     {
       if (m_version < 400)
-        readCDR3Outl(input);
+        readWaldoOutl(input);
       else
         m_collector->collectOutlId(readU32(input));
     }
@@ -1386,7 +1484,7 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
     else if (argTypes[i] == 0x64)
     {
       if (m_version < 400)
-        readCDR3Trfd(input);
+        readWaldoTrfd(input);
     }
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
