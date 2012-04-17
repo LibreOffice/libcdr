@@ -57,7 +57,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   m_currentImage(), m_currentPath(), m_currentTransform(), m_fillTransform(),
   m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(0),
   m_contentOutputElements(), m_fillOutputElements(),
-  m_groupLevels(), m_splineData(), m_fillOpacity(1.0), m_ps(ps)
+  m_groupLevels(), m_groupTransforms(), m_splineData(), m_fillOpacity(1.0), m_ps(ps)
 {
   m_outputElements = &m_contentOutputElements;
 }
@@ -119,6 +119,7 @@ void libcdr::CDRContentCollector::collectGroup(unsigned level)
   outputElement.addEndGroup();
   m_outputElements->push(outputElement);
   m_groupLevels.push(level);
+  m_groupTransforms.push(CDRTransform());
 }
 
 void libcdr::CDRContentCollector::collectVect(unsigned level)
@@ -217,6 +218,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     _lineProperties(style);
     outputElement.addStyle(style, gradient);
     m_currentPath.transform(m_currentTransform);
+    if (!m_groupTransforms.empty())
+      m_currentPath.transform(m_groupTransforms.top());
     CDRTransform tmpTrafo(1.0, 0.0, -m_pageOffsetX, 0.0, 1.0, -m_pageOffsetY);
     m_currentPath.transform(tmpTrafo);
     tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_pageHeight);
@@ -328,9 +331,12 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   m_fillOpacity = 1.0;
 }
 
-void libcdr::CDRContentCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0)
+void libcdr::CDRContentCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0, bool considerGroupTransform)
 {
-  m_currentTransform = libcdr::CDRTransform(v0, v1, x0, v3, v4, y0);
+  if (m_currentObjectLevel)
+    m_currentTransform = libcdr::CDRTransform(v0, v1, x0, v3, v4, y0);
+  else if (!m_groupLevels.empty() && considerGroupTransform)
+    m_groupTransforms.top() = CDRTransform(v0, v1, x0, v3, v4, y0);
 }
 
 void libcdr::CDRContentCollector::collectFillTransform(double v0, double v1, double x0, double v3, double v4, double y0)
@@ -353,6 +359,7 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
     outputElement.addStartGroup(propList);
     m_outputElements->push(outputElement);
     m_groupLevels.pop();
+    m_groupTransforms.pop();
   }
   if (m_currentVectLevel && m_spnd && m_groupLevels.empty() && !m_fillOutputElements.empty())
   {

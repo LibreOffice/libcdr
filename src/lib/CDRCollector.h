@@ -119,7 +119,7 @@ public:
   virtual void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y) = 0;
   virtual void collectClosePath() = 0;
   virtual void collectLevel(unsigned level) = 0;
-  virtual void collectTransform(double v0, double v1, double x, double v3, double v4, double y) = 0;
+  virtual void collectTransform(double v0, double v1, double x, double v3, double v4, double y, bool considerGroupTransform) = 0;
   virtual void collectFildId(unsigned id) = 0;
   virtual void collectOutlId(unsigned id) = 0;
   virtual void collectFild(unsigned id, unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill) = 0;

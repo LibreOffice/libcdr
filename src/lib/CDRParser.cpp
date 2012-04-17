@@ -196,7 +196,7 @@ void libcdr::CDRParser::readWaldoTrfd(WPXInputStream *input)
     y0 += readFixedPoint(input) / 1000.0;
   }
   CDR_DEBUG_MSG(("CDRParser::readWaldoTrfd %f %f %f %f %f %f %i\n", v0, v1, x0, v3, v4, y0, m_version));
-  m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
+  m_collector->collectTransform(v0, v1, x0, v3, v4, y0, m_version < 400);
 }
 
 void libcdr::CDRParser::readWaldoLoda(WPXInputStream *input, unsigned length)
@@ -209,21 +209,30 @@ void libcdr::CDRParser::readWaldoLoda(WPXInputStream *input, unsigned length)
   unsigned shapeOffset = readU16(input);
   unsigned outlOffset = readU16(input);
   unsigned fillOffset = readU16(input);
-  input->seek(startPosition + outlOffset, WPX_SEEK_SET);
-  readWaldoOutl(input);
-  input->seek(startPosition + fillOffset, WPX_SEEK_SET);
-  readWaldoFill(input);
-  input->seek(startPosition + shapeOffset, WPX_SEEK_SET);
-  if (chunkType == 0x00) // Rectangle
-    readRectangle(input);
-  else if (chunkType == 0x01) // Ellipse
-    readEllipse(input);
-  else if (chunkType == 0x02) // Line and curve
-    readLineAndCurve(input);
-  /* else if (chunkType == 0x03) // Text
-          readText(input); */
-  else if (chunkType == 0x04) // Bitmap
-    readBitmap(input);
+  if (outlOffset)
+  {
+    input->seek(startPosition + outlOffset, WPX_SEEK_SET);
+    readWaldoOutl(input);
+  }
+  if (fillOffset)
+  {
+    input->seek(startPosition + fillOffset, WPX_SEEK_SET);
+    readWaldoFill(input);
+  }
+  if (shapeOffset)
+  {
+    input->seek(startPosition + shapeOffset, WPX_SEEK_SET);
+    if (chunkType == 0x00) // Rectangle
+      readRectangle(input);
+    else if (chunkType == 0x01) // Ellipse
+      readEllipse(input);
+    else if (chunkType == 0x02) // Line and curve
+      readLineAndCurve(input);
+    /* else if (chunkType == 0x03) // Text
+            readText(input); */
+    else if (chunkType == 0x04) // Bitmap
+      readBitmap(input);
+  }
   input->seek(startPosition + length, WPX_SEEK_SET);
 }
 
@@ -1074,7 +1083,7 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
         v4 = readFixedPoint(input);
         y0 = (double)readS32(input) / 1000.0;
       }
-      m_collector->collectTransform(v0, v1, x0, v3, v4, y0);
+      m_collector->collectTransform(v0, v1, x0, v3, v4, y0, m_version < 400);
     }
     else if (tmpType == 0x10)
     {

@@ -62,7 +62,7 @@ public:
   void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y);
   void collectClosePath();
   void collectLevel(unsigned level);
-  void collectTransform(double v0, double v1, double x, double v3, double v4, double y);
+  void collectTransform(double v0, double v1, double x, double v3, double v4, double y, bool considerGroupTransform);
   void collectFildId(unsigned id);
   void collectOutlId(unsigned id);
   void collectFild(unsigned, unsigned short, const CDRColor &, const CDRColor &, const CDRGradient &, const CDRImageFill &) {}
@@ -118,6 +118,7 @@ private:
   std::stack<CDROutputElementList> m_contentOutputElements;
   std::stack<CDROutputElementList> m_fillOutputElements;
   std::stack<unsigned> m_groupLevels;
+  std::stack<CDRTransform> m_groupTransforms;
   CDRSplineData m_splineData;
   double m_fillOpacity;
 
