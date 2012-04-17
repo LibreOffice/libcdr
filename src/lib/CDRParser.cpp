@@ -1743,6 +1743,7 @@ void libcdr::CDRParser::readWaldoBmpf(WPXInputStream *input, unsigned id)
   unsigned dataSize = readU32(input);
   std::vector<unsigned char> pattern(dataSize);
   unsigned long tmpNumBytesRead = 0;
+  input->seek(24, WPX_SEEK_CUR); // TODO: is this empirical experience universal???
   const unsigned char *tmpBuffer = input->read(dataSize, tmpNumBytesRead);
   if (dataSize != tmpNumBytesRead)
     return;
