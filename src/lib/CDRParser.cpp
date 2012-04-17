@@ -123,7 +123,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
       }
     }
     for (std::map<unsigned, WaldoRecordInfo>::const_iterator iter = records.begin(); iter != records.end(); ++iter)
-      readWaldoRecord(input, iter->second.type, iter->second.id, iter->second.offset);
+      readWaldoRecord(input, iter->second.type, iter->second.id, iter->second.offset, offsets[1]);
     CDR_DEBUG_MSG(("CDRparser::parseValdo, parsing successful!!!\n"));
     return true;
   }
@@ -133,7 +133,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
   }
 }
 
-void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, unsigned char type, unsigned id, unsigned offset)
+void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, unsigned char type, unsigned id, unsigned offset, unsigned documentOffset)
 {
   CDR_DEBUG_MSG(("CDRParser::readWaldoRecord, type %i, id %x, offset %x\n", type, id, offset));
   input->seek(offset, WPX_SEEK_SET);
@@ -141,6 +141,8 @@ void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, unsigned char typ
   {
   case 2:
   {
+    if (offset < documentOffset)
+      break;
     unsigned length = readU32(input);
     m_collector->collectLevel(1);
     m_collector->collectObject(1);

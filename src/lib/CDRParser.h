@@ -54,7 +54,7 @@ private:
   CDRParser();
   CDRParser(const CDRParser &);
   CDRParser &operator=(const CDRParser &);
-  void readWaldoRecord(WPXInputStream *input, unsigned char type, unsigned id, unsigned offset);
+  void readWaldoRecord(WPXInputStream *input, unsigned char type, unsigned id, unsigned offset, unsigned documentOffset);
   bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
   void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
   double readRectCoord(WPXInputStream *input);
