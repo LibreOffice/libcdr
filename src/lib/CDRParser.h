@@ -34,6 +34,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <stack>
 #include <libwpd-stream/libwpd-stream.h>
 #include "CDRTypes.h"
 
@@ -54,6 +55,9 @@ private:
   CDRParser();
   CDRParser(const CDRParser &);
   CDRParser &operator=(const CDRParser &);
+  bool parseWaldoStructure(WPXInputStream *input, std::stack<WaldoRecordType1> &waldoStack,
+                           const std::map<unsigned, WaldoRecordType1> &records1,
+                           std::map<unsigned, WaldoRecordInfo> &records2);
   void readWaldoRecord(WPXInputStream *input, const WaldoRecordInfo &info);
   bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
   void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
