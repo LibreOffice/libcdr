@@ -238,17 +238,26 @@ struct WaldoRecordInfo
 
 struct WaldoRecordType1
 {
-  WaldoRecordType1(unsigned i, unsigned short n, unsigned short pr, unsigned short c, unsigned short pa, unsigned short f)
-    : id(i), next(n), previous(pr), child(c), parent(pa), flags(f) {}
-  WaldoRecordType1(): id(0), next(0), previous(0), child(0), parent(0), flags(0) {};
+  WaldoRecordType1(unsigned i, unsigned short n, unsigned short pr, unsigned short c, unsigned short pa,
+                   unsigned short f, double w, double h, double ox, double oy)
+    : id(i), next(n), previous(pr), child(c), parent(pa),
+      flags(f), width(w), height(h), offsetX(ox), offsetY(oy) {}
+  WaldoRecordType1()
+    : id(0), next(0), previous(0), child(0), parent(0), flags(0),
+      width(0.0), height(0.0), offsetX(0.0), offsetY(0.0) {}
   WaldoRecordType1(const WaldoRecordType1 &record)
-    : id(record.id), next(record.next), previous(record.previous), child(record.child), parent(record.parent), flags(record.flags) {}
+    : id(record.id), next(record.next), previous(record.previous), child(record.child), parent(record.parent),
+      flags(record.flags), width(record.width), height(record.height), offsetX(record.offsetX), offsetY(record.offsetY) {}
   unsigned id;
   unsigned short next;
   unsigned short previous;
   unsigned short child;
   unsigned short parent;
   unsigned short flags;
+  double width;
+  double height;
+  double offsetX;
+  double offsetY;
 };
 
 } // namespace libcdr

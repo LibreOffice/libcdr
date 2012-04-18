@@ -181,10 +181,20 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
       unsigned short previous = readU16(input);
       unsigned short child = readU16(input);
       unsigned short parent = readU16(input);
-      input->seek(14, WPX_SEEK_CUR);
+      input->seek(6, WPX_SEEK_CUR);
+      double x0 = readCoordinate(input);
+      double y0 = readCoordinate(input);
+      double x1 = readCoordinate(input);
+      double y1 = readCoordinate(input);
       unsigned short flags = readU16(input);
+
+      double width = fabs(x1-x0);
+      double height = fabs(y1-y0);
+      double offsetX = x1 < x0 ? x1 : x0;
+      double offsetY = y1 < y0 ? y1 : y0;
+
       CDR_DEBUG_MSG(("Type 1 length %x, id %x previous %x, next %x, child %x, parent %x, type %s\n", length, iterVec->id, previous, next, child, parent, flags & 0x01 ? "list" : "node"));
-      records1[iterVec->id] = WaldoRecordType1(iterVec->id, next, previous, child, parent, flags);
+      records1[iterVec->id] = WaldoRecordType1(iterVec->id, next, previous, child, parent, flags, width,  height, offsetX, offsetY);
     }
     std::map<unsigned, WaldoRecordInfo>::const_iterator iter;
     for (iter = records3.begin(); iter != records3.end(); ++iter)
@@ -206,10 +216,14 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
       m_collector->collectVect(waldoStack.size());
       while (!waldoStack.empty())
       {
+        m_collector->collectBBox(waldoStack.top().width, waldoStack.top().height, waldoStack.top().offsetX, waldoStack.top().offsetY);
         if (waldoStack.top().flags & 0x01)
         {
           if (waldoStack.size() > 1)
+          {
             m_collector->collectGroup(waldoStack.size());
+            m_collector->collectSpnd(waldoStack.top().id);
+          }
           iter2 = records1.find(waldoStack.top().child);
           if (iter2 == records1.end())
             return false;
@@ -243,10 +257,14 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
       m_collector->collectPage(waldoStack.size());
       while (!waldoStack.empty())
       {
+        m_collector->collectBBox(waldoStack.top().width, waldoStack.top().height, waldoStack.top().offsetX, waldoStack.top().offsetY);
         if (waldoStack.top().flags & 0x01)
         {
           if (waldoStack.size() > 1)
+          {
             m_collector->collectGroup(waldoStack.size());
+            m_collector->collectSpnd(waldoStack.top().id);
+          }
           iter2 = records1.find(waldoStack.top().child);
           if (iter2 == records1.end())
             return false;
