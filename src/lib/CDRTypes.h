@@ -236,6 +236,21 @@ struct WaldoRecordInfo
   unsigned offset;
 };
 
+struct WaldoRecordType1
+{
+  WaldoRecordType1(unsigned i, unsigned short n, unsigned short pr, unsigned short c, unsigned short pa, unsigned short f)
+    : id(i), next(n), previous(pr), child(c), parent(pa), flags(f) {}
+  WaldoRecordType1(): id(0), next(0), previous(0), child(0), parent(0), flags(0) {};
+  WaldoRecordType1(const WaldoRecordType1 &record)
+    : id(record.id), next(record.next), previous(record.previous), child(record.child), parent(record.parent), flags(record.flags) {}
+  unsigned id;
+  unsigned short next;
+  unsigned short previous;
+  unsigned short child;
+  unsigned short parent;
+  unsigned short flags;
+};
+
 } // namespace libcdr
 
 #endif /* __CDRTYPES_H__ */

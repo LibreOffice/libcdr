@@ -93,9 +93,15 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     for (i = 0; i < 10; i++)
       offsets.push_back(readU32(input));
     input->seek(offsets[0], WPX_SEEK_SET);
-    CDR_DEBUG_MSG(("CDRParser::parseValdo, Mcfg offset 0x%x\n", (unsigned)input->tell()));
+    CDR_DEBUG_MSG(("CDRParser::parseWaldo, Mcfg offset 0x%x\n", (unsigned)input->tell()));
     readMcfg(input, 275);
-    std::map<unsigned, WaldoRecordInfo> records;
+    std::vector<WaldoRecordInfo> records;
+    std::map<unsigned, WaldoRecordInfo> records2;
+    std::map<unsigned, WaldoRecordInfo> records3;
+    std::map<unsigned, WaldoRecordInfo> records4;
+    std::map<unsigned, WaldoRecordInfo> records6;
+    std::map<unsigned, WaldoRecordInfo> records8;
+    std::map<unsigned, WaldoRecordInfo> recordsOther;
     if (offsets[3])
     {
       input->seek(offsets[3], WPX_SEEK_SET);
@@ -105,8 +111,30 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
         unsigned char recordType = readU8(input);
         unsigned recordId = readU32(input);
         unsigned recordOffset = readU32(input);
-        if (recordOffset)
-          records[recordOffset] = WaldoRecordInfo(recordType, recordId, recordOffset);
+        switch (recordType)
+        {
+        case 1:
+          records.push_back(WaldoRecordInfo(recordType, recordId, recordOffset));
+          break;
+        case 2:
+          records2[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        case 3:
+          records3[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        case 4:
+          records4[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        case 6:
+          records6[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        case 8:
+          records8[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        default:
+          recordsOther[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        }
       }
     }
     if (offsets[5])
@@ -118,13 +146,133 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
         unsigned char recordType = readU8(input);
         unsigned recordId = readU32(input);
         unsigned recordOffset = readU32(input);
-        if (recordOffset)
-          records[recordOffset] = WaldoRecordInfo(recordType, recordId, recordOffset);
+        switch (recordType)
+        {
+        case 1:
+          records.push_back(WaldoRecordInfo(recordType, recordId, recordOffset));
+          break;
+        case 2:
+          records2[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        case 3:
+          records3[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        case 4:
+          records4[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        case 6:
+          records6[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        case 8:
+          records8[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        default:
+          recordsOther[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+          break;
+        }
       }
     }
-    for (std::map<unsigned, WaldoRecordInfo>::const_iterator iter = records.begin(); iter != records.end(); ++iter)
-      readWaldoRecord(input, iter->second.type, iter->second.id, iter->second.offset, offsets[1]);
-    CDR_DEBUG_MSG(("CDRparser::parseValdo, parsing successful!!!\n"));
+    std::map<unsigned, WaldoRecordType1> records1;
+    for (std::vector<WaldoRecordInfo>::iterator iterVec = records.begin(); iterVec != records.end(); ++iterVec)
+    {
+      input->seek(iterVec->offset, WPX_SEEK_SET);
+      unsigned length = readU32(input);
+      unsigned short next = readU16(input);
+      unsigned short previous = readU16(input);
+      unsigned short child = readU16(input);
+      unsigned short parent = readU16(input);
+      input->seek(14, WPX_SEEK_CUR);
+      unsigned short flags = readU16(input);
+      CDR_DEBUG_MSG(("Type 1 length %x, id %x previous %x, next %x, child %x, parent %x, type %s\n", length, iterVec->id, previous, next, child, parent, flags & 0x01 ? "list" : "node"));
+      records1[iterVec->id] = WaldoRecordType1(iterVec->id, next, previous, child, parent, flags);
+    }
+    std::map<unsigned, WaldoRecordInfo>::const_iterator iter;
+    for (iter = records3.begin(); iter != records3.end(); ++iter)
+      readWaldoRecord(input, iter->second);
+    for (iter = records6.begin(); iter != records6.end(); ++iter)
+      readWaldoRecord(input, iter->second);
+    for (iter = records8.begin(); iter != records8.end(); ++iter)
+      readWaldoRecord(input, iter->second);
+    for (iter = recordsOther.begin(); iter != recordsOther.end(); ++iter)
+      readWaldoRecord(input, iter->second);
+    if (!records1.empty() && !records2.empty())
+    {
+
+      std::map<unsigned, WaldoRecordType1>::iterator iter2 = records1.find(1);
+      if (iter2 == records1.end())
+        return false;
+      std::stack<WaldoRecordType1> waldoStack;
+      waldoStack.push(iter2->second);
+      m_collector->collectVect(waldoStack.size());
+      while (!waldoStack.empty())
+      {
+        if (waldoStack.top().flags & 0x01)
+        {
+          if (waldoStack.size() > 1)
+            m_collector->collectGroup(waldoStack.size());
+          iter2 = records1.find(waldoStack.top().child);
+          if (iter2 == records1.end())
+            return false;
+          waldoStack.push(iter2->second);
+          m_collector->collectLevel(waldoStack.size());
+        }
+        else
+        {
+          if (waldoStack.size() > 1)
+            m_collector->collectObject(waldoStack.size());
+          iter = records2.find(waldoStack.top().child);
+          if (iter == records2.end())
+            return false;
+          readWaldoRecord(input, iter->second);
+          while (!waldoStack.empty() && !waldoStack.top().next)
+            waldoStack.pop();
+          m_collector->collectLevel(waldoStack.size());
+          if (waldoStack.empty())
+            break;
+          iter2 = records1.find(waldoStack.top().next);
+          if (iter2 == records1.end())
+            return false;
+          waldoStack.top() = iter2->second;
+        }
+      }
+      iter2 = records1.find(0);
+      if (iter2 == records1.end())
+        return false;
+      waldoStack = std::stack<WaldoRecordType1>();
+      waldoStack.push(iter2->second);
+      m_collector->collectPage(waldoStack.size());
+      while (!waldoStack.empty())
+      {
+        if (waldoStack.top().flags & 0x01)
+        {
+          if (waldoStack.size() > 1)
+            m_collector->collectGroup(waldoStack.size());
+          iter2 = records1.find(waldoStack.top().child);
+          if (iter2 == records1.end())
+            return false;
+          waldoStack.push(iter2->second);
+          m_collector->collectLevel(waldoStack.size());
+        }
+        else
+        {
+          if (waldoStack.size() > 1)
+            m_collector->collectObject(waldoStack.size());
+          iter = records2.find(waldoStack.top().child);
+          if (iter == records2.end())
+            return false;
+          readWaldoRecord(input, iter->second);
+          while (!waldoStack.empty() && !waldoStack.top().next)
+            waldoStack.pop();
+          m_collector->collectLevel(waldoStack.size());
+          if (waldoStack.empty())
+            break;
+          iter2 = records1.find(waldoStack.top().next);
+          if (iter2 == records1.end())
+            return false;
+          waldoStack.top() = iter2->second;
+        }
+      }
+    }
     return true;
   }
   catch (...)
@@ -133,30 +281,26 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
   }
 }
 
-void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, unsigned char type, unsigned id, unsigned offset, unsigned documentOffset)
+void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, const WaldoRecordInfo &info)
 {
-  CDR_DEBUG_MSG(("CDRParser::readWaldoRecord, type %i, id %x, offset %x\n", type, id, offset));
-  input->seek(offset, WPX_SEEK_SET);
-  switch (type)
+  CDR_DEBUG_MSG(("CDRParser::readWaldoRecord, type %i, id %x, offset %x\n", info.type, info.id, info.offset));
+  input->seek(info.offset, WPX_SEEK_SET);
+  switch (info.type)
   {
   case 2:
   {
-    if (offset < documentOffset)
-      break;
     unsigned length = readU32(input);
-    m_collector->collectLevel(1);
-    m_collector->collectObject(1);
     readWaldoLoda(input, length);
   }
   break;
   case 3:
   {
     unsigned length = readU32(input);
-    readWaldoBmp(input, length, id);
+    readWaldoBmp(input, length, info.id);
   }
   break;
   case 6:
-    readWaldoBmpf(input, id);
+    readWaldoBmpf(input, info.id);
     break;
   default:
     break;
