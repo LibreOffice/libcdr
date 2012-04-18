@@ -1127,10 +1127,13 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
     gradient.m_angle = readAngle(input);
     color1 = readColor(input);
     color2 = readColor(input);
-    input->seek(7, WPX_SEEK_CUR);
-    gradient.m_edgeOffset = readS16(input);
-    gradient.m_centerXOffset = readInteger(input);
-    gradient.m_centerYOffset = readInteger(input);
+    if (m_version >= 300)
+    {
+      input->seek(7, WPX_SEEK_CUR);
+      gradient.m_edgeOffset = readS16(input);
+      gradient.m_centerXOffset = readInteger(input);
+      gradient.m_centerYOffset = readInteger(input);
+    }
     libcdr::CDRGradientStop stop;
     stop.m_color = color1;
     stop.m_offset = 0.0;
@@ -1147,10 +1150,13 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
     gradient.m_angle = readAngle(input);
     color1 = readColor(input);
     color2 = readColor(input);
-    input->seek(7, WPX_SEEK_CUR);
-    gradient.m_edgeOffset = readS16(input);
-    gradient.m_centerXOffset = readInteger(input);
-    gradient.m_centerYOffset = readInteger(input);
+    if (m_version >= 300)
+    {
+      input->seek(7, WPX_SEEK_CUR);
+      gradient.m_edgeOffset = readS16(input);
+      gradient.m_centerXOffset = readInteger(input);
+      gradient.m_centerYOffset = readInteger(input);
+    }
     libcdr::CDRGradientStop stop;
     stop.m_color = color1;
     stop.m_offset = 0.0;
