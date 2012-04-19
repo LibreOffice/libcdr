@@ -83,8 +83,8 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     if (magic != 0x4c57)
       return false;
     m_version = 200;
-	if ('e' >= readU8(input))
-	  m_version = 100;
+    if ('e' >= readU8(input))
+      m_version = 100;
     input->seek(1, WPX_SEEK_CUR);
     std::vector<unsigned> offsets;
     unsigned i = 0;
@@ -107,72 +107,13 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     if (offsets[3])
     {
       input->seek(offsets[3], WPX_SEEK_SET);
-      unsigned short numRecords = readU16(input);
-      for (; numRecords > 0 && !input->atEOS(); --numRecords)
-      {
-        unsigned char recordType = readU8(input);
-        unsigned recordId = readU32(input);
-        unsigned recordOffset = readU32(input);
-        switch (recordType)
-        {
-        case 1:
-          records.push_back(WaldoRecordInfo(recordType, recordId, recordOffset));
-          break;
-        case 2:
-          records2[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        case 3:
-          records3[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        case 4:
-          records4[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        case 6:
-          records6[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        case 8:
-          records8[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        default:
-          recordsOther[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        }
-      }
+      if (!gatherWaldoInformation(input, records, records2, records3, records4, records6, records8, recordsOther))
+        return false;
     }
-    if (offsets[5] && m_version >= 200)
+    if (offsets[5])
     {
       input->seek(offsets[5], WPX_SEEK_SET);
-      unsigned short numRecords = readU16(input);
-      for (; numRecords > 0 && !input->atEOS(); --numRecords)
-      {
-        unsigned char recordType = readU8(input);
-        unsigned recordId = readU32(input);
-        unsigned recordOffset = readU32(input);
-        switch (recordType)
-        {
-        case 1:
-          records.push_back(WaldoRecordInfo(recordType, recordId, recordOffset));
-          break;
-        case 2:
-          records2[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        case 3:
-          records3[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        case 4:
-          records4[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        case 6:
-          records6[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        case 8:
-          records8[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        default:
-          recordsOther[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
-          break;
-        }
-      }
+      gatherWaldoInformation(input, records, records2, records3, records4, records6, records8, recordsOther);
     }
     std::map<unsigned, WaldoRecordType1> records1;
     for (std::vector<WaldoRecordInfo>::iterator iterVec = records.begin(); iterVec != records.end(); ++iterVec)
@@ -249,6 +190,54 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     return false;
   }
 }
+
+bool libcdr::CDRParser::gatherWaldoInformation(WPXInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
+    std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
+    std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records8,
+    std::map<unsigned, WaldoRecordInfo> recordsOther)
+{
+  try
+  {
+    unsigned short numRecords = readU16(input);
+    for (; numRecords > 0 && !input->atEOS(); --numRecords)
+    {
+      unsigned char recordType = readU8(input);
+      unsigned recordId = readU32(input);
+      unsigned recordOffset = readU32(input);
+      switch (recordType)
+      {
+      case 1:
+        records.push_back(WaldoRecordInfo(recordType, recordId, recordOffset));
+        break;
+      case 2:
+        records2[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+        break;
+      case 3:
+        records3[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+        break;
+      case 4:
+        records4[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+        break;
+      case 6:
+        records6[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+        break;
+      case 8:
+        records8[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+        break;
+      default:
+        recordsOther[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+        break;
+      }
+    }
+    return true;
+  }
+  catch (...)
+  {
+    CDR_DEBUG_MSG(("CDRParser::gatherWaldoInformation: something went wrong during information gathering\n"));
+    return false;
+  }
+}
+
 
 bool libcdr::CDRParser::parseWaldoStructure(WPXInputStream *input, std::stack<WaldoRecordType1> &waldoStack,
     const std::map<unsigned, WaldoRecordType1> &records1, std::map<unsigned, WaldoRecordInfo> &records2)
