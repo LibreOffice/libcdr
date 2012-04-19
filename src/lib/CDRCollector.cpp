@@ -142,7 +142,13 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
   unsigned char col1 = (color.m_colorValue & 0xff00) >> 8;
   unsigned char col2 = (color.m_colorValue & 0xff0000) >> 16;
   unsigned char col3 = (color.m_colorValue & 0xff000000) >> 24;
-  if (color.m_colorModel == 0x01 || color.m_colorModel == 0x02) // CMYK100
+  switch (color.m_colorModel)
+  {
+    // CMYK 100
+  case 0x01:
+  case 0x02:
+  case 0x15:
+  case 0x14:
   {
     double cmyk[4] =
     {
@@ -156,8 +162,11 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     red = rgb[0];
     green = rgb[1];
     blue = rgb[2];
+    break;
   }
-  else if (color.m_colorModel == 0x03 || color.m_colorModel == 0x11) // CMYK255
+  // CMYK 255
+  case 0x03:
+  case 0x11:
   {
     double cmyk[4] =
     {
@@ -171,14 +180,18 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     red = rgb[0];
     green = rgb[1];
     blue = rgb[2];
+    break;
   }
-  else if (color.m_colorModel == 0x04) // CMY
+  // CMY
+  case 0x04:
   {
     red = 255 - col0;
     green = 255 - col1;
     blue = 255 - col2;
+    break;
   }
-  else if (color.m_colorModel == 0x05) // RGB
+  // RGB
+  case 0x05:
   {
     unsigned char input[3] = { col2, col1, col0 };
     unsigned char output[3] = { 0, 0, 0 };
@@ -186,8 +199,10 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     red = output[0];
     green = output[1];
     blue = output[2];
+    break;
   }
-  else if (color.m_colorModel == 0x06) // HSB
+  // HSB
+  case 0x06:
   {
     unsigned short hue = (col1<<8) | col0;
     double saturation = (double)col2/255.0;
@@ -219,8 +234,10 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     red = (unsigned char)cdr_round(255*(1 - saturation + saturation * (satRed > 1 ? 1 : satRed)) * brightness);
     green = (unsigned char)cdr_round(255*(1 - saturation + saturation * (satGreen > 1 ? 1 : satGreen)) * brightness);
     blue = (unsigned char)cdr_round(255*(1 - saturation + saturation * (satBlue > 1 ? 1 : satBlue)) * brightness);
+    break;
   }
-  else if (color.m_colorModel == 0x07) // HLS
+  // HLS
+  case 0x07:
   {
     unsigned short hue = (col1<<8) | col0;
     double lightness = (double)col2/255.0;
@@ -266,14 +283,18 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
       green = (unsigned char)cdr_round(255*((1 - lightness) * tmpGreen + 2 * lightness - 1));
       blue = (unsigned char)cdr_round(255*((1 - lightness) * tmpBlue + 2 * lightness - 1));
     }
+    break;
   }
-  else if (color.m_colorModel == 0x09) // Grayscale
+  // Grayscale
+  case 0x09:
   {
     red = col0;
     green = col0;
     blue = col0;
+    break;
   }
-  else if (color.m_colorModel == 0x0c) // Lab
+  // Lab
+  case 0x0c:
   {
     cmsCIELab Lab;
     Lab.L = (double)col0*100.0/255.0;
@@ -284,8 +305,10 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     red = rgb[0];
     green = rgb[1];
     blue = rgb[2];
+    break;
   }
-  else if (color.m_colorModel == 0x12) // Lab
+  // Lab
+  case 0x12:
   {
     cmsCIELab Lab;
     Lab.L = (double)col0*100.0/255.0;
@@ -296,8 +319,10 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     red = rgb[0];
     green = rgb[1];
     blue = rgb[2];
+    break;
   }
-  else if (color.m_colorModel == 0x19) // HKS
+  // HKS
+  case 0x19:
   {
     unsigned char HKS_red [] =
     {
@@ -343,7 +368,6 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
       0x7a, 0x5e, 0x1f, 0x00, 0x66, 0x22, 0x8d, 0x00,
       0xad, 0x80, 0x59, 0x00, 0x83, 0x41
     };
-
     unsigned short hks = (unsigned short)(color.m_colorValue & 0xffff)+85;
     unsigned hksIndex = hks % 86;
     hks /= 86;
@@ -371,7 +395,10 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     red = (tmpRed < 255 ? (unsigned char)tmpRed : 255);
     green = (tmpGreen < 255 ? (unsigned char)tmpGreen : 255);
     blue = (tmpBlue < 255 ? (unsigned char)tmpBlue : 255);
-
+    break;
+  }
+  default:
+    break;
   }
   return (unsigned)((red << 16) | (green << 8) | blue);
 }
