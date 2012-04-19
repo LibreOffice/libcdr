@@ -83,7 +83,9 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     if (magic != 0x4c57)
       return false;
     m_version = 200;
-    input->seek(2, WPX_SEEK_CUR);
+	if ('e' >= readU8(input))
+	  m_version = 100;
+    input->seek(1, WPX_SEEK_CUR);
     std::vector<unsigned> offsets;
     unsigned i = 0;
     for (i = 0; i < 8; ++i)
@@ -137,7 +139,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
         }
       }
     }
-    if (offsets[5])
+    if (offsets[5] && m_version >= 200)
     {
       input->seek(offsets[5], WPX_SEEK_SET);
       unsigned short numRecords = readU16(input);
