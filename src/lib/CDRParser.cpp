@@ -1118,7 +1118,7 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
     gradient.m_angle = readAngle(input);
     color1 = readColor(input);
     color2 = readColor(input);
-    if (m_version >= 300)
+    if (m_version >= 200)
     {
       input->seek(7, WPX_SEEK_CUR);
       gradient.m_edgeOffset = readS16(input);
@@ -1141,7 +1141,7 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
     gradient.m_angle = readAngle(input);
     color1 = readColor(input);
     color2 = readColor(input);
-    if (m_version >= 300)
+    if (m_version >= 200)
     {
       input->seek(7, WPX_SEEK_CUR);
       gradient.m_edgeOffset = readS16(input);
