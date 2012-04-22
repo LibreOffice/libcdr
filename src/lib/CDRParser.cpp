@@ -1655,7 +1655,7 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
         readWaldoTrfd(input);
     }
     else if (argTypes[i] == 0x4aba)
-      readPageSizeOverride(input);
+      readPageSize(input);
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
@@ -1785,7 +1785,7 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
   m_collector->collectPolygonTransform(numAngles, nextPoint, rx, ry, cx, cy);
 }
 
-void libcdr::CDRParser::readPageSizeOverride(WPXInputStream *input)
+void libcdr::CDRParser::readPageSize(WPXInputStream *input)
 {
   double width = readCoordinate(input);
   double height = readCoordinate(input);
