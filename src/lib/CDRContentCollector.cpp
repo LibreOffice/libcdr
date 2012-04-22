@@ -32,6 +32,7 @@
 #include "CDRSVGGenerator.h"
 #include "CDRContentCollector.h"
 #include "CDRInternalStream.h"
+#include "CMXDocument.h"
 #include "libcdr_utils.h"
 
 #ifndef M_PI
@@ -985,6 +986,38 @@ void libcdr::CDRContentCollector::collectSpnd(unsigned spnd)
 {
   if (m_currentVectLevel && !m_spnd)
     m_spnd = spnd;
+}
+
+void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const WPXBinaryData &data)
+{
+  WPXInputStream *input = const_cast<WPXInputStream *>(data.getDataStream());
+  input->seek(0, WPX_SEEK_SET);
+  if (!libcdr::CMXDocument::isSupported(input))
+    return;
+  CDRStringVector svgOutput;
+  input->seek(0, WPX_SEEK_SET);
+  if (!libcdr::CMXDocument::generateSVG(input, svgOutput))
+    return;
+  if (!svgOutput.empty())
+  {
+    const char *header =
+      "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
+    WPXBinaryData output((const unsigned char *)header, strlen(header));
+    output.append((unsigned char *)svgOutput[0].cstr(), strlen(svgOutput[0].cstr()));
+    m_ps.m_vects[id] = output;
+  }
+#if DUMP_VECT
+  WPXString filename;
+  filename.sprintf("vect%.8x.svg", id);
+  FILE *f = fopen(filename.cstr(), "wb");
+  if (f)
+  {
+    const unsigned char *tmpBuffer = m_ps.m_vects[id].getDataBuffer();
+    for (unsigned long k = 0; k < m_ps.m_vects[id].size(); k++)
+      fprintf(f, "%c",tmpBuffer[k]);
+    fclose(f);
+  }
+#endif
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

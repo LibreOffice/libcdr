@@ -85,6 +85,7 @@ public:
   void collectColorProfile(const std::vector<unsigned char> &profile);
   void collectBBox(double, double, double, double) {}
   void collectSpnd(unsigned) {}
+  void collectVectorPattern(unsigned, const WPXBinaryData &) {}
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);

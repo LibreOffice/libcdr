@@ -2013,4 +2013,18 @@ void libcdr::CDRParser::readSpnd(WPXInputStream *input, unsigned length)
   m_collector->collectSpnd(spnd);
 }
 
+void libcdr::CDRParser::readVpat(WPXInputStream *input, unsigned length)
+{
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  unsigned fillId = readUnsigned(input);
+  unsigned long numBytesRead = 0;
+  const unsigned char *buffer = input->read(length-4, numBytesRead);
+  if (numBytesRead)
+  {
+    WPXBinaryData data(buffer, numBytesRead);
+    m_collector->collectVectorPattern(fillId, data);
+  }
+}
+
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

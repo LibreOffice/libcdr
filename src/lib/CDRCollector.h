@@ -142,6 +142,7 @@ public:
   virtual void collectColorProfile(const std::vector<unsigned char> &profile) = 0;
   virtual void collectBBox(double width, double height, double offsetX, double offsetY) = 0;
   virtual void collectSpnd(unsigned spnd) = 0;
+  virtual void collectVectorPattern(unsigned id, const WPXBinaryData &data) = 0;
 };
 
 } // namespace libcdr
