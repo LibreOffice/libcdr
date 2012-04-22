@@ -48,8 +48,7 @@
 
 libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, libwpg::WPGPaintInterface *painter) :
   m_painter(painter),
-  m_isPageProperties(false),
-  m_isPageStarted(false),
+  m_isPageProperties(false), m_isPageStarted(false), m_ignorePage(false),
   m_pageWidth(ps.m_pageWidth), m_pageHeight(ps.m_pageHeight),
   m_pageOffsetX(ps.m_pageOffsetX), m_pageOffsetY(ps.m_pageOffsetY),
   m_currentFildId(0.0), m_currentOutlId(0), m_spnd(0),
@@ -70,6 +69,8 @@ libcdr::CDRContentCollector::~CDRContentCollector()
 
 void libcdr::CDRContentCollector::_startPage(double width, double height)
 {
+  if (m_ignorePage)
+    return;
   WPXPropertyList propList;
   propList.insert("svg:width", width);
   propList.insert("svg:height", height);
@@ -97,12 +98,13 @@ void libcdr::CDRContentCollector::_endPage()
 void libcdr::CDRContentCollector::collectPage(unsigned level)
 {
   m_isPageProperties = true;
+  m_ignorePage = false;
   m_currentPageLevel = level;
 }
 
 void libcdr::CDRContentCollector::collectObject(unsigned level)
 {
-  if (!m_isPageStarted && !m_currentVectLevel)
+  if (!m_isPageStarted && !m_currentVectLevel && !m_ignorePage)
     _startPage(m_pageWidth, m_pageHeight);
   m_currentObjectLevel = level;
   m_currentFildId = 0;
@@ -111,7 +113,7 @@ void libcdr::CDRContentCollector::collectObject(unsigned level)
 
 void libcdr::CDRContentCollector::collectGroup(unsigned level)
 {
-  if (!m_isPageStarted && !m_currentVectLevel)
+  if (!m_isPageStarted && !m_currentVectLevel && !m_ignorePage)
     _startPage(m_pageWidth, m_pageHeight);
   WPXPropertyList propList;
   CDROutputElementList outputElement;
@@ -132,18 +134,16 @@ void libcdr::CDRContentCollector::collectVect(unsigned level)
   m_pageOffsetY = 0.0;
 }
 
-void libcdr::CDRContentCollector::collectFlags(unsigned flags)
+void libcdr::CDRContentCollector::collectFlags(unsigned flags, bool considerFlags)
 {
-  if (!m_isPageProperties || (flags & 0x00ff0000))
+  if (m_isPageProperties && !(flags & 0x00ff0000))
   {
-    m_isPageProperties = false;
-  }
-  else
-  {
-    m_isPageProperties = false;
     if (!m_isPageStarted)
       _startPage(m_pageWidth, m_pageHeight);
   }
+  else if (m_isPageProperties && considerFlags)
+    m_ignorePage = true;
+  m_isPageProperties = false;
 }
 
 void libcdr::CDRContentCollector::collectOtherList()

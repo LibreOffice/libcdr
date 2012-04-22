@@ -70,7 +70,7 @@ public:
                    double stretch, double angle, const CDRColor &color, const std::vector<unsigned short> &dashArray,
                    unsigned startMarkerId, unsigned endMarkerId);
   void collectRotate(double) {}
-  void collectFlags(unsigned) {}
+  void collectFlags(unsigned, bool) {}
   void collectPageSize(double width, double height);
   void collectPolygonTransform(unsigned, unsigned, double, double, double, double) {}
   void collectBitmap(unsigned, double, double, double, double) {}

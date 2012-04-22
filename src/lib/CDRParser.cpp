@@ -1663,7 +1663,7 @@ void libcdr::CDRParser::readFlags(WPXInputStream *input, unsigned length)
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned flags = readU32(input);
-  m_collector->collectFlags(flags);
+  m_collector->collectFlags(flags, m_version >= 400);
 }
 
 void libcdr::CDRParser::readMcfg(WPXInputStream *input, unsigned length)

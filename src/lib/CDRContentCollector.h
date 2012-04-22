@@ -69,7 +69,7 @@ public:
   void collectOutl(unsigned, unsigned short, unsigned short, unsigned short, double, double, double, const CDRColor &,
                    const std::vector<unsigned short> &, unsigned, unsigned) {}
   void collectRotate(double angle);
-  void collectFlags(unsigned flags);
+  void collectFlags(unsigned flags, bool considerFlags);
   void collectPageSize(double, double) {}
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
   void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2);
@@ -102,6 +102,7 @@ private:
 
   bool m_isPageProperties;
   bool m_isPageStarted;
+  bool m_ignorePage;
 
   double m_pageWidth, m_pageHeight, m_pageOffsetX, m_pageOffsetY;
   unsigned m_currentFildId, m_currentOutlId;
