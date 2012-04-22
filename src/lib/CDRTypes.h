@@ -205,6 +205,19 @@ struct CDRPattern
     : width(w), height(h), pattern(p) {}
 };
 
+struct CDRPage
+{
+  double width;
+  double height;
+  double offsetX;
+  double offsetY;
+  CDRPage() : width(0.0), height(0.0), offsetX(0.0), offsetY(0.0) {}
+  CDRPage(double w, double h, double ox, double oy)
+    : width(w), height(h), offsetX(ox), offsetY(oy) {}
+  CDRPage(const CDRPage &page)
+    : width(page.width), height(page.height), offsetX(page.offsetX), offsetY(page.offsetY) {}
+};
+
 struct CDRSplineData
 {
   std::vector<std::pair<double, double> > points;

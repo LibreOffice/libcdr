@@ -78,12 +78,12 @@ class CDRParserState
 public:
   CDRParserState();
   ~CDRParserState();
-  double m_pageWidth, m_pageHeight, m_pageOffsetX, m_pageOffsetY;
   std::map<unsigned, CDRFillStyle> m_fillStyles;
   std::map<unsigned, CDRLineStyle> m_lineStyles;
   std::map<unsigned, WPXBinaryData> m_bmps;
   std::map<unsigned, CDRPattern> m_patterns;
   std::map<unsigned, WPXBinaryData> m_vects;
+  std::vector<CDRPage> m_pages;
 
   unsigned _getRGBColor(const CDRColor &color);
   unsigned getBMPColor(const CDRColor &color);

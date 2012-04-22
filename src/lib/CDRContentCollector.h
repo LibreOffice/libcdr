@@ -105,7 +105,8 @@ private:
   bool m_isPageStarted;
   bool m_ignorePage;
 
-  double m_pageWidth, m_pageHeight, m_pageOffsetX, m_pageOffsetY;
+  CDRPage m_page;
+  unsigned m_pageIndex;
   unsigned m_currentFildId, m_currentOutlId;
   unsigned m_spnd;
   unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentVectLevel, m_currentPageLevel;

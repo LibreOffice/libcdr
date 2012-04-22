@@ -77,6 +77,7 @@ private:
   void readLineAndCurve(WPXInputStream *input);
 //  void readText(WPXInputStream *input);
   void readBitmap(WPXInputStream *input);
+  void readPageSizeOverride(WPXInputStream *input);
   void readWaldoBmp(WPXInputStream *input, unsigned length, unsigned id);
   void readWaldoBmpf(WPXInputStream *input, unsigned id);
   void readWaldoTrfd(WPXInputStream *input);

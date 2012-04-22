@@ -41,7 +41,7 @@
 #endif
 
 libcdr::CDRStylesCollector::CDRStylesCollector(libcdr::CDRParserState &ps) :
-  m_ps(ps)
+  m_ps(ps), m_page(8.5, 11.0, -4.25, -5.5)
 {
 }
 
@@ -212,10 +212,15 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, const std::vector<
 
 void libcdr::CDRStylesCollector::collectPageSize(double width, double height)
 {
-  m_ps.m_pageWidth = width;
-  m_ps.m_pageHeight = height;
-  m_ps.m_pageOffsetX = -width / 2.0;
-  m_ps.m_pageOffsetY = -height / 2.0;
+  if (m_ps.m_pages.empty())
+    m_page = CDRPage(width, height, -width/2.0, -height/2.0);
+  else
+    m_ps.m_pages.back() = CDRPage(width, height, -width/2.0, -height/2.0);
+}
+
+void libcdr::CDRStylesCollector::collectPage(unsigned /* level */)
+{
+  m_ps.m_pages.push_back(m_page);
 }
 
 void libcdr::CDRStylesCollector::collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern)

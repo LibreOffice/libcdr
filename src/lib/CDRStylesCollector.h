@@ -50,7 +50,7 @@ public:
   virtual ~CDRStylesCollector();
 
   // collector functions
-  void collectPage(unsigned) {}
+  void collectPage(unsigned level);
   void collectObject(unsigned) {}
   void collectGroup(unsigned) {}
   void collectVect(unsigned) {}
@@ -91,8 +91,8 @@ private:
   CDRStylesCollector(const CDRStylesCollector &);
   CDRStylesCollector &operator=(const CDRStylesCollector &);
 
-  // helper functions
   CDRParserState &m_ps;
+  CDRPage m_page;
 };
 
 } // namespace libcdr

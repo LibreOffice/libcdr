@@ -1654,6 +1654,8 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
       if (m_version < 400)
         readWaldoTrfd(input);
     }
+    else if (argTypes[i] == 0x4aba)
+      readPageSizeOverride(input);
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
@@ -1778,9 +1780,16 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
     input->seek(4, WPX_SEEK_CUR);
   double rx = readDouble(input);
   double ry = readDouble(input);
-  double cx = (double)readCoordinate(input);
-  double cy = (double)readCoordinate(input);
+  double cx = readCoordinate(input);
+  double cy = readCoordinate(input);
   m_collector->collectPolygonTransform(numAngles, nextPoint, rx, ry, cx, cy);
+}
+
+void libcdr::CDRParser::readPageSizeOverride(WPXInputStream *input)
+{
+  double width = readCoordinate(input);
+  double height = readCoordinate(input);
+  m_collector->collectPageSize(width, height);
 }
 
 void libcdr::CDRParser::readWaldoBmp(WPXInputStream *input, unsigned length, unsigned id)
