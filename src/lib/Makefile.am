@@ -34,6 +34,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CMXParser.cpp \
 	libcdr_utils.cpp \
 	CDRCollector.h \
+	CDRColorPalettes.h \
 	CDRColorProfiles.h \
 	CDRContentCollector.h \
 	CDRDocumentStructure.h \

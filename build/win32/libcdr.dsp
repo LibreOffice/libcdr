@@ -145,12 +145,17 @@ SOURCE=..\..\src\lib\CMXParser.cpp
 
 SOURCE=..\..\src\lib\libcdr_utils.cpp
 # End Source File
-# Begin Source File
+# End Group
+# Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRCollector.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CDRColorPalettes.h
 # End Source File
 # Begin Source File
 

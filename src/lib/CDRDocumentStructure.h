@@ -131,5 +131,5 @@
 #define FOURCC_vpat 0x74617076
 #define FOURCC_vrsn 0x6e737276
 
-#endif // __CMXDOCUMENTSTRUCTURE_H__
+#endif // __CDRDOCUMENTSTRUCTURE_H__
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
