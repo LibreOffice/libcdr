@@ -26,6 +26,18 @@
  * instead of those above.
  */
 
+/* These palettes are necessary to be able to convert the colours from CorelDraw internal palettes,
+ * since CorelDraw does include in the file only identifier of the palette, index of the palette
+ * and intensity of the colour.
+ * These palettes were obtained by clean-room reverse-engineering where a CorelDraw user was
+ * inspecting the *.cpl files and dumping into a spreadsheet the CMYK, RGB or L*a*b decomposition.
+ * The software engineer created these palettes from the information in that spreadsheet using only
+ * the information strictly needed in order to be able to convert a document using these palettes.
+ * No copyrighted colour names were used, so that these palettes cannot be used to generate colour
+ * bridges, only to convert an indexed colour to CMYK, RGB or L*a*b. The names of the original
+ * palettes are only used in comment in order to make debugging of potential mis-conversions easier.
+ */
+
 #ifndef __CDRCOLORPALETTES_H__
 #define __CDRCOLORPALETTES_H__
 
