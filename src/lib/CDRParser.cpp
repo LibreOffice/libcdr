@@ -37,6 +37,7 @@
 #include "CDRInternalStream.h"
 #include "CDRParser.h"
 #include "CDRCollector.h"
+#include "CDRColorPalettes.h"
 
 #ifndef DUMP_PREVIEW_IMAGE
 #define DUMP_PREVIEW_IMAGE 0
@@ -590,8 +591,341 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
   if (m_version >= 500)
   {
     colorModel = readU16(input);
-    input->seek(6, WPX_SEEK_CUR);
-    colorValue = readU32(input);
+    if (colorModel == 0x19)
+    {
+      unsigned char r = 0;
+      unsigned char g = 0;
+      unsigned char b = 0;
+      unsigned char c = 0;
+      unsigned char m = 0;
+      unsigned char y = 0;
+      unsigned char k = 0;
+      unsigned short paletteID = readU16(input);
+      input->seek(4, WPX_SEEK_CUR);
+      unsigned short ix = readU16(input);
+      unsigned short tint = readU16(input);
+      switch (paletteID)
+      {
+      case 0x08:
+        if (ix > 0
+            && ix <= sizeof(palette_19_08_C)/sizeof(palette_19_08_C[0])
+            && ix <= sizeof(palette_19_08_M)/sizeof(palette_19_08_M[0])
+            && ix <= sizeof(palette_19_08_Y)/sizeof(palette_19_08_Y[0])
+            && ix <= sizeof(palette_19_08_K)/sizeof(palette_19_08_K[0]))
+        {
+          c = palette_19_08_C[ix-1];
+          m = palette_19_08_M[ix-1];
+          y = palette_19_08_Y[ix-1];
+          k = palette_19_08_K[ix-1];
+        }
+        break;
+      case 0x09:
+        if (ix > 0
+            && ix <= sizeof(palette_19_09_L)/sizeof(palette_19_09_L[0])
+            && ix <= sizeof(palette_19_09_A)/sizeof(palette_19_09_A[0])
+            && ix <= sizeof(palette_19_09_B)/sizeof(palette_19_09_B[0]))
+        {
+          colorModel = palette_19_09_B[ix-1];
+          colorModel <<= 8;
+          colorModel |= palette_19_09_A[ix-1];
+          colorModel <<= 8;
+          colorModel |= palette_19_09_L[ix-1];
+        }
+        break;
+      case 0x0a:
+        if (ix > 0
+            && ix <= sizeof(palette_19_0A_C)/sizeof(palette_19_0A_C[0])
+            && ix <= sizeof(palette_19_0A_M)/sizeof(palette_19_0A_M[0])
+            && ix <= sizeof(palette_19_0A_Y)/sizeof(palette_19_0A_Y[0])
+            && ix <= sizeof(palette_19_0A_K)/sizeof(palette_19_0A_K[0]))
+        {
+          c = palette_19_0A_C[ix-1];
+          m = palette_19_0A_M[ix-1];
+          y = palette_19_0A_Y[ix-1];
+          k = palette_19_0A_K[ix-1];
+        }
+        break;
+      case 0x0b:
+        if (ix > 0
+            && ix <= sizeof(palette_19_0B_C)/sizeof(palette_19_0B_C[0])
+            && ix <= sizeof(palette_19_0B_M)/sizeof(palette_19_0B_M[0])
+            && ix <= sizeof(palette_19_0B_Y)/sizeof(palette_19_0B_Y[0])
+            && ix <= sizeof(palette_19_0B_K)/sizeof(palette_19_0B_K[0]))
+        {
+          c = palette_19_0B_C[ix-1];
+          m = palette_19_0B_M[ix-1];
+          y = palette_19_0B_Y[ix-1];
+          k = palette_19_0B_K[ix-1];
+        }
+        break;
+      case 0x11:
+        if (ix > 0
+            && ix <= sizeof(palette_19_11_C)/sizeof(palette_19_11_C[0])
+            && ix <= sizeof(palette_19_11_M)/sizeof(palette_19_11_M[0])
+            && ix <= sizeof(palette_19_11_Y)/sizeof(palette_19_11_Y[0])
+            && ix <= sizeof(palette_19_11_K)/sizeof(palette_19_11_K[0]))
+        {
+          c = palette_19_11_C[ix-1];
+          m = palette_19_11_M[ix-1];
+          y = palette_19_11_Y[ix-1];
+          k = palette_19_11_K[ix-1];
+        }
+        break;
+      case 0x12:
+        if (ix > 0
+            && ix <= sizeof(palette_19_12_C)/sizeof(palette_19_12_C[0])
+            && ix <= sizeof(palette_19_12_M)/sizeof(palette_19_12_M[0])
+            && ix <= sizeof(palette_19_12_Y)/sizeof(palette_19_12_Y[0])
+            && ix <= sizeof(palette_19_12_K)/sizeof(palette_19_12_K[0]))
+        {
+          c = palette_19_12_C[ix-1];
+          m = palette_19_12_M[ix-1];
+          y = palette_19_12_Y[ix-1];
+          k = palette_19_12_K[ix-1];
+        }
+        break;
+      case 0x14:
+        if (ix > 0
+            && ix <= sizeof(palette_19_14_C)/sizeof(palette_19_14_C[0])
+            && ix <= sizeof(palette_19_14_M)/sizeof(palette_19_14_M[0])
+            && ix <= sizeof(palette_19_14_Y)/sizeof(palette_19_14_Y[0])
+            && ix <= sizeof(palette_19_14_K)/sizeof(palette_19_14_K[0]))
+        {
+          c = palette_19_14_C[ix-1];
+          m = palette_19_14_M[ix-1];
+          y = palette_19_14_Y[ix-1];
+          k = palette_19_14_K[ix-1];
+        }
+        break;
+      case 0x15:
+        if (ix > 0
+            && ix <= sizeof(palette_19_15_C)/sizeof(palette_19_15_C[0])
+            && ix <= sizeof(palette_19_15_M)/sizeof(palette_19_15_M[0])
+            && ix <= sizeof(palette_19_15_Y)/sizeof(palette_19_15_Y[0])
+            && ix <= sizeof(palette_19_15_K)/sizeof(palette_19_15_K[0]))
+        {
+          c = palette_19_15_C[ix-1];
+          m = palette_19_15_M[ix-1];
+          y = palette_19_15_Y[ix-1];
+          k = palette_19_15_K[ix-1];
+        }
+        break;
+      case 0x16:
+        if (ix > 0
+            && ix <= sizeof(palette_19_16_C)/sizeof(palette_19_16_C[0])
+            && ix <= sizeof(palette_19_16_M)/sizeof(palette_19_16_M[0])
+            && ix <= sizeof(palette_19_16_Y)/sizeof(palette_19_16_Y[0])
+            && ix <= sizeof(palette_19_16_K)/sizeof(palette_19_16_K[0]))
+        {
+          c = palette_19_16_C[ix-1];
+          m = palette_19_16_M[ix-1];
+          y = palette_19_16_Y[ix-1];
+          k = palette_19_16_K[ix-1];
+        }
+        break;
+      case 0x17:
+        if (ix > 0
+            && ix <= sizeof(palette_19_17_C)/sizeof(palette_19_17_C[0])
+            && ix <= sizeof(palette_19_17_M)/sizeof(palette_19_17_M[0])
+            && ix <= sizeof(palette_19_17_Y)/sizeof(palette_19_17_Y[0])
+            && ix <= sizeof(palette_19_17_K)/sizeof(palette_19_17_K[0]))
+        {
+          c = palette_19_17_C[ix-1];
+          m = palette_19_17_M[ix-1];
+          y = palette_19_17_Y[ix-1];
+          k = palette_19_17_K[ix-1];
+        }
+        break;
+      case 0x1a:
+        if (ix < sizeof(palette_19_1A_C)/sizeof(palette_19_1A_C[0])
+            && ix < sizeof(palette_19_1A_M)/sizeof(palette_19_1A_M[0])
+            && ix < sizeof(palette_19_1A_Y)/sizeof(palette_19_1A_Y[0])
+            && ix < sizeof(palette_19_1A_K)/sizeof(palette_19_1A_K[0]))
+        {
+          c = palette_19_1A_C[ix];
+          m = palette_19_1A_M[ix];
+          y = palette_19_1A_Y[ix];
+          k = palette_19_1A_K[ix];
+        }
+        break;
+      case 0x1b:
+        if (ix < sizeof(palette_19_1B_C)/sizeof(palette_19_1B_C[0])
+            && ix < sizeof(palette_19_1B_M)/sizeof(palette_19_1B_M[0])
+            && ix < sizeof(palette_19_1B_Y)/sizeof(palette_19_1B_Y[0])
+            && ix < sizeof(palette_19_1B_K)/sizeof(palette_19_1B_K[0]))
+        {
+          c = palette_19_1B_C[ix];
+          m = palette_19_1B_M[ix];
+          y = palette_19_1B_Y[ix];
+          k = palette_19_1B_K[ix];
+        }
+        break;
+      case 0x1c:
+        if (ix < sizeof(palette_19_1C_C)/sizeof(palette_19_1C_C[0])
+            && ix < sizeof(palette_19_1C_M)/sizeof(palette_19_1C_M[0])
+            && ix < sizeof(palette_19_1C_Y)/sizeof(palette_19_1C_Y[0])
+            && ix < sizeof(palette_19_1C_K)/sizeof(palette_19_1C_K[0]))
+        {
+          c = palette_19_1C_C[ix];
+          m = palette_19_1C_M[ix];
+          y = palette_19_1C_Y[ix];
+          k = palette_19_1C_K[ix];
+        }
+        break;
+      case 0x1d:
+        if (ix < sizeof(palette_19_1D_C)/sizeof(palette_19_1D_C[0])
+            && ix < sizeof(palette_19_1D_M)/sizeof(palette_19_1D_M[0])
+            && ix < sizeof(palette_19_1D_Y)/sizeof(palette_19_1D_Y[0])
+            && ix < sizeof(palette_19_1D_K)/sizeof(palette_19_1D_K[0]))
+        {
+          c = palette_19_1D_C[ix];
+          m = palette_19_1D_M[ix];
+          y = palette_19_1D_Y[ix];
+          k = palette_19_1D_K[ix];
+        }
+        break;
+      case 0x1e:
+        if (ix > 0
+            && ix <= sizeof(palette_19_1E_R)/sizeof(palette_19_1E_R[0])
+            && ix <= sizeof(palette_19_1E_G)/sizeof(palette_19_1E_G[0])
+            && ix <= sizeof(palette_19_1E_B)/sizeof(palette_19_1E_B[0]))
+        {
+          r = palette_19_1E_R[ix-1];
+          g = palette_19_1E_G[ix-1];
+          b = palette_19_1E_B[ix-1];
+        }
+        break;
+      case 0x1f:
+        if (ix > 0
+            && ix <= sizeof(palette_19_1F_R)/sizeof(palette_19_1F_R[0])
+            && ix <= sizeof(palette_19_1F_G)/sizeof(palette_19_1F_G[0])
+            && ix <= sizeof(palette_19_1F_B)/sizeof(palette_19_1F_B[0]))
+        {
+          r = palette_19_1F_R[ix-1];
+          g = palette_19_1F_G[ix-1];
+          b = palette_19_1F_B[ix-1];
+        }
+        break;
+      case 0x20:
+        if (ix > 0
+            && ix <= sizeof(palette_19_20_R)/sizeof(palette_19_20_R[0])
+            && ix <= sizeof(palette_19_20_G)/sizeof(palette_19_20_G[0])
+            && ix <= sizeof(palette_19_20_B)/sizeof(palette_19_20_B[0]))
+        {
+          r = palette_19_20_R[ix-1];
+          g = palette_19_20_G[ix-1];
+          b = palette_19_20_B[ix-1];
+        }
+        break;
+      case 0x23:
+        if (ix > 0
+            && ix <= sizeof(palette_19_23_C)/sizeof(palette_19_23_C[0])
+            && ix <= sizeof(palette_19_23_M)/sizeof(palette_19_23_M[0])
+            && ix <= sizeof(palette_19_23_Y)/sizeof(palette_19_23_Y[0])
+            && ix <= sizeof(palette_19_23_K)/sizeof(palette_19_23_K[0]))
+        {
+          c = palette_19_23_C[ix-1];
+          m = palette_19_23_M[ix-1];
+          y = palette_19_23_Y[ix-1];
+          k = palette_19_23_K[ix-1];
+        }
+        break;
+      case 0x24:
+        if (ix > 0
+            && ix <= sizeof(palette_19_24_C)/sizeof(palette_19_24_C[0])
+            && ix <= sizeof(palette_19_24_M)/sizeof(palette_19_24_M[0])
+            && ix <= sizeof(palette_19_24_Y)/sizeof(palette_19_24_Y[0])
+            && ix <= sizeof(palette_19_24_K)/sizeof(palette_19_24_K[0]))
+        {
+          c = palette_19_24_C[ix-1];
+          m = palette_19_24_M[ix-1];
+          y = palette_19_24_Y[ix-1];
+          k = palette_19_24_K[ix-1];
+        }
+        break;
+      case 0x25:
+        if (ix > 0
+            && ix <= sizeof(palette_19_25_C)/sizeof(palette_19_25_C[0])
+            && ix <= sizeof(palette_19_25_M)/sizeof(palette_19_25_M[0])
+            && ix <= sizeof(palette_19_25_Y)/sizeof(palette_19_25_Y[0])
+            && ix <= sizeof(palette_19_25_K)/sizeof(palette_19_25_K[0]))
+        {
+          c = palette_19_25_C[ix-1];
+          m = palette_19_25_M[ix-1];
+          y = palette_19_25_Y[ix-1];
+          k = palette_19_25_K[ix-1];
+        }
+        break;
+      default:
+        colorModel = tint;
+        colorModel <<= 16;
+        colorModel |= ix;
+        break;
+      }
+
+      switch (paletteID)
+      {
+      case 0x08:
+      case 0x0a:
+      case 0x0b:
+      case 0x11:
+      case 0x12:
+      case 0x14:
+      case 0x15:
+      case 0x16:
+      case 0x17:
+      case 0x1a:
+      case 0x1b:
+      case 0x1c:
+      case 0x1d:
+      case 0x23:
+      case 0x24:
+      case 0x25:
+      {
+        colorModel = 0x02; // CMYK100
+        unsigned cyan = (unsigned)tint * (unsigned)c / 100;
+        unsigned magenta = (unsigned)tint * (unsigned)m / 100;
+        unsigned yellow = (unsigned)tint * (unsigned)y / 100;
+        unsigned black = (unsigned)tint * (unsigned)k / 100;
+        colorValue = (black & 0xff);
+        colorValue <<= 8;
+        colorValue |= (yellow & 0xff);
+        colorValue <<= 8;
+        colorValue |= (magenta & 0xff);
+        colorValue <<= 8;
+        colorValue |= (cyan & 0xff);
+        break;
+      }
+      case 0x1e:
+      case 0x1f:
+      case 0x20:
+      {
+        colorModel = 0x05; // RGB
+        unsigned red = (unsigned)tint * (unsigned)r + 255 * (100 - tint);
+        unsigned green = (unsigned)tint * (unsigned)g + 255 * (100 - tint);
+        unsigned blue = (unsigned )tint * (unsigned)b + 255 * (100 - tint);
+        red /= 100;
+        green /= 100;
+        blue /= 100;
+        colorValue = (blue & 0xff);
+        colorValue <<= 8;
+        colorValue |= (green & 0xff);
+        colorValue <<= 8;
+        colorValue |= (red & 0xff);
+        break;
+      }
+      case 0x09:
+        colorModel = 0x12; // L*a*b
+        break;
+      default:
+        break;
+      }
+    }
+    else
+    {
+      input->seek(6, WPX_SEEK_CUR);
+      colorValue = readU32(input);
+    }
   }
   else if (m_version >= 400)
   {
