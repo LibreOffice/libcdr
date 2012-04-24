@@ -1895,12 +1895,12 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
   if (m_version >= 1300)
   {
     unsigned id = 0;
-    unsigned length = 0;
+    unsigned lngth = 0;
     while (id != 1)
     {
-      input->seek(length, WPX_SEEK_CUR);
+      input->seek(lngth, WPX_SEEK_CUR);
       id = readU32(input);
-      length = readU32(input);
+      lngth = readU32(input);
     }
   }
   unsigned short lineType = readU16(input);
@@ -2171,11 +2171,11 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
       return;
     if (readU8(input) != 0x4d)
       return;
-    unsigned length = readU32(input);
+    unsigned lngth = readU32(input);
     input->seek(-6, WPX_SEEK_CUR);
     unsigned long tmpNumBytesRead = 0;
-    const unsigned char *tmpBuffer = input->read(length, tmpNumBytesRead);
-    if (!tmpNumBytesRead || length != tmpNumBytesRead)
+    const unsigned char *tmpBuffer = input->read(lngth, tmpNumBytesRead);
+    if (!tmpNumBytesRead || lngth != tmpNumBytesRead)
       return;
     std::vector<unsigned char> bitmap(tmpNumBytesRead);
     memcpy(&bitmap[0], tmpBuffer, tmpNumBytesRead);
