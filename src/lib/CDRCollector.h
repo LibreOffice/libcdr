@@ -42,32 +42,7 @@
 
 namespace
 {
-int cdr_round(double d)
-{
-  return (d>0) ? int(d+0.5) : int(d-0.5);
-}
-
-void writeU16(WPXBinaryData &buffer, const int value)
-{
-  buffer.append((unsigned char)(value & 0xFF));
-  buffer.append((unsigned char)((value >> 8) & 0xFF));
-}
-
-void writeU32(WPXBinaryData &buffer, const int value)
-{
-  buffer.append((unsigned char)(value & 0xFF));
-  buffer.append((unsigned char)((value >> 8) & 0xFF));
-  buffer.append((unsigned char)((value >> 16) & 0xFF));
-  buffer.append((unsigned char)((value >> 24) & 0xFF));
-}
-
-void writeU8(WPXBinaryData &buffer, const int value)
-{
-  buffer.append((unsigned char)(value & 0xFF));
-}
-
 #include "CDRColorProfiles.h"
-
 }
 
 namespace libcdr

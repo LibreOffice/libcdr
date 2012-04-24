@@ -139,6 +139,30 @@ double libcdr::readFixedPoint(WPXInputStream *input, bool bigEndian)
   return ((double)fixedPointNumberIntegerPart + fixedPointNumberFractionalPart);
 }
 
+int libcdr::cdr_round(double d)
+{
+  return (d>0) ? int(d+0.5) : int(d-0.5);
+}
+
+void libcdr::writeU16(WPXBinaryData &buffer, const int value)
+{
+  buffer.append((unsigned char)(value & 0xFF));
+  buffer.append((unsigned char)((value >> 8) & 0xFF));
+}
+
+void libcdr::writeU32(WPXBinaryData &buffer, const int value)
+{
+  buffer.append((unsigned char)(value & 0xFF));
+  buffer.append((unsigned char)((value >> 8) & 0xFF));
+  buffer.append((unsigned char)((value >> 16) & 0xFF));
+  buffer.append((unsigned char)((value >> 24) & 0xFF));
+}
+
+void libcdr::writeU8(WPXBinaryData &buffer, const int value)
+{
+  buffer.append((unsigned char)(value & 0xFF));
+}
+
 #ifdef DEBUG
 const char *libcdr::toFourCC(unsigned value, bool bigEndian)
 {

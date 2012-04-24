@@ -30,6 +30,7 @@
 #include <math.h>
 #include <string.h>
 #include "CDRCollector.h"
+#include "libcdr_utils.h"
 
 libcdr::CDRParserState::CDRParserState()
   : m_fillStyles(), m_lineStyles(), m_bmps(), m_patterns(), m_vects(), m_pages(),

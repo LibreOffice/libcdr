@@ -35,6 +35,7 @@
 #include <string>
 #include <math.h>
 #include <libwpd-stream/libwpd-stream.h>
+#include <libwpd/libwpd.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -98,6 +99,12 @@ int16_t readS16(WPXInputStream *input, bool bigEndian=false);
 double readDouble(WPXInputStream *input, bool bigEndian=false);
 
 double readFixedPoint(WPXInputStream *input, bool bigEndian=false);
+
+int cdr_round(double d);
+
+void writeU8(WPXBinaryData &buffer, const int value);
+void writeU16(WPXBinaryData &buffer, const int value);
+void writeU32(WPXBinaryData &buffer, const int value);
 
 #ifdef DEBUG
 const char *toFourCC(unsigned value, bool bigEndian=false);
