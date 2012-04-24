@@ -120,6 +120,7 @@
 #define FOURCC_txtj 0x6a747874
 
 #define FOURCC_uil  0x206c6975
+#define FOURCC_uidr 0x72646975
 #define FOURCC_url  0x206c7275
 #define FOURCC_urll 0x6c6c7275
 #define FOURCC_urls 0x736c7275

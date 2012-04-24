@@ -33,6 +33,7 @@
 
 libcdr::CDRParserState::CDRParserState()
   : m_fillStyles(), m_lineStyles(), m_bmps(), m_patterns(), m_vects(), m_pages(),
+    m_documentPalette(),
     m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0), m_colorTransformRGB2RGB(0)
 {
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
@@ -137,11 +138,24 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
   unsigned char red = 0;
   unsigned char green = 0;
   unsigned char blue = 0;
-  unsigned char col0 = color.m_colorValue & 0xff;
-  unsigned char col1 = (color.m_colorValue & 0xff00) >> 8;
-  unsigned char col2 = (color.m_colorValue & 0xff0000) >> 16;
-  unsigned char col3 = (color.m_colorValue & 0xff000000) >> 24;
-  switch (color.m_colorModel)
+  unsigned short colorModel(color.m_colorModel);
+  unsigned colorValue(color.m_colorValue);
+  if (colorModel == 0x19) // Spot colour not handled in the parser
+  {
+    unsigned short colourIndex = colorValue & 0xffff;
+    std::map<unsigned, CDRColor>::const_iterator iter = m_documentPalette.find(colourIndex);
+    if (iter != m_documentPalette.end())
+    {
+      colorModel = iter->second.m_colorModel;
+      colorValue = iter->second.m_colorValue;
+    }
+    // todo handle tint
+  }
+  unsigned char col0 = colorValue & 0xff;
+  unsigned char col1 = (colorValue & 0xff00) >> 8;
+  unsigned char col2 = (colorValue & 0xff0000) >> 16;
+  unsigned char col3 = (colorValue & 0xff000000) >> 24;
+  switch (colorModel)
   {
   case 0x00: // Pantone palette in CDR1
   {

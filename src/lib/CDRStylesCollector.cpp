@@ -233,4 +233,10 @@ void libcdr::CDRStylesCollector::collectColorProfile(const std::vector<unsigned 
   if (!profile.empty())
     m_ps.setColorTransform(profile);
 }
+
+void libcdr::CDRStylesCollector::collectPaletteEntry(unsigned colorId, unsigned /* userId */, const libcdr::CDRColor &color)
+{
+  m_ps.m_documentPalette[colorId] = color;
+}
+
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

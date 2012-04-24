@@ -85,6 +85,7 @@ public:
   void collectBBox(double width, double height, double offsetX, double offsetY);
   void collectSpnd(unsigned spnd);
   void collectVectorPattern(unsigned id, const WPXBinaryData &data);
+  void collectPaletteEntry(unsigned, unsigned, const CDRColor &) {}
 
 private:
   CDRContentCollector(const CDRContentCollector &);

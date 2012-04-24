@@ -86,6 +86,7 @@ public:
   void collectBBox(double, double, double, double) {}
   void collectSpnd(unsigned) {}
   void collectVectorPattern(unsigned, const WPXBinaryData &) {}
+  void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color);
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);

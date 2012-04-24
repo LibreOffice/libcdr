@@ -555,6 +555,9 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   case FOURCC_spnd:
     readSpnd(input, length);
     break;
+  case FOURCC_uidr:
+    readUidr(input, length);
+    break;
   default:
     break;
   }
@@ -869,9 +872,9 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
         }
         break;
       default:
-        colorModel = tint;
-        colorModel <<= 16;
-        colorModel |= ix;
+        colorValue = tint;
+        colorValue <<= 16;
+        colorValue |= ix;
         break;
       }
 
@@ -2380,6 +2383,17 @@ void libcdr::CDRParser::readVpat(WPXInputStream *input, unsigned length)
     WPXBinaryData data(buffer, numBytesRead);
     m_collector->collectVectorPattern(fillId, data);
   }
+}
+
+void libcdr::CDRParser::readUidr(WPXInputStream *input, unsigned length)
+{
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  unsigned colorId = readU32(input);
+  unsigned userId = readU32(input);
+  input->seek(36, WPX_SEEK_CUR);
+  CDRColor color = readColor(input);
+  m_collector->collectPaletteEntry(colorId, userId, color);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
