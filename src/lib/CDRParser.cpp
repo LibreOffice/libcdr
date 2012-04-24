@@ -104,17 +104,23 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     std::map<unsigned, WaldoRecordInfo> records4;
     std::map<unsigned, WaldoRecordInfo> records6;
     std::map<unsigned, WaldoRecordInfo> records8;
+    std::map<unsigned, WaldoRecordInfo> records7;
     std::map<unsigned, WaldoRecordInfo> recordsOther;
     if (offsets[3])
     {
       input->seek(offsets[3], WPX_SEEK_SET);
-      if (!gatherWaldoInformation(input, records, records2, records3, records4, records6, records8, recordsOther))
+      if (!gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8, recordsOther))
         return false;
     }
     if (offsets[5])
     {
       input->seek(offsets[5], WPX_SEEK_SET);
-      gatherWaldoInformation(input, records, records2, records3, records4, records6, records8, recordsOther);
+      gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8, recordsOther);
+    }
+    if (offsets[11])
+    {
+      input->seek(offsets[11], WPX_SEEK_SET);
+      gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8, recordsOther);
     }
     std::map<unsigned, WaldoRecordType1> records1;
     for (std::vector<WaldoRecordInfo>::iterator iterVec = records.begin(); iterVec != records.end(); ++iterVec)
@@ -131,7 +137,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
       unsigned short child = readU16(input);
       unsigned short parent = readU16(input);
       input->seek(4, WPX_SEEK_CUR);
-      unsigned short moreData = readU16(input);
+      unsigned short moreDataID = readU16(input);
       double x0 = readCoordinate(input);
       double y0 = readCoordinate(input);
       double x1 = readCoordinate(input);
@@ -143,8 +149,11 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
       double offsetX = x1 < x0 ? x1 : x0;
       double offsetY = y1 < y0 ? y1 : y0;
       CDRTransform trafo;
-      if (moreData)
+      if (moreDataID && !records7.empty())
       {
+        std::map<unsigned, WaldoRecordInfo>::const_iterator iter7 = records7.find(moreDataID);
+        if (iter7 != records7.end())
+          input->seek(iter7->second.offset, WPX_SEEK_SET);
         input->seek(0x26, WPX_SEEK_CUR);
         trafo.m_v0 = readFixedPoint(input);
         trafo.m_v1 = readFixedPoint(input);
@@ -194,8 +203,8 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
 
 bool libcdr::CDRParser::gatherWaldoInformation(WPXInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
     std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
-    std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records8,
-    std::map<unsigned, WaldoRecordInfo> recordsOther)
+    std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
+    std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther)
 {
   try
   {
@@ -221,6 +230,9 @@ bool libcdr::CDRParser::gatherWaldoInformation(WPXInputStream *input, std::vecto
         break;
       case 6:
         records6[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
+        break;
+      case 7:
+        records7[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
         break;
       case 8:
         records8[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);

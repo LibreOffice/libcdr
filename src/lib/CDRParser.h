@@ -58,9 +58,9 @@ private:
   bool parseWaldoStructure(WPXInputStream *input, std::stack<WaldoRecordType1> &waldoStack,
                            const std::map<unsigned, WaldoRecordType1> &records1,
                            std::map<unsigned, WaldoRecordInfo> &records2);
-  bool gatherWaldoInformation(WPXInputStream *input, std::vector<WaldoRecordInfo> &records,
-                              std::map<unsigned, WaldoRecordInfo> &records2, std::map<unsigned, WaldoRecordInfo> &records3,
-                              std::map<unsigned, WaldoRecordInfo> &records4, std::map<unsigned, WaldoRecordInfo> &records6,
+  bool gatherWaldoInformation(WPXInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
+                              std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
+                              std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
                               std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther);
   void readWaldoRecord(WPXInputStream *input, const WaldoRecordInfo &info);
   bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
