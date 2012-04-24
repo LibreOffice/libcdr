@@ -149,7 +149,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
       double offsetX = x1 < x0 ? x1 : x0;
       double offsetY = y1 < y0 ? y1 : y0;
       CDRTransform trafo;
-      if (moreDataID && !records7.empty())
+      if (moreDataID)
       {
         std::map<unsigned, WaldoRecordInfo>::const_iterator iter7 = records7.find(moreDataID);
         if (iter7 != records7.end())
