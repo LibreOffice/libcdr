@@ -614,7 +614,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
       unsigned char c = 0;
       unsigned char m = 0;
       unsigned char y = 0;
-      unsigned char k = 0;
+      unsigned char k = 100;
       unsigned short paletteID = readU16(input);
       input->seek(4, WPX_SEEK_CUR);
       unsigned short ix = readU16(input);
