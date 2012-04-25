@@ -143,6 +143,10 @@ SOURCE=..\..\src\lib\CMXParser.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\lib\CommonParser.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\libcdr_utils.cpp
 # End Source File
 # End Group
@@ -220,6 +224,10 @@ SOURCE=..\..\src\lib\CMXDocumentStructure.h
 # Begin Source File
 
 SOURCE=..\..\src\lib\CMXParser.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\lib\CommonParser.h
 # End Source File
 # Begin Source File
 
