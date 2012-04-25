@@ -171,7 +171,11 @@ void libcdr::CDRSplineData::create(libcdr::CDRPath &path) const
     path.appendSplineTo(tmpPoints);
 }
 
-libcdr::CDRCMYKColor::CDRCMYKColor(unsigned colorValue)
+libcdr::CDRCMYKColor::CDRCMYKColor(unsigned colorValue, bool percentage)
+  : c((double)(colorValue & 0xff) / (percentage ? 100.0 : 255.0)),
+    m((double)((colorValue & 0xff00) >> 8) / (percentage ? 100.0 : 255.0)),
+    y((double)((colorValue & 0xff0000) >> 16) / (percentage ? 100.0 : 255.0)),
+    k((double)((colorValue & 0xff000000) >> 24) / (percentage ? 100.0 : 255.0))
 {
 }
 
@@ -194,6 +198,9 @@ unsigned libcdr::CDRCMYKColor::getColorValue() const
 
 
 libcdr::CDRRGBColor::CDRRGBColor(unsigned colorValue)
+  : r((double)(colorValue & 0xff) / 255.0),
+    g((double)((colorValue & 0xff00) >> 8) / 255.0),
+    b((double)((colorValue & 0xff0000) >> 16) / 255.0)
 {
 }
 
@@ -215,10 +222,10 @@ unsigned libcdr::CDRRGBColor::getColorValue() const
 
 
 libcdr::CDRLab2Color::CDRLab2Color(unsigned colorValue)
+  : L((double)(colorValue & 0xff)*100.0/255.0),
+    a((double)(signed char)((colorValue & 0xff00) >> 8)),
+    b((double)(signed char)((colorValue & 0xff0000) >> 16))
 {
-  L = (double)(colorValue & 0xff)*100.0/255.0;
-  a = (double)(signed char)((colorValue & 0xff00) >> 8);
-  b = (double)(signed char)((colorValue & 0xff0000) >> 16);
 }
 
 void libcdr::CDRLab2Color::applyTint(double tint)
@@ -239,10 +246,10 @@ unsigned libcdr::CDRLab2Color::getColorValue() const
 
 
 libcdr::CDRLab4Color::CDRLab4Color(unsigned colorValue)
+  : L((double)(colorValue & 0xff)*100.0/255.0),
+    a((double)((signed char)(((colorValue & 0xff00) >> 8) - 0x80))),
+    b((double)((signed char)(((colorValue & 0xff0000) >> 16) - 0x80)))
 {
-  L = (double)(colorValue & 0xff)*100.0/255.0;
-  a = (double)((signed char)(((colorValue & 0xff00) >> 8) - 0x80));
-  b = (double)((signed char)(((colorValue & 0xff0000) >> 16) - 0x80));
 }
 
 void libcdr::CDRLab4Color::applyTint(double tint)

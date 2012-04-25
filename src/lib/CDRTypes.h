@@ -277,7 +277,7 @@ struct WaldoRecordType1
 
 struct CDRCMYKColor
 {
-  CDRCMYKColor(unsigned colorValue);
+  CDRCMYKColor(unsigned colorValue, bool percentage = true);
   CDRCMYKColor(double cyan, double magenta, double yellow, double black)
     : c(cyan), m(magenta), y(yellow), k(black) {}
   CDRCMYKColor(const CDRCMYKColor &color)
