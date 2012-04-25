@@ -275,6 +275,67 @@ struct WaldoRecordType1
   CDRTransform trafo;
 };
 
+struct CDRCMYKColor
+{
+  CDRCMYKColor(unsigned colorValue);
+  CDRCMYKColor(double cyan, double magenta, double yellow, double black)
+    : c(cyan), m(magenta), y(yellow), k(black) {}
+  CDRCMYKColor(const CDRCMYKColor &color)
+    : c(color.c), m(color.m), y(color.y), k(color.k) {}
+  CDRCMYKColor() {}
+  double c;
+  double m;
+  double y;
+  double k;
+  void applyTint(double tint);
+  unsigned getColorValue() const;
+};
+
+struct CDRRGBColor
+{
+  CDRRGBColor(unsigned colorValue);
+  CDRRGBColor(double red, double green, double blue)
+    : r(red), g(green), b(blue) {}
+  CDRRGBColor(const CDRRGBColor &color)
+    : r(color.r), g(color.g), b(color.b) {}
+  ~CDRRGBColor() {}
+  double r;
+  double g;
+  double b;
+  void applyTint(double tint);
+  unsigned getColorValue() const;
+};
+
+struct CDRLab2Color
+{
+  CDRLab2Color(unsigned colorValue);
+  CDRLab2Color(double l, double A, double B)
+    : L(l), a(A), b(B) {}
+  CDRLab2Color(const CDRLab2Color &color)
+    : L(color.L), a(color.a), b(color.b) {}
+  ~CDRLab2Color() {}
+  double L;
+  double a;
+  double b;
+  void applyTint(double tint);
+  unsigned getColorValue() const;
+};
+
+struct CDRLab4Color
+{
+  CDRLab4Color(unsigned colorValue);
+  ~CDRLab4Color() {}
+  CDRLab4Color(double l, double A, double B)
+    : L(l), a(A), b(B) {}
+  CDRLab4Color(const CDRLab2Color &color)
+    : L(color.L), a(color.a), b(color.b) {}
+  double L;
+  double a;
+  double b;
+  void applyTint(double tint);
+  unsigned getColorValue() const;
+};
+
 } // namespace libcdr
 
 #endif /* __CDRTYPES_H__ */

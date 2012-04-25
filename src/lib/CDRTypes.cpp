@@ -171,4 +171,95 @@ void libcdr::CDRSplineData::create(libcdr::CDRPath &path) const
     path.appendSplineTo(tmpPoints);
 }
 
+libcdr::CDRCMYKColor::CDRCMYKColor(unsigned colorValue)
+{
+}
+
+void libcdr::CDRCMYKColor::applyTint(double tint)
+{
+  if (tint < 0.0)
+    tint = 0.0;
+  if (tint > 1.0)
+    tint = 1.0;
+  c *= tint;
+  m *= tint;
+  y *= tint;
+  k *= tint;
+}
+
+unsigned libcdr::CDRCMYKColor::getColorValue() const
+{
+  return 0;
+}
+
+
+libcdr::CDRRGBColor::CDRRGBColor(unsigned colorValue)
+{
+}
+
+void libcdr::CDRRGBColor::applyTint(double tint)
+{
+  if (tint < 0.0)
+    tint = 0.0;
+  if (tint > 1.0)
+    tint = 1.0;
+  r = 1.0 + r*tint - tint;
+  g = 1.0 + g*tint - tint;
+  b = 1.0 + b*tint - tint;
+}
+
+unsigned libcdr::CDRRGBColor::getColorValue() const
+{
+  return 0;
+}
+
+
+libcdr::CDRLab2Color::CDRLab2Color(unsigned colorValue)
+{
+  L = (double)(colorValue & 0xff)*100.0/255.0;
+  a = (double)(signed char)((colorValue & 0xff00) >> 8);
+  b = (double)(signed char)((colorValue & 0xff0000) >> 16);
+}
+
+void libcdr::CDRLab2Color::applyTint(double tint)
+{
+  if (tint < 0.0)
+    tint = 0.0;
+  if (tint > 1.0)
+    tint = 1.0;
+  L = (1.0 - tint)*100.0 + tint*L;
+  a *= tint;
+  b *= tint;
+}
+
+unsigned libcdr::CDRLab2Color::getColorValue() const
+{
+  return 0;
+}
+
+
+libcdr::CDRLab4Color::CDRLab4Color(unsigned colorValue)
+{
+  L = (double)(colorValue & 0xff)*100.0/255.0;
+  a = (double)((signed char)(((colorValue & 0xff00) >> 8) - 0x80));
+  b = (double)((signed char)(((colorValue & 0xff0000) >> 16) - 0x80));
+}
+
+void libcdr::CDRLab4Color::applyTint(double tint)
+{
+  if (tint < 0.0)
+    tint = 0.0;
+  if (tint > 1.0)
+    tint = 1.0;
+  L = (1.0 - tint)*100.0 + tint*L;
+  a *= tint;
+  b *= tint;
+}
+
+unsigned libcdr::CDRLab4Color::getColorValue() const
+{
+  return 0;
+}
+
+
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
