@@ -282,7 +282,7 @@ struct CDRCMYKColor
     : c(cyan), m(magenta), y(yellow), k(black) {}
   CDRCMYKColor(const CDRCMYKColor &color)
     : c(color.c), m(color.m), y(color.y), k(color.k) {}
-  CDRCMYKColor() {}
+  ~CDRCMYKColor() {}
   double c;
   double m;
   double y;
@@ -324,11 +324,11 @@ struct CDRLab2Color
 struct CDRLab4Color
 {
   CDRLab4Color(unsigned colorValue);
-  ~CDRLab4Color() {}
   CDRLab4Color(double l, double A, double B)
     : L(l), a(A), b(B) {}
   CDRLab4Color(const CDRLab2Color &color)
     : L(color.L), a(color.a), b(color.b) {}
+  ~CDRLab4Color() {}
   double L;
   double a;
   double b;
