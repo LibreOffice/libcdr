@@ -66,7 +66,8 @@ unsigned getCDRVersion(char c)
 } // anonymous namespace
 
 libcdr::CDRParser::CDRParser(const std::vector<WPXInputStream *> &externalStreams, libcdr::CDRCollector *collector)
-  : m_externalStreams(externalStreams),
+  : CommonParser(),
+    m_externalStreams(externalStreams),
     m_collector(collector),
     m_version(0), m_fillId(0), m_outlId(0) {}
 
@@ -84,6 +85,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     if (magic != 0x4c57)
       return false;
     m_version = 200;
+    m_precision = libcdr::PRECISION_16BIT;
     if ('e' >= readU8(input))
       m_version = 100;
     input->seek(1, WPX_SEEK_CUR);
@@ -467,7 +469,13 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       else if (listType == FOURCC_grp)
         m_collector->collectGroup(level);
       else if ((listType & 0xffffff) == FOURCC_CDR || (listType & 0xffffff) == FOURCC_cdr)
+      {
         m_version = getCDRVersion((listType & 0xff000000) >> 24);
+        if (m_version < 600)
+          m_precision = libcdr::PRECISION_16BIT;
+        else
+          m_precision = libcdr::PRECISION_32BIT;
+      }
       else if (listType == FOURCC_vect)
         m_collector->collectVect(level);
 
@@ -569,34 +577,6 @@ double libcdr::CDRParser::readRectCoord(WPXInputStream *input)
   if (m_version < 1500)
     return readCoordinate(input);
   return readDouble(input) / 254000.0;
-}
-
-double libcdr::CDRParser::readCoordinate(WPXInputStream *input)
-{
-  if (m_version < 600)
-    return (double)readS16(input) / 1000.0;
-  return (double)readS32(input) / 254000.0;
-}
-
-unsigned libcdr::CDRParser::readUnsigned(WPXInputStream *input)
-{
-  if (m_version < 600)
-    return (unsigned)readU16(input);
-  return readU32(input);
-}
-
-int libcdr::CDRParser::readInteger(WPXInputStream *input)
-{
-  if (m_version < 600)
-    return (int)readS16(input);
-  return readS32(input);
-}
-
-double libcdr::CDRParser::readAngle(WPXInputStream *input)
-{
-  if (m_version < 600)
-    return M_PI * (double)readS16(input) / 1800.0;
-  return M_PI * (double)readS32(input) / 180000000.0;
 }
 
 libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
@@ -2311,6 +2291,10 @@ void libcdr::CDRParser::readVersion(WPXInputStream *input, unsigned length)
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   m_version = readU16(input);
+  if (m_version < 600)
+    m_precision = libcdr::PRECISION_16BIT;
+  else
+    m_precision = libcdr::PRECISION_32BIT;
 }
 
 bool libcdr::CDRParser::_redirectX6Chunk(WPXInputStream **input, unsigned &length)

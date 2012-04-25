@@ -13,7 +13,7 @@
  * License.
  *
  * Major Contributor(s):
- * Copyright (C) 2011 Fridrich Strba <fridrich.strba@bluewin.ch>
+ * Copyright (C) 2012 Fridrich Strba <fridrich.strba@bluewin.ch>
  *
  *
  * All Rights Reserved.
@@ -27,47 +27,38 @@
  * instead of those above.
  */
 
-#ifndef __CMXPARSER_H__
-#define __CMXPARSER_H__
+#ifndef __COMMONPARSER_H__
+#define __COMMONPARSER_H__
 
-#include <stdio.h>
-#include <iostream>
-#include <vector>
-#include <map>
-#include <libwpd-stream/libwpd-stream.h>
-#include "CommonParser.h"
+class WPXInputSTream;
 
 namespace libcdr
 {
 
-class CDRCollector;
+enum CoordinatePrecision
+{ PRECISION_UNKNOWN = 0, PRECISION_16BIT, PRECISION_32BIT };
 
-class CMXParser : protected CommonParser
+class CommonParser
 {
 public:
-  explicit CMXParser(CDRCollector *collector);
-  virtual ~CMXParser();
-  bool parseRecords(WPXInputStream *input, unsigned level = 0);
+  CommonParser();
+  virtual ~CommonParser();
 
 private:
-  CMXParser();
-  CMXParser(const CMXParser &);
-  CMXParser &operator=(const CMXParser &);
-  bool parseRecord(WPXInputStream *input, unsigned level = 0);
-  void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
+  CommonParser(const CommonParser &);
+  CommonParser &operator=(const CommonParser &);
 
-  void readCMXHeader(WPXInputStream *input);
-  void readDisp(WPXInputStream *input, unsigned length);
 
-  CDRCollector *m_collector;
+protected:
+  double readRectCoord(WPXInputStream *input, bool bigEndian = false);
+  double readCoordinate(WPXInputStream *input, bool bigEndian = false);
+  unsigned readUnsigned(WPXInputStream *input, bool bigEndian = false);
+  int readInteger(WPXInputStream *input, bool bigEndian = false);
+  double readAngle(WPXInputStream *input, bool bigEndian = false);
 
-  bool m_bigEndian;
-  unsigned short m_unit;
-  double m_scale;
-  double m_xmin, m_xmax, m_ymin, m_ymax;
+  CoordinatePrecision m_precision;
 };
-
 } // namespace libcdr
 
-#endif // __CMXPARSER_H__
+#endif // __COMMONPARSER_H__
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

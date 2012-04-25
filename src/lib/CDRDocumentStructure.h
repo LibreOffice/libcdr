@@ -106,6 +106,7 @@
 #define FOURCC_ptrt 0x74727470
 
 #define FOURCC_RIFF 0x46464952
+#define FOURCC_RIFX 0x58464952
 #define FOURCC_rvsn 0x6e737672
 
 #define FOURCC_spnd 0x646e7073

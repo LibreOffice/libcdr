@@ -118,6 +118,10 @@ class GenericException
 {
 };
 
+class UnknownPrecisionException
+{
+};
+
 } // namespace libcdr
 
 #endif // __LIBCDR_UTILS_H__

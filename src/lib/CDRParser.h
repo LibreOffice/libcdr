@@ -37,13 +37,14 @@
 #include <stack>
 #include <libwpd-stream/libwpd-stream.h>
 #include "CDRTypes.h"
+#include "CommonParser.h"
 
 namespace libcdr
 {
 
 class CDRCollector;
 
-class CDRParser
+class CDRParser : protected CommonParser
 {
 public:
   explicit CDRParser(const std::vector<WPXInputStream *> &externalStreams, CDRCollector *collector);
@@ -66,10 +67,6 @@ private:
   bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
   void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
   double readRectCoord(WPXInputStream *input);
-  double readCoordinate(WPXInputStream *input);
-  unsigned readUnsigned(WPXInputStream *input);
-  int readInteger(WPXInputStream *input);
-  double readAngle(WPXInputStream *input);
   CDRColor readColor(WPXInputStream *input);
 
   void readRectangle(WPXInputStream *input);

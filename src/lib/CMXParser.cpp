@@ -48,7 +48,8 @@
 #endif
 
 libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector)
-  : m_collector(collector), m_bigEndian(false), m_coordSize(0), m_unit(0),
+  : CommonParser(),
+    m_collector(collector), m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0) {}
 
 libcdr::CMXParser::~CMXParser()
@@ -92,7 +93,7 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
 
     CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, toFourCC(fourCC), length, length));
 
-    if (fourCC == FOURCC_RIFF || fourCC == FOURCC_LIST)
+    if (fourCC == FOURCC_RIFF || fourCC == FOURCC_RIFX || fourCC == FOURCC_LIST)
     {
 #ifdef DEBUG
       unsigned listType = readU32(input);
@@ -155,7 +156,19 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
   for (i = 0; i < 2; i++)
     tmpString.append((char)readU8(input));
   CDR_DEBUG_MSG(("CMX Coordinate Size: %s\n", tmpString.cstr()));
-  m_coordSize = (unsigned short)atoi(tmpString.cstr());
+  unsigned short coordSize = (unsigned short)atoi(tmpString.cstr());
+  switch (coordSize)
+  {
+  case 2:
+    m_precision = libcdr::PRECISION_16BIT;
+    break;
+  case 4:
+    m_precision = libcdr::PRECISION_32BIT;
+    break;
+  default:
+    m_precision = libcdr::PRECISION_UNKNOWN;
+    break;
+  }
   tmpString.clear();
   for (i = 0; i < 4; i++)
     tmpString.append((char)readU8(input));
