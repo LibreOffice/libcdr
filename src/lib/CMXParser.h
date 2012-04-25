@@ -58,6 +58,15 @@ private:
 
   void readCMXHeader(WPXInputStream *input);
   void readDisp(WPXInputStream *input, unsigned length);
+  void readPage(WPXInputStream *input, unsigned length);
+
+  // Command readers
+  void readBeginPage(WPXInputStream *input);
+  void readBeginLayer(WPXInputStream *input);
+  void readBeginGroup(WPXInputStream *input);
+  void readPolyCurve(WPXInputStream *input);
+  void readEllipse(WPXInputStream *input);
+  void readRectangle(WPXInputStream *input);
 
   CDRCollector *m_collector;
 

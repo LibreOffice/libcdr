@@ -38,6 +38,7 @@
 #include "CMXParser.h"
 #include "CDRCollector.h"
 #include "CDRDocumentStructure.h"
+#include "CMXDocumentStructure.h"
 
 #ifndef DUMP_PREVIEW_IMAGE
 #define DUMP_PREVIEW_IMAGE 0
@@ -128,6 +129,9 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
     break;
   case FOURCC_DISP:
     readDisp(input, length);
+    break;
+  case FOURCC_page:
+    readPage(input, length);
     break;
   default:
     break;
@@ -230,5 +234,60 @@ void libcdr::CMXParser::readDisp(WPXInputStream *input, unsigned length)
 #endif
 }
 
+void libcdr::CMXParser::readPage(WPXInputStream *input, unsigned length)
+{
+  CDRInternalStream tmpStream(input, length);
+  while (!tmpStream.atEOS())
+  {
+    long startPosition = tmpStream.tell();
+    unsigned short instructionSize = readU16(&tmpStream, m_bigEndian);
+    unsigned short instructionCode = readU16(&tmpStream, m_bigEndian);
+    CDR_DEBUG_MSG(("CMXParser::readPage - instructionSize %i, instructionCode %i\n", instructionSize, instructionCode));
+    switch (instructionCode)
+    {
+    case CMX_Command_BeginPage:
+      readBeginPage(&tmpStream);
+      break;
+    case CMX_Command_BeginLayer:
+      readBeginLayer(&tmpStream);
+      break;
+    case CMX_Command_BeginGroup:
+      readBeginGroup(&tmpStream);
+      break;
+    case CMX_Command_PolyCurve:
+      readPolyCurve(&tmpStream);
+      break;
+    case CMX_Command_Ellipse:
+      readEllipse(&tmpStream);
+      break;
+    case CMX_Command_Rectangle:
+      readRectangle(&tmpStream);
+      break;
+    default:
+      break;
+    }
+    tmpStream.seek(startPosition+instructionSize, WPX_SEEK_SET);
+  }
+}
+
+void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
+{
+}
+void libcdr::CMXParser::readBeginLayer(WPXInputStream *input)
+{
+}
+void libcdr::CMXParser::readBeginGroup(WPXInputStream *input)
+{
+}
+
+void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
+{
+}
+void libcdr::CMXParser::readEllipse(WPXInputStream *input)
+{
+}
+void libcdr::CMXParser::readRectangle(WPXInputStream *input)
+{
+}
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
