@@ -186,11 +186,8 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
   m_scale = readDouble(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMX Units Scale: %.9f\n", m_scale));
   input->seek(24, WPX_SEEK_CUR);
-  m_xmin = (double)readS32(input, m_bigEndian);
-  m_ymax = (double)readS32(input, m_bigEndian);
-  m_xmax = (double)readS32(input, m_bigEndian);
-  m_ymin = (double)readS32(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMX Bouding Box: xmin: %f, xmax: %f, ymin: %f, ymax: %f\n", m_xmin, m_xmax, m_ymin, m_ymax));
+  CDRBBox box = readBBox(input);
+  CDR_DEBUG_MSG(("CMX Bounding Box: x0: %f, y0: %f, x1: %f, y1: %f\n", box.m_x0, box.m_y0, box.m_x1, box.m_y1));
 }
 
 void libcdr::CMXParser::readDisp(WPXInputStream *input, unsigned length)
@@ -272,6 +269,41 @@ void libcdr::CMXParser::readPage(WPXInputStream *input, unsigned length)
 
 void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
 {
+  unsigned char tagId = 0;
+  unsigned short tagLength = 0;
+  CDRBBox box;
+  CDRTransform matrix;
+  unsigned flags = 0;
+  do
+  {
+    long startOffset = input->tell();
+    tagId = readU8(input, m_bigEndian);
+    if (tagId == CMX_Tag_EndTag)
+    {
+      CDR_DEBUG_MSG(("  CMXParser::readBeginPage - tagId %i\n", tagId));
+      break;
+    }
+    tagLength = readU16(input, m_bigEndian);
+    CDR_DEBUG_MSG(("  CMXParser::readBeginPage - tagId %i, tagLength %i\n", tagId, tagLength));
+    switch (tagId)
+    {
+    case CMX_Tag_BeginPage_PageSpecification:
+      input->seek(2, WPX_SEEK_CUR);
+	  flags = readU32(input, m_bigEndian);
+      box = readBBox(input);
+      break;
+    case CMX_Tag_BeginPage_Matrix:
+      matrix = readMatrix(input);
+      break;
+    default:
+      break;
+    }
+    input->seek(startOffset + tagLength, WPX_SEEK_SET);
+  }
+  while (tagId != CMX_Tag_EndTag);
+  m_collector->collectPage(0);
+  m_collector->collectFlags(flags, true);
+  m_collector->collectPageSize(box.getWidth(), box.getHeight());
 }
 void libcdr::CMXParser::readBeginLayer(WPXInputStream *input)
 {
@@ -288,6 +320,35 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
 }
 void libcdr::CMXParser::readRectangle(WPXInputStream *input)
 {
+}
+
+libcdr::CDRTransform libcdr::CMXParser::readMatrix(WPXInputStream *input)
+{
+  CDRTransform matrix;
+  unsigned short type = readU16(input, m_bigEndian);
+  switch (type)
+  {
+  case 2: // general matrix
+    matrix.m_v0 = readDouble(input, m_bigEndian);
+    matrix.m_v3 = readDouble(input, m_bigEndian);
+    matrix.m_v1 = readDouble(input, m_bigEndian);
+    matrix.m_v4 = readDouble(input, m_bigEndian);
+    matrix.m_x0 = readDouble(input, m_bigEndian);
+    matrix.m_y0 = readDouble(input, m_bigEndian);
+    return matrix;
+  default: // identity matrix for the while
+    return matrix;
+  }
+}
+
+libcdr::CDRBBox libcdr::CMXParser::readBBox(WPXInputStream *input)
+{
+  CDRBBox box;
+  box.m_x0 = readCoordinate(input, m_bigEndian);
+  box.m_y0 = readCoordinate(input, m_bigEndian);
+  box.m_x1 = readCoordinate(input, m_bigEndian);
+  box.m_y1 = readCoordinate(input, m_bigEndian);
+  return box;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

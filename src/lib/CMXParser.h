@@ -35,6 +35,7 @@
 #include <vector>
 #include <map>
 #include <libwpd-stream/libwpd-stream.h>
+#include "CDRTypes.h"
 #include "CommonParser.h"
 
 namespace libcdr
@@ -67,6 +68,10 @@ private:
   void readPolyCurve(WPXInputStream *input);
   void readEllipse(WPXInputStream *input);
   void readRectangle(WPXInputStream *input);
+
+  // Types readers
+  CDRTransform readMatrix(WPXInputStream *input);
+  CDRBBox readBBox(WPXInputStream *input);
 
   CDRCollector *m_collector;
 

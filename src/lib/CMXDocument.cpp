@@ -46,6 +46,7 @@ stream is a Corel Draw Document that libcdr is able to parse
 */
 bool libcdr::CMXDocument::isSupported(WPXInputStream *input)
 {
+  input->seek(0, WPX_SEEK_SET);
   unsigned riff = readU32(input);
   if (riff != FOURCC_RIFF && riff != FOURCC_RIFX)
     return false;

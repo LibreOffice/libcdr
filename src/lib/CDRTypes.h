@@ -55,6 +55,28 @@ struct CDRTransform
   void applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const;
 };
 
+struct CDRBBox
+{
+  double m_x0;
+  double m_y0;
+  double m_x1;
+  double m_y1;
+  CDRBBox()
+    : m_x0(0.0), m_y0(0.0), m_x1(0.0), m_y1(0.0) {}
+  CDRBBox(double x0, double y0, double x1, double y1)
+    : m_x0(x0), m_y0(y0), m_x1(x1), m_y1(y1) {}
+  CDRBBox(const CDRBBox &box)
+    : m_x0(box.m_x0), m_y0(box.m_y0), m_x1(box.m_x1), m_y1(box.m_y1) {}
+  double getWidth() const
+  {
+    return fabs(m_x1 - m_x0);
+  }
+  double getHeight() const
+  {
+    return fabs(m_y1 - m_y0);
+  }
+};
+
 struct CDRColor
 {
   unsigned short m_colorModel;
