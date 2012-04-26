@@ -131,6 +131,8 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
       retVal = stylesParser.parseRecords(input);
     else
       retVal = stylesParser.parseWaldo(input);
+    if (ps.m_pages.empty())
+      retVal = false;
     if (retVal)
     {
       input->seek(0, WPX_SEEK_SET);
@@ -206,6 +208,8 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   CDRStylesCollector stylesCollector(ps);
   CDRParser stylesParser(dataStreams, &stylesCollector);
   retVal = stylesParser.parseRecords(input);
+  if (ps.m_pages.empty())
+    retVal = false;
   if (retVal)
   {
     input->seek(0, WPX_SEEK_SET);

@@ -77,6 +77,8 @@ bool libcdr::CMXDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   CDRStylesCollector stylesCollector(ps);
   CMXParser stylesParser(&stylesCollector);
   bool retVal = stylesParser.parseRecords(input);
+  if (ps.m_pages.empty())
+    retVal = false;
   if (retVal)
   {
     input->seek(0, WPX_SEEK_SET);
