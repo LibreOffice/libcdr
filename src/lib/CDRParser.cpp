@@ -436,7 +436,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
     if (blockLengths)
       length=blockLengths[length];
     unsigned long position = input->tell();
-    unsigned listType;
+    unsigned listType(0);
     if (fourCC == FOURCC_RIFF || fourCC == FOURCC_LIST)
     {
       listType = readU32(input);
@@ -565,6 +565,9 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
     break;
   case FOURCC_uidr:
     readUidr(input, length);
+    break;
+  case FOURCC_vpat:
+    readVpat(input, length);
     break;
   default:
     break;
@@ -1769,10 +1772,10 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   {
     if (m_version >= 1300)
     {
-      if (v13flag == 0x18e)
-        input->seek(36, WPX_SEEK_CUR);
+      if (v13flag == 0x4e)
+        input->seek(28, WPX_SEEK_CUR);
       else
-        input->seek(12, WPX_SEEK_CUR);
+        input->seek(4, WPX_SEEK_CUR);
     }
     else
       input->seek(2, WPX_SEEK_CUR);
@@ -1817,7 +1820,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       if (v13flag == 0x18e)
         input->seek(36, WPX_SEEK_CUR);
       else
-        input->seek(12, WPX_SEEK_CUR);
+        input->seek(1, WPX_SEEK_CUR);
     }
     else
       input->seek(2, WPX_SEEK_CUR);
