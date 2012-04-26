@@ -35,8 +35,8 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-libcdr::CommonParser::CommonParser()
-  : m_precision(libcdr::PRECISION_UNKNOWN) {}
+libcdr::CommonParser::CommonParser(libcdr::CDRCollector *collector)
+  : m_collector(collector), m_precision(libcdr::PRECISION_UNKNOWN) {}
 
 libcdr::CommonParser::~CommonParser()
 {
@@ -77,5 +77,61 @@ double libcdr::CommonParser::readAngle(WPXInputStream *input, bool bigEndian)
     return M_PI * (double)readS16(input, bigEndian) / 1800.0;
   return M_PI * (double)readS32(input, bigEndian) / 180000000.0;
 }
+
+void libcdr::CommonParser::outputPath(const std::vector<std::pair<double, double> > &points,
+                                      const std::vector<unsigned char> &types)
+{
+  bool isClosedPath = false;
+  std::vector<std::pair<double, double> >tmpPoints;
+  for (unsigned k=0; k<points.size(); k++)
+  {
+    const unsigned char &type = types[k];
+    if (type & 0x08)
+      isClosedPath = true;
+    else
+      isClosedPath = false;
+    if (!(type & 0x10) && !(type & 0x20))
+    {
+      // cont angle
+    }
+    else if (type & 0x10)
+    {
+      // cont smooth
+    }
+    else if (type & 0x20)
+    {
+      // cont symmetrical
+    }
+    if (!(type & 0x40) && !(type & 0x80))
+    {
+      tmpPoints.clear();
+      m_collector->collectMoveTo(points[k].first, points[k].second);
+    }
+    else if ((type & 0x40) && !(type & 0x80))
+    {
+      tmpPoints.clear();
+      m_collector->collectLineTo(points[k].first, points[k].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
+    }
+    else if (!(type & 0x40) && (type & 0x80))
+    {
+      if (tmpPoints.size() >= 2)
+        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second,
+                                        tmpPoints[1].first, tmpPoints[1].second,
+                                        points[k].first, points[k].second);
+      else
+        m_collector->collectLineTo(points[k].first, points[k].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
+      tmpPoints.clear();
+    }
+    else if((type & 0x40) && (type & 0x80))
+    {
+      tmpPoints.push_back(points[k]);
+    }
+  }
+}
+
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

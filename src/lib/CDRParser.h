@@ -106,7 +106,6 @@ private:
   bool _redirectX6Chunk(WPXInputStream **input, unsigned &length);
 
   std::vector<WPXInputStream *> m_externalStreams;
-  CDRCollector *m_collector;
 
   unsigned m_version;
   unsigned m_fillId;

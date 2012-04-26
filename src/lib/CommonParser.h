@@ -30,6 +30,8 @@
 #ifndef __COMMONPARSER_H__
 #define __COMMONPARSER_H__
 
+#include "CDRCollector.h"
+
 class WPXInputSTream;
 
 namespace libcdr
@@ -41,10 +43,11 @@ enum CoordinatePrecision
 class CommonParser
 {
 public:
-  CommonParser();
+  CommonParser(CDRCollector *collector);
   virtual ~CommonParser();
 
 private:
+  CommonParser();
   CommonParser(const CommonParser &);
   CommonParser &operator=(const CommonParser &);
 
@@ -56,6 +59,9 @@ protected:
   int readInteger(WPXInputStream *input, bool bigEndian = false);
   double readAngle(WPXInputStream *input, bool bigEndian = false);
 
+  void outputPath(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &types);
+
+  CDRCollector *m_collector;
   CoordinatePrecision m_precision;
 };
 } // namespace libcdr

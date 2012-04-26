@@ -73,8 +73,6 @@ private:
   CDRTransform readMatrix(WPXInputStream *input);
   CDRBBox readBBox(WPXInputStream *input);
 
-  CDRCollector *m_collector;
-
   bool m_bigEndian;
   unsigned short m_unit;
   double m_scale;

@@ -49,8 +49,8 @@
 #endif
 
 libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector)
-  : CommonParser(),
-    m_collector(collector), m_bigEndian(false), m_unit(0),
+  : CommonParser(collector),
+    m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0) {}
 
 libcdr::CMXParser::~CMXParser()
@@ -321,7 +321,6 @@ void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
   unsigned char tagId = 0;
   unsigned short tagLength = 0;
   unsigned pointNum = 0;
-  bool isClosedPath = false;
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
   do
@@ -356,53 +355,7 @@ void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
   while (tagId != CMX_Tag_EndTag);
 
   m_collector->collectObject(1);
-  std::vector<std::pair<double, double> >tmpPoints;
-  for (unsigned k=0; k<pointNum; k++)
-  {
-    const unsigned char &type = pointTypes[k];
-    if (type & 0x08)
-      isClosedPath = true;
-    else
-      isClosedPath = false;
-    if (!(type & 0x10) && !(type & 0x20))
-    {
-      // cont angle
-    }
-    else if (type & 0x10)
-    {
-      // cont smooth
-    }
-    else if (type & 0x20)
-    {
-      // cont symmetrical
-    }
-    if (!(type & 0x40) && !(type & 0x80))
-    {
-      tmpPoints.clear();
-      m_collector->collectMoveTo(points[k].first, points[k].second);
-    }
-    else if ((type & 0x40) && !(type & 0x80))
-    {
-      tmpPoints.clear();
-      m_collector->collectLineTo(points[k].first, points[k].second);
-      if (isClosedPath)
-        m_collector->collectClosePath();
-    }
-    else if (!(type & 0x40) && (type & 0x80))
-    {
-      if (tmpPoints.size() >= 2)
-        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[k].first, points[k].second);
-      else
-        m_collector->collectLineTo(points[k].first, points[k].second);
-      if (isClosedPath)
-        m_collector->collectClosePath();
-      tmpPoints.clear();
-    }
-    else if((type & 0x40) && (type & 0x80))
-    {
-      tmpPoints.push_back(points[k]);
-    }
-  }
+  outputPath(points, pointTypes);
   m_collector->collectLevel(1);
 }
 

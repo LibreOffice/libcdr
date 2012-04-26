@@ -66,9 +66,8 @@ unsigned getCDRVersion(char c)
 } // anonymous namespace
 
 libcdr::CDRParser::CDRParser(const std::vector<WPXInputStream *> &externalStreams, libcdr::CDRCollector *collector)
-  : CommonParser(),
+  : CommonParser(collector),
     m_externalStreams(externalStreams),
-    m_collector(collector),
     m_version(0), m_fillId(0), m_outlId(0) {}
 
 libcdr::CDRParser::~CDRParser()
@@ -1155,7 +1154,6 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readLineAndCurve\n"));
 
-  unsigned isClosedPath = false;
   unsigned short pointNum = readU16(input);
   input->seek(2, WPX_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
@@ -1169,60 +1167,13 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
   }
   for (unsigned k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
-  std::vector<std::pair<double, double> >tmpPoints;
-  for (unsigned i=0; i<pointNum; i++)
-  {
-    const unsigned char &type = pointTypes[i];
-    if (type & 0x08)
-      isClosedPath = true;
-    else
-      isClosedPath = false;
-    if (!(type & 0x10) && !(type & 0x20))
-    {
-      // cont angle
-    }
-    else if (type & 0x10)
-    {
-      // cont smooth
-    }
-    else if (type & 0x20)
-    {
-      // cont symmetrical
-    }
-    if (!(type & 0x40) && !(type & 0x80))
-    {
-      tmpPoints.clear();
-      m_collector->collectMoveTo(points[i].first, points[i].second);
-    }
-    else if ((type & 0x40) && !(type & 0x80))
-    {
-      tmpPoints.clear();
-      m_collector->collectLineTo(points[i].first, points[i].second);
-      if (isClosedPath)
-        m_collector->collectClosePath();
-    }
-    else if (!(type & 0x40) && (type & 0x80))
-    {
-      if (tmpPoints.size() >= 2)
-        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
-      else
-        m_collector->collectLineTo(points[i].first, points[i].second);
-      if (isClosedPath)
-        m_collector->collectClosePath();
-      tmpPoints.clear();
-    }
-    else if((type & 0x40) && (type & 0x80))
-    {
-      tmpPoints.push_back(points[i]);
-    }
-  }
+  outputPath(points, pointTypes);
 }
 
 void libcdr::CDRParser::readPath(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readPath\n"));
 
-  bool isClosedPath = false;
   input->seek(4, WPX_SEEK_CUR);
   unsigned short pointNum = readU16(input)+readU16(input);
   input->seek(16, WPX_SEEK_CUR);
@@ -1237,53 +1188,7 @@ void libcdr::CDRParser::readPath(WPXInputStream *input)
   }
   for (unsigned k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
-  std::vector<std::pair<double, double> >tmpPoints;
-  for (unsigned i=0; i<pointNum; i++)
-  {
-    const unsigned char &type = pointTypes[i];
-    if (type & 0x08)
-      isClosedPath = true;
-    else
-      isClosedPath = false;
-    if (!(type & 0x10) && !(type & 0x20))
-    {
-      // cont angle
-    }
-    else if (type & 0x10)
-    {
-      // cont smooth
-    }
-    else if (type & 0x20)
-    {
-      // cont symmetrical
-    }
-    if (!(type & 0x40) && !(type & 0x80))
-    {
-      tmpPoints.clear();
-      m_collector->collectMoveTo(points[i].first, points[i].second);
-    }
-    else if ((type & 0x40) && !(type & 0x80))
-    {
-      tmpPoints.clear();
-      m_collector->collectLineTo(points[i].first, points[i].second);
-      if (isClosedPath)
-        m_collector->collectClosePath();
-    }
-    else if (!(type & 0x40) && (type & 0x80))
-    {
-      if (tmpPoints.size() >= 2)
-        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
-      else
-        m_collector->collectLineTo(points[i].first, points[i].second);
-      if (isClosedPath)
-        m_collector->collectClosePath();
-      tmpPoints.clear();
-    }
-    else if((type & 0x40) && (type & 0x80))
-    {
-      tmpPoints.push_back(points[i]);
-    }
-  }
+  outputPath(points, pointTypes);
 }
 
 
@@ -1323,7 +1228,6 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
   }
   else
   {
-    bool isClosedPath = false;
     x1 = (double)readCoordinate(input);
     y1 = (double)readCoordinate(input);
     x2 = (double)readCoordinate(input);
@@ -1352,53 +1256,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
     }
     for (unsigned k=0; k<pointNum; k++)
       pointTypes.push_back(readU8(input));
-    std::vector<std::pair<double, double> >tmpPoints;
-    for (unsigned i=0; i<pointNum; i++)
-    {
-      const unsigned char &type = pointTypes[i];
-      if (type & 0x08)
-        isClosedPath = true;
-      else
-        isClosedPath = false;
-      if (!(type & 0x10) && !(type & 0x20))
-      {
-        // cont angle
-      }
-      else if (type & 0x10)
-      {
-        // cont smooth
-      }
-      else if (type & 0x20)
-      {
-        // cont symmetrical
-      }
-      if (!(type & 0x40) && !(type & 0x80))
-      {
-        tmpPoints.clear();
-        m_collector->collectMoveTo(points[i].first, points[i].second);
-      }
-      else if ((type & 0x40) && !(type & 0x80))
-      {
-        tmpPoints.clear();
-        m_collector->collectLineTo(points[i].first, points[i].second);
-        if (isClosedPath)
-          m_collector->collectClosePath();
-      }
-      else if (!(type & 0x40) && (type & 0x80))
-      {
-        if (tmpPoints.size() >= 2)
-          m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[i].first, points[i].second);
-        else
-          m_collector->collectLineTo(points[i].first, points[i].second);
-        if (isClosedPath)
-          m_collector->collectClosePath();
-        tmpPoints.clear();
-      }
-      else if((type & 0x40) && (type & 0x80))
-      {
-        tmpPoints.push_back(points[i]);
-      }
-    }
+    outputPath(points, pointTypes);
   }
   m_collector->collectBitmap(imageId, x1, x2, y1, y2);
 }
