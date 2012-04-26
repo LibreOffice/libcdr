@@ -186,7 +186,9 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
   m_scale = readDouble(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMX Units Scale: %.9f\n", m_scale));
   input->seek(24, WPX_SEEK_CUR);
+#ifdef DEBUG
   CDRBBox box = readBBox(input);
+#endif
   CDR_DEBUG_MSG(("CMX Bounding Box: x0: %f, y0: %f, x1: %f, y1: %f\n", box.m_x0, box.m_y0, box.m_x1, box.m_y1));
 }
 
@@ -237,7 +239,9 @@ void libcdr::CMXParser::readPage(WPXInputStream *input, unsigned length)
   while (!tmpStream.atEOS())
   {
     long startPosition = tmpStream.tell();
-    unsigned short instructionSize = readU16(&tmpStream, m_bigEndian);
+    int instructionSize = readS16(&tmpStream, m_bigEndian);
+    if (instructionSize < 0)
+      instructionSize = readS32(&tmpStream, m_bigEndian);
     unsigned short instructionCode = readU16(&tmpStream, m_bigEndian);
     CDR_DEBUG_MSG(("CMXParser::readPage - instructionSize %i, instructionCode %i\n", instructionSize, instructionCode));
     switch (instructionCode)
@@ -289,7 +293,7 @@ void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
     {
     case CMX_Tag_BeginPage_PageSpecification:
       input->seek(2, WPX_SEEK_CUR);
-	  flags = readU32(input, m_bigEndian);
+      flags = readU32(input, m_bigEndian);
       box = readBBox(input);
       break;
     case CMX_Tag_BeginPage_Matrix:
@@ -314,10 +318,98 @@ void libcdr::CMXParser::readBeginGroup(WPXInputStream *input)
 
 void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
 {
+  unsigned char tagId = 0;
+  unsigned short tagLength = 0;
+  unsigned pointNum = 0;
+  bool isClosedPath = false;
+  std::vector<std::pair<double, double> > points;
+  std::vector<unsigned char> pointTypes;
+  do
+  {
+    long startOffset = input->tell();
+    tagId = readU8(input, m_bigEndian);
+    if (tagId == CMX_Tag_EndTag)
+    {
+      CDR_DEBUG_MSG(("  CMXParser::readPolyCurve - tagId %i\n", tagId));
+      break;
+    }
+    tagLength = readU16(input, m_bigEndian);
+    CDR_DEBUG_MSG(("  CMXParser::readPolyCurve - tagId %i, tagLength %i\n", tagId, tagLength));
+    switch (tagId)
+    {
+    case CMX_Tag_PolyCurve_PointList:
+      pointNum = readU16(input);
+      for (unsigned i = 0; i < pointNum; ++i)
+      {
+        std::pair<double, double> point;
+        point.first = readCoordinate(input, m_bigEndian);
+        point.second = readCoordinate(input, m_bigEndian);
+        points.push_back(point);
+      }
+      for (unsigned j = 0; j < pointNum; ++j)
+        pointTypes.push_back(readU8(input, m_bigEndian));
+    default:
+      break;
+    }
+    input->seek(startOffset + tagLength, WPX_SEEK_SET);
+  }
+  while (tagId != CMX_Tag_EndTag);
+
+  m_collector->collectObject(1);
+  std::vector<std::pair<double, double> >tmpPoints;
+  for (unsigned k=0; k<pointNum; k++)
+  {
+    const unsigned char &type = pointTypes[k];
+    if (type & 0x08)
+      isClosedPath = true;
+    else
+      isClosedPath = false;
+    if (!(type & 0x10) && !(type & 0x20))
+    {
+      // cont angle
+    }
+    else if (type & 0x10)
+    {
+      // cont smooth
+    }
+    else if (type & 0x20)
+    {
+      // cont symmetrical
+    }
+    if (!(type & 0x40) && !(type & 0x80))
+    {
+      tmpPoints.clear();
+      m_collector->collectMoveTo(points[k].first, points[k].second);
+    }
+    else if ((type & 0x40) && !(type & 0x80))
+    {
+      tmpPoints.clear();
+      m_collector->collectLineTo(points[k].first, points[k].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
+    }
+    else if (!(type & 0x40) && (type & 0x80))
+    {
+      if (tmpPoints.size() >= 2)
+        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second, tmpPoints[1].first, tmpPoints[1].second, points[k].first, points[k].second);
+      else
+        m_collector->collectLineTo(points[k].first, points[k].second);
+      if (isClosedPath)
+        m_collector->collectClosePath();
+      tmpPoints.clear();
+    }
+    else if((type & 0x40) && (type & 0x80))
+    {
+      tmpPoints.push_back(points[k]);
+    }
+  }
+  m_collector->collectLevel(1);
 }
+
 void libcdr::CMXParser::readEllipse(WPXInputStream *input)
 {
 }
+
 void libcdr::CMXParser::readRectangle(WPXInputStream *input)
 {
 }
