@@ -408,10 +408,52 @@ void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
 
 void libcdr::CMXParser::readEllipse(WPXInputStream *input)
 {
+  unsigned char tagId = 0;
+  unsigned short tagLength = 0;
+  do
+  {
+    long startOffset = input->tell();
+    tagId = readU8(input, m_bigEndian);
+    if (tagId == CMX_Tag_EndTag)
+    {
+      CDR_DEBUG_MSG(("  CMXParser::readEllipse - tagId %i\n", tagId));
+      break;
+    }
+    tagLength = readU16(input, m_bigEndian);
+    CDR_DEBUG_MSG(("  CMXParser::readEllipse - tagId %i, tagLength %i\n", tagId, tagLength));
+    switch (tagId)
+    {
+    default:
+      break;
+    }
+    input->seek(startOffset + tagLength, WPX_SEEK_SET);
+  }
+  while (tagId != CMX_Tag_EndTag);
 }
 
 void libcdr::CMXParser::readRectangle(WPXInputStream *input)
 {
+  unsigned char tagId = 0;
+  unsigned short tagLength = 0;
+  do
+  {
+    long startOffset = input->tell();
+    tagId = readU8(input, m_bigEndian);
+    if (tagId == CMX_Tag_EndTag)
+    {
+      CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i\n", tagId));
+      break;
+    }
+    tagLength = readU16(input, m_bigEndian);
+    CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i, tagLength %i\n", tagId, tagLength));
+    switch (tagId)
+    {
+    default:
+      break;
+    }
+    input->seek(startOffset + tagLength, WPX_SEEK_SET);
+  }
+  while (tagId != CMX_Tag_EndTag);
 }
 
 libcdr::CDRTransform libcdr::CMXParser::readMatrix(WPXInputStream *input)
