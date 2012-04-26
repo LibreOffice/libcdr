@@ -1833,8 +1833,6 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
       else
         m_collector->collectOutlId(readU32(input));
     }
-    else if (argTypes[i] == 0x2efe)
-      m_collector->collectRotate(readAngle(input));
     else if (argTypes[i] == 0x2af8)
       readPolygonTransform(input);
     else if (argTypes[i] == 0x1f40)

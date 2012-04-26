@@ -69,7 +69,7 @@ public:
   void collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
                    double stretch, double angle, const CDRColor &color, const std::vector<unsigned short> &dashArray,
                    unsigned startMarkerId, unsigned endMarkerId);
-  void collectRotate(double) {}
+  void collectRotate(double,double,double) {}
   void collectFlags(unsigned, bool) {}
   void collectPageSize(double width, double height);
   void collectPolygonTransform(unsigned, unsigned, double, double, double, double) {}

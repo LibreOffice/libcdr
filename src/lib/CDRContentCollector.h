@@ -68,7 +68,7 @@ public:
   void collectFild(unsigned, unsigned short, const CDRColor &, const CDRColor &, const CDRGradient &, const CDRImageFill &) {}
   void collectOutl(unsigned, unsigned short, unsigned short, unsigned short, double, double, double, const CDRColor &,
                    const std::vector<unsigned short> &, unsigned, unsigned) {}
-  void collectRotate(double angle);
+  void collectRotate(double angle, double cx, double cy);
   void collectFlags(unsigned flags, bool considerFlags);
   void collectPageSize(double, double) {}
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);

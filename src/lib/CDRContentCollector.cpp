@@ -425,8 +425,14 @@ void libcdr::CDRContentCollector::collectOutlId(unsigned id)
   m_currentOutlId = id;
 }
 
-void libcdr::CDRContentCollector::collectRotate(double /* angle */)
+void libcdr::CDRContentCollector::collectRotate(double angle, double cx, double cy)
 {
+  CDRTransform trafo1(1.0, 0.0, -cx, 0.0, 1.0, -cy);
+  m_currentPath.transform(trafo1);
+  CDRTransform trafo2(cos(angle), -sin(angle), 0, sin(angle), cos(angle), 0);
+  m_currentPath.transform(trafo2);
+  CDRTransform trafo3(1.0, 0.0, cx, 0.0, 1.0, cy);
+  m_currentPath.transform(trafo3);
 }
 
 void libcdr::CDRContentCollector::collectPolygon()

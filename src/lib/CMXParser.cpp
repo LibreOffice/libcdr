@@ -388,6 +388,12 @@ void libcdr::CMXParser::readRectangle(WPXInputStream *input)
 {
   unsigned char tagId = 0;
   unsigned short tagLength = 0;
+  double cx = 0.0;
+  double cy = 0.0;
+  double width = 0.0;
+  double height = 0.0;
+  double radius = 0.0;
+  double angle = 0.0;
   do
   {
     long startOffset = input->tell();
@@ -401,12 +407,48 @@ void libcdr::CMXParser::readRectangle(WPXInputStream *input)
     CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i, tagLength %i\n", tagId, tagLength));
     switch (tagId)
     {
+    case CMX_Tag_Rectangle_RectangleSpecification:
+      cx = readCoordinate(input, m_bigEndian);
+      cy = readCoordinate(input, m_bigEndian);
+      width = readCoordinate(input, m_bigEndian);
+      height = readCoordinate(input, m_bigEndian);
+      radius = readCoordinate(input, m_bigEndian);
+      angle = readAngle(input, m_bigEndian);
+      break;
     default:
       break;
     }
     input->seek(startOffset + tagLength, WPX_SEEK_SET);
   }
   while (tagId != CMX_Tag_EndTag);
+
+  m_collector->collectObject(1);
+  double x0 = cx - width / 2.0;
+  double y0 = cy - height / 2.0;
+  double x1 = cx + width / 2.0;
+  double y1 = cy + height / 2.0;
+  if (radius > 0.0)
+  {
+    m_collector->collectMoveTo(x0, y0-radius);
+    m_collector->collectLineTo(x0, y1+radius);
+    m_collector->collectQuadraticBezier(x0, y1, x0+radius, y1);
+    m_collector->collectLineTo(x1-radius, y1);
+    m_collector->collectQuadraticBezier(x1, y1, x1, y1+radius);
+    m_collector->collectLineTo(x1, y0-radius);
+    m_collector->collectQuadraticBezier(x1, y0, x1-radius, y0);
+    m_collector->collectLineTo(x0+radius, y0);
+    m_collector->collectQuadraticBezier(x0, y0, x0, y0-radius);
+  }
+  else
+  {
+    m_collector->collectMoveTo(x0, y0);
+    m_collector->collectLineTo(x0, y1);
+    m_collector->collectLineTo(x1, y1);
+    m_collector->collectLineTo(x1, y0);
+    m_collector->collectLineTo(x0, y0);
+  }
+  m_collector->collectRotate(angle, cx, cy);
+  m_collector->collectLevel(1);
 }
 
 libcdr::CDRTransform libcdr::CMXParser::readMatrix(WPXInputStream *input)
