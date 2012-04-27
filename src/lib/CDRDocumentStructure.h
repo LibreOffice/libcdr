@@ -44,6 +44,7 @@
 #define FOURCC_bpft 0x74667062
 
 #define FOURCC_CDR 0x524443
+#define FOURCC_ccmm 0x6d6d6363
 #define FOURCC_cdr 0x726463
 #define FOURCC_clo  0x206f6c63
 #define FOURCC_cloa 0x616f6c63

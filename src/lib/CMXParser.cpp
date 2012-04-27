@@ -51,7 +51,8 @@
 libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector)
   : CommonParser(collector),
     m_bigEndian(false), m_unit(0),
-    m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0) {}
+    m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
+    m_indexSectionOffset(0), m_infoSectionOffset(0), m_thumbnailOffset(0) {}
 
 libcdr::CMXParser::~CMXParser()
 {
@@ -119,7 +120,7 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
   }
 }
 
-void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned length, WPXInputStream *input)
+void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, WPXInputStream *input)
 {
   long recordStart = input->tell();
   switch (fourCC)
@@ -132,6 +133,9 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
     break;
   case FOURCC_page:
     readPage(input, length);
+    break;
+  case FOURCC_ccmm:
+    readCcmm(input, length);
     break;
   default:
     break;
@@ -185,10 +189,15 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
   CDR_DEBUG_MSG(("CMX Base Units: %i\n", m_unit));
   m_scale = readDouble(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMX Units Scale: %.9f\n", m_scale));
-  input->seek(24, WPX_SEEK_CUR);
+  input->seek(12, WPX_SEEK_CUR);
+  m_indexSectionOffset = readU32(input, m_bigEndian);
+  m_infoSectionOffset = readU32(input, m_bigEndian);
+  m_thumbnailOffset = readU32(input, m_bigEndian);
 #ifdef DEBUG
   CDRBBox box = readBBox(input);
 #endif
+  CDR_DEBUG_MSG(("CMX Offsets: index section 0x%.8x, info section: 0x%.8x, thumbnail: 0x%.8x\n",
+                 m_indexSectionOffset, m_infoSectionOffset, m_thumbnailOffset));
   CDR_DEBUG_MSG(("CMX Bounding Box: x0: %f, y0: %f, x1: %f, y1: %f\n", box.m_x0, box.m_y0, box.m_x1, box.m_y1));
 }
 
@@ -231,6 +240,12 @@ void libcdr::CMXParser::readDisp(WPXInputStream *input, unsigned length)
     fclose(f);
   }
 #endif
+}
+
+void libcdr::CMXParser::readCcmm(WPXInputStream *input, unsigned &length)
+{
+  if (m_thumbnailOffset == (unsigned)-1)
+    length += 0x10;
 }
 
 void libcdr::CMXParser::readPage(WPXInputStream *input, unsigned length)

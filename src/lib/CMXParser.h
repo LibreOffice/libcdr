@@ -55,10 +55,11 @@ private:
   CMXParser(const CMXParser &);
   CMXParser &operator=(const CMXParser &);
   bool parseRecord(WPXInputStream *input, unsigned level = 0);
-  void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
+  void readRecord(unsigned fourCC, unsigned &length, WPXInputStream *input);
 
   void readCMXHeader(WPXInputStream *input);
   void readDisp(WPXInputStream *input, unsigned length);
+  void readCcmm(WPXInputStream *input, unsigned &length);
   void readPage(WPXInputStream *input, unsigned length);
 
   // Command readers
@@ -80,6 +81,9 @@ private:
   unsigned short m_unit;
   double m_scale;
   double m_xmin, m_xmax, m_ymin, m_ymax;
+  unsigned m_indexSectionOffset;
+  unsigned m_infoSectionOffset;
+  unsigned m_thumbnailOffset;
 };
 
 } // namespace libcdr
