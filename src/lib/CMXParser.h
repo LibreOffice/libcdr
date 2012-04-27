@@ -73,6 +73,9 @@ private:
   CDRTransform readMatrix(WPXInputStream *input);
   CDRBBox readBBox(WPXInputStream *input);
 
+  // Complex types readers
+  void readRenderingAttributes(WPXInputStream *input);
+
   bool m_bigEndian;
   unsigned short m_unit;
   double m_scale;
