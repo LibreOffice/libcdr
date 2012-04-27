@@ -70,7 +70,7 @@ public:
                    const std::vector<unsigned short> &, unsigned, unsigned) {}
   void collectRotate(double angle, double cx, double cy);
   void collectFlags(unsigned flags, bool considerFlags);
-  void collectPageSize(double, double) {}
+  void collectPageSize(double, double, double, double) {}
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
   void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2);
   void collectBmp(unsigned, unsigned, unsigned, unsigned, unsigned, const std::vector<unsigned>&, const std::vector<unsigned char>&) {}

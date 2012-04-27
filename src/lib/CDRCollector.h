@@ -104,7 +104,7 @@ public:
                            unsigned startMarkerId, unsigned endMarkerId) = 0;
   virtual void collectRotate(double angle, double cx, double cy) = 0;
   virtual void collectFlags(unsigned flags, bool considerFlags) = 0;
-  virtual void collectPageSize(double width, double height) = 0;
+  virtual void collectPageSize(double width, double height, double offsetX, double offsetY) = 0;
   virtual void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy) = 0;
   virtual void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2) = 0;
   virtual void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap) = 0;

@@ -210,12 +210,12 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, const std::vector<
   m_ps.m_bmps[imageId] = image;
 }
 
-void libcdr::CDRStylesCollector::collectPageSize(double width, double height)
+void libcdr::CDRStylesCollector::collectPageSize(double width, double height, double offsetX, double offsetY)
 {
   if (m_ps.m_pages.empty())
-    m_page = CDRPage(width, height, -width/2.0, -height/2.0);
+    m_page = CDRPage(width, height, offsetX, offsetY);
   else
-    m_ps.m_pages.back() = CDRPage(width, height, -width/2.0, -height/2.0);
+    m_ps.m_pages.back() = CDRPage(width, height, offsetX, offsetY);
 }
 
 void libcdr::CDRStylesCollector::collectPage(unsigned /* level */)

@@ -75,6 +75,15 @@ struct CDRBBox
   {
     return fabs(m_y1 - m_y0);
   }
+  double getMinX() const
+  {
+    return m_x0 < m_x1 ? m_x0 : m_x1;
+  }
+  double getMinY() const
+  {
+    return m_y0 < m_y1 ? m_y0 : m_y1;
+  }
+
 };
 
 struct CDRColor

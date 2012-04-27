@@ -1883,7 +1883,7 @@ void libcdr::CDRParser::readMcfg(WPXInputStream *input, unsigned length)
     width = readCoordinate(input);
     height = readCoordinate(input);
   }
-  m_collector->collectPageSize(width, height);
+  m_collector->collectPageSize(width, height, -width/2.0, -height/2.0);
 }
 
 void libcdr::CDRParser::readPolygonCoords(WPXInputStream *input)
@@ -1930,7 +1930,7 @@ void libcdr::CDRParser::readPageSize(WPXInputStream *input)
 {
   double width = readCoordinate(input);
   double height = readCoordinate(input);
-  m_collector->collectPageSize(width, height);
+  m_collector->collectPageSize(width, height, -width/2.0, -height/2.0);
 }
 
 void libcdr::CDRParser::readWaldoBmp(WPXInputStream *input, unsigned length, unsigned id)

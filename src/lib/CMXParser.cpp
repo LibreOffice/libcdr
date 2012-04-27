@@ -322,7 +322,7 @@ void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
   while (tagId != CMX_Tag_EndTag);
   m_collector->collectPage(0);
   m_collector->collectFlags(flags, true);
-  m_collector->collectPageSize(box.getWidth(), box.getHeight());
+  m_collector->collectPageSize(box.getWidth(), box.getHeight(), box.getMinX(), box.getMinY());
 }
 void libcdr::CMXParser::readBeginLayer(WPXInputStream *input)
 {
