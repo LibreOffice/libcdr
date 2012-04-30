@@ -52,7 +52,8 @@ libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector)
   : CommonParser(collector),
     m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
-    m_indexSectionOffset(0), m_infoSectionOffset(0), m_thumbnailOffset(0) {}
+    m_indexSectionOffset(0), m_infoSectionOffset(0), m_thumbnailOffset(0),
+    m_fillIndex(0) {}
 
 libcdr::CMXParser::~CMXParser()
 {
@@ -257,7 +258,7 @@ void libcdr::CMXParser::readPage(WPXInputStream *input, unsigned length)
     int instructionSize = readS16(&tmpStream, m_bigEndian);
     if (instructionSize < 0)
       instructionSize = readS32(&tmpStream, m_bigEndian);
-    unsigned short instructionCode = readU16(&tmpStream, m_bigEndian);
+    short instructionCode = abs(readS16(&tmpStream, m_bigEndian));
     CDR_DEBUG_MSG(("CMXParser::readPage - instructionSize %i, instructionCode %i\n", instructionSize, instructionCode));
     switch (instructionCode)
     {
@@ -293,33 +294,44 @@ void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
   CDRBBox box;
   CDRTransform matrix;
   unsigned flags = 0;
-  do
+  if (m_precision == libcdr::PRECISION_32BIT)
   {
-    long startOffset = input->tell();
-    tagId = readU8(input, m_bigEndian);
-    if (tagId == CMX_Tag_EndTag)
+    do
     {
-      CDR_DEBUG_MSG(("  CMXParser::readBeginPage - tagId %i\n", tagId));
-      break;
+      long startOffset = input->tell();
+      tagId = readU8(input, m_bigEndian);
+      if (tagId == CMX_Tag_EndTag)
+      {
+        CDR_DEBUG_MSG(("  CMXParser::readBeginPage - tagId %i\n", tagId));
+        break;
+      }
+      tagLength = readU16(input, m_bigEndian);
+      CDR_DEBUG_MSG(("  CMXParser::readBeginPage - tagId %i, tagLength %i\n", tagId, tagLength));
+      switch (tagId)
+      {
+      case CMX_Tag_BeginPage_PageSpecification:
+        input->seek(2, WPX_SEEK_CUR);
+        flags = readU32(input, m_bigEndian);
+        box = readBBox(input);
+        break;
+      case CMX_Tag_BeginPage_Matrix:
+        matrix = readMatrix(input);
+        break;
+      default:
+        break;
+      }
+      input->seek(startOffset + tagLength, WPX_SEEK_SET);
     }
-    tagLength = readU16(input, m_bigEndian);
-    CDR_DEBUG_MSG(("  CMXParser::readBeginPage - tagId %i, tagLength %i\n", tagId, tagLength));
-    switch (tagId)
-    {
-    case CMX_Tag_BeginPage_PageSpecification:
-      input->seek(2, WPX_SEEK_CUR);
-      flags = readU32(input, m_bigEndian);
-      box = readBBox(input);
-      break;
-    case CMX_Tag_BeginPage_Matrix:
-      matrix = readMatrix(input);
-      break;
-    default:
-      break;
-    }
-    input->seek(startOffset + tagLength, WPX_SEEK_SET);
+    while (tagId != CMX_Tag_EndTag);
   }
-  while (tagId != CMX_Tag_EndTag);
+  else if (m_precision == libcdr::PRECISION_16BIT)
+  {
+    input->seek(2, WPX_SEEK_CUR);
+    flags = readU32(input, m_bigEndian);
+    box = readBBox(input);
+  }
+  else
+    return;
   m_collector->collectPage(0);
   m_collector->collectFlags(flags, true);
   m_collector->collectPageSize(box.getWidth(), box.getHeight(), box.getMinX(), box.getMinY());
@@ -338,39 +350,58 @@ void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
   unsigned pointNum = 0;
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
-  do
+  if (m_precision == libcdr::PRECISION_32BIT)
   {
-    long startOffset = input->tell();
-    tagId = readU8(input, m_bigEndian);
-    if (tagId == CMX_Tag_EndTag)
+    do
     {
-      CDR_DEBUG_MSG(("  CMXParser::readPolyCurve - tagId %i\n", tagId));
-      break;
-    }
-    tagLength = readU16(input, m_bigEndian);
-    CDR_DEBUG_MSG(("  CMXParser::readPolyCurve - tagId %i, tagLength %i\n", tagId, tagLength));
-    switch (tagId)
-    {
-    case CMX_Tag_PolyCurve_RenderingAttr:
-      readRenderingAttributes(input);
-      break;
-    case CMX_Tag_PolyCurve_PointList:
-      pointNum = readU16(input);
-      for (unsigned i = 0; i < pointNum; ++i)
+      long startOffset = input->tell();
+      tagId = readU8(input, m_bigEndian);
+      if (tagId == CMX_Tag_EndTag)
       {
-        std::pair<double, double> point;
-        point.first = readCoordinate(input, m_bigEndian);
-        point.second = readCoordinate(input, m_bigEndian);
-        points.push_back(point);
+        CDR_DEBUG_MSG(("  CMXParser::readPolyCurve - tagId %i\n", tagId));
+        break;
       }
-      for (unsigned j = 0; j < pointNum; ++j)
-        pointTypes.push_back(readU8(input, m_bigEndian));
-    default:
-      break;
+      tagLength = readU16(input, m_bigEndian);
+      CDR_DEBUG_MSG(("  CMXParser::readPolyCurve - tagId %i, tagLength %i\n", tagId, tagLength));
+      switch (tagId)
+      {
+      case CMX_Tag_PolyCurve_RenderingAttr:
+        readRenderingAttributes(input);
+        break;
+      case CMX_Tag_PolyCurve_PointList:
+        pointNum = readU16(input);
+        for (unsigned i = 0; i < pointNum; ++i)
+        {
+          std::pair<double, double> point;
+          point.first = readCoordinate(input, m_bigEndian);
+          point.second = readCoordinate(input, m_bigEndian);
+          points.push_back(point);
+        }
+        for (unsigned j = 0; j < pointNum; ++j)
+          pointTypes.push_back(readU8(input, m_bigEndian));
+      default:
+        break;
+      }
+      input->seek(startOffset + tagLength, WPX_SEEK_SET);
     }
-    input->seek(startOffset + tagLength, WPX_SEEK_SET);
+    while (tagId != CMX_Tag_EndTag);
   }
-  while (tagId != CMX_Tag_EndTag);
+  else if (m_precision == libcdr::PRECISION_16BIT)
+  {
+    input->seek(3, WPX_SEEK_CUR);
+    pointNum = readU16(input);
+    for (unsigned i = 0; i < pointNum; ++i)
+    {
+      std::pair<double, double> point;
+      point.first = readCoordinate(input, m_bigEndian);
+      point.second = readCoordinate(input, m_bigEndian);
+      points.push_back(point);
+    }
+    for (unsigned j = 0; j < pointNum; ++j)
+      pointTypes.push_back(readU8(input, m_bigEndian));
+  }
+  else
+    return;
 
   m_collector->collectObject(1);
   outputPath(points, pointTypes);
@@ -381,29 +412,36 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
 {
   unsigned char tagId = 0;
   unsigned short tagLength = 0;
-  do
+  if (m_precision == libcdr::PRECISION_32BIT)
   {
-    long startOffset = input->tell();
-    tagId = readU8(input, m_bigEndian);
-    if (tagId == CMX_Tag_EndTag)
+    do
     {
-      CDR_DEBUG_MSG(("  CMXParser::readEllipse - tagId %i\n", tagId));
-      break;
+      long startOffset = input->tell();
+      tagId = readU8(input, m_bigEndian);
+      if (tagId == CMX_Tag_EndTag)
+      {
+        CDR_DEBUG_MSG(("  CMXParser::readEllipse - tagId %i\n", tagId));
+        break;
+      }
+      tagLength = readU16(input, m_bigEndian);
+      CDR_DEBUG_MSG(("  CMXParser::readEllipse - tagId %i, tagLength %i\n", tagId, tagLength));
+      switch (tagId)
+      {
+      case CMX_Tag_Ellips_RenderingAttr:
+        readRenderingAttributes(input);
+        break;
+      case CMX_Tag_Ellips_EllipsSpecification:
+      default:
+        break;
+      }
+      input->seek(startOffset + tagLength, WPX_SEEK_SET);
     }
-    tagLength = readU16(input, m_bigEndian);
-    CDR_DEBUG_MSG(("  CMXParser::readEllipse - tagId %i, tagLength %i\n", tagId, tagLength));
-    switch (tagId)
-    {
-    case CMX_Tag_Ellips_RenderingAttr:
-      readRenderingAttributes(input);
-      break;
-    case CMX_Tag_Ellips_EllipsSpecification:
-    default:
-      break;
-    }
-    input->seek(startOffset + tagLength, WPX_SEEK_SET);
+    while (tagId != CMX_Tag_EndTag);
   }
-  while (tagId != CMX_Tag_EndTag);
+  else if (m_precision == libcdr::PRECISION_16BIT)
+    return;
+  else
+    return;
 }
 
 void libcdr::CMXParser::readRectangle(WPXInputStream *input)
@@ -416,36 +454,51 @@ void libcdr::CMXParser::readRectangle(WPXInputStream *input)
   double height = 0.0;
   double radius = 0.0;
   double angle = 0.0;
-  do
+  if (m_precision == libcdr::PRECISION_32BIT)
   {
-    long startOffset = input->tell();
-    tagId = readU8(input, m_bigEndian);
-    if (tagId == CMX_Tag_EndTag)
+    do
     {
-      CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i\n", tagId));
-      break;
+      long startOffset = input->tell();
+      tagId = readU8(input, m_bigEndian);
+      if (tagId == CMX_Tag_EndTag)
+      {
+        CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i\n", tagId));
+        break;
+      }
+      tagLength = readU16(input, m_bigEndian);
+      CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i, tagLength %i\n", tagId, tagLength));
+      switch (tagId)
+      {
+      case CMX_Tag_Rectangle_RenderingAttr:
+        readRenderingAttributes(input);
+        break;
+      case CMX_Tag_Rectangle_RectangleSpecification:
+        cx = readCoordinate(input, m_bigEndian);
+        cy = readCoordinate(input, m_bigEndian);
+        width = readCoordinate(input, m_bigEndian);
+        height = readCoordinate(input, m_bigEndian);
+        radius = readCoordinate(input, m_bigEndian);
+        angle = readAngle(input, m_bigEndian);
+        break;
+      default:
+        break;
+      }
+      input->seek(startOffset + tagLength, WPX_SEEK_SET);
     }
-    tagLength = readU16(input, m_bigEndian);
-    CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i, tagLength %i\n", tagId, tagLength));
-    switch (tagId)
-    {
-    case CMX_Tag_Rectangle_RenderingAttr:
-      readRenderingAttributes(input);
-      break;
-    case CMX_Tag_Rectangle_RectangleSpecification:
-      cx = readCoordinate(input, m_bigEndian);
-      cy = readCoordinate(input, m_bigEndian);
-      width = readCoordinate(input, m_bigEndian);
-      height = readCoordinate(input, m_bigEndian);
-      radius = readCoordinate(input, m_bigEndian);
-      angle = readAngle(input, m_bigEndian);
-      break;
-    default:
-      break;
-    }
-    input->seek(startOffset + tagLength, WPX_SEEK_SET);
+    while (tagId != CMX_Tag_EndTag);
   }
-  while (tagId != CMX_Tag_EndTag);
+  else if (m_precision == libcdr::PRECISION_16BIT)
+  {
+    input->seek(3, WPX_SEEK_CUR);
+    cx = readCoordinate(input, m_bigEndian);
+    cy = readCoordinate(input, m_bigEndian);
+    width = readCoordinate(input, m_bigEndian);
+    height = readCoordinate(input, m_bigEndian);
+    radius = readCoordinate(input, m_bigEndian);
+    angle = readAngle(input, m_bigEndian);
+  }
+  else
+    return;
 
   m_collector->collectObject(1);
   double x0 = cx - width / 2.0;
@@ -512,116 +565,133 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
   unsigned char bitMask = readU8(input, m_bigEndian);
   if (bitMask & 0x01) // fill
   {
-    do
+    if (m_precision == libcdr::PRECISION_32BIT)
     {
-      long startOffset = input->tell();
-      tagId = readU8(input, m_bigEndian);
-      if (tagId == CMX_Tag_EndTag)
+      do
       {
-        CDR_DEBUG_MSG(("  Fill specification - tagId %i\n", tagId));
-        break;
+        long startOffset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+        {
+          CDR_DEBUG_MSG(("  Fill specification - tagId %i\n", tagId));
+          break;
+        }
+        tagLength = readU16(input, m_bigEndian);
+        CDR_DEBUG_MSG(("  Fill specification - tagId %i, tagLength %i\n", tagId, tagLength));
+        switch (tagId)
+        {
+        default:
+          break;
+        }
+        input->seek(startOffset + tagLength, WPX_SEEK_SET);
       }
-      tagLength = readU16(input, m_bigEndian);
-      CDR_DEBUG_MSG(("  Fill specification - tagId %i, tagLength %i\n", tagId, tagLength));
-      switch (tagId)
-      {
-      default:
-        break;
-      }
-      input->seek(startOffset + tagLength, WPX_SEEK_SET);
+      while (tagId != CMX_Tag_EndTag);
     }
-    while (tagId != CMX_Tag_EndTag);
   }
   if (bitMask & 0x02) // outline
   {
-    do
+    if (m_precision == libcdr::PRECISION_32BIT)
     {
-      long startOffset = input->tell();
-      tagId = readU8(input, m_bigEndian);
-      if (tagId == CMX_Tag_EndTag)
+      do
       {
-        CDR_DEBUG_MSG(("  Outline specification - tagId %i\n", tagId));
-        break;
+        long startOffset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+        {
+          CDR_DEBUG_MSG(("  Outline specification - tagId %i\n", tagId));
+          break;
+        }
+        tagLength = readU16(input, m_bigEndian);
+        CDR_DEBUG_MSG(("  Outline specification - tagId %i, tagLength %i\n", tagId, tagLength));
+        switch (tagId)
+        {
+        case CMX_Tag_RenderAttr_OutlineSpec:
+          m_collector->collectOutlId(readU16(input, m_bigEndian));
+          break;
+        default:
+          break;
+        }
+        input->seek(startOffset + tagLength, WPX_SEEK_SET);
       }
-      tagLength = readU16(input, m_bigEndian);
-      CDR_DEBUG_MSG(("  Outline specification - tagId %i, tagLength %i\n", tagId, tagLength));
-      switch (tagId)
-      {
-      case CMX_Tag_RenderAttr_OutlineSpec:
-        m_collector->collectOutlId(readU16(input, m_bigEndian));
-        break;
-      default:
-        break;
-      }
-      input->seek(startOffset + tagLength, WPX_SEEK_SET);
+      while (tagId != CMX_Tag_EndTag);
     }
-    while (tagId != CMX_Tag_EndTag);
+    else if (m_precision == libcdr::PRECISION_16BIT)
+      m_collector->collectOutlId(readU16(input, m_bigEndian));
   }
   if (bitMask & 0x04) // lens
   {
-    do
+    if (m_precision == libcdr::PRECISION_32BIT)
     {
-      long startOffset = input->tell();
-      tagId = readU8(input, m_bigEndian);
-      if (tagId == CMX_Tag_EndTag)
+      do
       {
-        CDR_DEBUG_MSG(("  Lens specification - tagId %i\n", tagId));
-        break;
+        long startOffset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+        {
+          CDR_DEBUG_MSG(("  Lens specification - tagId %i\n", tagId));
+          break;
+        }
+        tagLength = readU16(input, m_bigEndian);
+        CDR_DEBUG_MSG(("  Lens specification - tagId %i, tagLength %i\n", tagId, tagLength));
+        switch (tagId)
+        {
+        default:
+          break;
+        }
+        input->seek(startOffset + tagLength, WPX_SEEK_SET);
       }
-      tagLength = readU16(input, m_bigEndian);
-      CDR_DEBUG_MSG(("  Lens specification - tagId %i, tagLength %i\n", tagId, tagLength));
-      switch (tagId)
-      {
-      default:
-        break;
-      }
-      input->seek(startOffset + tagLength, WPX_SEEK_SET);
+      while (tagId != CMX_Tag_EndTag);
     }
-    while (tagId != CMX_Tag_EndTag);
   }
   if (bitMask & 0x08) // canvas
   {
-    do
+    if (m_precision == libcdr::PRECISION_32BIT)
     {
-      long startOffset = input->tell();
-      tagId = readU8(input, m_bigEndian);
-      if (tagId == CMX_Tag_EndTag)
+      do
       {
-        CDR_DEBUG_MSG(("  Canvas specification - tagId %i\n", tagId));
-        break;
+        long startOffset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+        {
+          CDR_DEBUG_MSG(("  Canvas specification - tagId %i\n", tagId));
+          break;
+        }
+        tagLength = readU16(input, m_bigEndian);
+        CDR_DEBUG_MSG(("  Canvas specification - tagId %i, tagLength %i\n", tagId, tagLength));
+        switch (tagId)
+        {
+        default:
+          break;
+        }
+        input->seek(startOffset + tagLength, WPX_SEEK_SET);
       }
-      tagLength = readU16(input, m_bigEndian);
-      CDR_DEBUG_MSG(("  Canvas specification - tagId %i, tagLength %i\n", tagId, tagLength));
-      switch (tagId)
-      {
-      default:
-        break;
-      }
-      input->seek(startOffset + tagLength, WPX_SEEK_SET);
+      while (tagId != CMX_Tag_EndTag);
     }
-    while (tagId != CMX_Tag_EndTag);
   }
   if (bitMask & 0x10) // container
   {
-    do
+    if (m_precision == libcdr::PRECISION_32BIT)
     {
-      long startOffset = input->tell();
-      tagId = readU8(input, m_bigEndian);
-      if (tagId == CMX_Tag_EndTag)
+      do
       {
-        CDR_DEBUG_MSG(("  Container specification - tagId %i\n", tagId));
-        break;
+        long startOffset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+        {
+          CDR_DEBUG_MSG(("  Container specification - tagId %i\n", tagId));
+          break;
+        }
+        tagLength = readU16(input, m_bigEndian);
+        CDR_DEBUG_MSG(("  Container specification - tagId %i, tagLength %i\n", tagId, tagLength));
+        switch (tagId)
+        {
+        default:
+          break;
+        }
+        input->seek(startOffset + tagLength, WPX_SEEK_SET);
       }
-      tagLength = readU16(input, m_bigEndian);
-      CDR_DEBUG_MSG(("  Container specification - tagId %i, tagLength %i\n", tagId, tagLength));
-      switch (tagId)
-      {
-      default:
-        break;
-      }
-      input->seek(startOffset + tagLength, WPX_SEEK_SET);
+      while (tagId != CMX_Tag_EndTag);
     }
-    while (tagId != CMX_Tag_EndTag);
   }
 }
 

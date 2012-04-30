@@ -84,6 +84,7 @@ private:
   unsigned m_indexSectionOffset;
   unsigned m_infoSectionOffset;
   unsigned m_thumbnailOffset;
+  unsigned m_fillIndex;
 };
 
 } // namespace libcdr
