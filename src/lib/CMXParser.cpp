@@ -396,7 +396,7 @@ void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
   }
   else if (m_precision == libcdr::PRECISION_16BIT)
   {
-    input->seek(3, WPX_SEEK_CUR);
+    readRenderingAttributes(input);
     pointNum = readU16(input);
     for (unsigned i = 0; i < pointNum; ++i)
     {
