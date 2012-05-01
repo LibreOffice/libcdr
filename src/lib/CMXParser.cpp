@@ -420,6 +420,16 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
 {
   unsigned char tagId = 0;
   unsigned short tagLength = 0;
+  double angle1 = 0.0;
+  double angle2 = 0.0;
+  double rotation = 0.0;
+  bool pie = false;
+
+  double cx = 0.0;
+  double cy = 0.0;
+  double rx = 0.0;
+  double ry = 0.0;
+
   if (m_precision == libcdr::PRECISION_32BIT)
   {
     do
@@ -439,6 +449,14 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
         readRenderingAttributes(input);
         break;
       case CMX_Tag_Ellips_EllipsSpecification:
+        cx = readCoordinate(input, m_bigEndian);
+        cy = readCoordinate(input, m_bigEndian);
+        rx = readCoordinate(input, m_bigEndian) / 2.0;
+        ry = readCoordinate(input, m_bigEndian) / 2.0;
+        angle1 = readAngle(input, m_bigEndian);
+        angle2 = readAngle(input, m_bigEndian);
+        rotation = readAngle(input, m_bigEndian);
+        pie = (0 != readU8(input, m_bigEndian));
       default:
         break;
       }
@@ -447,9 +465,55 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
     while (tagId != CMX_Tag_EndTag);
   }
   else if (m_precision == libcdr::PRECISION_16BIT)
-    return;
+  {
+    cx = readCoordinate(input, m_bigEndian);
+    cy = readCoordinate(input, m_bigEndian);
+    rx = readCoordinate(input, m_bigEndian) / 2.0;
+    ry = readCoordinate(input, m_bigEndian) / 2.0;
+    angle1 = readAngle(input, m_bigEndian);
+    angle2 = readAngle(input, m_bigEndian);
+    rotation = readAngle(input, m_bigEndian);
+    pie = (0 != readU8(input, m_bigEndian));
+  }
   else
     return;
+
+  m_collector->collectObject(1);
+  if (angle1 != angle2)
+  {
+    if (angle2 < angle1)
+      angle2 += 2*M_PI;
+    double x0 = cx + rx*cos(angle1);
+    double y0 = cy - ry*sin(angle1);
+
+    double x1 = cx + rx*cos(angle2);
+    double y1 = cy - ry*sin(angle2);
+
+    bool largeArc = (angle2 - angle1 > M_PI || angle2 - angle1 < -M_PI);
+
+    m_collector->collectMoveTo(x0, y0);
+    m_collector->collectArcTo(rx, ry, largeArc, true, x1, y1);
+    if (pie)
+    {
+      m_collector->collectLineTo(cx, cy);
+      m_collector->collectLineTo(x0, y0);
+      m_collector->collectClosePath();
+    }
+  }
+  else
+  {
+    double x0 = cx + rx;
+    double y0 = cy;
+
+    double x1 = cx;
+    double y1 = cy - ry;
+
+    m_collector->collectMoveTo(x0, y0);
+    m_collector->collectArcTo(rx, ry, false, true, x1, y1);
+    m_collector->collectArcTo(rx, ry, true, true, x0, y0);
+  }
+  m_collector->collectRotate(rotation, cx, cy);
+  m_collector->collectLevel(1);
 }
 
 void libcdr::CMXParser::readRectangle(WPXInputStream *input)
