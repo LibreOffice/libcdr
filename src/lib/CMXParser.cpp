@@ -53,20 +53,23 @@ libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector)
     m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
     m_indexSectionOffset(0), m_infoSectionOffset(0), m_thumbnailOffset(0),
-    m_fillIndex(0) {}
+    m_fillIndex(0), m_nextInstructionOffset(0) {}
 
 libcdr::CMXParser::~CMXParser()
 {
 }
 
-bool libcdr::CMXParser::parseRecords(WPXInputStream *input, unsigned level)
+bool libcdr::CMXParser::parseRecords(WPXInputStream *input, long size, unsigned level)
 {
   if (!input)
   {
     return false;
   }
   m_collector->collectLevel(level);
-  while (!input->atEOS())
+  long endPosition = -1;
+  if (size > 0)
+    endPosition = input->tell() + size;
+  while (!input->atEOS() && (endPosition < 0 || input->tell() < endPosition))
   {
     if (!parseRecord(input, level))
       return false;
@@ -92,7 +95,7 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
       return true;
     unsigned fourCC = readU32(input);
     unsigned length = readU32(input);
-    unsigned long position = input->tell();
+    long endPosition = input->tell() + length;
 
     CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, toFourCC(fourCC), length, length));
 
@@ -105,14 +108,14 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
 #endif
       CDR_DEBUG_MSG(("CMX listType: %s\n", toFourCC(listType)));
       unsigned dataSize = length-4;
-      CDRInternalStream tmpStream(input, dataSize);
-      if (!parseRecords(&tmpStream, level+1))
+      if (!parseRecords(input, dataSize, level+1))
         return false;
     }
     else
       readRecord(fourCC, length, input);
 
-    input->seek(position + length, WPX_SEEK_SET);
+    if (input->tell() < endPosition)
+      input->seek(endPosition, WPX_SEEK_SET);
     return true;
   }
   catch (...)
@@ -123,7 +126,7 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
 
 void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, WPXInputStream *input)
 {
-  long recordStart = input->tell();
+  long recordEnd = input->tell() + length;
   switch (fourCC)
   {
   case FOURCC_cont:
@@ -136,12 +139,13 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, WPXInputSt
     readPage(input, length);
     break;
   case FOURCC_ccmm:
-    readCcmm(input, length);
+    readCcmm(input, recordEnd);
     break;
   default:
     break;
   }
-  input->seek(recordStart + length, WPX_SEEK_CUR);
+  if (input->tell() < recordEnd)
+    input->seek(recordEnd, WPX_SEEK_SET);
 }
 
 void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
@@ -243,47 +247,51 @@ void libcdr::CMXParser::readDisp(WPXInputStream *input, unsigned length)
 #endif
 }
 
-void libcdr::CMXParser::readCcmm(WPXInputStream *input, unsigned &length)
+void libcdr::CMXParser::readCcmm(WPXInputStream *input, long &recordEnd)
 {
   if (m_thumbnailOffset == (unsigned)-1)
-    length += 0x10;
+    recordEnd += 0x10;
 }
 
 void libcdr::CMXParser::readPage(WPXInputStream *input, unsigned length)
 {
-  CDRInternalStream tmpStream(input, length);
-  while (!tmpStream.atEOS())
+  long endPosition = length + input->tell();
+  while (!input->atEOS() && endPosition > input->tell())
   {
-    long startPosition = tmpStream.tell();
-    int instructionSize = readS16(&tmpStream, m_bigEndian);
+    long startPosition = input->tell();
+    int instructionSize = readS16(input, m_bigEndian);
     if (instructionSize < 0)
-      instructionSize = readS32(&tmpStream, m_bigEndian);
-    short instructionCode = abs(readS16(&tmpStream, m_bigEndian));
+      instructionSize = readS32(input, m_bigEndian);
+    m_nextInstructionOffset = startPosition+instructionSize;
+    short instructionCode = abs(readS16(input, m_bigEndian));
     CDR_DEBUG_MSG(("CMXParser::readPage - instructionSize %i, instructionCode %i\n", instructionSize, instructionCode));
     switch (instructionCode)
     {
     case CMX_Command_BeginPage:
-      readBeginPage(&tmpStream);
+      readBeginPage(input);
       break;
     case CMX_Command_BeginLayer:
-      readBeginLayer(&tmpStream);
+      readBeginLayer(input);
       break;
     case CMX_Command_BeginGroup:
-      readBeginGroup(&tmpStream);
+      readBeginGroup(input);
       break;
     case CMX_Command_PolyCurve:
-      readPolyCurve(&tmpStream);
+      readPolyCurve(input);
       break;
     case CMX_Command_Ellipse:
-      readEllipse(&tmpStream);
+      readEllipse(input);
       break;
     case CMX_Command_Rectangle:
-      readRectangle(&tmpStream);
+      readRectangle(input);
+      break;
+    case CMX_Command_JumpAbsolute:
+      readJumpAbsolute(input);
       break;
     default:
       break;
     }
-    tmpStream.seek(startPosition+instructionSize, WPX_SEEK_SET);
+    input->seek(m_nextInstructionOffset, WPX_SEEK_SET);
   }
 }
 
@@ -693,6 +701,40 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
       while (tagId != CMX_Tag_EndTag);
     }
   }
+}
+
+void libcdr::CMXParser::readJumpAbsolute(WPXInputStream *input)
+{
+  unsigned char tagId = 0;
+  unsigned short tagLength = 0;
+  if (m_precision == libcdr::PRECISION_32BIT)
+  {
+    do
+    {
+      long endOffset = input->tell() + tagLength;
+      tagId = readU8(input, m_bigEndian);
+      if (tagId == CMX_Tag_EndTag)
+      {
+        CDR_DEBUG_MSG(("  CMXParser::readJumpAbsolute - tagId %i\n", tagId));
+        break;
+      }
+      tagLength = readU16(input, m_bigEndian);
+      CDR_DEBUG_MSG(("  CMXParser::readJumpAbsolute - tagId %i, tagLength %i\n", tagId, tagLength));
+      switch (tagId)
+      {
+      case CMX_Tag_JumpAbsolute_Offset:
+        m_nextInstructionOffset = readU32(input, m_bigEndian);
+      default:
+        break;
+      }
+      input->seek(endOffset, WPX_SEEK_SET);
+    }
+    while (tagId != CMX_Tag_EndTag);
+  }
+  else if (m_precision == libcdr::PRECISION_16BIT)
+    m_nextInstructionOffset = readU32(input, m_bigEndian);
+  else
+    return;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -48,7 +48,7 @@ class CMXParser : protected CommonParser
 public:
   explicit CMXParser(CDRCollector *collector);
   virtual ~CMXParser();
-  bool parseRecords(WPXInputStream *input, unsigned level = 0);
+  bool parseRecords(WPXInputStream *input, long size = -1, unsigned level = 0);
 
 private:
   CMXParser();
@@ -59,7 +59,7 @@ private:
 
   void readCMXHeader(WPXInputStream *input);
   void readDisp(WPXInputStream *input, unsigned length);
-  void readCcmm(WPXInputStream *input, unsigned &length);
+  void readCcmm(WPXInputStream *input, long &recordEnd);
   void readPage(WPXInputStream *input, unsigned length);
 
   // Command readers
@@ -69,6 +69,7 @@ private:
   void readPolyCurve(WPXInputStream *input);
   void readEllipse(WPXInputStream *input);
   void readRectangle(WPXInputStream *input);
+  void readJumpAbsolute(WPXInputStream *input);
 
   // Types readers
   CDRTransform readMatrix(WPXInputStream *input);
@@ -85,6 +86,7 @@ private:
   unsigned m_infoSectionOffset;
   unsigned m_thumbnailOffset;
   unsigned m_fillIndex;
+  unsigned m_nextInstructionOffset;
 };
 
 } // namespace libcdr
