@@ -1062,7 +1062,7 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   CDR_DEBUG_MSG(("CDRParser::readEllipse\n"));
 
   double x = readCoordinate(input);
-  double y = (double)readCoordinate(input);
+  double y = readCoordinate(input);
   double angle1 = readAngle(input);
   double angle2 = readAngle(input);
   bool pie(0 != readUnsigned(input));
