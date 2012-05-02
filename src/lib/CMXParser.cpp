@@ -630,6 +630,64 @@ libcdr::CDRBBox libcdr::CMXParser::readBBox(WPXInputStream *input)
   return box;
 }
 
+void libcdr::CMXParser::readFill(WPXInputStream *input)
+{
+  unsigned char tagId = 0;
+  unsigned short tagLength = 0;
+  unsigned fillIdentifier = readU16(input, m_bigEndian);
+  switch (fillIdentifier)
+  {
+  case 1:
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+      do
+      {
+        long startOffset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+        {
+          CDR_DEBUG_MSG(("    Solid fill - tagId %i\n", tagId));
+        }
+        tagLength = readU16(input, m_bigEndian);
+        CDR_DEBUG_MSG(("    Solid fill - tagId %i, tagLength %i\n", tagId, tagLength));
+        switch (tagId)
+        {
+        case CMX_Tag_RenderAttr_FillSpec_Uniform:
+          readU32(input, m_bigEndian);
+          readU32(input, m_bigEndian);
+          break;
+        default:
+          break;
+        }
+        input->seek(startOffset + tagLength, WPX_SEEK_SET);
+      }
+      while (tagId != CMX_Tag_EndTag);
+    }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+    {
+      readU32(input, m_bigEndian);
+      readU32(input, m_bigEndian);
+    }
+    break;
+  case 2:
+    break;
+  case 6:
+    break;
+  case 7:
+    break;
+  case 8:
+    break;
+  case 9:
+    break;
+  case 10:
+    break;
+  case 11:
+    break;
+  default:
+    break;
+  }
+}
+
 void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
 {
   unsigned char tagId = 0;
@@ -652,6 +710,7 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
         CDR_DEBUG_MSG(("  Fill specification - tagId %i, tagLength %i\n", tagId, tagLength));
         switch (tagId)
         {
+
         default:
           break;
         }
@@ -659,6 +718,8 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
       }
       while (tagId != CMX_Tag_EndTag);
     }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+      readFill(input);
   }
   if (bitMask & 0x02) // outline
   {
