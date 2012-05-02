@@ -87,6 +87,7 @@ public:
   void collectSpnd(unsigned) {}
   void collectVectorPattern(unsigned, const WPXBinaryData &) {}
   void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color);
+  void collectFont(unsigned fontId, const WPXString &font);
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);

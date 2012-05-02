@@ -239,4 +239,9 @@ void libcdr::CDRStylesCollector::collectPaletteEntry(unsigned colorId, unsigned 
   m_ps.m_documentPalette[colorId] = color;
 }
 
+void libcdr::CDRStylesCollector::collectFont(unsigned fontId, const WPXString &font)
+{
+  m_ps.m_fonts[fontId] = font;
+}
+
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

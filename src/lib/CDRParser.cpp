@@ -568,6 +568,9 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   case FOURCC_vpat:
     readVpat(input, length);
     break;
+  case FOURCC_font:
+    readFont(input, length);
+    break;
   default:
     break;
   }
@@ -1194,15 +1197,19 @@ void libcdr::CDRParser::readPath(WPXInputStream *input)
 void libcdr::CDRParser::readArtisticText(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readArtisticText\n"));
-  /* double x0 = */ readCoordinate(input);
-  /* double y0 = */ readCoordinate(input);
+  /* double x0 = */
+  readCoordinate(input);
+  /* double y0 = */
+  readCoordinate(input);
 }
 
 void libcdr::CDRParser::readParagraphText(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readParagraphText\n"));
-  /* double x0 = */ readCoordinate(input);
-  /* double y0 = */ readCoordinate(input);
+  /* double x0 = */
+  readCoordinate(input);
+  /* double y0 = */
+  readCoordinate(input);
 }
 
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)
@@ -2197,6 +2204,40 @@ void libcdr::CDRParser::readUidr(WPXInputStream *input, unsigned length)
   input->seek(36, WPX_SEEK_CUR);
   CDRColor color = readColor(input);
   m_collector->collectPaletteEntry(colorId, userId, color);
+}
+
+void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
+{
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  unsigned fontId = readU16(input);
+  input->seek(16, WPX_SEEK_CUR);
+  WPXString name;
+  if (m_version >= 1200)
+  {
+    unsigned short character = 0;
+    while (true)
+    {
+      character = readU16(input);
+      if (character)
+        name.append((char)(character & 0xff));
+      else
+        break;
+    }
+  }
+  else
+  {
+    unsigned char character = 0;
+    while(true)
+    {
+      character = readU8(input);
+      if (character)
+        name.append((char)character);
+      else
+        break;
+    }
+  }
+  m_collector->collectFont(fontId, name);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
