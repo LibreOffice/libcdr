@@ -72,7 +72,8 @@ private:
   void readRectangle(WPXInputStream *input);
   void readEllipse(WPXInputStream *input);
   void readLineAndCurve(WPXInputStream *input);
-//  void readText(WPXInputStream *input);
+  void readArtisticText(WPXInputStream *input);
+  void readParagraphText(WPXInputStream *input);
   void readBitmap(WPXInputStream *input);
   void readPageSize(WPXInputStream *input);
   void readWaldoBmp(WPXInputStream *input, unsigned length, unsigned id);
