@@ -2325,12 +2325,14 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
   if (!num)
   {
     if (m_version >= 800)
-      input->seek(4, WPX_SEEK_CUR);
+      while (!readU32(input));
     input->seek(24, WPX_SEEK_CUR);
     if (m_version < 800)
       input->seek(8, WPX_SEEK_CUR);
     input->seek(4, WPX_SEEK_CUR);
     if (m_version > 800)
+      input->seek(2, WPX_SEEK_CUR);
+    if (m_version >= 1400)
       input->seek(2, WPX_SEEK_CUR);
   }
   /* unsigned stlId = */ readU32(input);
@@ -2375,7 +2377,6 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
       else
         input->seek(4, WPX_SEEK_CUR);
     }
-
   }
   unsigned numChars = readU32(input);
   for (i=0; i<numChars; ++i)
