@@ -2325,11 +2325,13 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
   if (!num)
   {
     if (m_version >= 800)
-	  input->seek(4, WPX_SEEK_CUR);
-	input->seek(24, WPX_SEEK_CUR);
-	if (m_version < 800)
-	  input->seek(8, WPX_SEEK_CUR);
-	input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, WPX_SEEK_CUR);
+    input->seek(24, WPX_SEEK_CUR);
+    if (m_version < 800)
+      input->seek(8, WPX_SEEK_CUR);
+    input->seek(4, WPX_SEEK_CUR);
+    if (m_version > 800)
+      input->seek(2, WPX_SEEK_CUR);
   }
   /* unsigned stlId = */ readU32(input);
   if (m_version >= 1300)
@@ -2339,9 +2341,42 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
   unsigned numRecords = readU32(input);
   for (i=0; i<numRecords; ++i)
   {
-    input->seek(3, WPX_SEEK_CUR);
-	if (m_version >= 800)
-      input->seek(1, WPX_SEEK_CUR);
+    readU8(input);
+    readU8(input);
+    unsigned char fl2 = readU8(input);
+    unsigned char fl3 = 0;
+    if (m_version >= 800)
+      fl3 = readU8(input);
+
+    // Read more information depending on the flags
+    if (fl2&1) // Font
+      input->seek(4, WPX_SEEK_CUR);
+    if (fl2&2) // Bold/Italic, etc.
+      input->seek(4, WPX_SEEK_CUR);
+    if (fl2&4) // Font Size
+      input->seek(4, WPX_SEEK_CUR);
+    if (fl2&8) // assumption
+      input->seek(4, WPX_SEEK_CUR);
+    if (fl2&0x10) // Offset X
+      input->seek(4, WPX_SEEK_CUR);
+    if (fl2&0x20) // Offset Y
+      input->seek(4, WPX_SEEK_CUR);
+    if (fl2&0x40) // Font Colour
+      input->seek(4, WPX_SEEK_CUR);
+    if (fl2&0x80) // Font Outl Colour
+      input->seek(4, WPX_SEEK_CUR);
+
+    if (fl3&8) // Encoding
+    {
+      if (m_version >= 1300)
+      {
+        unsigned tlen = readU32(input);
+        input->seek(tlen*2, WPX_SEEK_CUR);
+      }
+      else
+        input->seek(4, WPX_SEEK_CUR);
+    }
+
   }
   unsigned numChars = readU32(input);
   for (i=0; i<numChars; ++i)
