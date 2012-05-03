@@ -574,6 +574,9 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   case FOURCC_stlt:
     readStlt(input, length);
     break;
+  case FOURCC_txsm:
+    readTxsm(input, length);
+    break;
   default:
     break;
   }
@@ -2301,6 +2304,51 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
   {
     input->seek(784, WPX_SEEK_CUR);
   }
+}
+
+void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
+{
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  if (m_version >= 1500)
+    input->seek(0x29, WPX_SEEK_CUR);
+  else if (m_version >= 800)
+    input->seek(0x28, WPX_SEEK_CUR);
+  else
+    input->seek(0x1c, WPX_SEEK_CUR);
+  /* unsigned textId = */ readU32(input);
+  input->seek(48, WPX_SEEK_CUR);
+  unsigned i = 0;
+  input->seek(4, WPX_SEEK_CUR);
+  unsigned num = readU32(input);
+  if (!num)
+    input->seek(32, WPX_SEEK_CUR);
+  /* unsigned stlId = */ readU32(input);
+  if (m_version >= 1300)
+    input->seek(2, WPX_SEEK_CUR);
+  else
+    input->seek(1, WPX_SEEK_CUR);
+  unsigned numRecords = readU32(input);
+  for (i=0; i<numRecords; ++i)
+  {
+    /* unsigned char id = */ readU8(input);
+    /* unsigned char fl1 = */ readU8(input);
+    /* unsigned char fl2 = */ readU8(input);
+    /* unsigned char fl3 = */ readU8(input);
+  }
+  unsigned numChars = readU32(input);
+  for (i=0; i<numChars; ++i)
+  {
+    if (m_version >= 1200)
+      input->seek(8, WPX_SEEK_CUR);
+    else
+      input->seek(4, WPX_SEEK_CUR);
+  }
+  unsigned numBytes = numChars;
+  if (m_version >= 1200)
+    numBytes = readU32(input);
+  unsigned long numBytesRead = 0;
+  input->read(numBytes, numBytesRead);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
