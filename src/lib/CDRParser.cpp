@@ -439,7 +439,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
     if (fourCC == FOURCC_RIFF || fourCC == FOURCC_LIST)
     {
       listType = readU32(input);
-      if (listType == FOURCC_stlt)
+      if (listType == FOURCC_stlt && m_version >= 700)
         fourCC = listType;
       else
         m_collector->collectOtherList();
