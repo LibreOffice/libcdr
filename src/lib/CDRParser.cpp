@@ -2319,6 +2319,8 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
   /* unsigned textId = */ readU32(input);
   input->seek(48, WPX_SEEK_CUR);
   unsigned i = 0;
+  if (m_version >= 1500)
+    input->seek(12, WPX_SEEK_CUR);
   if (m_version >= 800)
     input->seek(4, WPX_SEEK_CUR);
   unsigned num = readU32(input);
