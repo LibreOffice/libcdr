@@ -2315,14 +2315,22 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
   else if (m_version >= 800)
     input->seek(0x28, WPX_SEEK_CUR);
   else
-    input->seek(0x1c, WPX_SEEK_CUR);
+    input->seek(0x2c, WPX_SEEK_CUR);
   /* unsigned textId = */ readU32(input);
   input->seek(48, WPX_SEEK_CUR);
   unsigned i = 0;
-  input->seek(4, WPX_SEEK_CUR);
+  if (m_version >= 800)
+    input->seek(4, WPX_SEEK_CUR);
   unsigned num = readU32(input);
   if (!num)
-    input->seek(32, WPX_SEEK_CUR);
+  {
+    if (m_version >= 800)
+	  input->seek(4, WPX_SEEK_CUR);
+	input->seek(24, WPX_SEEK_CUR);
+	if (m_version < 800)
+	  input->seek(8, WPX_SEEK_CUR);
+	input->seek(4, WPX_SEEK_CUR);
+  }
   /* unsigned stlId = */ readU32(input);
   if (m_version >= 1300)
     input->seek(2, WPX_SEEK_CUR);
@@ -2331,10 +2339,9 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
   unsigned numRecords = readU32(input);
   for (i=0; i<numRecords; ++i)
   {
-    /* unsigned char id = */ readU8(input);
-    /* unsigned char fl1 = */ readU8(input);
-    /* unsigned char fl2 = */ readU8(input);
-    /* unsigned char fl3 = */ readU8(input);
+    input->seek(3, WPX_SEEK_CUR);
+	if (m_version >= 800)
+      input->seek(1, WPX_SEEK_CUR);
   }
   unsigned numChars = readU32(input);
   for (i=0; i<numChars; ++i)
