@@ -571,6 +571,9 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   case FOURCC_font:
     readFont(input, length);
     break;
+  case FOURCC_stlt:
+    readStlt(input, length);
+    break;
   default:
     break;
   }
@@ -2238,6 +2241,66 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
     }
   }
   m_collector->collectFont(fontId, name);
+}
+
+void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
+{
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  if (m_version < 700)
+    return;
+  unsigned numRecords = readU32(input);
+  if (!numRecords)
+    return;
+  unsigned numFills = readU32(input);
+  std::map<unsigned,unsigned> fills;
+  unsigned i = 0;
+  for (i=0; i<numFills; ++i)
+  {
+    unsigned first = readU32(input);
+    input->seek(4, WPX_SEEK_CUR);
+    unsigned second = readU32(input);
+    fills[first] = second;
+    if (m_version >= 1300)
+      input->seek(48, WPX_SEEK_CUR);
+  }
+  unsigned numOutls = readU32(input);
+  std::map<unsigned,unsigned> outls;
+  for (i=0; i<numOutls; ++i)
+  {
+    unsigned first = readU32(input);
+    input->seek(4, WPX_SEEK_CUR);
+    unsigned second = readU32(input);
+    outls[first] = second;
+  }
+  unsigned numFonts = readU32(input);
+  for (i=0; i<numFonts; ++i)
+  {
+    if (m_version >= 1000)
+      input->seek(60, WPX_SEEK_CUR);
+    else
+      input->seek(44, WPX_SEEK_CUR);
+  }
+  unsigned numAligns = readU32(input);
+  for (i=0; i<numAligns; ++i)
+  {
+    input->seek(12, WPX_SEEK_CUR);
+  }
+  unsigned numIntervals = readU32(input);
+  for (i=0; i<numIntervals; ++i)
+  {
+    input->seek(52, WPX_SEEK_CUR);
+  }
+  unsigned numSet5s = readU32(input);
+  for (i=0; i<numSet5s; ++i)
+  {
+    input->seek(152, WPX_SEEK_CUR);
+  }
+  unsigned numTabs = readU32(input);
+  for (i=0; i<numTabs; ++i)
+  {
+    input->seek(784, WPX_SEEK_CUR);
+  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
