@@ -180,6 +180,15 @@ struct CDRLineStyle
       startMarkerId(smi), endMarkerId(emi) {}
 };
 
+struct CDRCharacterStyle
+{
+  unsigned short m_charSet;
+  CDRCharacterStyle()
+    : m_charSet(0) {}
+  CDRCharacterStyle(unsigned short charSet)
+    : m_charSet(charSet) {}
+};
+
 struct CDRPolygon
 {
   unsigned m_numAngles;

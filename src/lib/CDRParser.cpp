@@ -2308,6 +2308,8 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
 
 void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
 {
+  if (m_version < 700)
+    return;
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   if (m_version >= 1500)
@@ -2342,6 +2344,7 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     input->seek(1, WPX_SEEK_CUR);
   input->seek(1, WPX_SEEK_CUR);
   unsigned numRecords = readU32(input);
+  std::map<unsigned, CDRCharacterStyle> charStyles;
   for (i=0; i<numRecords; ++i)
   {
     readU8(input);
@@ -2351,9 +2354,13 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     if (m_version >= 800)
       fl3 = readU8(input);
 
+    CDRCharacterStyle charStyle;
     // Read more information depending on the flags
     if (fl2&1) // Font
-      input->seek(4, WPX_SEEK_CUR);
+    {
+      unsigned flag = readU32(input);
+      charStyle.m_charSet = (flag >> 16);
+    }
     if (fl2&2) // Bold/Italic, etc.
       input->seek(4, WPX_SEEK_CUR);
     if (fl2&4) // Font Size
@@ -2379,20 +2386,55 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
       else
         input->seek(4, WPX_SEEK_CUR);
     }
+    charStyles[2*i] = charStyle;
   }
   unsigned numChars = readU32(input);
+  std::vector<uint64_t> charDescriptions(numChars);
   for (i=0; i<numChars; ++i)
   {
     if (m_version >= 1200)
-      input->seek(8, WPX_SEEK_CUR);
+      charDescriptions[i] = readU64(input);
     else
-      input->seek(4, WPX_SEEK_CUR);
+      charDescriptions[i] = readU32(input);
   }
   unsigned numBytes = numChars;
   if (m_version >= 1200)
     numBytes = readU32(input);
   unsigned long numBytesRead = 0;
-  input->read(numBytes, numBytesRead);
+  const unsigned char *buffer = input->read(numBytes, numBytesRead);
+  if (numBytesRead != numBytes)
+    throw GenericException();
+  std::vector<unsigned char> tmpTextData;
+  WPXString text;
+  uint32_t tmpCharDescription = 0;
+  unsigned j = 0;
+  for (i=0, j=0; i<numChars && j<numBytesRead; ++i)
+  {
+    if ((uint32_t)(charDescriptions[i] & 0xffffff) != tmpCharDescription)
+    {
+      if (!tmpTextData.empty())
+      {
+        if (tmpCharDescription & 0x01)
+          appendCharacters(text, tmpTextData);
+        else
+          appendCharacters(text, tmpTextData, charStyles[(tmpCharDescription >> 16) & 0xff].m_charSet);
+      }
+      tmpTextData.clear();
+      tmpCharDescription = (uint32_t)(charDescriptions[i] & 0xffffff);
+    }
+    tmpTextData.push_back(buffer[j++]);
+    if (tmpCharDescription & 0x01)
+      tmpTextData.push_back(buffer[j++]);
+  }
+  if (!tmpTextData.empty())
+  {
+    if (tmpCharDescription & 0x01)
+      appendCharacters(text, tmpTextData);
+    else
+      appendCharacters(text, tmpTextData, charStyles[(tmpCharDescription >> 16) & 0xff].m_charSet);
+  }
+  tmpTextData.clear();
+  CDR_DEBUG_MSG(("Text: %s\n", text.cstr()));
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
