@@ -1203,19 +1203,17 @@ void libcdr::CDRParser::readPath(WPXInputStream *input)
 void libcdr::CDRParser::readArtisticText(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readArtisticText\n"));
-  /* double x0 = */
-  readCoordinate(input);
-  /* double y0 = */
-  readCoordinate(input);
+  double x0 = readCoordinate(input);
+  double y0 = readCoordinate(input);
+  m_collector->collectArtisticText(x0, y0);
 }
 
 void libcdr::CDRParser::readParagraphText(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readParagraphText\n"));
-  /* double x0 = */
-  readCoordinate(input);
-  /* double y0 = */
-  readCoordinate(input);
+  double x0 = readCoordinate(input);
+  double y0 = readCoordinate(input);
+  m_collector->collectParagraphText(x0, y0);
 }
 
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)
@@ -2318,7 +2316,7 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     input->seek(0x28, WPX_SEEK_CUR);
   else
     input->seek(0x2c, WPX_SEEK_CUR);
-  /* unsigned textId = */ readU32(input);
+  unsigned textId = readU32(input);
   input->seek(48, WPX_SEEK_CUR);
   unsigned i = 0;
   if (m_version >= 1500)
@@ -2434,7 +2432,8 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
       appendCharacters(text, tmpTextData, charStyles[(tmpCharDescription >> 16) & 0xff].m_charSet);
   }
   tmpTextData.clear();
-  CDR_DEBUG_MSG(("Text: %s\n", text.cstr()));
+  CDR_DEBUG_MSG(("CDRParser::readTxsm - Text: %s\n", text.cstr()));
+  m_collector->collectText(textId, text);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

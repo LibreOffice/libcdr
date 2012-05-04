@@ -244,4 +244,9 @@ void libcdr::CDRStylesCollector::collectFont(unsigned fontId, const WPXString &f
   m_ps.m_fonts[fontId] = font;
 }
 
+void libcdr::CDRStylesCollector::collectText(unsigned textId, const WPXString &text)
+{
+  m_ps.m_texts[textId] = text;
+}
+
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

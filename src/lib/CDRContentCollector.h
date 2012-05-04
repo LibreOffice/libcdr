@@ -87,6 +87,9 @@ public:
   void collectVectorPattern(unsigned id, const WPXBinaryData &data);
   void collectPaletteEntry(unsigned, unsigned, const CDRColor &) {}
   void collectFont(unsigned, const WPXString &) {}
+  void collectText(unsigned, const WPXString &) {}
+  void collectArtisticText(double x0, double y0);
+  void collectParagraphText(double x0, double y0);
 
 private:
   CDRContentCollector(const CDRContentCollector &);
@@ -113,6 +116,9 @@ private:
   unsigned m_spnd;
   unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentVectLevel, m_currentPageLevel;
   CDRImage m_currentImage;
+  WPXString m_currentText;
+  double m_currentTextOffsetX;
+  double m_currentTextOffsetY;
 
   CDRPath m_currentPath;
   CDRTransform m_currentTransform, m_fillTransform;

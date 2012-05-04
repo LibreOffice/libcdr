@@ -60,7 +60,8 @@ public:
   std::map<unsigned, WPXBinaryData> m_vects;
   std::vector<CDRPage> m_pages;
   std::map<unsigned, CDRColor> m_documentPalette;
-  std::map<unsigned short, WPXString> m_fonts;
+  std::map<unsigned, WPXString> m_fonts;
+  std::map<unsigned, WPXString> m_texts;
 
   unsigned _getRGBColor(const CDRColor &color);
   unsigned getBMPColor(const CDRColor &color);
@@ -122,6 +123,9 @@ public:
   virtual void collectVectorPattern(unsigned id, const WPXBinaryData &data) = 0;
   virtual void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color) = 0;
   virtual void collectFont(unsigned fontId, const WPXString &font) = 0;
+  virtual void collectText(unsigned textId, const WPXString &text) = 0;
+  virtual void collectArtisticText(double x0, double y0) = 0;
+  virtual void collectParagraphText(double x0, double y0) = 0;
 };
 
 } // namespace libcdr

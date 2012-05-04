@@ -52,7 +52,8 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   m_isPageProperties(false), m_isPageStarted(false), m_ignorePage(false),
   m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFildId(0.0), m_currentOutlId(0), m_spnd(0),
   m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
-  m_currentImage(), m_currentPath(), m_currentTransform(), m_fillTransform(),
+  m_currentImage(), m_currentText(), m_currentTextOffsetX(0.0), m_currentTextOffsetY(0.0),
+  m_currentPath(), m_currentTransform(), m_fillTransform(),
   m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(0),
   m_contentOutputElements(), m_fillOutputElements(),
   m_groupLevels(), m_groupTransforms(), m_splineData(), m_fillOpacity(1.0), m_ps(ps)
@@ -324,12 +325,33 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
 
     outputElement.addGraphicObject(propList, m_currentImage.getImage());
   }
+  if (m_currentText.len())
+  {
+    m_currentTransform.applyToPoint(m_currentTextOffsetX, m_currentTextOffsetY);
+    CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
+    tmpTrafo.applyToPoint(m_currentTextOffsetX, m_currentTextOffsetY);
+    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
+    tmpTrafo.applyToPoint(m_currentTextOffsetX, m_currentTextOffsetY);
+    WPXPropertyList textFrameProps;
+    textFrameProps.insert("svg:x", m_currentTextOffsetX);
+    textFrameProps.insert("svg:y", m_currentTextOffsetY);
+    outputElement.addStartTextObject(textFrameProps, WPXPropertyListVector());
+    outputElement.addStartTextLine(WPXPropertyList());
+    outputElement.addStartTextSpan(WPXPropertyList());
+    outputElement.addInsertText(m_currentText);
+    outputElement.addEndTextSpan();
+    outputElement.addEndTextLine();
+    outputElement.addEndTextObject();
+  }
   m_currentImage = libcdr::CDRImage();
   if (!outputElement.empty())
     m_outputElements->push(outputElement);
   m_currentTransform = libcdr::CDRTransform();
   m_fillTransform = libcdr::CDRTransform();
   m_fillOpacity = 1.0;
+  m_currentText.clear();
+  m_currentTextOffsetX = 0.0;
+  m_currentTextOffsetY = 0.0;
 }
 
 void libcdr::CDRContentCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0, bool considerGroupTransform)
@@ -989,6 +1011,8 @@ void libcdr::CDRContentCollector::collectSpnd(unsigned spnd)
 {
   if (m_currentVectLevel && !m_spnd)
     m_spnd = spnd;
+  else if (!m_currentVectLevel)
+    m_spnd = spnd;
 }
 
 void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const WPXBinaryData &data)
@@ -1021,6 +1045,28 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const WPXBin
     fclose(f);
   }
 #endif
+}
+
+void libcdr::CDRContentCollector::collectArtisticText(double x0, double y0)
+{
+  std::map<unsigned, WPXString>::const_iterator iter = m_ps.m_texts.find(m_spnd);
+  if (iter != m_ps.m_texts.end())
+  {
+    m_currentText = iter->second;
+    m_currentTextOffsetX = x0;
+    m_currentTextOffsetY = y0;
+  }
+}
+
+void libcdr::CDRContentCollector::collectParagraphText(double x0, double y0)
+{
+  std::map<unsigned, WPXString>::const_iterator iter = m_ps.m_texts.find(m_spnd);
+  if (iter != m_ps.m_texts.end())
+  {
+    m_currentText = iter->second;
+    m_currentTextOffsetX = x0;
+    m_currentTextOffsetY = y0;
+  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

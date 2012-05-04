@@ -34,7 +34,7 @@
 
 libcdr::CDRParserState::CDRParserState()
   : m_fillStyles(), m_lineStyles(), m_bmps(), m_patterns(), m_vects(), m_pages(),
-    m_documentPalette(), m_fonts(),
+    m_documentPalette(), m_fonts(), m_texts(),
     m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0), m_colorTransformRGB2RGB(0)
 {
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
