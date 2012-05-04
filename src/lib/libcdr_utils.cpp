@@ -486,7 +486,6 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
     uint16_t high_surrogate = 0;
     bool fail = false;
     uint32_t ucs4Character = 0;
-    uint16_t character = 0;
     while (true)
     {
       if (iter == characters.end())
@@ -494,8 +493,8 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
         fail = true;
         break;
       }
-      character = *iter++;
-      character = (uint16_t)(*iter++) << 8;
+      uint16_t character = *iter++;
+      character |= (uint16_t)(*iter++) << 8;
       if (character >= 0xdc00 && character < 0xe000) /* low surrogate */
       {
         if (high_surrogate)
