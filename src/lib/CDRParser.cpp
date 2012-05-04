@@ -2354,7 +2354,11 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     if (fl2&0x20) // Offset Y
       input->seek(4, WPX_SEEK_CUR);
     if (fl2&0x40) // Font Colour
+    {
       input->seek(4, WPX_SEEK_CUR);
+      if (m_version >= 1500)
+        input->seek(48, WPX_SEEK_CUR);
+    }
     if (fl2&0x80) // Font Outl Colour
       input->seek(4, WPX_SEEK_CUR);
 
@@ -2368,6 +2372,13 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
       else
         input->seek(4, WPX_SEEK_CUR);
     }
+    if (fl3&0x20) // Something
+    {
+      unsigned flag = readU8(input);
+      if (flag)
+        input->seek(52, WPX_SEEK_CUR);
+    }
+
     charStyles[2*i] = charStyle;
   }
   unsigned numChars = readU32(input);

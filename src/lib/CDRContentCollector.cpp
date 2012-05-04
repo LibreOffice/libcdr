@@ -330,7 +330,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   if (m_currentText.len())
   {
     double currentTextOffsetX = 0.0;
-	double currentTextOffsetY = 0.0;
+    double currentTextOffsetY = 0.0;
     m_currentTransform.applyToPoint(currentTextOffsetX, currentTextOffsetY);
     if (!m_groupTransforms.empty())
       m_groupTransforms.top().applyToPoint(currentTextOffsetX, currentTextOffsetY);
