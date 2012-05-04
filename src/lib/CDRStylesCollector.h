@@ -89,8 +89,8 @@ public:
   void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color);
   void collectFont(unsigned fontId, const WPXString &font);
   void collectText(unsigned textId, const WPXString &text);
-  void collectArtisticText(double, double) {}
-  void collectParagraphText(double, double) {}
+  void collectArtisticText() {}
+  void collectParagraphText() {}
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);

@@ -283,6 +283,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     double cx = m_currentImage.getMiddleX();
     double cy = m_currentImage.getMiddleY();
     m_currentTransform.applyToPoint(cx, cy);
+    if (!m_groupTransforms.empty())
+      m_groupTransforms.top().applyToPoint(cx, cy);
     CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
     tmpTrafo.applyToPoint(cx, cy);
     tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
@@ -327,14 +329,18 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   }
   if (m_currentText.len())
   {
-    m_currentTransform.applyToPoint(m_currentTextOffsetX, m_currentTextOffsetY);
+    double currentTextOffsetX = 0.0;
+	double currentTextOffsetY = 0.0;
+    m_currentTransform.applyToPoint(currentTextOffsetX, currentTextOffsetY);
+    if (!m_groupTransforms.empty())
+      m_groupTransforms.top().applyToPoint(currentTextOffsetX, currentTextOffsetY);
     CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
-    tmpTrafo.applyToPoint(m_currentTextOffsetX, m_currentTextOffsetY);
+    tmpTrafo.applyToPoint(currentTextOffsetX, currentTextOffsetY);
     tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
-    tmpTrafo.applyToPoint(m_currentTextOffsetX, m_currentTextOffsetY);
+    tmpTrafo.applyToPoint(currentTextOffsetX, currentTextOffsetY);
     WPXPropertyList textFrameProps;
-    textFrameProps.insert("svg:x", m_currentTextOffsetX);
-    textFrameProps.insert("svg:y", m_currentTextOffsetY);
+    textFrameProps.insert("svg:x", currentTextOffsetX);
+    textFrameProps.insert("svg:y", currentTextOffsetY);
     outputElement.addStartTextObject(textFrameProps, WPXPropertyListVector());
     outputElement.addStartTextLine(WPXPropertyList());
     outputElement.addStartTextSpan(WPXPropertyList());
@@ -350,8 +356,6 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   m_fillTransform = libcdr::CDRTransform();
   m_fillOpacity = 1.0;
   m_currentText.clear();
-  m_currentTextOffsetX = 0.0;
-  m_currentTextOffsetY = 0.0;
 }
 
 void libcdr::CDRContentCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0, bool considerGroupTransform)
@@ -1047,26 +1051,18 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const WPXBin
 #endif
 }
 
-void libcdr::CDRContentCollector::collectArtisticText(double x0, double y0)
+void libcdr::CDRContentCollector::collectArtisticText()
 {
   std::map<unsigned, WPXString>::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
-  {
     m_currentText = iter->second;
-    m_currentTextOffsetX = x0;
-    m_currentTextOffsetY = y0;
-  }
 }
 
-void libcdr::CDRContentCollector::collectParagraphText(double x0, double y0)
+void libcdr::CDRContentCollector::collectParagraphText()
 {
   std::map<unsigned, WPXString>::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
-  {
     m_currentText = iter->second;
-    m_currentTextOffsetX = x0;
-    m_currentTextOffsetY = y0;
-  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

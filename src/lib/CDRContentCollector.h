@@ -88,8 +88,8 @@ public:
   void collectPaletteEntry(unsigned, unsigned, const CDRColor &) {}
   void collectFont(unsigned, const WPXString &) {}
   void collectText(unsigned, const WPXString &) {}
-  void collectArtisticText(double x0, double y0);
-  void collectParagraphText(double x0, double y0);
+  void collectArtisticText();
+  void collectParagraphText();
 
 private:
   CDRContentCollector(const CDRContentCollector &);

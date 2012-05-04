@@ -1200,22 +1200,6 @@ void libcdr::CDRParser::readPath(WPXInputStream *input)
   outputPath(points, pointTypes);
 }
 
-void libcdr::CDRParser::readArtisticText(WPXInputStream *input)
-{
-  CDR_DEBUG_MSG(("CDRParser::readArtisticText\n"));
-  double x0 = readCoordinate(input);
-  double y0 = readCoordinate(input);
-  m_collector->collectArtisticText(x0, y0);
-}
-
-void libcdr::CDRParser::readParagraphText(WPXInputStream *input)
-{
-  CDR_DEBUG_MSG(("CDRParser::readParagraphText\n"));
-  double x0 = readCoordinate(input);
-  double y0 = readCoordinate(input);
-  m_collector->collectParagraphText(x0, y0);
-}
-
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readBitmap\n"));
@@ -1829,11 +1813,11 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
       else if (chunkType == 0x25) // Path
         readPath(input);
       else if ((m_version >= 400 && chunkType == 0x04) || (m_version < 400 && chunkType == 0x03)) // Artistic text
-        readArtisticText(input);
+        m_collector->collectArtisticText();
       else if ((m_version >= 400 && chunkType == 0x05) || (m_version < 400 && chunkType == 0x04)) // Bitmap
         readBitmap(input);
       else if ((m_version >= 400 && chunkType == 0x06) || (m_version < 400 && chunkType == 0x05)) // Paragraph text
-        readParagraphText(input);
+        m_collector->collectParagraphText();
       else if (chunkType == 0x14) // Polygon
         readPolygonCoords(input);
     }

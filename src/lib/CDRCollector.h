@@ -124,8 +124,8 @@ public:
   virtual void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color) = 0;
   virtual void collectFont(unsigned fontId, const WPXString &font) = 0;
   virtual void collectText(unsigned textId, const WPXString &text) = 0;
-  virtual void collectArtisticText(double x0, double y0) = 0;
-  virtual void collectParagraphText(double x0, double y0) = 0;
+  virtual void collectArtisticText() = 0;
+  virtual void collectParagraphText() = 0;
 };
 
 } // namespace libcdr
