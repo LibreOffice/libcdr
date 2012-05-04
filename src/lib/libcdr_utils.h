@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <string>
 #include <math.h>
+#include <vector>
 #include <libwpd-stream/libwpd-stream.h>
 #include <libwpd/libwpd.h>
 
@@ -105,6 +106,8 @@ int cdr_round(double d);
 void writeU8(WPXBinaryData &buffer, const int value);
 void writeU16(WPXBinaryData &buffer, const int value);
 void writeU32(WPXBinaryData &buffer, const int value);
+void appendCharacters(WPXString &text, std::vector<unsigned char> characters, unsigned short charset);
+void appendCharacters(WPXString &text, std::vector<unsigned char> characters);
 
 #ifdef DEBUG
 const char *toFourCC(unsigned value, bool bigEndian=false);
