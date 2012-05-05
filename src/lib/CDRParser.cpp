@@ -2199,7 +2199,7 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned fontId = readU16(input);
-  input->seek(16, WPX_SEEK_CUR);
+  unsigned short fontEncoding = readU16(input);
   WPXString name;
   if (m_version >= 1200)
   {
@@ -2225,7 +2225,7 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
         break;
     }
   }
-  m_collector->collectFont(fontId, name);
+  m_collector->collectFont(fontId, fontEncoding, name);
 }
 
 void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)

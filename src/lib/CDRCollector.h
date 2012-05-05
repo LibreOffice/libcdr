@@ -122,7 +122,7 @@ public:
   virtual void collectSpnd(unsigned spnd) = 0;
   virtual void collectVectorPattern(unsigned id, const WPXBinaryData &data) = 0;
   virtual void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color) = 0;
-  virtual void collectFont(unsigned fontId, const WPXString &font) = 0;
+  virtual void collectFont(unsigned fontId, unsigned short fontEncoding, const WPXString &font) = 0;
   virtual void collectText(unsigned textId, const WPXString &text) = 0;
   virtual void collectArtisticText() = 0;
   virtual void collectParagraphText() = 0;

@@ -239,7 +239,7 @@ void libcdr::CDRStylesCollector::collectPaletteEntry(unsigned colorId, unsigned 
   m_ps.m_documentPalette[colorId] = color;
 }
 
-void libcdr::CDRStylesCollector::collectFont(unsigned fontId, const WPXString &font)
+void libcdr::CDRStylesCollector::collectFont(unsigned fontId, unsigned short, const WPXString &font)
 {
   m_ps.m_fonts[fontId] = font;
 }
