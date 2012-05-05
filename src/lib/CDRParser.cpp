@@ -2304,23 +2304,38 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
       input->seek(32, WPX_SEEK_CUR);
   }
   if (m_version < 800)
-    input->seek(0x4, WPX_SEEK_CUR);
+    input->seek(4, WPX_SEEK_CUR);
   unsigned textId = readU32(input);
   input->seek(48, WPX_SEEK_CUR);
-  unsigned num = readU32(input);
-  if (m_version >= 800 && num)
-    input->seek(32, WPX_SEEK_CUR);
-  unsigned i = 0;
+  if (m_version >= 800)
+  {
+    if (readU32(input))
+      input->seek(32, WPX_SEEK_CUR);
+  }
   if (m_version >= 1500)
     input->seek(12, WPX_SEEK_CUR);
-  if (m_version >= 800)
+  unsigned num = readU32(input);
+  if (!num)
+  {
+    if (m_version >= 800)
+      input->seek(4, WPX_SEEK_CUR);
+    if (m_version > 800)
+      input->seek(2, WPX_SEEK_CUR);
+    if (m_version >= 1400)
+      input->seek(2, WPX_SEEK_CUR);
+    input->seek(24, WPX_SEEK_CUR);
+    if (m_version < 800)
+      input->seek(8, WPX_SEEK_CUR);
     input->seek(4, WPX_SEEK_CUR);
+  }
+
   /* unsigned stlId = */ readU32(input);
-  if (m_version >= 1300)
+  if (m_version >= 1300 && num)
     input->seek(1, WPX_SEEK_CUR);
   input->seek(1, WPX_SEEK_CUR);
   unsigned numRecords = readU32(input);
   std::map<unsigned, CDRCharacterStyle> charStyles;
+  unsigned i = 0;
   for (i=0; i<numRecords; ++i)
   {
     readU8(input);
