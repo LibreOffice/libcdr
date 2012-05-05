@@ -1,0 +1,79 @@
+diff --git a/src/lib/CDRParser.cpp b/src/lib/CDRParser.cpp
+index a4e7b17..80a07f6 100644
+--- a/src/lib/CDRParser.cpp
++++ b/src/lib/CDRParser.cpp
+@@ -43,10 +43,18 @@
+ #define DUMP_PREVIEW_IMAGE 0
+ #endif
+ 
++#ifndef GUESS_CHARACTER_ENCODING
++#define GUESS_CHARACTER_ENCODING 1
++#endif
++
+ #ifndef M_PI
+ #define M_PI 3.14159265358979323846
+ #endif
+ 
++#if GUESS_CHARACTER_ENCODING
++#include <libcharguess/universal.h>
++#endif
++
+ namespace
+ {
+ 
+@@ -2288,6 +2296,16 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
+   }
+ }
+ 
++#if GUESS_CHARACTER_ENCODING
++static const char *getEncoding(const unsigned char *buffer, unsigned bufferLength)
++{
++  UniversalDetector detector;
++  detector.HandleData((const char *)buffer, bufferLength);
++  detector.DataEnd();
++  return detector.GetCharset();
++}
++#endif
++
+ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
+ {
+   if (m_version < 700)
+@@ -2410,7 +2428,12 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
+         if (tmpCharDescription & 0x01)
+           appendCharacters(text, tmpTextData);
+         else
++        {
++#if GUESS_CHARACTER_ENCODING
++          CDR_DEBUG_MSG(("CDRParser::readTxsm - Detected chunk encoding %s\n", getEncoding(&tmpTextData[0], (unsigned)tmpTextData.size())));
++#endif
+           appendCharacters(text, tmpTextData, charStyles[(tmpCharDescription >> 16) & 0xff].m_charSet);
++        }
+       }
+       tmpTextData.clear();
+       tmpCharDescription = (uint32_t)(charDescriptions[i] & 0xffffff);
+@@ -2424,7 +2447,12 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
+     if (tmpCharDescription & 0x01)
+       appendCharacters(text, tmpTextData);
+     else
++    {
++#if GUESS_CHARACTER_ENCODING
++      CDR_DEBUG_MSG(("CDRParser::readTxsm - Detected chunk encoding %s\n", getEncoding(&tmpTextData[0], (unsigned)tmpTextData.size())));
++#endif
+       appendCharacters(text, tmpTextData, charStyles[(tmpCharDescription >> 16) & 0xff].m_charSet);
++    }
+   }
+   tmpTextData.clear();
+   CDR_DEBUG_MSG(("CDRParser::readTxsm - Text: %s\n", text.cstr()));
+diff --git a/src/lib/Makefile.am b/src/lib/Makefile.am
+index 7ca2ecb..c27eda5 100644
+--- a/src/lib/Makefile.am
++++ b/src/lib/Makefile.am
+@@ -14,7 +14,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_include_HEADERS = \
+ 
+ AM_CXXFLAGS = $(LIBCDR_CXXFLAGS) $(ZLIB_CFLAGS) $(DEBUG_CXXFLAGS)
+ 
+-libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LIBADD  = $(LIBCDR_LIBS) $(ZLIB_LIBS) @LIBCDR_WIN32_RESOURCE@
++libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LIBADD  = $(LIBCDR_LIBS) $(ZLIB_LIBS) @LIBCDR_WIN32_RESOURCE@ -lcharguess
+ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_DEPENDENCIES = @LIBCDR_WIN32_RESOURCE@
+ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LDFLAGS = $(version_info) -export-dynamic -no-undefined
+ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
