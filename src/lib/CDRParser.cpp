@@ -2295,34 +2295,28 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   if (m_version >= 1500)
-    input->seek(0x29, WPX_SEEK_CUR);
-  else if (m_version >= 800)
-    input->seek(0x28, WPX_SEEK_CUR);
+    input->seek(0x25, WPX_SEEK_CUR);
   else
-    input->seek(0x2c, WPX_SEEK_CUR);
+    input->seek(0x24, WPX_SEEK_CUR);
+  if (readU32(input))
+  {
+    if (m_version < 800)
+      input->seek(32, WPX_SEEK_CUR);
+  }
+  if (m_version < 800)
+    input->seek(0x4, WPX_SEEK_CUR);
   unsigned textId = readU32(input);
   input->seek(48, WPX_SEEK_CUR);
+  unsigned num = readU32(input);
+  if (m_version >= 800 && num)
+    input->seek(32, WPX_SEEK_CUR);
   unsigned i = 0;
   if (m_version >= 1500)
     input->seek(12, WPX_SEEK_CUR);
   if (m_version >= 800)
     input->seek(4, WPX_SEEK_CUR);
-  unsigned num = readU32(input);
-  if (!num)
-  {
-    if (m_version >= 800)
-      while (!readU32(input));
-    input->seek(24, WPX_SEEK_CUR);
-    if (m_version < 800)
-      input->seek(8, WPX_SEEK_CUR);
-    input->seek(4, WPX_SEEK_CUR);
-    if (m_version > 800)
-      input->seek(2, WPX_SEEK_CUR);
-    if (m_version >= 1400)
-      input->seek(2, WPX_SEEK_CUR);
-  }
   /* unsigned stlId = */ readU32(input);
-  if (num && m_version >= 1300)
+  if (m_version >= 1300)
     input->seek(1, WPX_SEEK_CUR);
   input->seek(1, WPX_SEEK_CUR);
   unsigned numRecords = readU32(input);
