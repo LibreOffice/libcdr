@@ -41,7 +41,7 @@
 #endif
 
 libcdr::CDRStylesCollector::CDRStylesCollector(libcdr::CDRParserState &ps) :
-  m_ps(ps), m_page(8.5, 11.0, -4.25, -5.5)
+  m_ps(ps), m_page(8.5, 11.0, -4.25, -5.5), m_charStyles()
 {
 }
 
@@ -244,8 +244,54 @@ void libcdr::CDRStylesCollector::collectFont(unsigned fontId, unsigned short, co
   m_ps.m_fonts[fontId] = font;
 }
 
-void libcdr::CDRStylesCollector::collectText(unsigned textId, const WPXString &text)
+void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
+    const std::vector<uint64_t> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides)
 {
+  if (data.empty() || charDescriptions.empty())
+    return;
+
+  WPXString text;
+  uint32_t tmpCharDescription = 0;
+  unsigned i = 0;
+  unsigned j = 0;
+  std::vector<unsigned char> tmpTextData;
+  CDRCharacterStyle defaultCharStyle;
+  CDRCharacterStyle tmpCharStyle;
+
+  std::map<unsigned, CDRCharacterStyle>::const_iterator iter = m_charStyles.find(styleId);
+  if (iter != m_charStyles.end())
+    defaultCharStyle = iter->second;
+  for (i=0, j=0; i<charDescriptions.size() && j<data.size(); ++i)
+  {
+    tmpCharStyle = defaultCharStyle;
+    std::map<unsigned, CDRCharacterStyle>::const_iterator iter = styleOverrides.find((tmpCharDescription >> 16) & 0xff);
+    if (iter != styleOverrides.end())
+      tmpCharStyle = iter->second;
+    if ((uint32_t)(charDescriptions[i] & 0xffffff) != tmpCharDescription)
+    {
+      if (!tmpTextData.empty())
+      {
+        if (tmpCharDescription & 0x01)
+          appendCharacters(text, tmpTextData);
+        else
+          appendCharacters(text, tmpTextData, tmpCharStyle.m_charSet);
+      }
+      tmpTextData.clear();
+      tmpCharDescription = (uint32_t)(charDescriptions[i] & 0xffffff);
+    }
+    tmpTextData.push_back(data[j++]);
+    if (tmpCharDescription & 0x01)
+      tmpTextData.push_back(data[j++]);
+  }
+  if (!tmpTextData.empty())
+  {
+    if (tmpCharDescription & 0x01)
+      appendCharacters(text, tmpTextData);
+    else
+      appendCharacters(text, tmpTextData, tmpCharStyle.m_charSet);
+  }
+
+  CDR_DEBUG_MSG(("CDRStylesCollector::collectText - Text: %s\n", text.cstr()));
   m_ps.m_texts[textId] = text;
 }
 

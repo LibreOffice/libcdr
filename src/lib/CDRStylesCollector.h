@@ -39,6 +39,7 @@
 #include "CDRPath.h"
 #include "CDROutputElementList.h"
 #include "CDRCollector.h"
+#include "libcdr_utils.h"
 
 namespace libcdr
 {
@@ -88,7 +89,8 @@ public:
   void collectVectorPattern(unsigned, const WPXBinaryData &) {}
   void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color);
   void collectFont(unsigned fontId, unsigned short fontEncoding, const WPXString &font);
-  void collectText(unsigned textId, const WPXString &text);
+  void collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
+                   const std::vector<uint64_t> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides);
   void collectArtisticText() {}
   void collectParagraphText() {}
 
@@ -98,6 +100,7 @@ private:
 
   CDRParserState &m_ps;
   CDRPage m_page;
+  std::map<unsigned, CDRCharacterStyle> m_charStyles;
 };
 
 } // namespace libcdr

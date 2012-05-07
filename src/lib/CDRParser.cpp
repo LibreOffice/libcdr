@@ -2329,7 +2329,7 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     input->seek(4, WPX_SEEK_CUR);
   }
 
-  /* unsigned stlId = */ readU32(input);
+  unsigned stlId = readU32(input);
   if (m_version >= 1300 && num)
     input->seek(1, WPX_SEEK_CUR);
   input->seek(1, WPX_SEEK_CUR);
@@ -2406,38 +2406,12 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
   const unsigned char *buffer = input->read(numBytes, numBytesRead);
   if (numBytesRead != numBytes)
     throw GenericException();
-  std::vector<unsigned char> tmpTextData;
-  WPXString text;
-  uint32_t tmpCharDescription = 0;
-  unsigned j = 0;
-  for (i=0, j=0; i<numChars && j<numBytesRead; ++i)
-  {
-    if ((uint32_t)(charDescriptions[i] & 0xffffff) != tmpCharDescription)
-    {
-      if (!tmpTextData.empty())
-      {
-        if (tmpCharDescription & 0x01)
-          appendCharacters(text, tmpTextData);
-        else
-          appendCharacters(text, tmpTextData, charStyles[(tmpCharDescription >> 16) & 0xff].m_charSet);
-      }
-      tmpTextData.clear();
-      tmpCharDescription = (uint32_t)(charDescriptions[i] & 0xffffff);
-    }
-    tmpTextData.push_back(buffer[j++]);
-    if (tmpCharDescription & 0x01)
-      tmpTextData.push_back(buffer[j++]);
-  }
-  if (!tmpTextData.empty())
-  {
-    if (tmpCharDescription & 0x01)
-      appendCharacters(text, tmpTextData);
-    else
-      appendCharacters(text, tmpTextData, charStyles[(tmpCharDescription >> 16) & 0xff].m_charSet);
-  }
-  tmpTextData.clear();
-  CDR_DEBUG_MSG(("CDRParser::readTxsm - Text: %s\n", text.cstr()));
-  m_collector->collectText(textId, text);
+  std::vector<unsigned char> textData(numBytesRead);
+  if (numBytesRead)
+    memcpy(&textData[0], buffer, numBytesRead);
+
+  m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
