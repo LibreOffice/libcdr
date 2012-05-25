@@ -82,30 +82,39 @@ stream is a Corel Draw Document that libcdr is able to parse
 */
 bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
 {
-  input->seek(0, WPX_SEEK_SET);
-  unsigned version = getCDRVersion(input);
-  if (version)
-    return true;
   WPXInputStream *tmpInput = input;
-  CDRZipStream zinput(input);
-  // Yes, we are kidnapping here the OLE document API and extending
-  // it to support also zip files.
-  if (zinput.isOLEStream())
+  try
   {
-    input = zinput.getDocumentOLEStream("content/riffData.cdr");
+    input->seek(0, WPX_SEEK_SET);
+    unsigned version = getCDRVersion(input);
+    if (version)
+      return true;
+    CDRZipStream zinput(input);
+    // Yes, we are kidnapping here the OLE document API and extending
+    // it to support also zip files.
+    if (zinput.isOLEStream())
+    {
+      input = zinput.getDocumentOLEStream("content/riffData.cdr");
+      if (!input)
+        input = zinput.getDocumentOLEStream("content/root.dat");
+    }
     if (!input)
-      input = zinput.getDocumentOLEStream("content/root.dat");
+      return false;
+    input->seek(0, WPX_SEEK_SET);
+    version = getCDRVersion(input);
+    if (input != tmpInput)
+      delete input;
+    input = tmpInput;
+    if (!version)
+      return false;
+    return true;
   }
-  if (!input)
+  catch (...)
+  {
+    if (input != tmpInput)
+      delete input;
     return false;
-  input->seek(0, WPX_SEEK_SET);
-  version = getCDRVersion(input);
-  if (input != tmpInput)
-    delete input;
-  input = tmpInput;
-  if (!version)
-    return false;
-  return true;
+  }
 }
 
 /**
