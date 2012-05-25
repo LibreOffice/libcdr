@@ -2373,6 +2373,8 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     return;
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
+  if (m_version >= 1600)
+    return;
   if (m_version >= 1500)
     input->seek(0x25, WPX_SEEK_CUR);
   else
