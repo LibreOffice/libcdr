@@ -631,11 +631,11 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
             && ix <= sizeof(palette_19_09_A)/sizeof(palette_19_09_A[0])
             && ix <= sizeof(palette_19_09_B)/sizeof(palette_19_09_B[0]))
         {
-          colorModel = palette_19_09_B[ix-1];
-          colorModel <<= 8;
-          colorModel |= palette_19_09_A[ix-1];
-          colorModel <<= 8;
-          colorModel |= palette_19_09_L[ix-1];
+          colorValue = palette_19_09_B[ix-1];
+          colorValue <<= 8;
+          colorValue |= palette_19_09_A[ix-1];
+          colorValue <<= 8;
+          colorValue |= palette_19_09_L[ix-1];
         }
         break;
       case 0x0a:
@@ -921,6 +921,85 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
         break;
       }
       case 0x09:
+        colorModel = 0x12; // L*a*b
+        break;
+      default:
+        break;
+      }
+    }
+    else if (colorModel == 0x0e)
+    {
+      unsigned short paletteID = readU16(input);
+      input->seek(4, WPX_SEEK_CUR);
+      unsigned short ix = readU16(input);
+      unsigned short tint = readU16(input);
+      switch (paletteID)
+      {
+      case 0x0c:
+        if (ix > 0
+            && ix <= sizeof(palette_0E_0C_L)/sizeof(palette_0E_0C_L[0])
+            && ix <= sizeof(palette_0E_0C_A)/sizeof(palette_0E_0C_A[0])
+            && ix <= sizeof(palette_0E_0C_B)/sizeof(palette_0E_0C_B[0]))
+        {
+          colorValue = palette_0E_0C_B[ix-1];
+          colorValue <<= 8;
+          colorValue |= palette_0E_0C_A[ix-1];
+          colorValue <<= 8;
+          colorValue |= palette_0E_0C_L[ix-1];
+        }
+        break;
+      case 0x18:
+        if (ix > 0
+            && ix <= sizeof(palette_0E_18_L)/sizeof(palette_0E_18_L[0])
+            && ix <= sizeof(palette_0E_18_A)/sizeof(palette_0E_18_A[0])
+            && ix <= sizeof(palette_0E_18_B)/sizeof(palette_0E_18_B[0]))
+        {
+          colorValue = palette_0E_18_B[ix-1];
+          colorValue <<= 8;
+          colorValue |= palette_0E_18_A[ix-1];
+          colorValue <<= 8;
+          colorValue |= palette_0E_18_L[ix-1];
+        }
+        break;
+      case 0x21:
+        if (ix > 0
+            && ix <= sizeof(palette_0E_21_L)/sizeof(palette_0E_21_L[0])
+            && ix <= sizeof(palette_0E_21_A)/sizeof(palette_0E_21_A[0])
+            && ix <= sizeof(palette_0E_21_B)/sizeof(palette_0E_21_B[0]))
+        {
+          colorValue = palette_0E_21_B[ix-1];
+          colorValue <<= 8;
+          colorValue |= palette_0E_21_A[ix-1];
+          colorValue <<= 8;
+          colorValue |= palette_0E_21_L[ix-1];
+        }
+        break;
+      case 0x22:
+        if (ix > 0
+            && ix <= sizeof(palette_0E_22_L)/sizeof(palette_0E_22_L[0])
+            && ix <= sizeof(palette_0E_22_A)/sizeof(palette_0E_22_A[0])
+            && ix <= sizeof(palette_0E_22_B)/sizeof(palette_0E_22_B[0]))
+        {
+          colorValue = palette_0E_22_B[ix-1];
+          colorValue <<= 8;
+          colorValue |= palette_0E_22_A[ix-1];
+          colorValue <<= 8;
+          colorValue |= palette_0E_22_L[ix-1];
+        }
+        break;
+      default:
+        colorValue = tint;
+        colorValue <<= 16;
+        colorValue |= ix;
+        break;
+      }
+
+      switch (paletteID)
+      {
+      case 0x0c:
+      case 0x18:
+      case 0x21:
+      case 0x22:
         colorModel = 0x12; // L*a*b
         break;
       default:
