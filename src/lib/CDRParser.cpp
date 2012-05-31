@@ -2365,6 +2365,35 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
   {
     input->seek(784, WPX_SEEK_CUR);
   }
+  unsigned numBullets = readU32(input);
+  for (i=0; i<numBullets; ++i)
+  {
+    input->seek(8, WPX_SEEK_CUR);
+    if (readU32(input))
+      input->seek(68, WPX_SEEK_CUR);
+    else
+      input->seek(76, WPX_SEEK_CUR);
+  }
+  unsigned numIndents = readU32(input);
+  for (i=0; i<numIndents; ++i)
+  {
+    input->seek(28, WPX_SEEK_CUR);
+  }
+  unsigned numHypens = readU32(input);
+  for (i=0; i<numHypens; ++i)
+  {
+    input->seek(32, WPX_SEEK_CUR);
+  }
+  unsigned numDropcaps = readU32(input);
+  for (i=0; i<numDropcaps; ++i)
+  {
+    input->seek(28, WPX_SEEK_CUR);
+  }
+  unsigned numSet11s = readU32(input);
+  for (i=0; i<numSet11s; ++i)
+  {
+    input->seek(12, WPX_SEEK_CUR);
+  }
 }
 
 void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
