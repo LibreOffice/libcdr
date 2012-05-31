@@ -2394,6 +2394,36 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
   {
     input->seek(12, WPX_SEEK_CUR);
   }
+  for (i=0; i<numRecords; ++i)
+  {
+    unsigned num = readU32(input);
+    unsigned asize = 0;
+    switch (num)
+    {
+    case 3:
+      asize = 48;
+      break;
+    case 2:
+      asize = 28;
+      break;
+    case 1:
+    default:
+      asize = 8;
+      break;
+    }
+    if (m_version < 900 && num > 1)
+      asize -= 4;
+    input->seek(16, WPX_SEEK_CUR);
+    unsigned namelen = readU32(input);
+    if (m_version < 1200)
+      input->seek(namelen-1, WPX_SEEK_CUR);
+    else
+    {
+      namelen *= 2;
+      input->seek(namelen, WPX_SEEK_CUR);
+    }
+    input->seek(asize, WPX_SEEK_CUR);
+  }
 }
 
 void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
