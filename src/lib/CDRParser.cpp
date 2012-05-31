@@ -2314,9 +2314,11 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
   if (m_version < 700)
     return;
   unsigned numRecords = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numRecords 0x%x\n", numRecords));
   if (!numRecords)
     return;
   unsigned numFills = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numFills 0x%x\n", numFills));
   std::map<unsigned,unsigned> fills;
   unsigned i = 0;
   for (i=0; i<numFills; ++i)
@@ -2329,6 +2331,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       input->seek(48, WPX_SEEK_CUR);
   }
   unsigned numOutls = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numOutls 0x%x\n", numOutls));
   std::map<unsigned,unsigned> outls;
   for (i=0; i<numOutls; ++i)
   {
@@ -2338,6 +2341,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     outls[first] = second;
   }
   unsigned numFonts = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%x\n", numFonts));
   for (i=0; i<numFonts; ++i)
   {
     if (m_version >= 1000)
@@ -2346,56 +2350,66 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       input->seek(44, WPX_SEEK_CUR);
   }
   unsigned numAligns = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numAligns 0x%x\n", numAligns));
   for (i=0; i<numAligns; ++i)
   {
     input->seek(12, WPX_SEEK_CUR);
   }
   unsigned numIntervals = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numIntervals 0x%x\n", numIntervals));
   for (i=0; i<numIntervals; ++i)
   {
     input->seek(52, WPX_SEEK_CUR);
   }
   unsigned numSet5s = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numSet5s 0x%x\n", numSet5s));
   for (i=0; i<numSet5s; ++i)
   {
     input->seek(152, WPX_SEEK_CUR);
   }
   unsigned numTabs = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numTabs 0x%x\n", numTabs));
   for (i=0; i<numTabs; ++i)
   {
     input->seek(784, WPX_SEEK_CUR);
   }
   unsigned numBullets = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numBullets 0x%x\n", numBullets));
   for (i=0; i<numBullets; ++i)
   {
     input->seek(8, WPX_SEEK_CUR);
     if (readU32(input))
-      input->seek(68, WPX_SEEK_CUR);
-    else
       input->seek(76, WPX_SEEK_CUR);
+    else
+      input->seek(68, WPX_SEEK_CUR);
   }
   unsigned numIndents = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numIndents 0x%x\n", numIndents));
   for (i=0; i<numIndents; ++i)
   {
     input->seek(28, WPX_SEEK_CUR);
   }
   unsigned numHypens = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numHypens 0x%x\n", numHypens));
   for (i=0; i<numHypens; ++i)
   {
     input->seek(32, WPX_SEEK_CUR);
   }
   unsigned numDropcaps = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numDropcaps 0x%x\n", numDropcaps));
   for (i=0; i<numDropcaps; ++i)
   {
     input->seek(28, WPX_SEEK_CUR);
   }
   unsigned numSet11s = readU32(input);
+  CDR_DEBUG_MSG(("CDRParser::readStlt numSet11s 0x%x\n", numSet11s));
   for (i=0; i<numSet11s; ++i)
   {
     input->seek(12, WPX_SEEK_CUR);
   }
   for (i=0; i<numRecords; ++i)
   {
+    CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
     unsigned num = readU32(input);
     unsigned asize = 0;
     switch (num)
