@@ -2426,7 +2426,8 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
   {
     input->seek(12, WPX_SEEK_CUR);
   }
-
+  if (m_version == 801) // cdr8bidi
+    input->seek(16, WPX_SEEK_CUR);
   for (i=0; i<numRecords; ++i)
   {
     CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
@@ -2446,7 +2447,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       asize = 8;
       break;
     }
-    if (m_version < 900 && num > 1)
+    if (m_version <= 800 && num > 1)
       asize -= 4;
     input->seek(16, WPX_SEEK_CUR);
     unsigned namelen = readU32(input);
