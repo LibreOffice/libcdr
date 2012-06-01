@@ -2427,7 +2427,12 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     input->seek(12, WPX_SEEK_CUR);
   }
   if (m_version == 801) // cdr8bidi
-    input->seek(16, WPX_SEEK_CUR);
+  {
+    unsigned numSet11plus = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numSet11plus 0x%x\n", numSet11plus));
+    for (i=0; i<numSet11plus; ++i)
+      input->seek(12, WPX_SEEK_CUR);
+  }
   for (i=0; i<numRecords; ++i)
   {
     CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
