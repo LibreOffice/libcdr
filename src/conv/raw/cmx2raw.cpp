@@ -176,7 +176,7 @@ void RawPainter::drawPath(const ::WPXPropertyListVector &path)
   printf("RawPainter::drawPath (%s)\n", getPropString(path).cstr());
 }
 
-void RawPainter::drawGraphicObject(const ::WPXPropertyList &propList, const ::WPXBinaryData& /*binaryData*/)
+void RawPainter::drawGraphicObject(const ::WPXPropertyList &propList, const ::WPXBinaryData & /*binaryData*/)
 {
   printf("RawPainter::drawGraphicObject (%s)\n", getPropString(propList).cstr());
 }
