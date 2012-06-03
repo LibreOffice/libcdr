@@ -2416,7 +2416,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
   for (i=0; i<numDropcaps; ++i)
   {
     input->seek(24, WPX_SEEK_CUR);
-    if (m_version > 800)
+    if (m_version >= 900)
       input->seek(4, WPX_SEEK_CUR);
   }
   unsigned numSet11s = readU32(input);
@@ -2456,7 +2456,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     input->seek(16, WPX_SEEK_CUR);
     unsigned namelen = readU32(input);
     if (m_version < 1200)
-      input->seek(namelen, WPX_SEEK_CUR);
+      input->seek(namelen+asize, WPX_SEEK_CUR);
     else
     {
       namelen *= 2;
