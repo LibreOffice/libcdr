@@ -2459,13 +2459,10 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         asize -= 4;
       input->seek(16, WPX_SEEK_CUR);
       unsigned namelen = readU32(input);
-      if (m_version < 1200)
-        input->seek(namelen+asize, WPX_SEEK_CUR);
-      else
-      {
+      CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles namelen 0x%x\n", namelen));
+      if (m_version >= 1200)
         namelen *= 2;
-        input->seek(namelen+asize, WPX_SEEK_CUR);
-      }
+      input->seek(namelen+asize, WPX_SEEK_CUR);
     }
 #ifndef DEBUG
   }
