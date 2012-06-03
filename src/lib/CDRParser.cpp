@@ -2309,288 +2309,307 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
 
 void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
 {
-  if (m_version < 700)
-    return;
-  if (!_redirectX6Chunk(&input, length))
-    throw GenericException();
-  unsigned numRecords = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numRecords 0x%x\n", numRecords));
-  if (!numRecords)
-    return;
-  unsigned numFills = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numFills 0x%x\n", numFills));
-  std::map<unsigned,unsigned> fills;
-  unsigned i = 0;
-  for (i=0; i<numFills; ++i)
+#ifndef DEBUG
+  try
   {
-    unsigned first = readU32(input);
-    input->seek(4, WPX_SEEK_CUR);
-    unsigned second = readU32(input);
-    fills[first] = second;
-    if (m_version >= 1300)
-      input->seek(48, WPX_SEEK_CUR);
-  }
-  unsigned numOutls = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numOutls 0x%x\n", numOutls));
-  std::map<unsigned,unsigned> outls;
-  for (i=0; i<numOutls; ++i)
-  {
-    unsigned first = readU32(input);
-    input->seek(4, WPX_SEEK_CUR);
-    unsigned second = readU32(input);
-    outls[first] = second;
-  }
-  unsigned numFonts = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%x\n", numFonts));
-  for (i=0; i<numFonts; ++i)
-  {
-    if (m_version >= 1000)
-      input->seek(60, WPX_SEEK_CUR);
-    else
-      input->seek(44, WPX_SEEK_CUR);
-  }
-  unsigned numAligns = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numAligns 0x%x\n", numAligns));
-  for (i=0; i<numAligns; ++i)
-  {
-    input->seek(12, WPX_SEEK_CUR);
-  }
-  unsigned numIntervals = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numIntervals 0x%x\n", numIntervals));
-  for (i=0; i<numIntervals; ++i)
-  {
-    input->seek(52, WPX_SEEK_CUR);
-  }
-  unsigned numSet5s = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numSet5s 0x%x\n", numSet5s));
-  for (i=0; i<numSet5s; ++i)
-  {
-    input->seek(152, WPX_SEEK_CUR);
-  }
-  unsigned numTabs = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numTabs 0x%x\n", numTabs));
-  for (i=0; i<numTabs; ++i)
-  {
-    input->seek(784, WPX_SEEK_CUR);
-  }
-  unsigned numBullets = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numBullets 0x%x\n", numBullets));
-  for (i=0; i<numBullets; ++i)
-  {
-    input->seek(40, WPX_SEEK_CUR);
-    if (m_version > 1300)
-      input->seek(4, WPX_SEEK_CUR);
-    if (m_version >= 1300)
+#endif
+    if (m_version < 700)
+      return;
+    if (!_redirectX6Chunk(&input, length))
+      throw GenericException();
+    unsigned numRecords = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numRecords 0x%x\n", numRecords));
+    if (!numRecords)
+      return;
+    unsigned numFills = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numFills 0x%x\n", numFills));
+    std::map<unsigned,unsigned> fills;
+    unsigned i = 0;
+    for (i=0; i<numFills; ++i)
     {
-      if (readU32(input))
-        input->seek(68, WPX_SEEK_CUR);
+      unsigned first = readU32(input);
+      input->seek(4, WPX_SEEK_CUR);
+      unsigned second = readU32(input);
+      fills[first] = second;
+      if (m_version >= 1300)
+        input->seek(48, WPX_SEEK_CUR);
+    }
+    unsigned numOutls = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numOutls 0x%x\n", numOutls));
+    std::map<unsigned,unsigned> outls;
+    for (i=0; i<numOutls; ++i)
+    {
+      unsigned first = readU32(input);
+      input->seek(4, WPX_SEEK_CUR);
+      unsigned second = readU32(input);
+      outls[first] = second;
+    }
+    unsigned numFonts = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%x\n", numFonts));
+    for (i=0; i<numFonts; ++i)
+    {
+      if (m_version >= 1000)
+        input->seek(60, WPX_SEEK_CUR);
       else
+        input->seek(44, WPX_SEEK_CUR);
+    }
+    unsigned numAligns = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numAligns 0x%x\n", numAligns));
+    for (i=0; i<numAligns; ++i)
+    {
+      input->seek(12, WPX_SEEK_CUR);
+    }
+    unsigned numIntervals = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numIntervals 0x%x\n", numIntervals));
+    for (i=0; i<numIntervals; ++i)
+    {
+      input->seek(52, WPX_SEEK_CUR);
+    }
+    unsigned numSet5s = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numSet5s 0x%x\n", numSet5s));
+    for (i=0; i<numSet5s; ++i)
+    {
+      input->seek(152, WPX_SEEK_CUR);
+    }
+    unsigned numTabs = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numTabs 0x%x\n", numTabs));
+    for (i=0; i<numTabs; ++i)
+    {
+      input->seek(784, WPX_SEEK_CUR);
+    }
+    unsigned numBullets = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numBullets 0x%x\n", numBullets));
+    for (i=0; i<numBullets; ++i)
+    {
+      input->seek(40, WPX_SEEK_CUR);
+      if (m_version > 1300)
+        input->seek(4, WPX_SEEK_CUR);
+      if (m_version >= 1300)
+      {
+        if (readU32(input))
+          input->seek(68, WPX_SEEK_CUR);
+        else
+          input->seek(12, WPX_SEEK_CUR);
+      }
+      else
+      {
+        input->seek(20, WPX_SEEK_CUR);
+        if (m_version >= 1000)
+          input->seek(8, WPX_SEEK_CUR);
+        if (readU32(input))
+          input->seek(8, WPX_SEEK_CUR);
+        input->seek(8, WPX_SEEK_CUR);
+      }
+    }
+    unsigned numIndents = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numIndents 0x%x\n", numIndents));
+    for (i=0; i<numIndents; ++i)
+    {
+      input->seek(28, WPX_SEEK_CUR);
+    }
+    unsigned numHypens = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numHypens 0x%x\n", numHypens));
+    for (i=0; i<numHypens; ++i)
+    {
+      input->seek(32, WPX_SEEK_CUR);
+      if (m_version >= 1300)
+        input->seek(4, WPX_SEEK_CUR);
+    }
+    unsigned numDropcaps = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numDropcaps 0x%x\n", numDropcaps));
+    for (i=0; i<numDropcaps; ++i)
+    {
+      input->seek(24, WPX_SEEK_CUR);
+      if (m_version >= 900)
+        input->seek(4, WPX_SEEK_CUR);
+    }
+    unsigned numSet11s = readU32(input);
+    CDR_DEBUG_MSG(("CDRParser::readStlt numSet11s 0x%x\n", numSet11s));
+    for (i=0; i<numSet11s; ++i)
+    {
+      input->seek(12, WPX_SEEK_CUR);
+    }
+    if (m_version == 801) // cdr8bidi
+    {
+      unsigned numSet11plus = readU32(input);
+      CDR_DEBUG_MSG(("CDRParser::readStlt numSet11plus 0x%x\n", numSet11plus));
+      for (i=0; i<numSet11plus; ++i)
         input->seek(12, WPX_SEEK_CUR);
     }
-    else
+    for (i=0; i<numRecords; ++i)
     {
-      input->seek(20, WPX_SEEK_CUR);
-      if (m_version >= 1000)
-        input->seek(8, WPX_SEEK_CUR);
-      if (readU32(input))
-        input->seek(8, WPX_SEEK_CUR);
-      input->seek(8, WPX_SEEK_CUR);
+      CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
+      unsigned num = readU32(input);
+      CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles num 0x%x\n", num));
+      unsigned asize = 0;
+      switch (num)
+      {
+      case 3:
+        asize = 48;
+        break;
+      case 2:
+        asize = 28;
+        break;
+      case 1:
+      default:
+        asize = 8;
+        break;
+      }
+      if (m_version <= 800 && num > 1)
+        asize -= 4;
+      input->seek(16, WPX_SEEK_CUR);
+      unsigned namelen = readU32(input);
+      if (m_version < 1200)
+        input->seek(namelen+asize, WPX_SEEK_CUR);
+      else
+      {
+        namelen *= 2;
+        input->seek(namelen+asize, WPX_SEEK_CUR);
+      }
     }
+#ifndef DEBUG
   }
-  unsigned numIndents = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numIndents 0x%x\n", numIndents));
-  for (i=0; i<numIndents; ++i)
+  catch (...)
   {
-    input->seek(28, WPX_SEEK_CUR);
   }
-  unsigned numHypens = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numHypens 0x%x\n", numHypens));
-  for (i=0; i<numHypens; ++i)
-  {
-    input->seek(32, WPX_SEEK_CUR);
-    if (m_version >= 1300)
-      input->seek(4, WPX_SEEK_CUR);
-  }
-  unsigned numDropcaps = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numDropcaps 0x%x\n", numDropcaps));
-  for (i=0; i<numDropcaps; ++i)
-  {
-    input->seek(24, WPX_SEEK_CUR);
-    if (m_version >= 900)
-      input->seek(4, WPX_SEEK_CUR);
-  }
-  unsigned numSet11s = readU32(input);
-  CDR_DEBUG_MSG(("CDRParser::readStlt numSet11s 0x%x\n", numSet11s));
-  for (i=0; i<numSet11s; ++i)
-  {
-    input->seek(12, WPX_SEEK_CUR);
-  }
-  if (m_version == 801) // cdr8bidi
-  {
-    unsigned numSet11plus = readU32(input);
-    CDR_DEBUG_MSG(("CDRParser::readStlt numSet11plus 0x%x\n", numSet11plus));
-    for (i=0; i<numSet11plus; ++i)
-      input->seek(12, WPX_SEEK_CUR);
-  }
-  for (i=0; i<numRecords; ++i)
-  {
-    CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
-    unsigned num = readU32(input);
-    CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles num 0x%x\n", num));
-    unsigned asize = 0;
-    switch (num)
-    {
-    case 3:
-      asize = 48;
-      break;
-    case 2:
-      asize = 28;
-      break;
-    case 1:
-    default:
-      asize = 8;
-      break;
-    }
-    if (m_version <= 800 && num > 1)
-      asize -= 4;
-    input->seek(16, WPX_SEEK_CUR);
-    unsigned namelen = readU32(input);
-    if (m_version < 1200)
-      input->seek(namelen+asize, WPX_SEEK_CUR);
-    else
-    {
-      namelen *= 2;
-      input->seek(namelen+asize, WPX_SEEK_CUR);
-    }
-  }
+#endif
 }
 
 void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
 {
-  if (m_version < 700)
-    return;
-  if (!_redirectX6Chunk(&input, length))
-    throw GenericException();
-  if (m_version >= 1600)
-    return;
-  if (m_version >= 1500)
-    input->seek(0x25, WPX_SEEK_CUR);
-  else
-    input->seek(0x24, WPX_SEEK_CUR);
-  if (readU32(input))
+#ifndef DEBUG
+  try
   {
-    if (m_version < 800)
-      input->seek(32, WPX_SEEK_CUR);
-  }
-  if (m_version < 800)
-    input->seek(4, WPX_SEEK_CUR);
-  unsigned textId = readU32(input);
-  input->seek(48, WPX_SEEK_CUR);
-  if (m_version >= 800)
-  {
-    if (readU32(input))
-      input->seek(32, WPX_SEEK_CUR);
-  }
-  if (m_version >= 1500)
-    input->seek(12, WPX_SEEK_CUR);
-  unsigned num = readU32(input);
-  if (!num)
-  {
-    if (m_version >= 800)
-      input->seek(4, WPX_SEEK_CUR);
-    if (m_version > 800)
-      input->seek(2, WPX_SEEK_CUR);
-    if (m_version >= 1400)
-      input->seek(2, WPX_SEEK_CUR);
-    input->seek(24, WPX_SEEK_CUR);
-    if (m_version < 800)
-      input->seek(8, WPX_SEEK_CUR);
-    input->seek(4, WPX_SEEK_CUR);
-  }
-
-  unsigned stlId = readU32(input);
-  if (m_version >= 1300 && num)
-    input->seek(1, WPX_SEEK_CUR);
-  input->seek(1, WPX_SEEK_CUR);
-  unsigned numRecords = readU32(input);
-  std::map<unsigned, CDRCharacterStyle> charStyles;
-  unsigned i = 0;
-  for (i=0; i<numRecords; ++i)
-  {
-    readU8(input);
-    readU8(input);
-    unsigned char fl2 = readU8(input);
-    unsigned char fl3 = 0;
-    if (m_version >= 800)
-      fl3 = readU8(input);
-
-    CDRCharacterStyle charStyle;
-    // Read more information depending on the flags
-    if (fl2&1) // Font
-    {
-      unsigned flag = readU32(input);
-      charStyle.m_charSet = (flag >> 16);
-    }
-    if (fl2&2) // Bold/Italic, etc.
-      input->seek(4, WPX_SEEK_CUR);
-    if (fl2&4) // Font Size
-      input->seek(4, WPX_SEEK_CUR);
-    if (fl2&8) // assumption
-      input->seek(4, WPX_SEEK_CUR);
-    if (fl2&0x10) // Offset X
-      input->seek(4, WPX_SEEK_CUR);
-    if (fl2&0x20) // Offset Y
-      input->seek(4, WPX_SEEK_CUR);
-    if (fl2&0x40) // Font Colour
-    {
-      input->seek(4, WPX_SEEK_CUR);
-      if (m_version >= 1500)
-        input->seek(48, WPX_SEEK_CUR);
-    }
-    if (fl2&0x80) // Font Outl Colour
-      input->seek(4, WPX_SEEK_CUR);
-
-    if (fl3&8) // Encoding
-    {
-      if (m_version >= 1300)
-      {
-        unsigned tlen = readU32(input);
-        input->seek(tlen*2, WPX_SEEK_CUR);
-      }
-      else
-        input->seek(4, WPX_SEEK_CUR);
-    }
-    if (fl3&0x20) // Something
-    {
-      unsigned flag = readU8(input);
-      if (flag)
-        input->seek(52, WPX_SEEK_CUR);
-    }
-
-    charStyles[2*i] = charStyle;
-  }
-  unsigned numChars = readU32(input);
-  std::vector<uint64_t> charDescriptions(numChars);
-  for (i=0; i<numChars; ++i)
-  {
-    if (m_version >= 1200)
-      charDescriptions[i] = readU64(input);
+#endif
+    if (m_version < 700)
+      return;
+    if (!_redirectX6Chunk(&input, length))
+      throw GenericException();
+    if (m_version >= 1600)
+      return;
+    if (m_version >= 1500)
+      input->seek(0x25, WPX_SEEK_CUR);
     else
-      charDescriptions[i] = readU32(input);
+      input->seek(0x24, WPX_SEEK_CUR);
+    if (readU32(input))
+    {
+      if (m_version < 800)
+        input->seek(32, WPX_SEEK_CUR);
+    }
+    if (m_version < 800)
+      input->seek(4, WPX_SEEK_CUR);
+    unsigned textId = readU32(input);
+    input->seek(48, WPX_SEEK_CUR);
+    if (m_version >= 800)
+    {
+      if (readU32(input))
+        input->seek(32, WPX_SEEK_CUR);
+    }
+    if (m_version >= 1500)
+      input->seek(12, WPX_SEEK_CUR);
+    unsigned num = readU32(input);
+    if (!num)
+    {
+      if (m_version >= 800)
+        input->seek(4, WPX_SEEK_CUR);
+      if (m_version > 800)
+        input->seek(2, WPX_SEEK_CUR);
+      if (m_version >= 1400)
+        input->seek(2, WPX_SEEK_CUR);
+      input->seek(24, WPX_SEEK_CUR);
+      if (m_version < 800)
+        input->seek(8, WPX_SEEK_CUR);
+      input->seek(4, WPX_SEEK_CUR);
+    }
+
+    unsigned stlId = readU32(input);
+    if (m_version >= 1300 && num)
+      input->seek(1, WPX_SEEK_CUR);
+    input->seek(1, WPX_SEEK_CUR);
+    unsigned numRecords = readU32(input);
+    std::map<unsigned, CDRCharacterStyle> charStyles;
+    unsigned i = 0;
+    for (i=0; i<numRecords; ++i)
+    {
+      readU8(input);
+      readU8(input);
+      unsigned char fl2 = readU8(input);
+      unsigned char fl3 = 0;
+      if (m_version >= 800)
+        fl3 = readU8(input);
+
+      CDRCharacterStyle charStyle;
+      // Read more information depending on the flags
+      if (fl2&1) // Font
+      {
+        unsigned flag = readU32(input);
+        charStyle.m_charSet = (flag >> 16);
+      }
+      if (fl2&2) // Bold/Italic, etc.
+        input->seek(4, WPX_SEEK_CUR);
+      if (fl2&4) // Font Size
+        input->seek(4, WPX_SEEK_CUR);
+      if (fl2&8) // assumption
+        input->seek(4, WPX_SEEK_CUR);
+      if (fl2&0x10) // Offset X
+        input->seek(4, WPX_SEEK_CUR);
+      if (fl2&0x20) // Offset Y
+        input->seek(4, WPX_SEEK_CUR);
+      if (fl2&0x40) // Font Colour
+      {
+        input->seek(4, WPX_SEEK_CUR);
+        if (m_version >= 1500)
+          input->seek(48, WPX_SEEK_CUR);
+      }
+      if (fl2&0x80) // Font Outl Colour
+        input->seek(4, WPX_SEEK_CUR);
+
+      if (fl3&8) // Encoding
+      {
+        if (m_version >= 1300)
+        {
+          unsigned tlen = readU32(input);
+          input->seek(tlen*2, WPX_SEEK_CUR);
+        }
+        else
+          input->seek(4, WPX_SEEK_CUR);
+      }
+      if (fl3&0x20) // Something
+      {
+        unsigned flag = readU8(input);
+        if (flag)
+          input->seek(52, WPX_SEEK_CUR);
+      }
+
+      charStyles[2*i] = charStyle;
+    }
+    unsigned numChars = readU32(input);
+    std::vector<uint64_t> charDescriptions(numChars);
+    for (i=0; i<numChars; ++i)
+    {
+      if (m_version >= 1200)
+        charDescriptions[i] = readU64(input);
+      else
+        charDescriptions[i] = readU32(input);
+    }
+    unsigned numBytes = numChars;
+    if (m_version >= 1200)
+      numBytes = readU32(input);
+    unsigned long numBytesRead = 0;
+    const unsigned char *buffer = input->read(numBytes, numBytesRead);
+    if (numBytesRead != numBytes)
+      throw GenericException();
+    std::vector<unsigned char> textData(numBytesRead);
+    if (numBytesRead)
+      memcpy(&textData[0], buffer, numBytesRead);
+
+    m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
+#ifndef DEBUG
   }
-  unsigned numBytes = numChars;
-  if (m_version >= 1200)
-    numBytes = readU32(input);
-  unsigned long numBytesRead = 0;
-  const unsigned char *buffer = input->read(numBytes, numBytesRead);
-  if (numBytesRead != numBytes)
-    throw GenericException();
-  std::vector<unsigned char> textData(numBytesRead);
-  if (numBytesRead)
-    memcpy(&textData[0], buffer, numBytesRead);
-
-  m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
-
+  catch (...)
+  {
+  }
+#endif
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
