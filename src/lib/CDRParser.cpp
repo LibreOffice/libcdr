@@ -2327,10 +2327,9 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     unsigned i = 0;
     for (i=0; i<numFills; ++i)
     {
-      unsigned first = readU32(input);
+      unsigned fillId = readU32(input);
       input->seek(4, WPX_SEEK_CUR);
-      unsigned second = readU32(input);
-      fills[first] = second;
+      fills[fillId] = readU32(input);
       if (m_version >= 1300)
         input->seek(48, WPX_SEEK_CUR);
     }
@@ -2339,25 +2338,33 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     std::map<unsigned,unsigned> outls;
     for (i=0; i<numOutls; ++i)
     {
-      unsigned first = readU32(input);
+      unsigned outlId = readU32(input);
       input->seek(4, WPX_SEEK_CUR);
-      unsigned second = readU32(input);
-      outls[first] = second;
+      outls[outlId] = readU32(input);
     }
     unsigned numFonts = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%x\n", numFonts));
+    std::map<unsigned,unsigned short> fontids;
+    std::map<unsigned,unsigned short> encodings;
     for (i=0; i<numFonts; ++i)
     {
+      unsigned fontStyleId = readU32(input);
+      input->seek(20, WPX_SEEK_CUR);
+      fontids[fontStyleId] = readU16(input);
+      encodings[fontStyleId] = readU16(input);
       if (m_version >= 1000)
-        input->seek(60, WPX_SEEK_CUR);
+        input->seek(32, WPX_SEEK_CUR);
       else
-        input->seek(44, WPX_SEEK_CUR);
+        input->seek(16, WPX_SEEK_CUR);
     }
     unsigned numAligns = readU32(input);
+    std::map<unsigned, unsigned> aligns;
     CDR_DEBUG_MSG(("CDRParser::readStlt numAligns 0x%x\n", numAligns));
     for (i=0; i<numAligns; ++i)
     {
-      input->seek(12, WPX_SEEK_CUR);
+      unsigned alignId = readU32(input);
+      input->seek(4, WPX_SEEK_CUR);
+      aligns[alignId] = readU32(input);
     }
     unsigned numIntervals = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numIntervals 0x%x\n", numIntervals));
