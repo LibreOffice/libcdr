@@ -63,6 +63,22 @@ unsigned getCDRVersion(char c)
   return 100 * ((unsigned char)c - 0x37);
 }
 
+typedef struct
+{
+  unsigned parentId;
+  unsigned fillId;
+  unsigned outlId;
+  unsigned fontId;
+  unsigned alignId;
+  unsigned intervalId;
+  unsigned set5Id;
+  unsigned set11Id;
+  unsigned tabId;
+  unsigned bulletId;
+  unsigned byphenId;
+  unsigned drapCapId;
+} CDRStltRecord;
+
 } // anonymous namespace
 
 libcdr::CDRParser::CDRParser(const std::vector<WPXInputStream *> &externalStreams, libcdr::CDRCollector *collector)
@@ -2443,6 +2459,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       for (i=0; i<numSet11plus; ++i)
         input->seek(12, WPX_SEEK_CUR);
     }
+    std::map<unsigned, CDRStltRecord> styles;
     for (i=0; i<numRecords; ++i)
     {
       CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
@@ -2464,12 +2481,30 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       }
       if (m_version <= 800 && num > 1)
         asize -= 4;
-      input->seek(16, WPX_SEEK_CUR);
+      unsigned styleId = readU32(input);
+      CDRStltRecord style;
+      style.parentId = readU32(input);
+      input->seek(8, WPX_SEEK_CUR);
       unsigned namelen = readU32(input);
       CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles namelen 0x%x\n", namelen));
       if (m_version >= 1200)
         namelen *= 2;
-      input->seek(namelen+asize, WPX_SEEK_CUR);
+      input->seek(namelen, WPX_SEEK_CUR);
+      if (num == 3)
+      {
+        style.fillId = readU32(input);
+        style.outlId = readU32(input);
+        style.fontId = readU32(input);
+        style.alignId = readU32(input);
+        style.intervalId = readU32(input);
+        style.set5Id = readU32(input);
+        style.set11Id = readU32(input);
+        style.tabId = readU32(input);
+        style.bulletId = readU32(input);
+        style.byphenId = readU32(input);
+        style.drapCapId = readU32(input);
+        styles[styleId] = style;
+      }
     }
 #ifndef DEBUG
   }
