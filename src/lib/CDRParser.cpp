@@ -75,8 +75,8 @@ typedef struct
   unsigned set11Id;
   unsigned tabId;
   unsigned bulletId;
-  unsigned byphenId;
-  unsigned drapCapId;
+  unsigned hyphenId;
+  unsigned dropCapId;
 } CDRStltRecord;
 
 } // anonymous namespace
@@ -2490,21 +2490,25 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       if (m_version >= 1200)
         namelen *= 2;
       input->seek(namelen, WPX_SEEK_CUR);
-      if (num == 3)
+      style.fillId = readU32(input);
+      style.outlId = readU32(input);
+      if (num > 1)
       {
-        style.fillId = readU32(input);
-        style.outlId = readU32(input);
         style.fontId = readU32(input);
         style.alignId = readU32(input);
         style.intervalId = readU32(input);
         style.set5Id = readU32(input);
         style.set11Id = readU32(input);
+      }
+      if (num > 2)
+      {
         style.tabId = readU32(input);
         style.bulletId = readU32(input);
-        style.byphenId = readU32(input);
-        style.drapCapId = readU32(input);
-        styles[styleId] = style;
+        style.hyphenId = readU32(input);
+        style.dropCapId = readU32(input);
       }
+      styles[styleId] = style;
+
     }
 #ifndef DEBUG
   }
