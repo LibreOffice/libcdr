@@ -183,10 +183,21 @@ struct CDRLineStyle
 struct CDRCharacterStyle
 {
   unsigned short m_charSet;
+  unsigned short m_fontId;
+  double m_fontSize;
   CDRCharacterStyle()
-    : m_charSet(0) {}
-  CDRCharacterStyle(unsigned short charSet)
-    : m_charSet(charSet) {}
+    : m_charSet(0), m_fontId(0), m_fontSize(0.0) {}
+  CDRCharacterStyle(unsigned short charSet, unsigned short fontId, double fontSize)
+    : m_charSet(charSet), m_fontId(fontId), m_fontSize(fontSize) {}
+  void overrideCharacterStyle(const CDRCharacterStyle &override)
+  {
+    if (override.m_charSet)
+      m_charSet = override.m_charSet;
+    if (override.m_fontId)
+      m_fontId = override.m_fontId;
+    if (override.m_fontSize > 0.0)
+      m_fontSize = override.m_fontSize;
+  }
 };
 
 struct CDRPolygon
@@ -376,6 +387,15 @@ struct CDRLab4Color
   double b;
   void applyTint(double tint);
   unsigned getColorValue() const;
+};
+
+struct CDRText
+{
+  CDRText() : m_text(), m_charStyle() {}
+  CDRText(const WPXString &text, const CDRCharacterStyle &charStyle)
+    : m_text(text), m_charStyle(charStyle) {}
+  WPXString m_text;
+  CDRCharacterStyle m_charStyle;
 };
 
 } // namespace libcdr

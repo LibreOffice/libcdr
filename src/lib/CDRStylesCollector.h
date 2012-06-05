@@ -93,6 +93,7 @@ public:
                    const std::vector<uint64_t> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides);
   void collectArtisticText() {}
   void collectParagraphText() {}
+  void collectStlt(const std::map<unsigned, CDRCharacterStyle> &charStyles);
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);

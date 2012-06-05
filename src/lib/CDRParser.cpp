@@ -66,13 +66,13 @@ unsigned getCDRVersion(char c)
 struct CDRStltRecord
 {
   CDRStltRecord()
-    : parentId(0), fillId(0), outlId(0), fontId(0), alignId(0),
+    : parentId(0), fillId(0), outlId(0), fontRecId(0), alignId(0),
       intervalId(0), set5Id(0), set11Id(0), tabId(0),
       bulletId(0), identId(0), hyphenId(0), dropCapId(0) {}
   unsigned parentId;
   unsigned fillId;
   unsigned outlId;
-  unsigned fontId;
+  unsigned fontRecId;
   unsigned alignId;
   unsigned intervalId;
   unsigned set5Id;
@@ -2291,6 +2291,7 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
     throw GenericException();
   unsigned fontId = readU16(input);
   unsigned short fontEncoding = readU16(input);
+  input->seek(14, WPX_SEEK_CUR);
   WPXString name;
   if (m_version >= 1200)
   {
@@ -2496,7 +2497,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       style.outlId = readU32(input);
       if (num > 1)
       {
-        style.fontId = readU32(input);
+        style.fontRecId = readU32(input);
         style.alignId = readU32(input);
         style.intervalId = readU32(input);
         style.set5Id = readU32(input);
@@ -2513,6 +2514,47 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       }
       styles[styleId] = style;
     }
+    std::map<unsigned, CDRCharacterStyle> charStyles;
+    CDRCharacterStyle tmpCharStyle;
+    for (std::map<unsigned, CDRStltRecord>::const_iterator iter = styles.begin();
+         iter != styles.end(); ++iter)
+    {
+      unsigned fontRecordId = 0;
+      if (iter->second.fontRecId)
+        fontRecordId = iter->second.fontRecId;
+      else if (iter->second.parentId)
+      {
+        unsigned parentId = iter->second.parentId;
+        while (true)
+        {
+          std::map<unsigned, CDRStltRecord>::const_iterator iter2 = styles.find(parentId);
+          if (iter2 == styles.end())
+            break;
+          if (iter2->second.fontRecId)
+          {
+            fontRecordId = iter2->second.fontRecId;
+            break;
+          }
+          if (iter2->second.parentId)
+            parentId = iter2->second.parentId;
+          else
+            break;
+        }
+      }
+      if (!fontRecordId)
+        continue;
+      std::map<unsigned, unsigned short>::const_iterator iterFontId = fontids.find(fontRecordId);
+      if (iterFontId != fontids.end())
+        tmpCharStyle.m_fontId = iterFontId->second;
+      std::map<unsigned, unsigned short>::const_iterator iterEncoding = encodings.find(fontRecordId);
+      if (iterEncoding != encodings.end())
+        tmpCharStyle.m_fontId = iterEncoding->second;
+      std::map<unsigned, double>::const_iterator iterFontSize = fontSizes.find(fontRecordId);
+      if (iterFontSize != fontSizes.end())
+        tmpCharStyle.m_fontSize = iterFontSize->second;
+      charStyles[iter->first] = tmpCharStyle;
+    }
+    m_collector->collectStlt(charStyles);
 #ifndef DEBUG
   }
   catch (...)
@@ -2590,11 +2632,12 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
       {
         unsigned flag = readU32(input);
         charStyle.m_charSet = (flag >> 16);
+        charStyle.m_fontId = flag & 0xff;
       }
       if (fl2&2) // Bold/Italic, etc.
         input->seek(4, WPX_SEEK_CUR);
       if (fl2&4) // Font Size
-        input->seek(4, WPX_SEEK_CUR);
+        charStyle.m_fontSize = readCoordinate(input);
       if (fl2&8) // assumption
         input->seek(4, WPX_SEEK_CUR);
       if (fl2&0x10) // Offset X

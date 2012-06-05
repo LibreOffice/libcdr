@@ -266,7 +266,7 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
     tmpCharStyle = defaultCharStyle;
     std::map<unsigned, CDRCharacterStyle>::const_iterator iter = styleOverrides.find((tmpCharDescription >> 16) & 0xff);
     if (iter != styleOverrides.end())
-      tmpCharStyle = iter->second;
+      tmpCharStyle.overrideCharacterStyle(iter->second);
     if ((uint32_t)(charDescriptions[i] & 0xffffff) != tmpCharDescription)
     {
       if (!tmpTextData.empty())
@@ -292,7 +292,12 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   }
 
   CDR_DEBUG_MSG(("CDRStylesCollector::collectText - Text: %s\n", text.cstr()));
-  m_ps.m_texts[textId] = text;
+  m_ps.m_texts[textId] = CDRText(text, tmpCharStyle);
+}
+
+void libcdr::CDRStylesCollector::collectStlt(const std::map<unsigned, CDRCharacterStyle> &charStyles)
+{
+  m_charStyles = charStyles;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -328,7 +328,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
 
     outputElement.addGraphicObject(propList, m_currentImage.getImage());
   }
-  if (m_currentText.len())
+  if (m_currentText.m_text.len())
   {
     double currentTextOffsetX = 0.0;
     double currentTextOffsetY = 0.0;
@@ -351,8 +351,14 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     textFrameProps.insert("svg:y", currentTextOffsetY);
     outputElement.addStartTextObject(textFrameProps, WPXPropertyListVector());
     outputElement.addStartTextLine(WPXPropertyList());
-    outputElement.addStartTextSpan(WPXPropertyList());
-    outputElement.addInsertText(m_currentText);
+    WPXPropertyList spanProps;
+    double fontSize = (double)cdr_round(144.0*m_currentText.m_charStyle.m_fontSize) / 2.0;
+    spanProps.insert("fo:font-size", fontSize, WPX_POINT);
+    std::map<unsigned, WPXString>::const_iterator iterFont = m_ps.m_fonts.find(m_currentText.m_charStyle.m_fontId);
+    if (iterFont != m_ps.m_fonts.end())
+      spanProps.insert("style:font-name", iterFont->second);
+    outputElement.addStartTextSpan(spanProps);
+    outputElement.addInsertText(m_currentText.m_text);
     outputElement.addEndTextSpan();
     outputElement.addEndTextLine();
     outputElement.addEndTextObject();
@@ -363,7 +369,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   m_currentTransform = libcdr::CDRTransform();
   m_fillTransform = libcdr::CDRTransform();
   m_fillOpacity = 1.0;
-  m_currentText.clear();
+  m_currentText = CDRText();
 }
 
 void libcdr::CDRContentCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0, bool considerGroupTransform)
@@ -1063,14 +1069,14 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const WPXBin
 
 void libcdr::CDRContentCollector::collectArtisticText()
 {
-  std::map<unsigned, WPXString>::const_iterator iter = m_ps.m_texts.find(m_spnd);
+  std::map<unsigned, CDRText>::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
     m_currentText = iter->second;
 }
 
 void libcdr::CDRContentCollector::collectParagraphText()
 {
-  std::map<unsigned, WPXString>::const_iterator iter = m_ps.m_texts.find(m_spnd);
+  std::map<unsigned, CDRText>::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
     m_currentText = iter->second;
 }
