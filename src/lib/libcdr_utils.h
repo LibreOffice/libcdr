@@ -49,7 +49,6 @@
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
-typedef short int16_t;
 typedef unsigned uint32_t;
 typedef int int32_t;
 typedef unsigned __int64 uint64_t;
@@ -57,8 +56,8 @@ typedef unsigned __int64 uint64_t;
 #else
 
 #ifdef HAVE_CONFIG_H
+
 #include <config.h>
-#endif
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -66,6 +65,14 @@ typedef unsigned __int64 uint64_t;
 
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
+#endif
+
+#else
+
+// assume that the headers are there inside LibreOffice build when no HAVE_CONFIG_H is defined
+#include <stdint.h>
+#include <inttypes.h>
+
 #endif
 
 #endif
