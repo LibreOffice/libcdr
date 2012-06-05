@@ -63,8 +63,12 @@ unsigned getCDRVersion(char c)
   return 100 * ((unsigned char)c - 0x37);
 }
 
-typedef struct
+struct CDRStltRecord
 {
+  CDRStltRecord()
+    : parentId(0), fillId(0), outlId(0), fontId(0),
+      alignId(0), intervalId(0), set5Id(0), set11Id(0),
+      tabId(0), bulletId(0), hyphenId(0), dropCapId(0) {}
   unsigned parentId;
   unsigned fillId;
   unsigned outlId;
@@ -77,7 +81,7 @@ typedef struct
   unsigned bulletId;
   unsigned hyphenId;
   unsigned dropCapId;
-} CDRStltRecord;
+};
 
 } // anonymous namespace
 
@@ -2365,13 +2369,16 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     for (i=0; i<numFonts; ++i)
     {
       unsigned fontStyleId = readU32(input);
-      input->seek(20, WPX_SEEK_CUR);
+      if (m_version < 1000)
+        input->seek(12, WPX_SEEK_CUR);
+      else
+        input->seek(20, WPX_SEEK_CUR);
       fontids[fontStyleId] = readU16(input);
       encodings[fontStyleId] = readU16(input);
-      if (m_version >= 1000)
-        input->seek(32, WPX_SEEK_CUR);
+      if (m_version < 1000)
+        input->seek(24, WPX_SEEK_CUR);
       else
-        input->seek(16, WPX_SEEK_CUR);
+        input->seek(32, WPX_SEEK_CUR);
     }
     unsigned numAligns = readU32(input);
     std::map<unsigned, unsigned> aligns;
@@ -2508,7 +2515,6 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         style.dropCapId = readU32(input);
       }
       styles[styleId] = style;
-
     }
 #ifndef DEBUG
   }
