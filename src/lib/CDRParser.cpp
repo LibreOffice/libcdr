@@ -2548,7 +2548,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         tmpCharStyle.m_fontId = iterFontId->second;
       std::map<unsigned, unsigned short>::const_iterator iterEncoding = encodings.find(fontRecordId);
       if (iterEncoding != encodings.end())
-        tmpCharStyle.m_fontId = iterEncoding->second;
+        tmpCharStyle.m_charSet = iterEncoding->second;
       std::map<unsigned, double>::const_iterator iterFontSize = fontSizes.find(fontRecordId);
       if (iterFontSize != fontSizes.end())
         tmpCharStyle.m_fontSize = iterFontSize->second;
