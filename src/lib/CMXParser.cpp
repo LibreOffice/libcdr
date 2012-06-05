@@ -247,7 +247,7 @@ void libcdr::CMXParser::readDisp(WPXInputStream *input, unsigned length)
 #endif
 }
 
-void libcdr::CMXParser::readCcmm(WPXInputStream *input, long &recordEnd)
+void libcdr::CMXParser::readCcmm(WPXInputStream * /* input */, long &recordEnd)
 {
   if (m_thumbnailOffset == (unsigned)-1)
     recordEnd += 0x10;
@@ -344,10 +344,10 @@ void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
   m_collector->collectFlags(flags, true);
   m_collector->collectPageSize(box.getWidth(), box.getHeight(), box.getMinX(), box.getMinY());
 }
-void libcdr::CMXParser::readBeginLayer(WPXInputStream *input)
+void libcdr::CMXParser::readBeginLayer(WPXInputStream * /* input */)
 {
 }
-void libcdr::CMXParser::readBeginGroup(WPXInputStream *input)
+void libcdr::CMXParser::readBeginGroup(WPXInputStream * /* input */)
 {
 }
 
