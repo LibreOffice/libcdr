@@ -66,9 +66,9 @@ unsigned getCDRVersion(char c)
 struct CDRStltRecord
 {
   CDRStltRecord()
-    : parentId(0), fillId(0), outlId(0), fontId(0),
-      alignId(0), intervalId(0), set5Id(0), set11Id(0),
-      tabId(0), bulletId(0), hyphenId(0), dropCapId(0) {}
+    : parentId(0), fillId(0), outlId(0), fontId(0), alignId(0),
+      intervalId(0), set5Id(0), set11Id(0), tabId(0),
+      bulletId(0), identId(0), hyphenId(0), dropCapId(0) {}
   unsigned parentId;
   unsigned fillId;
   unsigned outlId;
@@ -79,6 +79,7 @@ struct CDRStltRecord
   unsigned set11Id;
   unsigned tabId;
   unsigned bulletId;
+  unsigned identId;
   unsigned hyphenId;
   unsigned dropCapId;
 };
@@ -2505,12 +2506,14 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         style.alignId = readU32(input);
         style.intervalId = readU32(input);
         style.set5Id = readU32(input);
-        style.set11Id = readU32(input);
+        if (m_version > 800)
+          style.set11Id = readU32(input);
       }
       if (num > 2)
       {
         style.tabId = readU32(input);
         style.bulletId = readU32(input);
+        style.identId = readU32(input);
         style.hyphenId = readU32(input);
         style.dropCapId = readU32(input);
       }
