@@ -264,7 +264,7 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   for (i=0, j=0; i<charDescriptions.size() && j<data.size(); ++i)
   {
     tmpCharStyle = defaultCharStyle;
-    std::map<unsigned, CDRCharacterStyle>::const_iterator iter = styleOverrides.find((tmpCharDescription >> 16) & 0xff);
+    iter = styleOverrides.find((tmpCharDescription >> 16) & 0xff);
     if (iter != styleOverrides.end())
       tmpCharStyle.overrideCharacterStyle(iter->second);
     if ((uint32_t)(charDescriptions[i] & 0xffffff) != tmpCharDescription)

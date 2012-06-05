@@ -141,13 +141,13 @@ AS_IF([test "x$native_win32" = "xyes"], [
 			AC_MSG_WARN([produced libraries might be incompatible with MSVC-compiled code])
 		])
 	])
-	CFLAGS="$CFLAGS -Wall -Wshadow -pedantic"
-	CXXFLAGS="$CXXFLAGS -Wall -Wshadow -pedantic"
+	CFLAGS="$CFLAGS -Wall -Wextra -pedantic"
+	CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wshadow -pedantic"
 ], [
 	AS_IF([test x"$GCC" = xyes], [
 		# Be tough with warnings and produce less careless code
 		CFLAGS="$CFLAGS -Wall -Wextra -pedantic"
-		CXXFLAGS="$CXXFLAGS -Wall -Wextra -pedantic -Weffc++"
+		CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wshadow -pedantic -Weffc++"
 	])
 ])
 AC_SUBST(DEBUG_CXXFLAGS)
