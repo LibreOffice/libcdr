@@ -62,7 +62,7 @@ public:
   unsigned long getSize() const
   {
     return m_buffer.size();
-  };
+  }
 
 private:
   volatile long m_offset;

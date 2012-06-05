@@ -82,8 +82,8 @@ private:
 class CDRCollector
 {
 public:
-  CDRCollector() {};
-  virtual ~CDRCollector() {};
+  CDRCollector() {}
+  virtual ~CDRCollector() {}
 
   // collector functions
   virtual void collectPage(unsigned level) = 0;
