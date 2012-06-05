@@ -338,7 +338,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     WPXPropertyList textFrameProps;
     if (m_currentBBox.getWidth() > 0.0 && m_currentBBox.getHeight() > 0.0)
     {
-      textFrameProps.insert("svg:width", m_currentBBox.getWidth());
+      textFrameProps.insert("svg:width", m_currentBBox.getWidth() * 1.05);
       textFrameProps.insert("svg:height", m_currentBBox.getHeight());
       currentTextOffsetX = m_currentBBox.getMinX();
       currentTextOffsetY = m_currentBBox.getMinY();
@@ -348,7 +348,11 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
     tmpTrafo.applyToPoint(currentTextOffsetX, currentTextOffsetY);
     textFrameProps.insert("svg:x", currentTextOffsetX);
-    textFrameProps.insert("svg:y", currentTextOffsetY);
+    textFrameProps.insert("svg:y", currentTextOffsetY - m_currentBBox.getHeight());
+    textFrameProps.insert("fo:padding-top", 0.0);
+    textFrameProps.insert("fo:padding-bottom", 0.0);
+    textFrameProps.insert("fo:padding-left", 0.0);
+    textFrameProps.insert("fo:padding-right", 0.0);
     outputElement.addStartTextObject(textFrameProps, WPXPropertyListVector());
     outputElement.addStartTextLine(WPXPropertyList());
     WPXPropertyList spanProps;
