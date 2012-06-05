@@ -203,7 +203,7 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
 #endif
   CDR_DEBUG_MSG(("CMX Offsets: index section 0x%.8x, info section: 0x%.8x, thumbnail: 0x%.8x\n",
                  m_indexSectionOffset, m_infoSectionOffset, m_thumbnailOffset));
-  CDR_DEBUG_MSG(("CMX Bounding Box: x0: %f, y0: %f, x1: %f, y1: %f\n", box.m_x0, box.m_y0, box.m_x1, box.m_y1));
+  CDR_DEBUG_MSG(("CMX Bounding Box: x: %f, y: %f, w: %f, h: %f\n", box.m_x, box.m_y, box.m_w, box.m_h));
 }
 
 void libcdr::CMXParser::readDisp(WPXInputStream *input, unsigned length)
@@ -622,11 +622,11 @@ libcdr::CDRTransform libcdr::CMXParser::readMatrix(WPXInputStream *input)
 
 libcdr::CDRBBox libcdr::CMXParser::readBBox(WPXInputStream *input)
 {
-  CDRBBox box;
-  box.m_x0 = readCoordinate(input, m_bigEndian);
-  box.m_y0 = readCoordinate(input, m_bigEndian);
-  box.m_x1 = readCoordinate(input, m_bigEndian);
-  box.m_y1 = readCoordinate(input, m_bigEndian);
+  double x0 = readCoordinate(input, m_bigEndian);
+  double y0 = readCoordinate(input, m_bigEndian);
+  double x1 = readCoordinate(input, m_bigEndian);
+  double y1 = readCoordinate(input, m_bigEndian);
+  CDRBBox box(x0, y0, x1, y1);
   return box;
 }
 

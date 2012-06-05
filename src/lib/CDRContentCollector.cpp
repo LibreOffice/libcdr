@@ -53,7 +53,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFildId(0.0), m_currentOutlId(0), m_spnd(0),
   m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
   m_currentImage(), m_currentText(), m_currentTextOffsetX(0.0), m_currentTextOffsetY(0.0),
-  m_currentPath(), m_currentTransform(), m_fillTransform(),
+  m_currentBBox(), m_currentPath(), m_currentTransform(), m_fillTransform(),
   m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(0),
   m_contentOutputElements(), m_fillOutputElements(),
   m_groupLevels(), m_groupTransforms(), m_splineData(), m_fillOpacity(1.0), m_ps(ps)
@@ -111,6 +111,7 @@ void libcdr::CDRContentCollector::collectObject(unsigned level)
   m_currentObjectLevel = level;
   m_currentFildId = 0;
   m_currentOutlId = 0;
+  m_currentBBox = CDRBBox();
 }
 
 void libcdr::CDRContentCollector::collectGroup(unsigned level)
@@ -1000,15 +1001,17 @@ void libcdr::CDRContentCollector::collectFillOpacity(double opacity)
   m_fillOpacity = opacity;
 }
 
-void libcdr::CDRContentCollector::collectBBox(double width, double height, double offsetX, double offsetY)
+void libcdr::CDRContentCollector::collectBBox(double x0, double y0, double x1, double y1)
 {
+  CDRBBox bBox(x0, y0, x1, y1);
   if (m_currentVectLevel && m_page.width == 0.0 && m_page.width == 0.0)
   {
-    m_page.width = width;
-    m_page.height = height;
-    m_page.offsetX = offsetX;
-    m_page.offsetY = offsetY;
+    m_page.width = bBox.getWidth();
+    m_page.height = bBox.getHeight();
+    m_page.offsetX = bBox.getMinX();
+    m_page.offsetY = bBox.getMinY();
   }
+  m_currentBBox = bBox;
 }
 
 void libcdr::CDRContentCollector::collectSpnd(unsigned spnd)

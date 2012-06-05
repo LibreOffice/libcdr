@@ -82,7 +82,7 @@ public:
   void collectPolygon();
   void collectSpline();
   void collectColorProfile(const std::vector<unsigned char> &) {}
-  void collectBBox(double width, double height, double offsetX, double offsetY);
+  void collectBBox(double x0, double y0, double x1, double y1);
   void collectSpnd(unsigned spnd);
   void collectVectorPattern(unsigned id, const WPXBinaryData &data);
   void collectPaletteEntry(unsigned, unsigned, const CDRColor &) {}
@@ -120,6 +120,7 @@ private:
   WPXString m_currentText;
   double m_currentTextOffsetX;
   double m_currentTextOffsetY;
+  CDRBBox m_currentBBox;
 
   CDRPath m_currentPath;
   CDRTransform m_currentTransform, m_fillTransform;

@@ -57,31 +57,31 @@ struct CDRTransform
 
 struct CDRBBox
 {
-  double m_x0;
-  double m_y0;
-  double m_x1;
-  double m_y1;
+  double m_x;
+  double m_y;
+  double m_w;
+  double m_h;
   CDRBBox()
-    : m_x0(0.0), m_y0(0.0), m_x1(0.0), m_y1(0.0) {}
-  CDRBBox(double x0, double y0, double x1, double y1)
-    : m_x0(x0), m_y0(y0), m_x1(x1), m_y1(y1) {}
+    : m_x(0.0), m_y(0.0), m_w(0.0), m_h(0.0) {}
   CDRBBox(const CDRBBox &box)
-    : m_x0(box.m_x0), m_y0(box.m_y0), m_x1(box.m_x1), m_y1(box.m_y1) {}
+    : m_x(box.m_x), m_y(box.m_y), m_w(box.m_w), m_h(box.m_h) {}
+  CDRBBox(double x0, double y0, double x1, double y1)
+    : m_x(x0 < x1 ? x0 : x1), m_y(y0 < y1 ? y0 : y1), m_w(fabs(x1-x0)), m_h(fabs(y1-y0)) {}
   double getWidth() const
   {
-    return fabs(m_x1 - m_x0);
+    return m_w;
   }
   double getHeight() const
   {
-    return fabs(m_y1 - m_y0);
+    return m_h;
   }
   double getMinX() const
   {
-    return m_x0 < m_x1 ? m_x0 : m_x1;
+    return m_x;
   }
   double getMinY() const
   {
-    return m_y0 < m_y1 ? m_y0 : m_y1;
+    return m_y;
   }
 
 };
@@ -291,28 +291,30 @@ struct WaldoRecordInfo
 
 struct WaldoRecordType1
 {
-  WaldoRecordType1(unsigned i, unsigned short n, unsigned short pr, unsigned short c, unsigned short pa,
-                   unsigned short f, double w, double h, double ox, double oy, const CDRTransform tr)
-    : id(i), next(n), previous(pr), child(c), parent(pa), flags(f),
-      width(w), height(h), offsetX(ox), offsetY(oy), trafo(tr) {}
+  WaldoRecordType1(unsigned id, unsigned short next, unsigned short previous,
+                   unsigned short child, unsigned short parent, unsigned short flags,
+                   double x0, double y0, double x1, double y1, const CDRTransform trafo)
+    : m_id(id), m_next(next), m_previous(previous), m_child(child), m_parent(parent),
+      m_flags(flags), m_x0(x0), m_y0(y0), m_x1(x1), m_y1(y1), m_trafo(trafo) {}
   WaldoRecordType1()
-    : id(0), next(0), previous(0), child(0), parent(0), flags(0),
-      width(0.0), height(0.0), offsetX(0.0), offsetY(0.0), trafo() {}
+    : m_id(0), m_next(0), m_previous(0), m_child(0), m_parent(0), m_flags(0),
+      m_x0(0.0), m_y0(0.0), m_x1(0.0), m_y1(0.0), m_trafo() {}
   WaldoRecordType1(const WaldoRecordType1 &record)
-    : id(record.id), next(record.next), previous(record.previous), child(record.child),
-      parent(record.parent), flags(record.flags), width(record.width), height(record.height),
-      offsetX(record.offsetX), offsetY(record.offsetY), trafo(record.trafo) {}
-  unsigned id;
-  unsigned short next;
-  unsigned short previous;
-  unsigned short child;
-  unsigned short parent;
-  unsigned short flags;
-  double width;
-  double height;
-  double offsetX;
-  double offsetY;
-  CDRTransform trafo;
+    : m_id(record.m_id), m_next(record.m_next), m_previous(record.m_previous),
+      m_child(record.m_child), m_parent(record.m_parent), m_flags(record.m_flags),
+      m_x0(record.m_x0), m_y0(record.m_y0), m_x1(record.m_x1), m_y1(record.m_y1),
+      m_trafo(record.m_trafo) {}
+  unsigned m_id;
+  unsigned short m_next;
+  unsigned short m_previous;
+  unsigned short m_child;
+  unsigned short m_parent;
+  unsigned short m_flags;
+  double m_x0;
+  double m_y0;
+  double m_x1;
+  double m_y1;
+  CDRTransform m_trafo;
 };
 
 struct CDRCMYKColor

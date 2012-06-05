@@ -119,7 +119,7 @@ public:
   virtual void collectPolygon() = 0;
   virtual void collectSpline() = 0;
   virtual void collectColorProfile(const std::vector<unsigned char> &profile) = 0;
-  virtual void collectBBox(double width, double height, double offsetX, double offsetY) = 0;
+  virtual void collectBBox(double x0, double y0, double x1, double y1) = 0;
   virtual void collectSpnd(unsigned spnd) = 0;
   virtual void collectVectorPattern(unsigned id, const WPXBinaryData &data) = 0;
   virtual void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color) = 0;

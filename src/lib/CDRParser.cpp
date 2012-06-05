@@ -165,11 +165,6 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
       double x1 = readCoordinate(input);
       double y1 = readCoordinate(input);
       unsigned short flags = readU16(input);
-
-      double width = fabs(x1-x0);
-      double height = fabs(y1-y0);
-      double offsetX = x1 < x0 ? x1 : x0;
-      double offsetY = y1 < y0 ? y1 : y0;
       CDRTransform trafo;
       if (moreDataID)
       {
@@ -184,7 +179,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
         trafo.m_v4 = readFixedPoint(input);
         trafo.m_y0 = readFixedPoint(input) / 1000.0;
       }
-      records1[iterVec->id] = WaldoRecordType1(iterVec->id, next, previous, child, parent, flags, width,  height, offsetX, offsetY, trafo);
+      records1[iterVec->id] = WaldoRecordType1(iterVec->id, next, previous, child, parent, flags, x0, y0, x1, y1, trafo);
     }
     std::map<unsigned, WaldoRecordInfo>::const_iterator iter;
     for (iter = records3.begin(); iter != records3.end(); ++iter)
@@ -279,19 +274,19 @@ bool libcdr::CDRParser::parseWaldoStructure(WPXInputStream *input, std::stack<Wa
 {
   while (!waldoStack.empty())
   {
-    m_collector->collectBBox(waldoStack.top().width, waldoStack.top().height, waldoStack.top().offsetX, waldoStack.top().offsetY);
+    m_collector->collectBBox(waldoStack.top().m_x0, waldoStack.top().m_y0, waldoStack.top().m_x1, waldoStack.top().m_y1);
     std::map<unsigned, WaldoRecordType1>::const_iterator iter1;
-    if (waldoStack.top().flags & 0x01)
+    if (waldoStack.top().m_flags & 0x01)
     {
       if (waldoStack.size() > 1)
       {
         m_collector->collectGroup(waldoStack.size());
-        m_collector->collectSpnd(waldoStack.top().id);
-        m_collector->collectTransform(waldoStack.top().trafo.m_v0, waldoStack.top().trafo.m_v1, waldoStack.top().trafo.m_x0,
-                                      waldoStack.top().trafo.m_v3, waldoStack.top().trafo.m_v4, waldoStack.top().trafo.m_y0,
+        m_collector->collectSpnd(waldoStack.top().m_id);
+        m_collector->collectTransform(waldoStack.top().m_trafo.m_v0, waldoStack.top().m_trafo.m_v1, waldoStack.top().m_trafo.m_x0,
+                                      waldoStack.top().m_trafo.m_v3, waldoStack.top().m_trafo.m_v4, waldoStack.top().m_trafo.m_y0,
                                       true);
       }
-      iter1 = records1.find(waldoStack.top().child);
+      iter1 = records1.find(waldoStack.top().m_child);
       if (iter1 == records1.end())
         return false;
       waldoStack.push(iter1->second);
@@ -301,16 +296,16 @@ bool libcdr::CDRParser::parseWaldoStructure(WPXInputStream *input, std::stack<Wa
     {
       if (waldoStack.size() > 1)
         m_collector->collectObject(waldoStack.size());
-      std::map<unsigned, WaldoRecordInfo>::const_iterator iter2 = records2.find(waldoStack.top().child);
+      std::map<unsigned, WaldoRecordInfo>::const_iterator iter2 = records2.find(waldoStack.top().m_child);
       if (iter2 == records2.end())
         return false;
       readWaldoRecord(input, iter2->second);
-      while (!waldoStack.empty() && !waldoStack.top().next)
+      while (!waldoStack.empty() && !waldoStack.top().m_next)
         waldoStack.pop();
       m_collector->collectLevel(waldoStack.size());
       if (waldoStack.empty())
         return true;
-      iter1 = records1.find(waldoStack.top().next);
+      iter1 = records1.find(waldoStack.top().m_next);
       if (iter1 == records1.end())
         return false;
       waldoStack.top() = iter1->second;
@@ -2254,11 +2249,7 @@ void libcdr::CDRParser::readBBox(WPXInputStream *input, unsigned length)
   double y0 = readCoordinate(input);
   double x1 = readCoordinate(input);
   double y1 = readCoordinate(input);
-  double width = fabs(x1-x0);
-  double height = fabs(y1-y0);
-  double offsetX = x1 < x0 ? x1 : x0;
-  double offsetY = y1 < y0 ? y1 : y0;
-  m_collector->collectBBox(width, height, offsetX, offsetY);
+  m_collector->collectBBox(x0, y0, x1, y1);
 }
 
 void libcdr::CDRParser::readSpnd(WPXInputStream *input, unsigned length)
