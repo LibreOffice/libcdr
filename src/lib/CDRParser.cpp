@@ -2289,8 +2289,8 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
-  unsigned fontId = readU16(input);
-  unsigned short fontEncoding = readU16(input);
+  unsigned fontId = readU32(input);
+  unsigned short fontEncoding = fontId >> 16;
   input->seek(14, WPX_SEEK_CUR);
   WPXString name;
   if (m_version >= 1200)
@@ -2357,8 +2357,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     }
     unsigned numFonts = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%x\n", numFonts));
-    std::map<unsigned,unsigned short> fontids;
-    std::map<unsigned,unsigned short> encodings;
+    std::map<unsigned,unsigned> fontIds;
     std::map<unsigned,double> fontSizes;
     for (i=0; i<numFonts; ++i)
     {
@@ -2367,8 +2366,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         input->seek(12, WPX_SEEK_CUR);
       else
         input->seek(20, WPX_SEEK_CUR);
-      fontids[fontStyleId] = readU16(input);
-      encodings[fontStyleId] = readU16(input);
+      fontIds[fontStyleId] = readU32(input);
       input->seek(8, WPX_SEEK_CUR);
       fontSizes[fontStyleId] = readCoordinate(input);
       if (m_version < 1000)
@@ -2543,12 +2541,9 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       }
       if (!fontRecordId)
         continue;
-      std::map<unsigned, unsigned short>::const_iterator iterFontId = fontids.find(fontRecordId);
-      if (iterFontId != fontids.end())
+      std::map<unsigned, unsigned>::const_iterator iterFontId = fontIds.find(fontRecordId);
+      if (iterFontId != fontIds.end())
         tmpCharStyle.m_fontId = iterFontId->second;
-      std::map<unsigned, unsigned short>::const_iterator iterEncoding = encodings.find(fontRecordId);
-      if (iterEncoding != encodings.end())
-        tmpCharStyle.m_charSet = iterEncoding->second;
       std::map<unsigned, double>::const_iterator iterFontSize = fontSizes.find(fontRecordId);
       if (iterFontSize != fontSizes.end())
         tmpCharStyle.m_fontSize = iterFontSize->second;
