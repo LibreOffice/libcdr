@@ -2444,7 +2444,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     for (i=0; i<numDropcaps; ++i)
     {
       input->seek(24, WPX_SEEK_CUR);
-      if (m_version >= 900)
+      if (m_version > 800)
         input->seek(4, WPX_SEEK_CUR);
     }
     unsigned numSet11s = readU32(input);
@@ -2453,6 +2453,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     {
       input->seek(12, WPX_SEEK_CUR);
     }
+#if 0
     if (m_version == 801) // cdr8bidi
     {
       unsigned numSet11plus = readU32(input);
@@ -2460,6 +2461,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       for (i=0; i<numSet11plus; ++i)
         input->seek(12, WPX_SEEK_CUR);
     }
+#endif
     std::map<unsigned, CDRStltRecord> styles;
     for (i=0; i<numRecords; ++i)
     {
