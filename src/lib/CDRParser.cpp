@@ -2571,7 +2571,7 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     if (!_redirectX6Chunk(&input, length))
       throw GenericException();
     if (m_version >= 1600)
-      return;
+      return readTxsm16(input);
     if (m_version >= 1500)
       input->seek(0x25, WPX_SEEK_CUR);
     else
@@ -2681,6 +2681,67 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     unsigned numBytes = numChars;
     if (m_version >= 1200)
       numBytes = readU32(input);
+    unsigned long numBytesRead = 0;
+    const unsigned char *buffer = input->read(numBytes, numBytesRead);
+    if (numBytesRead != numBytes)
+      throw GenericException();
+    std::vector<unsigned char> textData(numBytesRead);
+    if (numBytesRead)
+      memcpy(&textData[0], buffer, numBytesRead);
+
+    m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
+#ifndef DEBUG
+  }
+  catch (...)
+  {
+  }
+#endif
+}
+
+void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
+{
+#ifndef DEBUG
+  try
+  {
+#endif
+    unsigned frameFlag = readU32(input);
+    input->seek(41, WPX_SEEK_CUR);
+
+    unsigned textId = readU32(input);
+	printf("Fridrich textId %.8x\n", textId);
+
+    input->seek(64, WPX_SEEK_CUR);
+    if (!frameFlag)
+    {
+      input->seek(12, WPX_SEEK_CUR);
+      unsigned tlen = readU32(input);
+      input->seek(2*tlen + 4, WPX_SEEK_CUR);
+    }
+
+    unsigned stlId = readU32(input);
+	printf("Fridrich stlId %.8x\n", stlId);
+
+    if (frameFlag)
+      input->seek(1, WPX_SEEK_CUR);
+    input->seek(1, WPX_SEEK_CUR);
+
+    unsigned len2 = readU32(input);
+    input->seek(2*len2, WPX_SEEK_CUR);
+    input->seek(10, WPX_SEEK_CUR);
+    unsigned len3 = readU32(input);
+    input->seek(2*len3, WPX_SEEK_CUR);
+    unsigned len4 = readU32(input);
+    input->seek(2*len4, WPX_SEEK_CUR);
+
+    std::map<unsigned, CDRCharacterStyle> charStyles;
+    unsigned numChars = readU32(input);
+    std::vector<uint64_t> charDescriptions(numChars);
+    for (unsigned i=0; i<numChars; ++i)
+    {
+      charDescriptions[i] = readU64(input);
+    }
+    unsigned numBytes = numChars;
+    numBytes = readU32(input);
     unsigned long numBytesRead = 0;
     const unsigned char *buffer = input->read(numBytes, numBytesRead);
     if (numBytesRead != numBytes)

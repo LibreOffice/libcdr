@@ -104,6 +104,7 @@ private:
   void readFont(WPXInputStream *input, unsigned length);
   void readStlt(WPXInputStream *input, unsigned length);
   void readTxsm(WPXInputStream *input, unsigned length);
+  void readTxsm16(WPXInputStream *input);
 
   bool _redirectX6Chunk(WPXInputStream **input, unsigned &length);
 
