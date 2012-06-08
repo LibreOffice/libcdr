@@ -2708,7 +2708,7 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
     input->seek(41, WPX_SEEK_CUR);
 
     unsigned textId = readU32(input);
-	printf("Fridrich textId %.8x\n", textId);
+    printf("Fridrich textId %.8x\n", textId);
 
     input->seek(64, WPX_SEEK_CUR);
     if (!frameFlag)
@@ -2719,7 +2719,7 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
     }
 
     unsigned stlId = readU32(input);
-	printf("Fridrich stlId %.8x\n", stlId);
+    printf("Fridrich stlId %.8x\n", stlId);
 
     if (frameFlag)
       input->seek(1, WPX_SEEK_CUR);
@@ -2727,16 +2727,29 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
 
     unsigned len2 = readU32(input);
     input->seek(2*len2, WPX_SEEK_CUR);
-    input->seek(10, WPX_SEEK_CUR);
-    unsigned len3 = readU32(input);
-    input->seek(2*len3, WPX_SEEK_CUR);
-    unsigned len4 = readU32(input);
-    input->seek(2*len4, WPX_SEEK_CUR);
+
+    unsigned numRecords = readU32(input);
+
+    unsigned i = 0;
+    for (i=0; i<numRecords; ++i)
+    {
+      input->seek(4, WPX_SEEK_CUR);
+      unsigned flag = readU8(input);
+      input->seek(1, WPX_SEEK_CUR);
+      unsigned lenN = 0;
+      if (flag & 0x04)
+      {
+        lenN = readU32(input);
+        input->seek(2*lenN, WPX_SEEK_CUR);
+      }
+      lenN = readU32(input);
+      input->seek(2*lenN, WPX_SEEK_CUR);
+    }
 
     std::map<unsigned, CDRCharacterStyle> charStyles;
     unsigned numChars = readU32(input);
     std::vector<uint64_t> charDescriptions(numChars);
-    for (unsigned i=0; i<numChars; ++i)
+    for (i=0; i<numChars; ++i)
     {
       charDescriptions[i] = readU64(input);
     }
