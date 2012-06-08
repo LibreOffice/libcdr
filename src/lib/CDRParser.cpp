@@ -2445,8 +2445,10 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     {
       input->seek(28, WPX_SEEK_CUR);
     }
+    bool set11Flag(false);
     if (m_version > 800 || (m_version == 800 && numSet5s > 1))
     {
+      set11Flag = true;
       unsigned numSet11s = readU32(input);
       CDR_DEBUG_MSG(("CDRParser::readStlt numSet11s 0x%x\n", numSet11s));
       for (i=0; i<numSet11s; ++i)
@@ -2474,7 +2476,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         asize = 8;
         break;
       }
-      if (m_version <= 800 && num > 1)
+      if (m_version <= 800 && num > 1 && !set11Flag)
         asize -= 4;
       unsigned styleId = readU32(input);
       CDRStltRecord style;
@@ -2493,7 +2495,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         style.alignId = readU32(input);
         style.intervalId = readU32(input);
         style.set5Id = readU32(input);
-        if (m_version > 800)
+        if (set11Flag)
           style.set11Id = readU32(input);
       }
       if (num > 2)
