@@ -2443,25 +2443,17 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     CDR_DEBUG_MSG(("CDRParser::readStlt numDropcaps 0x%x\n", numDropcaps));
     for (i=0; i<numDropcaps; ++i)
     {
-      input->seek(24, WPX_SEEK_CUR);
-      if (m_version > 800)
-        input->seek(4, WPX_SEEK_CUR);
+      input->seek(28, WPX_SEEK_CUR);
     }
-    unsigned numSet11s = readU32(input);
-    CDR_DEBUG_MSG(("CDRParser::readStlt numSet11s 0x%x\n", numSet11s));
-    for (i=0; i<numSet11s; ++i)
+    if (m_version > 800 || (m_version == 800 && numSet5s > 1))
     {
-      input->seek(12, WPX_SEEK_CUR);
-    }
-#if 0
-    if (m_version == 801) // cdr8bidi
-    {
-      unsigned numSet11plus = readU32(input);
-      CDR_DEBUG_MSG(("CDRParser::readStlt numSet11plus 0x%x\n", numSet11plus));
-      for (i=0; i<numSet11plus; ++i)
+      unsigned numSet11s = readU32(input);
+      CDR_DEBUG_MSG(("CDRParser::readStlt numSet11s 0x%x\n", numSet11s));
+      for (i=0; i<numSet11s; ++i)
+      {
         input->seek(12, WPX_SEEK_CUR);
+      }
     }
-#endif
     std::map<unsigned, CDRStltRecord> styles;
     for (i=0; i<numRecords; ++i)
     {
