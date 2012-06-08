@@ -2446,7 +2446,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       input->seek(28, WPX_SEEK_CUR);
     }
     bool set11Flag(false);
-    if (m_version > 800 || (m_version == 800 && numSet5s > 1))
+    if (m_version > 800)
     {
       set11Flag = true;
       unsigned numSet11s = readU32(input);
