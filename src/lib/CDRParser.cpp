@@ -2330,6 +2330,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       return;
     if (!_redirectX6Chunk(&input, length))
       throw GenericException();
+    long startPosition = input->tell();
     unsigned numRecords = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numRecords 0x%x\n", numRecords));
     if (!numRecords)
@@ -2445,111 +2446,134 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     {
       input->seek(28, WPX_SEEK_CUR);
     }
-    bool set11Flag(false);
-    if (m_version > 800)
-    {
-      set11Flag = true;
-      unsigned numSet11s = readU32(input);
-      CDR_DEBUG_MSG(("CDRParser::readStlt numSet11s 0x%x\n", numSet11s));
-      for (i=0; i<numSet11s; ++i)
-      {
-        input->seek(12, WPX_SEEK_CUR);
-      }
-    }
-    std::map<unsigned, CDRStltRecord> styles;
-    for (i=0; i<numRecords; ++i)
-    {
-      CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
-      unsigned num = readU32(input);
-      CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles num 0x%x\n", num));
-      unsigned asize = 0;
-      switch (num)
-      {
-      case 3:
-        asize = 48;
-        break;
-      case 2:
-        asize = 28;
-        break;
-      case 1:
-      default:
-        asize = 8;
-        break;
-      }
-      if (m_version <= 800 && num > 1 && !set11Flag)
-        asize -= 4;
-      unsigned styleId = readU32(input);
-      CDRStltRecord style;
-      style.parentId = readU32(input);
-      input->seek(8, WPX_SEEK_CUR);
-      unsigned namelen = readU32(input);
-      CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles namelen 0x%x\n", namelen));
-      if (m_version >= 1200)
-        namelen *= 2;
-      input->seek(namelen, WPX_SEEK_CUR);
-      style.fillId = readU32(input);
-      style.outlId = readU32(input);
-      if (num > 1)
-      {
-        style.fontRecId = readU32(input);
-        style.alignId = readU32(input);
-        style.intervalId = readU32(input);
-        style.set5Id = readU32(input);
-        if (set11Flag)
-          style.set11Id = readU32(input);
-      }
-      if (num > 2)
-      {
-        style.tabId = readU32(input);
-        style.bulletId = readU32(input);
-        style.identId = readU32(input);
-        style.hyphenId = readU32(input);
-        style.dropCapId = readU32(input);
-      }
-      styles[styleId] = style;
-    }
+#ifndef DEBUG
+    unsigned version = m_version;
+#endif
     std::map<unsigned, CDRCharacterStyle> charStyles;
-    CDRCharacterStyle tmpCharStyle;
-    for (std::map<unsigned, CDRStltRecord>::const_iterator iter = styles.begin();
-         iter != styles.end(); ++iter)
+    try
     {
-      unsigned fontRecordId = 0;
-      if (iter->second.fontRecId)
-        fontRecordId = iter->second.fontRecId;
-      else if (iter->second.parentId)
+      bool set11Flag(false);
+      if (m_version > 800)
       {
-        unsigned parentId = iter->second.parentId;
-        while (true)
+        set11Flag = true;
+        unsigned numSet11s = readU32(input);
+        CDR_DEBUG_MSG(("CDRParser::readStlt numSet11s 0x%x\n", numSet11s));
+        for (i=0; i<numSet11s; ++i)
         {
-          std::map<unsigned, CDRStltRecord>::const_iterator iter2 = styles.find(parentId);
-          if (iter2 == styles.end())
-            break;
-          if (iter2->second.fontRecId)
-          {
-            fontRecordId = iter2->second.fontRecId;
-            break;
-          }
-          if (iter2->second.parentId)
-            parentId = iter2->second.parentId;
-          else
-            break;
+          input->seek(12, WPX_SEEK_CUR);
         }
       }
-      if (!fontRecordId)
-        continue;
-      std::map<unsigned, unsigned>::const_iterator iterFontId = fontIds.find(fontRecordId);
-      if (iterFontId != fontIds.end())
-        tmpCharStyle.m_fontId = iterFontId->second;
-      std::map<unsigned, double>::const_iterator iterFontSize = fontSizes.find(fontRecordId);
-      if (iterFontSize != fontSizes.end())
-        tmpCharStyle.m_fontSize = iterFontSize->second;
-      charStyles[iter->first] = tmpCharStyle;
+      std::map<unsigned, CDRStltRecord> styles;
+      for (i=0; i<numRecords; ++i)
+      {
+        CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
+        unsigned num = readU32(input);
+        CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles num 0x%x\n", num));
+        unsigned asize = 0;
+        switch (num)
+        {
+        case 3:
+          asize = 48;
+          break;
+        case 2:
+          asize = 28;
+          break;
+        case 1:
+        default:
+          asize = 8;
+          break;
+        }
+        if (m_version <= 800 && num > 1 && !set11Flag)
+          asize -= 4;
+        unsigned styleId = readU32(input);
+        CDRStltRecord style;
+        style.parentId = readU32(input);
+        input->seek(8, WPX_SEEK_CUR);
+        unsigned namelen = readU32(input);
+        CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles namelen 0x%x\n", namelen));
+        if (m_version >= 1200)
+          namelen *= 2;
+        input->seek(namelen, WPX_SEEK_CUR);
+        style.fillId = readU32(input);
+        style.outlId = readU32(input);
+        if (num > 1)
+        {
+          style.fontRecId = readU32(input);
+          style.alignId = readU32(input);
+          style.intervalId = readU32(input);
+          style.set5Id = readU32(input);
+          if (set11Flag)
+            style.set11Id = readU32(input);
+        }
+        if (num > 2)
+        {
+          style.tabId = readU32(input);
+          style.bulletId = readU32(input);
+          style.identId = readU32(input);
+          style.hyphenId = readU32(input);
+          style.dropCapId = readU32(input);
+        }
+        styles[styleId] = style;
+      }
+      CDRCharacterStyle tmpCharStyle;
+      for (std::map<unsigned, CDRStltRecord>::const_iterator iter = styles.begin();
+           iter != styles.end(); ++iter)
+      {
+        unsigned fontRecordId = 0;
+        if (iter->second.fontRecId)
+          fontRecordId = iter->second.fontRecId;
+        else if (iter->second.parentId)
+        {
+          unsigned parentId = iter->second.parentId;
+          while (true)
+          {
+            std::map<unsigned, CDRStltRecord>::const_iterator iter2 = styles.find(parentId);
+            if (iter2 == styles.end())
+              break;
+            if (iter2->second.fontRecId)
+            {
+              fontRecordId = iter2->second.fontRecId;
+              break;
+            }
+            if (iter2->second.parentId)
+              parentId = iter2->second.parentId;
+            else
+              break;
+          }
+        }
+        if (!fontRecordId)
+          continue;
+        std::map<unsigned, unsigned>::const_iterator iterFontId = fontIds.find(fontRecordId);
+        if (iterFontId != fontIds.end())
+          tmpCharStyle.m_fontId = iterFontId->second;
+        std::map<unsigned, double>::const_iterator iterFontSize = fontSizes.find(fontRecordId);
+        if (iterFontSize != fontSizes.end())
+          tmpCharStyle.m_fontSize = iterFontSize->second;
+        charStyles[iter->first] = tmpCharStyle;
+      }
+    }
+    catch (libcdr::EndOfStreamException &)
+    {
+      if (m_version == 800)
+      {
+        CDR_DEBUG_MSG(("Catching EndOfStreamException and trying to parse as version 801\n"));
+        m_version = 801;
+        input->seek(startPosition, WPX_SEEK_SET);
+        readStlt(input, length);
+        return;
+      }
+      else
+      {
+        CDR_DEBUG_MSG(("Rethrowing EndOfStreamException\n"));
+        throw libcdr::EndOfStreamException();
+      }
     }
     m_collector->collectStlt(charStyles);
 #ifndef DEBUG
   }
   catch (...)
   {
+    m_version = version;
   }
 #endif
 }
