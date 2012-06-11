@@ -2325,6 +2325,7 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
 void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
 {
 #ifndef DEBUG
+  unsigned version = m_version;
   try
   {
 #endif
@@ -2448,9 +2449,6 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     {
       input->seek(28, WPX_SEEK_CUR);
     }
-#ifndef DEBUG
-    unsigned version = m_version;
-#endif
     std::map<unsigned, CDRCharacterStyle> charStyles;
     try
     {
