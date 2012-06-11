@@ -2726,18 +2726,38 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
     input->seek(41, WPX_SEEK_CUR);
 
     unsigned textId = readU32(input);
-    printf("Fridrich textId %.8x\n", textId);
 
-    input->seek(64, WPX_SEEK_CUR);
+    input->seek(48, WPX_SEEK_CUR);
     if (!frameFlag)
     {
-      input->seek(12, WPX_SEEK_CUR);
+      input->seek(28, WPX_SEEK_CUR);
       unsigned tlen = readU32(input);
       input->seek(2*tlen + 4, WPX_SEEK_CUR);
     }
+    else
+    {
+	  unsigned textOnPath = readU32(input);
+      if (textOnPath == 1)
+      {
+        input->seek(4, WPX_SEEK_CUR); // var1
+        input->seek(4, WPX_SEEK_CUR); // Orientation
+        input->seek(4, WPX_SEEK_CUR); // var2
+        input->seek(4, WPX_SEEK_CUR); // var3
+        input->seek(4, WPX_SEEK_CUR); // Offset
+        input->seek(4, WPX_SEEK_CUR); // var4
+        input->seek(4, WPX_SEEK_CUR); // Distance
+        input->seek(4, WPX_SEEK_CUR); // var5
+        input->seek(4, WPX_SEEK_CUR); // Mirror Vert
+        input->seek(4, WPX_SEEK_CUR); // Mirror Hor
+        input->seek(4, WPX_SEEK_CUR); // var6
+        input->seek(4, WPX_SEEK_CUR); // var7
+      }
+      else
+        input->seek(8, WPX_SEEK_CUR);
+      input->seek(4, WPX_SEEK_CUR);
+    }
 
     unsigned stlId = readU32(input);
-    printf("Fridrich stlId %.8x\n", stlId);
 
     if (frameFlag)
       input->seek(1, WPX_SEEK_CUR);
