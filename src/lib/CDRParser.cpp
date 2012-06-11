@@ -113,8 +113,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     unsigned i = 0;
     for (i = 0; i < 8; ++i)
       offsets.push_back(readU32(input));
-    /* unsigned char flag = */
-    readU8(input);
+    /* unsigned char flag = */ readU8(input);
     for (i = 0; i < 10; i++)
       offsets.push_back(readU32(input));
     input->seek(offsets[0], WPX_SEEK_SET);
@@ -592,6 +591,9 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
     break;
   case FOURCC_txsm:
     readTxsm(input, length);
+    break;
+  case FOURCC_styd:
+    readStyd(input);
     break;
   default:
     break;
@@ -2584,10 +2586,14 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
   try
   {
 #endif
-    if (m_version < 700)
+    if (m_version < 500)
       return;
     if (!_redirectX6Chunk(&input, length))
       throw GenericException();
+    if (m_version < 600)
+      return readTxsm5(input);
+    if (m_version < 700)
+      return readTxsm6(input);
     if (m_version >= 1600)
       return readTxsm16(input);
     if (m_version >= 1500)
@@ -2736,7 +2742,7 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
     }
     else
     {
-	  unsigned textOnPath = readU32(input);
+      unsigned textOnPath = readU32(input);
       if (textOnPath == 1)
       {
         input->seek(4, WPX_SEEK_CUR); // var1
@@ -2808,6 +2814,105 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
   {
   }
 #endif
+}
+
+void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
+{
+
+  input->seek(0x28, WPX_SEEK_CUR);
+  input->seek(48, WPX_SEEK_CUR);
+  input->seek(4, WPX_SEEK_CUR);
+  /* unsigned stlId = */ readU32(input);
+  unsigned numSt = readU32(input);
+  unsigned i = 0;
+  for (; i<numSt; ++i)
+  {
+    input->seek(60, WPX_SEEK_CUR);
+  }
+  unsigned numChars = readU32(input);
+  for (i=0; i<numChars; ++i)
+  {
+    input->seek(12, WPX_SEEK_CUR);
+  }
+}
+
+void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
+{
+  input->seek(10, WPX_SEEK_CUR);
+  /* unsigned stlId = */ readU16(input);
+  unsigned numSt = readU16(input);
+  unsigned i = 0;
+  for (; i<numSt; ++i)
+  {
+    input->seek(36, WPX_SEEK_CUR);
+  }
+  unsigned numChars = readU16(input);
+  for (i=0; i<numChars; ++i)
+  {
+    input->seek(8, WPX_SEEK_CUR);
+  }
+}
+
+void libcdr::CDRParser::readStyd(WPXInputStream *input)
+{
+  CDR_DEBUG_MSG(("libcdr::CDRParser::readStyd\n"));
+  if (m_version >= 700)
+  {
+    CDR_DEBUG_MSG(("Styd should not be present in this file version\n"));
+    return;
+  }
+  /* unsigned styleId = */ readU16(input);
+  long startPosition = input->tell();
+  unsigned chunkLength = readUnsigned(input);
+  unsigned numOfArgs = readUnsigned(input);
+  unsigned startOfArgs = readUnsigned(input);
+  unsigned startOfArgTypes = readUnsigned(input);
+  /* unsigned parentId = */ readUnsigned(input);
+  std::vector<unsigned> argOffsets(numOfArgs, 0);
+  std::vector<unsigned> argTypes(numOfArgs, 0);
+  unsigned i = 0;
+  input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
+  while (i<numOfArgs)
+    argOffsets[i++] = readUnsigned(input);
+  input->seek(startPosition+startOfArgTypes, WPX_SEEK_SET);
+  while (i>0)
+    argTypes[--i] = readUnsigned(input);
+
+  for (i=0; i < argTypes.size(); i++)
+  {
+    input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
+    CDR_DEBUG_MSG(("Styd: argument type: 0x%x\n", argTypes[i]));
+    switch(argTypes[i])
+    {
+    case STYD_NAME:
+      break;
+    case STYD_FILL_ID:
+      break;
+    case STYD_OUTL_ID:
+      break;
+    case STYD_FONTS:
+      break;
+    case STYD_ALIGN:
+      break;
+    case STYD_BULLETS:
+      break;
+    case STYD_INTERVALS:
+      break;
+    case STYD_TABS:
+      break;
+    case STYD_IDENTS:
+      break;
+    case STYD_HYPHENS:
+      break;
+    case STYD_SET5S:
+      break;
+    case STYD_DROPCAPS:
+      break;
+    default:
+      break;
+    }
+  }
+  input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

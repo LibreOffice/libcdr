@@ -103,8 +103,11 @@ private:
   void readUidr(WPXInputStream *input, unsigned length);
   void readFont(WPXInputStream *input, unsigned length);
   void readStlt(WPXInputStream *input, unsigned length);
+  void readStyd(WPXInputStream *input);
   void readTxsm(WPXInputStream *input, unsigned length);
   void readTxsm16(WPXInputStream *input);
+  void readTxsm6(WPXInputStream *input);
+  void readTxsm5(WPXInputStream *input);
 
   bool _redirectX6Chunk(WPXInputStream **input, unsigned &length);
 

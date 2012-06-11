@@ -29,6 +29,8 @@
 #ifndef __CDRDOCUMENTSTRUCTURE_H__
 #define __CDRDOCUMENTSTRUCTURE_H__
 
+// integer representations of fourcc
+
 #define FOURCC_arrt 0x74727261
 #define FOURCC_arrw 0x77727261
 #define FOURCC_arrx 0x78727261
@@ -112,6 +114,8 @@
 
 #define FOURCC_spnd 0x646e7073
 #define FOURCC_stlt 0x746c7473
+#define FOURCC_styd 0x64797473
+#define FOURCC_styl 0x6c797473
 #define FOURCC_sumi 0x696d7573
 #define FOURCC_summ 0x6d6d7573
 
@@ -133,6 +137,22 @@
 #define FOURCC_vect 0x74636576
 #define FOURCC_vpat 0x74617076
 #define FOURCC_vrsn 0x6e737276
+
+// Types of Styd arguments
+
+#define STYD_NAME 0xc8
+#define STYD_FILL_ID 0xcd
+#define STYD_OUTL_ID 0xd2
+#define STYD_FONTS 0xdc
+#define STYD_ALIGN 0xe1
+#define STYD_BULLETS 0xe6
+#define STYD_INTERVALS 0xeb
+#define STYD_TABS 0xf0
+#define STYD_IDENTS 0xf5
+#define STYD_HYPHENS 0xfa
+#define STYD_SET5S 0xff
+#define STYD_DROPCAPS 0x104
+
 
 #endif // __CDRDOCUMENTSTRUCTURE_H__
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
