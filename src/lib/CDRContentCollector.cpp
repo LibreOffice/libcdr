@@ -648,7 +648,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
           {
             if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
               propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
-            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 0.0)
+            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 1.0)
               propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
           }
           else
@@ -714,7 +714,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
           {
             if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
               propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
-            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 0.0)
+            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 1.0)
               propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
           }
           else
@@ -774,7 +774,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
           {
             if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
               propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
-            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 0.0)
+            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 1.0)
               propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
           }
           else
@@ -1021,7 +1021,7 @@ void libcdr::CDRContentCollector::collectFillOpacity(double opacity)
 void libcdr::CDRContentCollector::collectBBox(double x0, double y0, double x1, double y1)
 {
   CDRBBox bBox(x0, y0, x1, y1);
-  if (m_currentVectLevel && m_page.width == 0.0 && m_page.width == 0.0)
+  if (m_currentVectLevel && m_page.width == 0.0 && m_page.height == 0.0)
   {
     m_page.width = bBox.getWidth();
     m_page.height = bBox.getHeight();
