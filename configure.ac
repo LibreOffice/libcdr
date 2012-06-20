@@ -162,6 +162,8 @@ AC_ARG_ENABLE([debug],
 )
 AS_IF([test "x$enable_debug" = "xyes"], [
 	DEBUG_CXXFLAGS="-DDEBUG -g"
+	CXXFLAGS="$CXXFLAGS -O0"
+	CFLAGS="$CFLAGS -O0"
 ], [
 	DEBUG_CXXFLAGS="-DNDEBUG"
 ])
