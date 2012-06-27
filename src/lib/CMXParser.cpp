@@ -297,13 +297,13 @@ void libcdr::CMXParser::readPage(WPXInputStream *input, unsigned length)
 
 void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
 {
-  unsigned char tagId = 0;
-  unsigned short tagLength = 0;
   CDRBBox box;
   CDRTransform matrix;
   unsigned flags = 0;
   if (m_precision == libcdr::PRECISION_32BIT)
   {
+    unsigned char tagId = 0;
+    unsigned short tagLength = 0;
     do
     {
       long startOffset = input->tell();
@@ -353,13 +353,13 @@ void libcdr::CMXParser::readBeginGroup(WPXInputStream * /* input */)
 
 void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
 {
-  unsigned char tagId = 0;
-  unsigned short tagLength = 0;
   unsigned pointNum = 0;
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
   if (m_precision == libcdr::PRECISION_32BIT)
   {
+    unsigned char tagId = 0;
+    unsigned short tagLength = 0;
     do
     {
       long startOffset = input->tell();
@@ -418,8 +418,6 @@ void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
 
 void libcdr::CMXParser::readEllipse(WPXInputStream *input)
 {
-  unsigned char tagId = 0;
-  unsigned short tagLength = 0;
   double angle1 = 0.0;
   double angle2 = 0.0;
   double rotation = 0.0;
@@ -432,6 +430,8 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
 
   if (m_precision == libcdr::PRECISION_32BIT)
   {
+    unsigned char tagId = 0;
+    unsigned short tagLength = 0;
     do
     {
       long startOffset = input->tell();
@@ -518,8 +518,6 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
 
 void libcdr::CMXParser::readRectangle(WPXInputStream *input)
 {
-  unsigned char tagId = 0;
-  unsigned short tagLength = 0;
   double cx = 0.0;
   double cy = 0.0;
   double width = 0.0;
@@ -528,6 +526,8 @@ void libcdr::CMXParser::readRectangle(WPXInputStream *input)
   double angle = 0.0;
   if (m_precision == libcdr::PRECISION_32BIT)
   {
+    unsigned char tagId = 0;
+    unsigned short tagLength = 0;
     do
     {
       long startOffset = input->tell();
@@ -830,10 +830,10 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
 
 void libcdr::CMXParser::readJumpAbsolute(WPXInputStream *input)
 {
-  unsigned char tagId = 0;
-  unsigned short tagLength = 0;
   if (m_precision == libcdr::PRECISION_32BIT)
   {
+    unsigned char tagId = 0;
+    unsigned short tagLength = 0;
     do
     {
       long endOffset = input->tell() + tagLength;

@@ -59,6 +59,9 @@ libcdr::CDRStringVector::~CDRStringVector()
 
 libcdr::CDRStringVector &libcdr::CDRStringVector::operator=(const CDRStringVector &vec)
 {
+  // Check for self-assignment
+  if (this == &vec)
+    return *this;
   if (m_pImpl)
     delete m_pImpl;
   m_pImpl = new CDRStringVectorImpl(*(vec.m_pImpl));
