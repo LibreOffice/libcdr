@@ -304,7 +304,7 @@ struct WaldoRecordType1
 {
   WaldoRecordType1(unsigned id, unsigned short next, unsigned short previous,
                    unsigned short child, unsigned short parent, unsigned short flags,
-                   double x0, double y0, double x1, double y1, const CDRTransform trafo)
+                   double x0, double y0, double x1, double y1, const CDRTransform &trafo)
     : m_id(id), m_next(next), m_previous(previous), m_child(child), m_parent(parent),
       m_flags(flags), m_x0(x0), m_y0(y0), m_x1(x1), m_y1(y1), m_trafo(trafo) {}
   WaldoRecordType1()

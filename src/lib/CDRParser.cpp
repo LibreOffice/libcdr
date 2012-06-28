@@ -2469,22 +2469,6 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
         unsigned num = readU32(input);
         CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles num 0x%x\n", num));
-        unsigned asize = 0;
-        switch (num)
-        {
-        case 3:
-          asize = 48;
-          break;
-        case 2:
-          asize = 28;
-          break;
-        case 1:
-        default:
-          asize = 8;
-          break;
-        }
-        if (m_version <= 800 && num > 1 && !set11Flag)
-          asize -= 4;
         unsigned styleId = readU32(input);
         CDRStltRecord style;
         style.parentId = readU32(input);
@@ -2820,7 +2804,8 @@ void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
   input->seek(0x28, WPX_SEEK_CUR);
   input->seek(48, WPX_SEEK_CUR);
   input->seek(4, WPX_SEEK_CUR);
-  /* unsigned stlId = */ readU32(input);
+  /* unsigned stlId = */
+  readU32(input);
   unsigned numSt = readU32(input);
   unsigned i = 0;
   for (; i<numSt; ++i)
@@ -2837,7 +2822,8 @@ void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
 void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
 {
   input->seek(10, WPX_SEEK_CUR);
-  /* unsigned stlId = */ readU16(input);
+  /* unsigned stlId = */
+  readU16(input);
   unsigned numSt = readU16(input);
   unsigned i = 0;
   for (; i<numSt; ++i)
@@ -2865,7 +2851,8 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
   unsigned numOfArgs = readUnsigned(input);
   unsigned startOfArgs = readUnsigned(input);
   unsigned startOfArgTypes = readUnsigned(input);
-  /* unsigned parentId = */ readUnsigned(input);
+  /* unsigned parentId = */
+  readUnsigned(input);
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   std::vector<unsigned> argTypes(numOfArgs, 0);
   unsigned i = 0;
