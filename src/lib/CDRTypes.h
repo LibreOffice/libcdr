@@ -63,8 +63,6 @@ struct CDRBBox
   double m_h;
   CDRBBox()
     : m_x(0.0), m_y(0.0), m_w(0.0), m_h(0.0) {}
-  CDRBBox(const CDRBBox &box)
-    : m_x(box.m_x), m_y(box.m_y), m_w(box.m_w), m_h(box.m_h) {}
   CDRBBox(double x0, double y0, double x1, double y1)
     : m_x(x0 < x1 ? x0 : x1), m_y(y0 < y1 ? y0 : y1), m_w(fabs(x1-x0)), m_h(fabs(y1-y0)) {}
   double getWidth() const
@@ -93,8 +91,6 @@ struct CDRColor
   CDRColor() : m_colorModel(0), m_colorValue(0) {}
   CDRColor(unsigned short colorModel, unsigned colorValue)
     : m_colorModel(colorModel), m_colorValue(colorValue) {}
-  CDRColor(const CDRColor &color)
-    : m_colorModel(color.m_colorModel), m_colorValue(color.m_colorValue) {}
 };
 
 struct CDRGradientStop
@@ -104,8 +100,6 @@ struct CDRGradientStop
   CDRGradientStop() : m_color(), m_offset(0.0) {}
   CDRGradientStop(const CDRColor &color, double offset)
     : m_color(color), m_offset(offset) {}
-  CDRGradientStop(const CDRGradientStop &stop)
-    : m_color(stop.m_color), m_offset(stop.m_offset) {}
 };
 
 struct CDRGradient
@@ -120,10 +114,6 @@ struct CDRGradient
   std::vector<CDRGradientStop> m_stops;
   CDRGradient()
     : m_type(0), m_mode(0), m_angle(0.0), m_midPoint(0.0), m_edgeOffset(0), m_centerXOffset(0), m_centerYOffset(0), m_stops() {}
-  CDRGradient(const CDRGradient &gradient)
-    : m_type(gradient.m_type), m_mode(gradient.m_mode), m_angle(gradient.m_angle), m_midPoint(gradient.m_midPoint),
-      m_edgeOffset(gradient.m_edgeOffset), m_centerXOffset(gradient.m_centerXOffset), m_centerYOffset(gradient.m_centerYOffset),
-      m_stops(gradient.m_stops) {}
 };
 
 struct CDRImageFill
@@ -152,8 +142,6 @@ struct CDRFillStyle
     : fillType(0), color1(), color2(), gradient(), imageFill() {}
   CDRFillStyle(unsigned short ft, CDRColor c1, CDRColor c2, const CDRGradient &gr, const CDRImageFill &img)
     : fillType(ft), color1(c1), color2(c2), gradient(gr), imageFill(img) {}
-  CDRFillStyle(const CDRFillStyle &style)
-    : fillType(style.fillType), color1(style.color1), color2(style.color2), gradient(style.gradient), imageFill(style.imageFill) {}
 };
 
 struct CDRLineStyle
@@ -265,8 +253,6 @@ struct CDRPage
   CDRPage() : width(0.0), height(0.0), offsetX(0.0), offsetY(0.0) {}
   CDRPage(double w, double h, double ox, double oy)
     : width(w), height(h), offsetX(ox), offsetY(oy) {}
-  CDRPage(const CDRPage &page)
-    : width(page.width), height(page.height), offsetX(page.offsetX), offsetY(page.offsetY) {}
 };
 
 struct CDRSplineData
@@ -276,8 +262,6 @@ struct CDRSplineData
   CDRSplineData() : points(), knotVector() {}
   CDRSplineData(const std::vector<std::pair<double, double> > &ps, const std::vector<unsigned> &kntv)
     : points(ps), knotVector(kntv) {}
-  CDRSplineData(const CDRSplineData &data)
-    : points(data.points), knotVector(data.knotVector) {}
   void clear()
   {
     points.clear();
@@ -310,11 +294,6 @@ struct WaldoRecordType1
   WaldoRecordType1()
     : m_id(0), m_next(0), m_previous(0), m_child(0), m_parent(0), m_flags(0),
       m_x0(0.0), m_y0(0.0), m_x1(0.0), m_y1(0.0), m_trafo() {}
-  WaldoRecordType1(const WaldoRecordType1 &record)
-    : m_id(record.m_id), m_next(record.m_next), m_previous(record.m_previous),
-      m_child(record.m_child), m_parent(record.m_parent), m_flags(record.m_flags),
-      m_x0(record.m_x0), m_y0(record.m_y0), m_x1(record.m_x1), m_y1(record.m_y1),
-      m_trafo(record.m_trafo) {}
   unsigned m_id;
   unsigned short m_next;
   unsigned short m_previous;
@@ -333,8 +312,6 @@ struct CDRCMYKColor
   CDRCMYKColor(unsigned colorValue, bool percentage = true);
   CDRCMYKColor(double cyan, double magenta, double yellow, double black)
     : c(cyan), m(magenta), y(yellow), k(black) {}
-  CDRCMYKColor(const CDRCMYKColor &color)
-    : c(color.c), m(color.m), y(color.y), k(color.k) {}
   ~CDRCMYKColor() {}
   double c;
   double m;
@@ -349,8 +326,6 @@ struct CDRRGBColor
   CDRRGBColor(unsigned colorValue);
   CDRRGBColor(double red, double green, double blue)
     : r(red), g(green), b(blue) {}
-  CDRRGBColor(const CDRRGBColor &color)
-    : r(color.r), g(color.g), b(color.b) {}
   ~CDRRGBColor() {}
   double r;
   double g;
@@ -364,8 +339,6 @@ struct CDRLab2Color
   CDRLab2Color(unsigned colorValue);
   CDRLab2Color(double l, double A, double B)
     : L(l), a(A), b(B) {}
-  CDRLab2Color(const CDRLab2Color &color)
-    : L(color.L), a(color.a), b(color.b) {}
   ~CDRLab2Color() {}
   double L;
   double a;
@@ -379,8 +352,6 @@ struct CDRLab4Color
   CDRLab4Color(unsigned colorValue);
   CDRLab4Color(double l, double A, double B)
     : L(l), a(A), b(B) {}
-  CDRLab4Color(const CDRLab2Color &color)
-    : L(color.L), a(color.a), b(color.b) {}
   ~CDRLab4Color() {}
   double L;
   double a;
