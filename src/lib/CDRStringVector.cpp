@@ -54,6 +54,7 @@ libcdr::CDRStringVector::CDRStringVector(const CDRStringVector &vec)
 
 libcdr::CDRStringVector::~CDRStringVector()
 {
+  delete m_pImpl;
 }
 
 libcdr::CDRStringVector &libcdr::CDRStringVector::operator=(const CDRStringVector &vec)
