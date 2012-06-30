@@ -73,6 +73,9 @@ public:
   bool empty();
 
 private:
+  CDRPath &operator=(const CDRPath &path);
+
+private:
   std::vector<CDRPathElement *> m_elements;
 };
 
