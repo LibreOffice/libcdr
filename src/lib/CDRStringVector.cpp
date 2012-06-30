@@ -36,7 +36,6 @@ class CDRStringVectorImpl
 {
 public:
   CDRStringVectorImpl() : m_strings() {}
-  CDRStringVectorImpl(const CDRStringVectorImpl &impl) : m_strings(impl.m_strings) {}
   ~CDRStringVectorImpl() {}
   std::vector<WPXString> m_strings;
 };
