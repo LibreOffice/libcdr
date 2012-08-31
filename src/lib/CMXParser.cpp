@@ -97,7 +97,7 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
     unsigned length = readU32(input);
     long endPosition = input->tell() + length;
 
-    CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, toFourCC(fourCC), length, length));
+    CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%u)\n", level, toFourCC(fourCC), length, length));
 
     if (fourCC == FOURCC_RIFF || fourCC == FOURCC_RIFX || fourCC == FOURCC_LIST)
     {
@@ -191,7 +191,7 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
     tmpString.append((char)readU8(input));
   CDR_DEBUG_MSG(("CMX Version Minor: %s\n", tmpString.cstr()));
   m_unit = readU16(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMX Base Units: %i\n", m_unit));
+  CDR_DEBUG_MSG(("CMX Base Units: %u\n", m_unit));
   m_scale = readDouble(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMX Units Scale: %.9f\n", m_scale));
   input->seek(12, WPX_SEEK_CUR);
@@ -314,7 +314,7 @@ void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
         break;
       }
       tagLength = readU16(input, m_bigEndian);
-      CDR_DEBUG_MSG(("  CMXParser::readBeginPage - tagId %i, tagLength %i\n", tagId, tagLength));
+      CDR_DEBUG_MSG(("  CMXParser::readBeginPage - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
       case CMX_Tag_BeginPage_PageSpecification:
@@ -370,7 +370,7 @@ void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
         break;
       }
       tagLength = readU16(input, m_bigEndian);
-      CDR_DEBUG_MSG(("  CMXParser::readPolyCurve - tagId %i, tagLength %i\n", tagId, tagLength));
+      CDR_DEBUG_MSG(("  CMXParser::readPolyCurve - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
       case CMX_Tag_PolyCurve_RenderingAttr:
@@ -442,7 +442,7 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
         break;
       }
       tagLength = readU16(input, m_bigEndian);
-      CDR_DEBUG_MSG(("  CMXParser::readEllipse - tagId %i, tagLength %i\n", tagId, tagLength));
+      CDR_DEBUG_MSG(("  CMXParser::readEllipse - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
       case CMX_Tag_Ellips_RenderingAttr:
@@ -538,7 +538,7 @@ void libcdr::CMXParser::readRectangle(WPXInputStream *input)
         break;
       }
       tagLength = readU16(input, m_bigEndian);
-      CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i, tagLength %i\n", tagId, tagLength));
+      CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
       case CMX_Tag_Rectangle_RenderingAttr:
@@ -649,7 +649,7 @@ void libcdr::CMXParser::readFill(WPXInputStream *input)
           CDR_DEBUG_MSG(("    Solid fill - tagId %i\n", tagId));
         }
         tagLength = readU16(input, m_bigEndian);
-        CDR_DEBUG_MSG(("    Solid fill - tagId %i, tagLength %i\n", tagId, tagLength));
+        CDR_DEBUG_MSG(("    Solid fill - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
         case CMX_Tag_RenderAttr_FillSpec_Uniform:
@@ -707,7 +707,7 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
           break;
         }
         tagLength = readU16(input, m_bigEndian);
-        CDR_DEBUG_MSG(("  Fill specification - tagId %i, tagLength %i\n", tagId, tagLength));
+        CDR_DEBUG_MSG(("  Fill specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
 
@@ -735,7 +735,7 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
           break;
         }
         tagLength = readU16(input, m_bigEndian);
-        CDR_DEBUG_MSG(("  Outline specification - tagId %i, tagLength %i\n", tagId, tagLength));
+        CDR_DEBUG_MSG(("  Outline specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
         case CMX_Tag_RenderAttr_OutlineSpec:
@@ -765,7 +765,7 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
           break;
         }
         tagLength = readU16(input, m_bigEndian);
-        CDR_DEBUG_MSG(("  Lens specification - tagId %i, tagLength %i\n", tagId, tagLength));
+        CDR_DEBUG_MSG(("  Lens specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
         default:
@@ -790,7 +790,7 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
           break;
         }
         tagLength = readU16(input, m_bigEndian);
-        CDR_DEBUG_MSG(("  Canvas specification - tagId %i, tagLength %i\n", tagId, tagLength));
+        CDR_DEBUG_MSG(("  Canvas specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
         default:
@@ -815,7 +815,7 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
           break;
         }
         tagLength = readU16(input, m_bigEndian);
-        CDR_DEBUG_MSG(("  Container specification - tagId %i, tagLength %i\n", tagId, tagLength));
+        CDR_DEBUG_MSG(("  Container specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
         default:
@@ -844,7 +844,7 @@ void libcdr::CMXParser::readJumpAbsolute(WPXInputStream *input)
         break;
       }
       tagLength = readU16(input, m_bigEndian);
-      CDR_DEBUG_MSG(("  CMXParser::readJumpAbsolute - tagId %i, tagLength %i\n", tagId, tagLength));
+      CDR_DEBUG_MSG(("  CMXParser::readJumpAbsolute - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
       case CMX_Tag_JumpAbsolute_Offset:

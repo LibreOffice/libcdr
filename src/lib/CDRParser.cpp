@@ -373,7 +373,7 @@ void libcdr::CDRParser::readWaldoTrfd(WPXInputStream *input)
     v4 = readFixedPoint(input);
     y0 += readFixedPoint(input) / 1000.0;
   }
-  CDR_DEBUG_MSG(("CDRParser::readWaldoTrfd %f %f %f %f %f %f %i\n", v0, v1, x0, v3, v4, y0, m_version));
+  CDR_DEBUG_MSG(("CDRParser::readWaldoTrfd %f %f %f %f %f %f %u\n", v0, v1, x0, v3, v4, y0, m_version));
   m_collector->collectTransform(v0, v1, x0, v3, v4, y0, m_version < 400);
 }
 
@@ -459,7 +459,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       else
         m_collector->collectOtherList();
     }
-    CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%i)\n", level, toFourCC(fourCC), length, length));
+    CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%u)\n", level, toFourCC(fourCC), length, length));
 
     if (fourCC == FOURCC_RIFF || fourCC == FOURCC_LIST)
     {
@@ -2340,24 +2340,18 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       return;
     unsigned numFills = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numFills 0x%x\n", numFills));
-    std::map<unsigned,unsigned> fills;
     unsigned i = 0;
     for (i=0; i<numFills; ++i)
     {
-      unsigned fillId = readU32(input);
-      input->seek(4, WPX_SEEK_CUR);
-      fills[fillId] = readU32(input);
+      input->seek(12, WPX_SEEK_CUR);
       if (m_version >= 1300)
         input->seek(48, WPX_SEEK_CUR);
     }
     unsigned numOutls = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numOutls 0x%x\n", numOutls));
-    std::map<unsigned,unsigned> outls;
     for (i=0; i<numOutls; ++i)
     {
-      unsigned outlId = readU32(input);
-      input->seek(4, WPX_SEEK_CUR);
-      outls[outlId] = readU32(input);
+      input->seek(12, WPX_SEEK_CUR);
     }
     unsigned numFonts = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%x\n", numFonts));
@@ -2379,13 +2373,10 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         input->seek(20, WPX_SEEK_CUR);
     }
     unsigned numAligns = readU32(input);
-    std::map<unsigned, unsigned> aligns;
     CDR_DEBUG_MSG(("CDRParser::readStlt numAligns 0x%x\n", numAligns));
     for (i=0; i<numAligns; ++i)
     {
-      unsigned alignId = readU32(input);
-      input->seek(4, WPX_SEEK_CUR);
-      aligns[alignId] = readU32(input);
+      input->seek(12, WPX_SEEK_CUR);
     }
     unsigned numIntervals = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numIntervals 0x%x\n", numIntervals));
