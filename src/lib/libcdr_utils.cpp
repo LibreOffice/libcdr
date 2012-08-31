@@ -14,7 +14,6 @@
  *
  * Major Contributor(s):
  * Copyright (C) 2012 Fridrich Strba <fridrich.strba@bluewin.ch>
- * Copyright (C) 2011 Eilidh McAdam <tibbylickle@gmail.com>
  *
  *
  * All Rights Reserved.
