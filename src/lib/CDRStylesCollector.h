@@ -63,7 +63,7 @@ public:
   void collectArcTo(double, double, bool, bool, double, double) {}
   void collectClosePath() {}
   void collectLevel(unsigned) {}
-  void collectTransform(double, double, double, double, double, double, bool) {}
+  void collectTransform(const std::vector<CDRTransform> &, bool) {}
   void collectFildId(unsigned) {}
   void collectOutlId(unsigned) {}
   void collectFild(unsigned id, unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill);

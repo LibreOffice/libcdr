@@ -53,7 +53,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFildId(0.0), m_currentOutlId(0), m_spnd(0),
   m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
   m_currentImage(), m_currentText(), m_currentTextOffsetX(0.0), m_currentTextOffsetY(0.0),
-  m_currentBBox(), m_currentPath(), m_currentTransform(), m_fillTransform(),
+  m_currentBBox(), m_currentPath(), m_currentTransforms(), m_fillTransform(),
   m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(0),
   m_contentOutputElements(), m_fillOutputElements(),
   m_groupLevels(), m_groupTransforms(), m_splineData(), m_fillOpacity(1.0), m_ps(ps)
@@ -221,7 +221,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     _fillProperties(style, gradient);
     _lineProperties(style);
     outputElement.addStyle(style, gradient);
-    m_currentPath.transform(m_currentTransform);
+    for (std::vector<CDRTransform>::const_iterator ti = m_currentTransforms.begin(); ti != m_currentTransforms.end(); ++ti)
+      m_currentPath.transform(*ti);
     if (!m_groupTransforms.empty())
       m_currentPath.transform(m_groupTransforms.top());
     CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
@@ -328,20 +329,21 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   {
     double cx = m_currentImage.getMiddleX();
     double cy = m_currentImage.getMiddleY();
-    m_currentTransform.applyToPoint(cx, cy);
+    for (std::vector<CDRTransform>::const_iterator ti = m_currentTransforms.begin(); ti != m_currentTransforms.end(); ++ti)
+      ti->applyToPoint(cx, cy);
     if (!m_groupTransforms.empty())
       m_groupTransforms.top().applyToPoint(cx, cy);
     CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
     tmpTrafo.applyToPoint(cx, cy);
     tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
     tmpTrafo.applyToPoint(cx, cy);
-    double scaleX = (m_currentTransform.m_v0 < 0.0 ? -1.0 : 1.0)*sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
-    double scaleY = (m_currentTransform.m_v3 < 0.0 ? -1.0 : 1.0)*sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
+    double scaleX = (m_currentTransforms[0].m_v0 < 0.0 ? -1.0 : 1.0)*sqrt(m_currentTransforms[0].m_v0 * m_currentTransforms[0].m_v0 + m_currentTransforms[0].m_v1 * m_currentTransforms[0].m_v1);
+    double scaleY = (m_currentTransforms[0].m_v3 < 0.0 ? -1.0 : 1.0)*sqrt(m_currentTransforms[0].m_v3 * m_currentTransforms[0].m_v3 + m_currentTransforms[0].m_v4 * m_currentTransforms[0].m_v4);
     bool flipX(scaleX < 0);
     bool flipY(scaleY < 0);
     double width = fabs(scaleX)*m_currentImage.getWidth();
     double height = fabs(scaleY)*m_currentImage.getHeight();
-    double rotate = -atan2(m_currentTransform.m_v3, m_currentTransform.m_v4);
+    double rotate = -atan2(m_currentTransforms[0].m_v3, m_currentTransforms[0].m_v4);
 
     WPXPropertyList propList;
 
@@ -377,7 +379,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   {
     double currentTextOffsetX = 0.0;
     double currentTextOffsetY = 0.0;
-    m_currentTransform.applyToPoint(currentTextOffsetX, currentTextOffsetY);
+    m_currentTransforms[0].applyToPoint(currentTextOffsetX, currentTextOffsetY);
     if (!m_groupTransforms.empty())
       m_groupTransforms.top().applyToPoint(currentTextOffsetX, currentTextOffsetY);
     WPXPropertyList textFrameProps;
@@ -415,18 +417,18 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   m_currentImage = libcdr::CDRImage();
   if (!outputElement.empty())
     m_outputElements->push(outputElement);
-  m_currentTransform = libcdr::CDRTransform();
+  m_currentTransforms.clear();
   m_fillTransform = libcdr::CDRTransform();
   m_fillOpacity = 1.0;
   m_currentText = CDRText();
 }
 
-void libcdr::CDRContentCollector::collectTransform(double v0, double v1, double x0, double v3, double v4, double y0, bool considerGroupTransform)
+void libcdr::CDRContentCollector::collectTransform(const std::vector<CDRTransform> &transforms, bool considerGroupTransform)
 {
   if (m_currentObjectLevel)
-    m_currentTransform = libcdr::CDRTransform(v0, v1, x0, v3, v4, y0);
+    m_currentTransforms = transforms;
   else if (!m_groupLevels.empty() && considerGroupTransform)
-    m_groupTransforms.top() = CDRTransform(v0, v1, x0, v3, v4, y0);
+    m_groupTransforms.top() = transforms[0];
 }
 
 void libcdr::CDRContentCollector::collectFillTransform(double v0, double v1, double x0, double v3, double v4, double y0)
@@ -682,8 +684,8 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             double scaleY = 1.0;
             if (iter->second.imageFill.flags & 0x04) // scale fill with image
             {
-              scaleX = sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
-              scaleY = sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
+              scaleX = sqrt(m_currentTransforms[0].m_v0 * m_currentTransforms[0].m_v0 + m_currentTransforms[0].m_v1 * m_currentTransforms[0].m_v1);
+              scaleY = sqrt(m_currentTransforms[0].m_v3 * m_currentTransforms[0].m_v3 + m_currentTransforms[0].m_v4 * m_currentTransforms[0].m_v4);
             }
             propList.insert("svg:width", iter->second.imageFill.width * scaleX);
             propList.insert("svg:height", iter->second.imageFill.height * scaleY);
@@ -748,8 +750,8 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             double scaleY = 1.0;
             if (iter->second.imageFill.flags & 0x04) // scale fill with image
             {
-              scaleX = sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
-              scaleY = sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
+              scaleX = sqrt(m_currentTransforms[0].m_v0 * m_currentTransforms[0].m_v0 + m_currentTransforms[0].m_v1 * m_currentTransforms[0].m_v1);
+              scaleY = sqrt(m_currentTransforms[0].m_v3 * m_currentTransforms[0].m_v3 + m_currentTransforms[0].m_v4 * m_currentTransforms[0].m_v4);
             }
             propList.insert("svg:width", iter->second.imageFill.width * scaleX);
             propList.insert("svg:height", iter->second.imageFill.height * scaleY);
@@ -808,8 +810,8 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             double scaleY = 1.0;
             if (iter->second.imageFill.flags & 0x04) // scale fill with image
             {
-              scaleX = sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
-              scaleY = sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
+              scaleX = sqrt(m_currentTransforms[0].m_v0 * m_currentTransforms[0].m_v0 + m_currentTransforms[0].m_v1 * m_currentTransforms[0].m_v1);
+              scaleY = sqrt(m_currentTransforms[0].m_v3 * m_currentTransforms[0].m_v3 + m_currentTransforms[0].m_v4 * m_currentTransforms[0].m_v4);
             }
             propList.insert("svg:width", iter->second.imageFill.width * scaleX);
             propList.insert("svg:height", iter->second.imageFill.height * scaleY);
@@ -884,8 +886,8 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
       double scale = 1.0;
       if (iter->second.lineType & 0x20) // scale line with image
       {
-        scale = sqrt(m_currentTransform.m_v0 * m_currentTransform.m_v0 + m_currentTransform.m_v1 * m_currentTransform.m_v1);
-        double scaleY = sqrt(m_currentTransform.m_v3 * m_currentTransform.m_v3 + m_currentTransform.m_v4 * m_currentTransform.m_v4);
+        scale = sqrt(m_currentTransforms[0].m_v0 * m_currentTransforms[0].m_v0 + m_currentTransforms[0].m_v1 * m_currentTransforms[0].m_v1);
+        double scaleY = sqrt(m_currentTransforms[0].m_v3 * m_currentTransforms[0].m_v3 + m_currentTransforms[0].m_v4 * m_currentTransforms[0].m_v4);
         if (scaleY > scale)
           scale = scaleY;
       }

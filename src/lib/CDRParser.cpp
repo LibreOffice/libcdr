@@ -113,7 +113,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     unsigned i = 0;
     for (i = 0; i < 8; ++i)
       offsets.push_back(readU32(input));
-    /* unsigned char flag = */ readU8(input);
+    input->seek(1, WPX_SEEK_CUR);
     for (i = 0; i < 10; i++)
       offsets.push_back(readU32(input));
     input->seek(offsets[0], WPX_SEEK_SET);
@@ -281,9 +281,10 @@ bool libcdr::CDRParser::parseWaldoStructure(WPXInputStream *input, std::stack<Wa
       {
         m_collector->collectGroup(waldoStack.size());
         m_collector->collectSpnd(waldoStack.top().m_id);
-        m_collector->collectTransform(waldoStack.top().m_trafo.m_v0, waldoStack.top().m_trafo.m_v1, waldoStack.top().m_trafo.m_x0,
-                                      waldoStack.top().m_trafo.m_v3, waldoStack.top().m_trafo.m_v4, waldoStack.top().m_trafo.m_y0,
-                                      true);
+        std::vector<CDRTransform> trafoVec;
+        trafoVec.push_back(CDRTransform(waldoStack.top().m_trafo.m_v0, waldoStack.top().m_trafo.m_v1, waldoStack.top().m_trafo.m_x0,
+                                        waldoStack.top().m_trafo.m_v3, waldoStack.top().m_trafo.m_v4, waldoStack.top().m_trafo.m_y0));
+        m_collector->collectTransform(trafoVec, true);
       }
       iter1 = records1.find(waldoStack.top().m_child);
       if (iter1 == records1.end())
@@ -374,7 +375,9 @@ void libcdr::CDRParser::readWaldoTrfd(WPXInputStream *input)
     y0 += readFixedPoint(input) / 1000.0;
   }
   CDR_DEBUG_MSG(("CDRParser::readWaldoTrfd %f %f %f %f %f %f %u\n", v0, v1, x0, v3, v4, y0, m_version));
-  m_collector->collectTransform(v0, v1, x0, v3, v4, y0, m_version < 400);
+  std::vector<CDRTransform> trafoVec;
+  trafoVec.push_back(CDRTransform(v0, v1, x0, v3, v4, y0));
+  m_collector->collectTransform(trafoVec, m_version < 400);
 }
 
 void libcdr::CDRParser::readWaldoLoda(WPXInputStream *input, unsigned length)
@@ -1493,7 +1496,7 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
   while (i<numOfArgs)
     argOffsets[i++] = readUnsigned(input);
 
-  bool pushedTrafo = false;
+  std::vector<CDRTransform> trafoVec;
   for (i=0; i < argOffsets.size(); i++)
   {
     input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
@@ -1528,11 +1531,7 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
         v4 = readFixedPoint(input);
         y0 = (double)readS32(input) / 1000.0;
       }
-      if (!pushedTrafo)
-      {
-        m_collector->collectTransform(v0, v1, x0, v3, v4, y0, m_version < 400);
-        pushedTrafo = true;
-      }
+      trafoVec.push_back(CDRTransform(v0, v1, x0, v3, v4, y0));
     }
     else if (tmpType == 0x10)
     {
@@ -1562,6 +1561,8 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
 #endif
     }
   }
+  if (!trafoVec.empty())
+    m_collector->collectTransform(trafoVec,m_version < 400);
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
 

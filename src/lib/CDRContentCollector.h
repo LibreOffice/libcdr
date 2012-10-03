@@ -62,7 +62,7 @@ public:
   void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y);
   void collectClosePath();
   void collectLevel(unsigned level);
-  void collectTransform(double v0, double v1, double x, double v3, double v4, double y, bool considerGroupTransform);
+  void collectTransform(const std::vector<CDRTransform> &transforms, bool considerGroupTransform);
   void collectFildId(unsigned id);
   void collectOutlId(unsigned id);
   void collectFild(unsigned, unsigned short, const CDRColor &, const CDRColor &, const CDRGradient &, const CDRImageFill &) {}
@@ -124,7 +124,8 @@ private:
   CDRBBox m_currentBBox;
 
   CDRPath m_currentPath;
-  CDRTransform m_currentTransform, m_fillTransform;
+  std::vector<CDRTransform> m_currentTransforms;
+  CDRTransform m_fillTransform;
   CDRPolygon *m_polygon;
   bool m_isInPolygon;
   bool m_isInSpline;
