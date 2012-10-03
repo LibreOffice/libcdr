@@ -209,6 +209,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     m_splineData.clear();
     m_isInSpline = false;
     bool firstPoint = true;
+    bool wasMove = false;
     double initialX = 0.0;
     double initialY = 0.0;
     double previousX = 0.0;
@@ -227,13 +228,18 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     m_currentPath.transform(tmpTrafo);
     tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
     m_currentPath.transform(tmpTrafo);
-    WPXPropertyListVector tmpPath;
-    m_currentPath.writeOut(tmpPath);
+
+    std::vector<WPXPropertyList> tmpPath;
+
     WPXPropertyListVector path;
-    WPXPropertyListVector::Iter i(tmpPath);
-    bool ignoreM = false;
+    m_currentPath.writeOut(path);
+
+    bool isPathClosed = m_currentPath.isClosed();
+
+    WPXPropertyListVector::Iter i(path);
     for (i.rewind(); i.next();)
     {
+      bool ignoreM = false;
       if (!i()["libwpg:path-action"])
         continue;
       if (i()["svg:x"] && i()["svg:y"])
@@ -245,40 +251,79 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
           initialX = x;
           initialY = y;
           firstPoint = false;
+          wasMove = true;
         }
         else if (i()["libwpg:path-action"]->getStr() == "M")
         {
+          // This is needed for a good generation of path from polygon
           if (CDR_ALMOST_ZERO(previousX - x) && CDR_ALMOST_ZERO(previousY - y))
             ignoreM = true;
           else
           {
-            if ((CDR_ALMOST_ZERO(initialX - previousX) && CDR_ALMOST_ZERO(initialY - previousY)) || (style["draw:fill"] && style["draw:fill"]->getStr() != "none"))
+            if (!tmpPath.empty())
             {
-              WPXPropertyList node;
-              node.insert("libwpg:path-action", "Z");
-              path.append(node);
+              if (!wasMove)
+              {
+                if ((CDR_ALMOST_ZERO(initialX - previousX) && CDR_ALMOST_ZERO(initialY - previousY)) || isPathClosed)
+                {
+                  WPXPropertyList node;
+                  node.insert("libwpg:path-action", "Z");
+                  tmpPath.push_back(node);
+                }
+              }
+              else
+              {
+                tmpPath.pop_back();
+              }
             }
+          }
+
+          if (!ignoreM)
+          {
             initialX = x;
             initialY = y;
+            wasMove = true;
           }
+
+        }
+        else
+          wasMove = false;
+
+        if (!ignoreM)
+        {
+          tmpPath.push_back(i());
+          previousX = x;
+          previousY = y;
+        }
+
+      }
+    }
+    if (!tmpPath.empty())
+    {
+      if (!wasMove)
+      {
+        if ((CDR_ALMOST_ZERO(initialX - previousX) && CDR_ALMOST_ZERO(initialY - previousY)) || isPathClosed)
+        {
+          WPXPropertyList closedPath;
+          closedPath.insert("libwpg:path-action", "Z");
+          tmpPath.push_back(closedPath);
         }
       }
-      previousX = x;
-      previousY = y;
-      if (!ignoreM)
-        path.append(i());
-      ignoreM = false;
+      else
+        tmpPath.pop_back();
     }
-    if ((CDR_ALMOST_ZERO(initialX - previousX) && CDR_ALMOST_ZERO(initialY - previousY)) || (style["draw:fill"] && style["draw:fill"]->getStr() != "none"))
+    if (!tmpPath.empty())
     {
-      WPXPropertyList node;
-      node.insert("libwpg:path-action", "Z");
-      path.append(node);
-    }
+      WPXPropertyListVector outputPath;
+      for (std::vector<WPXPropertyList>::const_iterator iter = tmpPath.begin(); iter != tmpPath.end(); ++iter)
+        outputPath.append(*iter);
 
-    outputElement.addPath(path);
+      outputElement.addPath(outputPath);
+
+    }
     m_currentPath.clear();
   }
+
   if (m_currentImage.getImage().size())
   {
     double cx = m_currentImage.getMiddleX();

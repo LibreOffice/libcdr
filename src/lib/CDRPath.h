@@ -52,7 +52,7 @@ public:
 class CDRPath : public CDRPathElement
 {
 public:
-  CDRPath() : m_elements() {}
+  CDRPath() : m_elements(), m_isClosed(false) {}
   CDRPath(const CDRPath &path);
   ~CDRPath();
 
@@ -70,13 +70,15 @@ public:
   CDRPathElement *clone();
 
   void clear();
-  bool empty();
+  bool empty() const;
+  bool isClosed() const;
 
 private:
   CDRPath &operator=(const CDRPath &path);
 
 private:
   std::vector<CDRPathElement *> m_elements;
+  bool m_isClosed;
 };
 
 } // namespace libcdr

@@ -122,16 +122,6 @@ private:
   std::vector<std::pair<double, double> > m_points;
 };
 
-class CDRClosePathElement : public CDRPathElement
-{
-public:
-  CDRClosePathElement() {}
-  ~CDRClosePathElement() {}
-  void writeOut(WPXPropertyListVector &vec) const;
-  void transform(const CDRTransform &trafo);
-  CDRPathElement *clone();
-};
-
 class CDRArcToElement : public CDRPathElement
 {
 public:
@@ -333,22 +323,6 @@ libcdr::CDRPathElement *libcdr::CDRArcToElement::clone()
   return new CDRArcToElement(m_rx, m_ry, m_rotation, m_largeArc, m_sweep, m_x, m_y);
 }
 
-void libcdr::CDRClosePathElement::writeOut(WPXPropertyListVector &vec) const
-{
-  WPXPropertyList node;
-  node.insert("libwpg:path-action", "Z");
-  vec.append(node);
-}
-
-void libcdr::CDRClosePathElement::transform(const CDRTransform & /* trafo */)
-{
-}
-
-libcdr::CDRPathElement *libcdr::CDRClosePathElement::clone()
-{
-  return new CDRClosePathElement();
-}
-
 void libcdr::CDRPath::appendMoveTo(double x, double y)
 {
   m_elements.push_back(new libcdr::CDRMoveToElement(x, y));
@@ -381,13 +355,14 @@ void libcdr::CDRPath::appendSplineTo(std::vector<std::pair<double, double> > &po
 
 void libcdr::CDRPath::appendClosePath()
 {
-  m_elements.push_back(new libcdr::CDRClosePathElement());
+  m_isClosed = true;
 }
 
-libcdr::CDRPath::CDRPath(const libcdr::CDRPath &path) : m_elements()
+libcdr::CDRPath::CDRPath(const libcdr::CDRPath &path) : m_elements(), m_isClosed(false)
 {
   for (std::vector<CDRPathElement *>::const_iterator iter = path.m_elements.begin(); iter != path.m_elements.end(); ++iter)
     m_elements.push_back((*iter)->clone());
+  m_isClosed = path.isClosed();
 }
 
 libcdr::CDRPath::~CDRPath()
@@ -424,11 +399,17 @@ void libcdr::CDRPath::clear()
     if (*iter)
       delete(*iter);
   m_elements.clear();
+  m_isClosed = false;
 }
 
-bool libcdr::CDRPath::empty()
+bool libcdr::CDRPath::empty() const
 {
   return m_elements.empty();
+}
+
+bool libcdr::CDRPath::isClosed() const
+{
+  return m_isClosed;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

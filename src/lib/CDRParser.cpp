@@ -1161,6 +1161,7 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
   }
   else
     m_collector->collectLineTo(0.0, 0.0);
+  m_collector->collectClosePath();
 }
 
 void libcdr::CDRParser::readEllipse(WPXInputStream *input)
@@ -1210,6 +1211,7 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
     m_collector->collectMoveTo(x0, y0);
     m_collector->collectArcTo(rx, ry, false, true, x1, y1);
     m_collector->collectArcTo(rx, ry, true, true, x0, y0);
+    m_collector->collectClosePath();
   }
 }
 
