@@ -1493,6 +1493,7 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
   while (i<numOfArgs)
     argOffsets[i++] = readUnsigned(input);
 
+  bool pushedTrafo = false;
   for (i=0; i < argOffsets.size(); i++)
   {
     input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
@@ -1527,7 +1528,11 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
         v4 = readFixedPoint(input);
         y0 = (double)readS32(input) / 1000.0;
       }
-      m_collector->collectTransform(v0, v1, x0, v3, v4, y0, m_version < 400);
+      if (!pushedTrafo)
+      {
+        m_collector->collectTransform(v0, v1, x0, v3, v4, y0, m_version < 400);
+        pushedTrafo = true;
+      }
     }
     else if (tmpType == 0x10)
     {
