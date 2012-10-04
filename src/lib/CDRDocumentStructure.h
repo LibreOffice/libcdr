@@ -53,6 +53,7 @@
 #define FOURCC_clof 0x666f6c63
 #define FOURCC_clol 0x6c6f6c63
 #define FOURCC_cloo 0x6f6f6c63
+#define FOURCC_clpt 0x74706c63
 #define FOURCC_cmpr 0x72706d63
 #define FOURCC_cont 0x746e6f63
 #define FOURCC_CPng 0x676e5043

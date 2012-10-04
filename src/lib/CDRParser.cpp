@@ -493,7 +493,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
         else
           m_precision = libcdr::PRECISION_32BIT;
       }
-      else if (listType == FOURCC_vect)
+      else if (listType == FOURCC_vect || listType == FOURCC_clpt)
         m_collector->collectVect(level);
 
       bool compressed = (listType == FOURCC_cmpr ? true : false);
