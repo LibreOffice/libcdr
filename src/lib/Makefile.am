@@ -28,6 +28,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRStringVector.cpp \
 	CDRStylesCollector.cpp \
 	CDRSVGGenerator.cpp \
+	CDRTransforms.cpp \
 	CDRTypes.cpp \
 	CDRZipStream.cpp \
 	CMXDocument.cpp \
@@ -45,6 +46,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
 	CDRPath.h \
 	CDRStylesCollector.h \
 	CDRSVGGenerator.h \
+	CDRTransforms.h \
 	CDRTypes.h \
 	CDRZipStream.h \
 	CMXDocumentStructure.h \

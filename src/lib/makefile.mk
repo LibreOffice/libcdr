@@ -49,6 +49,7 @@ SLOFILES= \
     $(SLO)$/CDRStringVector.obj \
     $(SLO)$/CDRStylesCollector.obj \
     $(SLO)$/CDRSVGGenerator.obj \
+    $(SLO)$/CDRTransforms.obj \
     $(SLO)$/CDRTypes.obj \
     $(SLO)$/CDRZipStream.obj \
     $(SLO)$/CMXDocument.obj \

@@ -38,12 +38,15 @@
 namespace libcdr
 {
 
+class CDRTransform;
+
 class CDRPathElement
 {
 public:
   CDRPathElement() {}
   virtual ~CDRPathElement() {}
   virtual void writeOut(WPXPropertyListVector &vec) const = 0;
+  virtual void transform(const CDRTransforms &trafos) = 0;
   virtual void transform(const CDRTransform &trafo) = 0;
   virtual CDRPathElement *clone() = 0;
 };
@@ -66,6 +69,7 @@ public:
   void appendPath(const CDRPath &path);
 
   void writeOut(WPXPropertyListVector &vec) const;
+  void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
 

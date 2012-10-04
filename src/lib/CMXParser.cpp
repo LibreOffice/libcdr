@@ -608,13 +608,15 @@ libcdr::CDRTransform libcdr::CMXParser::readMatrix(WPXInputStream *input)
   switch (type)
   {
   case 2: // general matrix
-    matrix.m_v0 = readDouble(input, m_bigEndian);
-    matrix.m_v3 = readDouble(input, m_bigEndian);
-    matrix.m_v1 = readDouble(input, m_bigEndian);
-    matrix.m_v4 = readDouble(input, m_bigEndian);
-    matrix.m_x0 = readDouble(input, m_bigEndian);
-    matrix.m_y0 = readDouble(input, m_bigEndian);
-    return matrix;
+  {
+    double v0 = readDouble(input, m_bigEndian);
+    double v3 = readDouble(input, m_bigEndian);
+    double v1 = readDouble(input, m_bigEndian);
+    double v4 = readDouble(input, m_bigEndian);
+    double x0 = readDouble(input, m_bigEndian);
+    double y0 = readDouble(input, m_bigEndian);
+    return libcdr::CDRTransform(v0, v1, x0, v3, v4, y0);
+  }
   default: // identity matrix for the while
     return matrix;
   }

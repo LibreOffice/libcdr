@@ -63,7 +63,7 @@ public:
   void collectArcTo(double, double, bool, bool, double, double) {}
   void collectClosePath() {}
   void collectLevel(unsigned) {}
-  void collectTransform(const std::vector<CDRTransform> &, bool) {}
+  void collectTransform(const CDRTransforms &, bool) {}
   void collectFildId(unsigned) {}
   void collectOutlId(unsigned) {}
   void collectFild(unsigned id, unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill);
@@ -79,7 +79,7 @@ public:
   void collectBmp(unsigned imageId, const std::vector<unsigned char> &bitmap);
   void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern);
   void collectPpdt(const std::vector<std::pair<double, double> > &, const std::vector<unsigned> &) {}
-  void collectFillTransform(double, double, double, double, double, double) {}
+  void collectFillTransform(const CDRTransforms &) {}
   void collectFillOpacity(double) {}
   void collectPolygon() {}
   void collectSpline() {}

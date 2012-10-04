@@ -45,6 +45,7 @@ public:
       m_y(y) {}
   ~CDRMoveToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
+  void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
 private:
@@ -60,6 +61,7 @@ public:
       m_y(y) {}
   ~CDRLineToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
+  void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
 private:
@@ -79,6 +81,7 @@ public:
       m_y(y) {}
   ~CDRCubicBezierToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
+  void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
 private:
@@ -100,6 +103,7 @@ public:
       m_y(y) {}
   ~CDRQuadraticBezierToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
+  void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
 private:
@@ -116,6 +120,7 @@ public:
     : m_points(points) {}
   ~CDRSplineToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
+  void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
 private:
@@ -135,6 +140,7 @@ public:
       m_y(y) {}
   ~CDRArcToElement() {}
   void writeOut(WPXPropertyListVector &vec) const;
+  void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
 private:
@@ -159,6 +165,11 @@ void libcdr::CDRMoveToElement::writeOut(WPXPropertyListVector &vec) const
   vec.append(node);
 }
 
+void libcdr::CDRMoveToElement::transform(const CDRTransforms &trafos)
+{
+  trafos.applyToPoint(m_x,m_y);
+}
+
 void libcdr::CDRMoveToElement::transform(const CDRTransform &trafo)
 {
   trafo.applyToPoint(m_x,m_y);
@@ -176,6 +187,11 @@ void libcdr::CDRLineToElement::writeOut(WPXPropertyListVector &vec) const
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
   vec.append(node);
+}
+
+void libcdr::CDRLineToElement::transform(const CDRTransforms &trafos)
+{
+  trafos.applyToPoint(m_x,m_y);
 }
 
 void libcdr::CDRLineToElement::transform(const CDRTransform &trafo)
@@ -201,6 +217,13 @@ void libcdr::CDRCubicBezierToElement::writeOut(WPXPropertyListVector &vec) const
   vec.append(node);
 }
 
+void libcdr::CDRCubicBezierToElement::transform(const CDRTransforms &trafos)
+{
+  trafos.applyToPoint(m_x1,m_y1);
+  trafos.applyToPoint(m_x2,m_y2);
+  trafos.applyToPoint(m_x,m_y);
+}
+
 void libcdr::CDRCubicBezierToElement::transform(const CDRTransform &trafo)
 {
   trafo.applyToPoint(m_x1,m_y1);
@@ -222,6 +245,12 @@ void libcdr::CDRQuadraticBezierToElement::writeOut(WPXPropertyListVector &vec) c
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
   vec.append(node);
+}
+
+void libcdr::CDRQuadraticBezierToElement::transform(const CDRTransforms &trafos)
+{
+  trafos.applyToPoint(m_x1,m_y1);
+  trafos.applyToPoint(m_x,m_y);
 }
 
 void libcdr::CDRQuadraticBezierToElement::transform(const CDRTransform &trafo)
@@ -287,6 +316,13 @@ void libcdr::CDRSplineToElement::writeOut(WPXPropertyListVector &vec) const
   vec.append(node);
 }
 
+void libcdr::CDRSplineToElement::transform(const CDRTransforms &trafos)
+{
+  for (std::vector<std::pair<double, double> >::iterator iter = m_points.begin();
+       iter != m_points.end(); ++iter)
+    trafos.applyToPoint(iter->first, iter->second);
+}
+
 void libcdr::CDRSplineToElement::transform(const CDRTransform &trafo)
 {
   for (std::vector<std::pair<double, double> >::iterator iter = m_points.begin();
@@ -311,6 +347,11 @@ void libcdr::CDRArcToElement::writeOut(WPXPropertyListVector &vec) const
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
   vec.append(node);
+}
+
+void libcdr::CDRArcToElement::transform(const CDRTransforms &trafos)
+{
+  trafos.applyToArc(m_rx, m_ry, m_rotation, m_sweep, m_x, m_y);
 }
 
 void libcdr::CDRArcToElement::transform(const CDRTransform &trafo)
@@ -380,6 +421,12 @@ void libcdr::CDRPath::writeOut(WPXPropertyListVector &vec) const
 {
   for (std::vector<CDRPathElement *>::const_iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
     (*iter)->writeOut(vec);
+}
+
+void libcdr::CDRPath::transform(const CDRTransforms &trafos)
+{
+  for (std::vector<CDRPathElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
+    (*iter)->transform(trafos);
 }
 
 void libcdr::CDRPath::transform(const CDRTransform &trafo)

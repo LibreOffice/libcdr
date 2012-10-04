@@ -62,7 +62,7 @@ public:
   void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y);
   void collectClosePath();
   void collectLevel(unsigned level);
-  void collectTransform(const std::vector<CDRTransform> &transforms, bool considerGroupTransform);
+  void collectTransform(const CDRTransforms &transforms, bool considerGroupTransform);
   void collectFildId(unsigned id);
   void collectOutlId(unsigned id);
   void collectFild(unsigned, unsigned short, const CDRColor &, const CDRColor &, const CDRGradient &, const CDRImageFill &) {}
@@ -77,7 +77,7 @@ public:
   void collectBmp(unsigned, const std::vector<unsigned char>&) {}
   void collectBmpf(unsigned, unsigned, unsigned, const std::vector<unsigned char> &) {}
   void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector);
-  void collectFillTransform(double v0, double v1, double x, double v3, double v4, double y);
+  void collectFillTransform(const CDRTransforms &fillTrafo);
   void collectFillOpacity(double opacity);
   void collectPolygon();
   void collectSpline();
@@ -124,8 +124,8 @@ private:
   CDRBBox m_currentBBox;
 
   CDRPath m_currentPath;
-  std::vector<CDRTransform> m_currentTransforms;
-  CDRTransform m_fillTransform;
+  CDRTransforms m_currentTransforms;
+  CDRTransforms m_fillTransforms;
   CDRPolygon *m_polygon;
   bool m_isInPolygon;
   bool m_isInSpline;
@@ -133,7 +133,7 @@ private:
   std::stack<CDROutputElementList> m_contentOutputElements;
   std::stack<CDROutputElementList> m_fillOutputElements;
   std::stack<unsigned> m_groupLevels;
-  std::stack<CDRTransform> m_groupTransforms;
+  std::stack<CDRTransforms> m_groupTransforms;
   CDRSplineData m_splineData;
   double m_fillOpacity;
 

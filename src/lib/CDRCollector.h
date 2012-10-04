@@ -98,7 +98,7 @@ public:
   virtual void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y) = 0;
   virtual void collectClosePath() = 0;
   virtual void collectLevel(unsigned level) = 0;
-  virtual void collectTransform(const std::vector<CDRTransform> &transforms, bool considerGroupTransform) = 0;
+  virtual void collectTransform(const CDRTransforms &transforms, bool considerGroupTransform) = 0;
   virtual void collectFildId(unsigned id) = 0;
   virtual void collectOutlId(unsigned id) = 0;
   virtual void collectFild(unsigned id, unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill) = 0;
@@ -114,7 +114,7 @@ public:
   virtual void collectBmp(unsigned imageId, const std::vector<unsigned char> &bitmap) = 0;
   virtual void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern) = 0;
   virtual void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector) = 0;
-  virtual void collectFillTransform(double v0, double v1, double x, double v3, double v4, double y) = 0;
+  virtual void collectFillTransform(const CDRTransforms &fillTrafos) = 0;
   virtual void collectFillOpacity(double opacity) = 0;
   virtual void collectPolygon() = 0;
   virtual void collectSpline() = 0;
