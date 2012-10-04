@@ -50,8 +50,12 @@ public:
   double getRotation() const;
   double getTranslateX() const;
   double getTranslateY() const;
+  bool getFlipX() const;
+  bool getFlipY() const;
 
 private:
+  double _getScaleX() const;
+  double _getScaleY() const;
   double m_v0;
   double m_v1;
   double m_x0;
@@ -79,8 +83,12 @@ public:
   double getRotation() const;
   double getTranslateX() const;
   double getTranslateY() const;
+  bool getFlipX() const;
+  bool getFlipY() const;
 
 private:
+  double _getScaleX() const;
+  double _getScaleY() const;
   std::vector<CDRTransform> m_trafos;
 };
 

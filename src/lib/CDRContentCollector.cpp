@@ -335,12 +335,10 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     tmpTrafo.applyToPoint(cx, cy);
     tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
     tmpTrafo.applyToPoint(cx, cy);
-    double scaleX = m_currentTransforms.getScaleX();
-    double scaleY = m_currentTransforms.getScaleY();
-    bool flipX(scaleX < 0);
-    bool flipY(scaleY < 0);
-    double width = fabs(scaleX)*m_currentImage.getWidth();
-    double height = fabs(scaleY)*m_currentImage.getHeight();
+    bool flipX(m_currentTransforms.getFlipX());
+    bool flipY(m_currentTransforms.getFlipY());
+    double width = m_currentTransforms.getScaleX() * m_currentImage.getWidth();
+    double height = m_currentTransforms.getScaleY() * m_currentImage.getHeight();
     double rotate = m_currentTransforms.getRotation();
 
     WPXPropertyList propList;

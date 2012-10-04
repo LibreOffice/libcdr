@@ -119,7 +119,7 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
   sweep = (m_v0*m_v4 < m_v3*m_v1);
 }
 
-double libcdr::CDRTransform::getScaleX() const
+double libcdr::CDRTransform::_getScaleX() const
 {
   double x0 = 0.0;
   double x1 = 1.0;
@@ -130,7 +130,17 @@ double libcdr::CDRTransform::getScaleX() const
   return x1 - x0;
 }
 
-double libcdr::CDRTransform::getScaleY() const
+double libcdr::CDRTransform::getScaleX() const
+{
+  return fabs(_getScaleX());
+}
+
+bool libcdr::CDRTransform::getFlipX() const
+{
+  return (0 > _getScaleX());
+}
+
+double libcdr::CDRTransform::_getScaleY() const
 {
   double x0 = 0.0;
   double x1 = 0.0;
@@ -139,6 +149,16 @@ double libcdr::CDRTransform::getScaleY() const
   applyToPoint(x0, y0);
   applyToPoint(x1, y1);
   return y1 - y0;
+}
+
+double libcdr::CDRTransform::getScaleY() const
+{
+  return fabs(_getScaleY());
+}
+
+bool libcdr::CDRTransform::getFlipY() const
+{
+  return (0 > _getScaleY());
 }
 
 double libcdr::CDRTransform::getRotation() const
@@ -218,7 +238,7 @@ void libcdr::CDRTransforms::applyToArc(double &rx, double &ry, double &rotation,
     iter->applyToArc(rx, ry, rotation, sweep, x, y);
 }
 
-double libcdr::CDRTransforms::getScaleX() const
+double libcdr::CDRTransforms::_getScaleX() const
 {
   double x0 = 0.0;
   double x1 = 1.0;
@@ -229,7 +249,17 @@ double libcdr::CDRTransforms::getScaleX() const
   return x1 - x0;
 }
 
-double libcdr::CDRTransforms::getScaleY() const
+double libcdr::CDRTransforms::getScaleX() const
+{
+  return fabs(_getScaleX());
+}
+
+bool libcdr::CDRTransforms::getFlipX() const
+{
+  return (0 > _getScaleX());
+}
+
+double libcdr::CDRTransforms::_getScaleY() const
 {
   double x0 = 0.0;
   double x1 = 0.0;
@@ -238,6 +268,16 @@ double libcdr::CDRTransforms::getScaleY() const
   applyToPoint(x0, y0);
   applyToPoint(x1, y1);
   return y1 - y0;
+}
+
+double libcdr::CDRTransforms::getScaleY() const
+{
+  return fabs(_getScaleY());
+}
+
+bool libcdr::CDRTransforms::getFlipY() const
+{
+  return (0 > _getScaleY());
 }
 
 double libcdr::CDRTransforms::getRotation() const
