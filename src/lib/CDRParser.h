@@ -111,6 +111,8 @@ private:
 
   bool _redirectX6Chunk(WPXInputStream **input, unsigned &length);
 
+  void _readX6StyleString(WPXInputStream *input, unsigned length, WPXString &styleString);
+
   std::vector<WPXInputStream *> m_externalStreams;
 
   unsigned m_version;

@@ -2705,6 +2705,18 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
 #endif
 }
 
+void libcdr::CDRParser::_readX6StyleString(WPXInputStream *input, unsigned length, WPXString &styleString)
+{
+  std::vector<unsigned char> styleBuffer(length);
+  unsigned long numBytesRead = 0;
+  const unsigned char *tmpBuffer = input->read(length, numBytesRead);
+  if (numBytesRead)
+    memcpy(&styleBuffer[0], tmpBuffer, numBytesRead);
+  appendCharacters(styleString, styleBuffer);
+  CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
+}
+
+
 void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
 {
 #ifndef DEBUG
@@ -2753,7 +2765,8 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
     input->seek(1, WPX_SEEK_CUR);
 
     unsigned len2 = readU32(input);
-    input->seek(2*len2, WPX_SEEK_CUR);
+    WPXString styleString;
+    _readX6StyleString(input, 2*len2, styleString);
 
     unsigned numRecords = readU32(input);
 
@@ -2767,10 +2780,12 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
       if (flag & 0x04)
       {
         lenN = readU32(input);
-        input->seek(2*lenN, WPX_SEEK_CUR);
+        styleString.clear();
+        _readX6StyleString(input, 2*lenN, styleString);
       }
       lenN = readU32(input);
-      input->seek(2*lenN, WPX_SEEK_CUR);
+      styleString.clear();
+      _readX6StyleString(input, 2*lenN, styleString);
     }
 
     std::map<unsigned, CDRCharacterStyle> charStyles;
