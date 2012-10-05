@@ -37,10 +37,16 @@ PKG_PROG_PKG_CONFIG([0.20])
 # ====================
 # Find additional apps
 # ====================
-PKG_CHECK_MODULES([LIBCDR],[
+PKG_CHECK_MODULES([WPD],[
 	libwpd-0.9
 	libwpd-stream-0.9
+])
+
+PKG_CHECK_MODULES([WPG],[
 	libwpg-0.2
+])
+
+PKG_CHECK_MODULES([LCMS2],[
 	lcms2
 ])
 
@@ -168,8 +174,10 @@ AS_IF([test "x$enable_debug" = "xyes"], [
 ], [
 	DEBUG_CXXFLAGS="-DNDEBUG"
 ])
-LIBCDR_CXXFLAGS="$LIBCDR_CFLAGS"
+LIBCDR_CXXFLAGS="${WPD_CFLAGS} ${WPG_CFLAGS} ${LCMS2_CFLAGS}"
+LIBCDR_LIBS="${WPD_LIBS} ${WPG_LIBS} ${LCMS2_LIBS}"
 AC_SUBST(LIBCDR_CXXFLAGS)
+AC_SUBST(LIBCDR_LIBS)
 AC_SUBST(DEBUG_CXXFLAGS)
 
 # ============
