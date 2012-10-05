@@ -2102,7 +2102,12 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
     input->seek(2, WPX_SEEK_CUR);
     unsigned short palettesize = readU16(input);
     for (unsigned short i = 0; i <palettesize; ++i)
-      palette.push_back(readU8(input) | (readU8(input) << 8) | (readU8(input) << 16));
+    {
+      unsigned b = readU8(input);
+      unsigned g = readU8(input);
+      unsigned r = readU8(input);
+      palette.push_back(b | (g << 8) | (r << 16));
+    }
   }
   std::vector<unsigned char> bitmap(bmpsize);
   unsigned long tmpNumBytesRead = 0;
