@@ -13,5 +13,12 @@ EXTRA_DIST = \
 	cmx2raw.vcproj \
 	cmx2xhtml.vcproj \
 	\
+	libcdr.vcxproj.sln \
+	libcdr.vcxproj \
+	cdr2raw.vcxproj \
+	cdr2xhtml.vcxproj \
+	cmx2raw.vcxproj \
+	cmx2xhtml.vcxproj \
+	\
 	compile-resource \
 	lt-compile-resource
