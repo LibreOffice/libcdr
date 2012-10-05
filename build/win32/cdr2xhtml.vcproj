@@ -71,7 +71,7 @@
 				OutputFile="Release\bin\cdr2xhtml.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="Release\lib,$(LIBWPD_LIBDIR),$(LCMS2_LIBDIR)"
+				AdditionalLibraryDirectories="Release\lib,$(LIBWPD_LIBDIR),$(LCMS2_LIBDIR),$(ZLIB_LIBDIR)"
 				ProgramDatabaseFile=".\Release/cdr2xhtml.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
@@ -131,7 +131,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\src\lib,$(LIBWPD_INCLUDES),$(LIBWPG_INCLUDES)"
+				AdditionalIncludeDirectories="..\..\src\lib,$(LIBWPD_INCLUDES),$(LIBWPG_INCLUDES),$(ZLIB_LIBDIR)"
 				PreprocessorDefinitions="_DEBUG;DEBUG;WIN32;_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
