@@ -50,7 +50,7 @@
 libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, libwpg::WPGPaintInterface *painter) :
   m_painter(painter),
   m_isPageProperties(false), m_isPageStarted(false), m_ignorePage(false),
-  m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFildId(0.0), m_currentOutlId(0), m_spnd(0),
+  m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFildId(0), m_currentOutlId(0), m_spnd(0),
   m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
   m_currentImage(), m_currentText(), m_currentTextOffsetX(0.0), m_currentTextOffsetY(0.0),
   m_currentBBox(), m_currentPath(), m_currentTransforms(), m_fillTransforms(),
