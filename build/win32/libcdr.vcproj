@@ -67,7 +67,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="Debug\lib\libcdr-0.2.lib"
+				OutputFile="Debug\lib\libcdr-0.0.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -141,7 +141,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="Release\lib\libcdr-0.2.lib"
+				OutputFile="Release\lib\libcdr-0.0.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

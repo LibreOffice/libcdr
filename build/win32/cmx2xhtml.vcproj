@@ -69,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcdr-0.2.lib libwpd-stream-0.9.lib libwpd-0.9.lib"
+				AdditionalDependencies="libcdr-0.0.lib libwpd-stream-0.9.lib libwpd-0.9.lib"
 				OutputFile="Debug\bin\cmx2xhtml.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -157,7 +157,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcdr-0.2.lib libwpd-stream-0.9.lib libwpd-0.9.lib"
+				AdditionalDependencies="libcdr-0.0.lib libwpd-stream-0.9.lib libwpd-0.9.lib"
 				OutputFile="Release\bin\cmx2xhtml.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

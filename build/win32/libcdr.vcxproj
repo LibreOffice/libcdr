@@ -61,7 +61,7 @@
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Lib>
-      <OutputFile>Debug\lib\libcdr-0.2.lib</OutputFile>
+      <OutputFile>Debug\lib\libcdr-0.0.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
     <Bscmake>
@@ -91,7 +91,7 @@
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Lib>
-      <OutputFile>Release\lib\libcdr-0.2.lib</OutputFile>
+      <OutputFile>Release\lib\libcdr-0.0.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
     <Bscmake>
