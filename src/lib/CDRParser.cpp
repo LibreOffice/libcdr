@@ -1621,7 +1621,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     gradient.m_centerYOffset = readInteger(input);
     if (m_version >= 600)
       input->seek(2, WPX_SEEK_CUR);
-    gradient.m_mode = (unsigned char)(readUnsigned(input) & 0xffff);
+    gradient.m_mode = (unsigned char)(readUnsigned(input) & 0xff);
     gradient.m_midPoint = (double)readU8(input) / 100.0;
     input->seek(1, WPX_SEEK_CUR);
     unsigned short numStops = (unsigned short)(readUnsigned(input) & 0xffff);
