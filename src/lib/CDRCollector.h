@@ -103,7 +103,7 @@ public:
   virtual void collectOutlId(unsigned id) = 0;
   virtual void collectFild(unsigned id, unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill) = 0;
   virtual void collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
-                           double stretch, double angle, const CDRColor &color, const std::vector<unsigned short> &dashArray,
+                           double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
                            unsigned startMarkerId, unsigned endMarkerId) = 0;
   virtual void collectRotate(double angle, double cx, double cy) = 0;
   virtual void collectFlags(unsigned flags, bool considerFlags) = 0;

@@ -56,7 +56,7 @@ void libcdr::CDRStylesCollector::collectFild(unsigned id, unsigned short fillTyp
 }
 
 void libcdr::CDRStylesCollector::collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
-    double stretch, double angle, const CDRColor &color, const std::vector<unsigned short> &dashArray,
+    double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
     unsigned startMarkerId, unsigned endMarkerId)
 {
   m_ps.m_lineStyles[id] = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);

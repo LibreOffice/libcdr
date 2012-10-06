@@ -1376,7 +1376,7 @@ void libcdr::CDRParser::readWaldoOutl(WPXInputStream *input)
   input->seek(7, WPX_SEEK_CUR);
   unsigned short numDash = readU8(input);
   int fixPosition = input->tell();
-  std::vector<unsigned short> dashArray;
+  std::vector<unsigned> dashArray;
   for (unsigned short i = 0; i < numDash; ++i)
     dashArray.push_back(readU8(input));
   input->seek(fixPosition + 10, WPX_SEEK_SET);
@@ -1870,7 +1870,7 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
     input->seek(16, WPX_SEEK_CUR);
   unsigned short numDash = readU16(input);
   int fixPosition = input->tell();
-  std::vector<unsigned short> dashArray;
+  std::vector<unsigned> dashArray;
   for (unsigned short i = 0; i < numDash; ++i)
     dashArray.push_back(readU16(input));
   if (m_version < 600)

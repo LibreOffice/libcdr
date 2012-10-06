@@ -68,7 +68,7 @@ public:
   void collectOutlId(unsigned) {}
   void collectFild(unsigned id, unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill);
   void collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
-                   double stretch, double angle, const CDRColor &color, const std::vector<unsigned short> &dashArray,
+                   double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
                    unsigned startMarkerId, unsigned endMarkerId);
   void collectRotate(double,double,double) {}
   void collectFlags(unsigned, bool) {}

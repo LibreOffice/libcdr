@@ -136,7 +136,7 @@ struct CDRLineStyle
   double stretch;
   double angle;
   CDRColor color;
-  std::vector<unsigned short> dashArray;
+  std::vector<unsigned> dashArray;
   unsigned startMarkerId;
   unsigned endMarkerId;
   CDRLineStyle()
@@ -144,7 +144,7 @@ struct CDRLineStyle
       stretch(0.0), angle(0.0), color(), dashArray(),
       startMarkerId(0), endMarkerId(0) {}
   CDRLineStyle(unsigned short lt, unsigned short ct, unsigned short jt,
-               double lw, double st, double a, const CDRColor &c, const std::vector<unsigned short> &da,
+               double lw, double st, double a, const CDRColor &c, const std::vector<unsigned> &da,
                unsigned smi, unsigned emi)
     : lineType(lt), capsType(ct), joinType(jt), lineWidth(lw),
       stretch(st), angle(a), color(c), dashArray(da),

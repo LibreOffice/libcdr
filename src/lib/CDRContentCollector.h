@@ -67,7 +67,7 @@ public:
   void collectOutlId(unsigned id);
   void collectFild(unsigned, unsigned short, const CDRColor &, const CDRColor &, const CDRGradient &, const CDRImageFill &) {}
   void collectOutl(unsigned, unsigned short, unsigned short, unsigned short, double, double, double, const CDRColor &,
-                   const std::vector<unsigned short> &, unsigned, unsigned) {}
+                   const std::vector<unsigned> &, unsigned, unsigned) {}
   void collectRotate(double angle, double cx, double cy);
   void collectFlags(unsigned flags, bool considerFlags);
   void collectPageSize(double, double, double, double) {}
