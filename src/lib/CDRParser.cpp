@@ -2800,8 +2800,7 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
     {
       charDescriptions[i] = readU64(input);
     }
-    unsigned numBytes = numChars;
-    numBytes = readU32(input);
+    unsigned numBytes = readU32(input);
     unsigned long numBytesRead = 0;
     const unsigned char *buffer = input->read(numBytes, numBytesRead);
     if (numBytesRead != numBytes)
