@@ -1808,8 +1808,8 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
         input->seek(4, WPX_SEEK_CUR);
       rcpOffset = (double)readU16(input) / 100.0;
       flags = readU8(input);
-      patternWidth = (double)tmpWidth / (m_version < 600 ? 1000.0 :254000.0);
-      patternHeight = (double)tmpHeight / (m_version < 600 ? 1000.0 :254000.0);
+      patternWidth = (double)tmpWidth / 254000.0;
+      patternHeight = (double)tmpHeight / 254000.0;
       isRelative = false;
       if ((flags & 0x04) && (m_version < 900))
       {
@@ -1821,8 +1821,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
         input->seek(17, WPX_SEEK_CUR);
       else
         input->seek(21, WPX_SEEK_CUR);
-      if (m_version >= 600)
-        patternId = readUnsigned(input);
+      patternId = readUnsigned(input);
     }
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
   }
