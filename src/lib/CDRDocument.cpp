@@ -129,7 +129,17 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
 {
   input->seek(0, WPX_SEEK_SET);
   bool retVal = false;
-  unsigned version = getCDRVersion(input);
+  unsigned version = 0;
+  try
+  {
+    version = getCDRVersion(input);
+  }
+  catch (libcdr::EndOfStreamException const&)
+  {
+    // This can only happen if isSupported() has not been called before
+    return false;
+  }
+
   if (version)
   {
     input->seek(0, WPX_SEEK_SET);
