@@ -45,6 +45,7 @@ Analyzes the content of an input stream to see if it can be parsed
 stream is a Corel Draw Document that libcdr is able to parse
 */
 bool libcdr::CMXDocument::isSupported(WPXInputStream *input)
+try
 {
   input->seek(0, WPX_SEEK_SET);
   unsigned riff = readU32(input);
@@ -61,6 +62,10 @@ bool libcdr::CMXDocument::isSupported(WPXInputStream *input)
   if (signature_r != 'X' && signature_r != 'x')
     return false;
   return true;
+}
+catch (...)
+{
+  return false;
 }
 
 /**
