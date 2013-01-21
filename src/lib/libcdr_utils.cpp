@@ -27,6 +27,8 @@
  * instead of those above.
  */
 
+#include <string.h>
+#include <unicode/ucsdet.h>
 #include "libcdr_utils.h"
 
 #define CDR_NUM_ELEMENTS(array) sizeof(array)/sizeof(array[0])
@@ -35,6 +37,86 @@
 
 namespace
 {
+
+static unsigned short getEncodingFromICUName(const char *name)
+{
+  // ANSI
+  if (strcmp(name, "ISO-8859-1") == 0)
+    return 0;
+  if (strcmp(name, "windows-1252") == 0)
+    return 0;
+  // CENTRAL EUROPE
+  if (strcmp(name, "ISO-8859-2") == 0)
+    return 0xee;
+  if (strcmp(name, "windows-1250") == 0)
+    return 0xee;
+  // RUSSIAN
+  if (strcmp(name, "ISO-8859-5") == 0)
+    return 0xcc;
+  if (strcmp(name, "windows-1251") == 0)
+    return 0xcc;
+  if (strcmp(name, "KOI8-R") == 0)
+    return 0xcc;
+  // ARABIC
+  if (strcmp(name, "ISO-8859-6") == 0)
+    return 0xb2;
+  if (strcmp(name, "windows-1256") == 0)
+    return 0xb2;
+  // TURKISH
+  if (strcmp(name, "ISO-8859-9") == 0)
+    return 0xa2;
+  if (strcmp(name, "windows-1254") == 0)
+    return 0xa2;
+  // GREEK
+  if (strcmp(name, "ISO-8859-7") == 0)
+    return 0xa1;
+  if (strcmp(name, "windows-1253") == 0)
+    return 0xa1;
+  // HEBREW
+  if (strcmp(name, "ISO-8859-8") == 0)
+    return 0xb1;
+  if (strcmp(name, "windows-1255") == 0)
+    return 0xb1;
+
+  return 0;
+}
+
+
+static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLength)
+{
+  UErrorCode status = U_ZERO_ERROR;
+  UCharsetDetector *csd = 0;
+  const UCharsetMatch *csm = 0;
+  try
+  {
+    csd = ucsdet_open(&status);
+    if (U_FAILURE(status))
+      throw libcdr::EncodingException();
+    ucsdet_setText(csd, (const char *)buffer, bufferLength, &status);
+    if (U_FAILURE(status))
+      throw libcdr::EncodingException();
+    ucsdet_enableInputFilter(csd, TRUE);
+    csm = ucsdet_detect(csd, &status);
+    if (U_FAILURE(status))
+      throw libcdr::EncodingException();
+    const char *name = ucsdet_getName(csm, &status);
+    if (U_FAILURE(status))
+      throw libcdr::EncodingException();
+    if (name)
+    {
+      unsigned short encoding = getEncodingFromICUName(name);
+      ucsdet_close(csd);
+      return encoding;
+    }
+    ucsdet_close(csd);
+    return 0;
+  }
+  catch (const libcdr::EncodingException &)
+  {
+    ucsdet_close(csd);
+    return 0;
+  }
+}
 
 static void _appendUCS4(WPXString &text, unsigned ucs4Character)
 {
@@ -450,6 +532,10 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
     0x0111, 0x00F1, 0x0323, 0x00F3, 0x00F4, 0x01A1, 0x00F6, 0x00F7,
     0x00F8, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x01B0, 0x20AB, 0x00FF
   };
+
+  if (!charset && characters.size())
+    charset = getEncoding(&characters[0], characters.size());
+
   for (std::vector<unsigned char>::const_iterator iter = characters.begin();
        iter != characters.end(); ++iter)
   {

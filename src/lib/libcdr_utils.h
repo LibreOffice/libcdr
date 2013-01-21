@@ -133,6 +133,10 @@ class UnknownPrecisionException
 {
 };
 
+class EncodingException
+{
+};
+
 } // namespace libcdr
 
 #endif // __LIBCDR_UTILS_H__
