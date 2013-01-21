@@ -1,79 +1,184 @@
-diff --git a/src/lib/CDRParser.cpp b/src/lib/CDRParser.cpp
-index a4e7b17..80a07f6 100644
---- a/src/lib/CDRParser.cpp
-+++ b/src/lib/CDRParser.cpp
-@@ -43,10 +43,18 @@
- #define DUMP_PREVIEW_IMAGE 0
- #endif
+From 44d988e5df8a782705ebe6a477b5ae1b173418bf Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fridrich=20=C5=A0trba?= <fridrich.strba@bluewin.ch>
+Date: Mon, 21 Jan 2013 14:58:31 +0100
+Subject: [PATCH] Use ICU to guess encoding
+
+---
+ configure.ac             | 16 +++++++++
+ src/lib/Makefile.am      |  4 +--
+ src/lib/libcdr_utils.cpp | 86 ++++++++++++++++++++++++++++++++++++++++++++++++
+ src/lib/libcdr_utils.h   |  4 +++
+ 4 files changed, 108 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 1e32311..e5619cf 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -62,6 +62,22 @@ PKG_CHECK_MODULES([ZLIB],[zlib],[],[
+ AC_SUBST(ZLIB_CFLAGS)
+ AC_SUBST(ZLIB_LIBS)
  
-+#ifndef GUESS_CHARACTER_ENCODING
-+#define GUESS_CHARACTER_ENCODING 1
-+#endif
++# ========
++# Find icu
++# ========
++AC_PATH_PROG([ICU_CONFIG],[icu-config])
++AC_MSG_CHECKING([ICU installation])
++if ${ICU_CONFIG} --cflags >/dev/null 2>&1; then
++	ICU_CFLAGS=`${ICU_CONFIG} --cppflags-searchpath`
++	ICU_LIBS=`${ICU_CONFIG} --ldflags`
++	AC_MSG_RESULT([found])
++else
++	AC_MSG_ERROR([libicu config program icu-config not found])
++fi
++AC_SUBST(ICU_CFLAGS)
++AC_SUBST(ICU_LIBS)
 +
- #ifndef M_PI
- #define M_PI 3.14159265358979323846
- #endif
- 
-+#if GUESS_CHARACTER_ENCODING
-+#include <libcharguess/universal.h>
-+#endif
 +
- namespace
- {
- 
-@@ -2288,6 +2296,16 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
-   }
- }
- 
-+#if GUESS_CHARACTER_ENCODING
-+static const char *getEncoding(const unsigned char *buffer, unsigned bufferLength)
-+{
-+  UniversalDetector detector;
-+  detector.HandleData((const char *)buffer, bufferLength);
-+  detector.DataEnd();
-+  return detector.GetCharset();
-+}
-+#endif
-+
- void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
- {
-   if (m_version < 700)
-@@ -2410,7 +2428,12 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
-         if (tmpCharDescription & 0x01)
-           appendCharacters(text, tmpTextData);
-         else
-+        {
-+#if GUESS_CHARACTER_ENCODING
-+          CDR_DEBUG_MSG(("CDRParser::readTxsm - Detected chunk encoding %s\n", getEncoding(&tmpTextData[0], (unsigned)tmpTextData.size())));
-+#endif
-           appendCharacters(text, tmpTextData, charStyles[(tmpCharDescription >> 16) & 0xff].m_charSet);
-+        }
-       }
-       tmpTextData.clear();
-       tmpCharDescription = (uint32_t)(charDescriptions[i] & 0xffffff);
-@@ -2424,7 +2447,12 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
-     if (tmpCharDescription & 0x01)
-       appendCharacters(text, tmpTextData);
-     else
-+    {
-+#if GUESS_CHARACTER_ENCODING
-+      CDR_DEBUG_MSG(("CDRParser::readTxsm - Detected chunk encoding %s\n", getEncoding(&tmpTextData[0], (unsigned)tmpTextData.size())));
-+#endif
-       appendCharacters(text, tmpTextData, charStyles[(tmpCharDescription >> 16) & 0xff].m_charSet);
-+    }
-   }
-   tmpTextData.clear();
-   CDR_DEBUG_MSG(("CDRParser::readTxsm - Text: %s\n", text.cstr()));
+ # =================================
+ # Libtool/Version Makefile settings
+ # =================================
 diff --git a/src/lib/Makefile.am b/src/lib/Makefile.am
-index 7ca2ecb..c27eda5 100644
+index 7255d40..bff4ce3 100644
 --- a/src/lib/Makefile.am
 +++ b/src/lib/Makefile.am
-@@ -14,7 +14,7 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_include_HEADERS = \
+@@ -12,9 +12,9 @@ libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_include_HEADERS = \
+ 	CDRStringVector.h \
+ 	CMXDocument.h
  
- AM_CXXFLAGS = $(LIBCDR_CXXFLAGS) $(ZLIB_CFLAGS) $(DEBUG_CXXFLAGS)
+-AM_CXXFLAGS = $(LIBCDR_CXXFLAGS) $(ZLIB_CFLAGS) $(DEBUG_CXXFLAGS)
++AM_CXXFLAGS = $(LIBCDR_CXXFLAGS) $(ZLIB_CFLAGS) $(ICU_CFLAGS) $(DEBUG_CXXFLAGS)
  
 -libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LIBADD  = $(LIBCDR_LIBS) $(ZLIB_LIBS) @LIBCDR_WIN32_RESOURCE@
-+libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LIBADD  = $(LIBCDR_LIBS) $(ZLIB_LIBS) @LIBCDR_WIN32_RESOURCE@ -lcharguess
++libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LIBADD  = $(LIBCDR_LIBS) $(ZLIB_LIBS) $(ICU_LIBS) @LIBCDR_WIN32_RESOURCE@
  libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_DEPENDENCIES = @LIBCDR_WIN32_RESOURCE@
  libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LDFLAGS = $(version_info) -export-dynamic -no-undefined
  libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_SOURCES = \
+diff --git a/src/lib/libcdr_utils.cpp b/src/lib/libcdr_utils.cpp
+index ef94582..28162e3 100644
+--- a/src/lib/libcdr_utils.cpp
++++ b/src/lib/libcdr_utils.cpp
+@@ -27,6 +27,8 @@
+  * instead of those above.
+  */
+ 
++#include <string.h>
++#include <unicode/ucsdet.h>
+ #include "libcdr_utils.h"
+ 
+ #define CDR_NUM_ELEMENTS(array) sizeof(array)/sizeof(array[0])
+@@ -36,6 +38,86 @@
+ namespace
+ {
+ 
++static unsigned short getEncodingFromICUName(const char *name)
++{
++  // ANSI
++  if (strcmp(name, "ISO-8859-1") == 0)
++    return 0;
++  if (strcmp(name, "windows-1252") == 0)
++    return 0;
++  // CENTRAL EUROPE
++  if (strcmp(name, "ISO-8859-2") == 0)
++    return 0xee;
++  if (strcmp(name, "windows-1250") == 0)
++    return 0xee;
++  // RUSSIAN
++  if (strcmp(name, "ISO-8859-5") == 0)
++    return 0xcc;
++  if (strcmp(name, "windows-1251") == 0)
++    return 0xcc;
++  if (strcmp(name, "KOI8-R") == 0)
++    return 0xcc;
++  // ARABIC
++  if (strcmp(name, "ISO-8859-6") == 0)
++    return 0xb2;
++  if (strcmp(name, "windows-1256") == 0)
++    return 0xb2;
++  // TURKISH
++  if (strcmp(name, "ISO-8859-9") == 0)
++    return 0xa2;
++  if (strcmp(name, "windows-1254") == 0)
++    return 0xa2;
++  // GREEK
++  if (strcmp(name, "ISO-8859-7") == 0)
++    return 0xa1;
++  if (strcmp(name, "windows-1253") == 0)
++    return 0xa1;
++  // HEBREW
++  if (strcmp(name, "ISO-8859-8") == 0)
++    return 0xb1;
++  if (strcmp(name, "windows-1255") == 0)
++    return 0xb1;
++
++  return 0;
++}
++
++
++static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLength)
++{
++  UErrorCode status = U_ZERO_ERROR;
++  UCharsetDetector *csd = 0;
++  const UCharsetMatch *csm = 0;
++  try
++  {
++    csd = ucsdet_open(&status);
++    if (U_FAILURE(status))
++      throw libcdr::EncodingException();
++    ucsdet_setText(csd, (const char *)buffer, bufferLength, &status);
++    if (U_FAILURE(status))
++      throw libcdr::EncodingException();
++    ucsdet_enableInputFilter(csd, TRUE);
++    csm = ucsdet_detect(csd, &status);
++    if (U_FAILURE(status))
++      throw libcdr::EncodingException();
++    const char *name = ucsdet_getName(csm, &status);
++    if (U_FAILURE(status))
++      throw libcdr::EncodingException();
++    if (name)
++    {
++      unsigned short encoding = getEncodingFromICUName(name);
++      ucsdet_close(csd);
++      return encoding;
++    }
++    ucsdet_close(csd);
++    return 0;
++  }
++  catch (const libcdr::EncodingException &)
++  {
++    ucsdet_close(csd);
++    return 0;
++  }
++}
++
+ static void _appendUCS4(WPXString &text, unsigned ucs4Character)
+ {
+   unsigned char first;
+@@ -450,6 +532,10 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
+     0x0111, 0x00F1, 0x0323, 0x00F3, 0x00F4, 0x01A1, 0x00F6, 0x00F7,
+     0x00F8, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x01B0, 0x20AB, 0x00FF
+   };
++
++  if (!charset && characters.size())
++    charset = getEncoding(&characters[0], characters.size());
++
+   for (std::vector<unsigned char>::const_iterator iter = characters.begin();
+        iter != characters.end(); ++iter)
+   {
+diff --git a/src/lib/libcdr_utils.h b/src/lib/libcdr_utils.h
+index 320891a..5958b75 100644
+--- a/src/lib/libcdr_utils.h
++++ b/src/lib/libcdr_utils.h
+@@ -133,6 +133,10 @@ class UnknownPrecisionException
+ {
+ };
+ 
++class EncodingException
++{
++};
++
+ } // namespace libcdr
+ 
+ #endif // __LIBCDR_UTILS_H__
+-- 
+1.8.1.1
+
