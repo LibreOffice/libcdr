@@ -62,18 +62,27 @@ PKG_CHECK_MODULES([ZLIB],[zlib],[],[
 AC_SUBST(ZLIB_CFLAGS)
 AC_SUBST(ZLIB_LIBS)
 
+AC_ARG_ENABLE([language-guessing],
+	[AS_HELP_STRING([--disable-language-guessing], [Disable language guessing using ICU])],
+	[enable_language_guessing="$enableval"],
+	[enable_language_guessing=yes]
+)
+
 # ========
 # Find icu
 # ========
-AC_PATH_PROG([ICU_CONFIG],[icu-config])
-AC_MSG_CHECKING([ICU installation])
-if ${ICU_CONFIG} --cflags >/dev/null 2>&1; then
-	ICU_CFLAGS=`${ICU_CONFIG} --cppflags-searchpath`
-	ICU_LIBS=`${ICU_CONFIG} --ldflags`
-	AC_MSG_RESULT([found])
-else
-	AC_MSG_ERROR([libicu config program icu-config not found])
-fi
+AS_IF([test x$enable_language_guessing = xyes], [
+	AC_PATH_PROG([ICU_CONFIG],[icu-config])
+	AC_MSG_CHECKING([ICU installation])
+	if ${ICU_CONFIG} --cflags >/dev/null 2>&1; then
+		ICU_CFLAGS=`${ICU_CONFIG} --cppflags-searchpath`
+		ICU_LIBS=`${ICU_CONFIG} --ldflags`
+		AC_MSG_RESULT([found])
+		AC_DEFINE([ENABLE_LANGUAGE_GUESSING], [1], [Enable language guessing using ICU])
+	else
+		AC_MSG_ERROR([libicu config program icu-config not found])
+	fi],
+)
 AC_SUBST(ICU_CFLAGS)
 AC_SUBST(ICU_LIBS)
 

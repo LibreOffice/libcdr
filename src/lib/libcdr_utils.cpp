@@ -28,8 +28,12 @@
  */
 
 #include <string.h>
-#include <unicode/ucsdet.h>
+
 #include "libcdr_utils.h"
+
+#ifdef ENABLE_LANGUAGE_GUESSING
+#include <unicode/ucsdet.h>
+#endif
 
 #define CDR_NUM_ELEMENTS(array) sizeof(array)/sizeof(array[0])
 
@@ -37,7 +41,7 @@
 
 namespace
 {
-
+#ifdef ENABLE_LANGUAGE_GUESSING
 static unsigned short getEncodingFromICUName(const char *name)
 {
   // ANSI
@@ -113,6 +117,7 @@ static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLe
     return 0;
   }
 }
+#endif
 
 static void _appendUCS4(WPXString &text, unsigned ucs4Character)
 {
@@ -529,8 +534,10 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
     0x00F8, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x01B0, 0x20AB, 0x00FF
   };
 
+#ifdef ENABLE_LANGUAGE_GUESSING
   if (!charset && characters.size())
     charset = getEncoding(&characters[0], characters.size());
+#endif
 
   for (std::vector<unsigned char>::const_iterator iter = characters.begin();
        iter != characters.end(); ++iter)
