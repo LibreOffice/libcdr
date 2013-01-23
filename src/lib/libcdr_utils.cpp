@@ -81,35 +81,31 @@ static unsigned short getEncodingFromICUName(const char *name)
   return 0;
 }
 
-
 static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLength)
 {
+  if (!buffer || !bufferLength)
+    return 0;
   UErrorCode status = U_ZERO_ERROR;
   UCharsetDetector *csd = 0;
   const UCharsetMatch *csm = 0;
   try
   {
     csd = ucsdet_open(&status);
-    if (U_FAILURE(status))
-      throw libcdr::EncodingException();
+    if (U_FAILURE(status) || !csd)
+      return 0;
+    ucsdet_enableInputFilter(csd, TRUE);
     ucsdet_setText(csd, (const char *)buffer, bufferLength, &status);
     if (U_FAILURE(status))
       throw libcdr::EncodingException();
-    ucsdet_enableInputFilter(csd, TRUE);
     csm = ucsdet_detect(csd, &status);
-    if (U_FAILURE(status))
+    if (U_FAILURE(status) || !csm)
       throw libcdr::EncodingException();
     const char *name = ucsdet_getName(csm, &status);
-    if (U_FAILURE(status))
+    if (U_FAILURE(status) || !name)
       throw libcdr::EncodingException();
-    if (name)
-    {
-      unsigned short encoding = getEncodingFromICUName(name);
-      ucsdet_close(csd);
-      return encoding;
-    }
+    unsigned short encoding = getEncodingFromICUName(name);
     ucsdet_close(csd);
-    return 0;
+    return encoding;
   }
   catch (const libcdr::EncodingException &)
   {
