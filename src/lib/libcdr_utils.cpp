@@ -33,6 +33,8 @@
 
 #ifdef USE_ICU
 #include <unicode/ucsdet.h>
+#include <unicode/ucnv.h>
+#include <unicode/utypes.h>
 #endif
 
 #define CDR_NUM_ELEMENTS(array) sizeof(array)/sizeof(array[0])
@@ -81,6 +83,34 @@ static unsigned short getEncodingFromICUName(const char *name)
     return 0xb1;
   if (strcmp(name, "windows-1255") == 0)
     return 0xb1;
+  // JAPANESE
+  if (strcmp(name, "Shift_JIS") == 0)
+    return 0x80;
+  if (strcmp(name, "ISO-2022-JP") == 0)
+    return 0x80;
+  if (strcmp(name, "EUC-JP") == 0)
+    return 0x80;
+  if (strcmp(name, "windows-932") == 0)
+    return 0x80;
+  // KOREAN
+  if (strcmp(name, "ISO-2022-KR") == 0)
+    return 0x81;
+  if (strcmp(name, "EUC-KR") == 0)
+    return 0x81;
+  if (strcmp(name, "windows-949") == 0)
+    return 0x81;
+  // CHINESE SIMPLIFIED
+  if (strcmp(name, "ISO-2022-CN") == 0)
+    return 0x86;
+  if (strcmp(name, "GB18030") == 0)
+    return 0x86;
+  if (strcmp(name, "windows-936") == 0)
+    return 0x86;
+  // CHINESE TRADITIONAL
+  if (strcmp(name, "Big5") == 0)
+    return 0x88;
+  if (strcmp(name, "windows-950") == 0)
+    return 0x88;
 
   return 0;
 }
@@ -121,6 +151,11 @@ static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLe
 
 static void _appendUCS4(WPXString &text, unsigned ucs4Character)
 {
+  // Convert carriage returns to new line characters
+  // Writerperfect/LibreOffice will replace them by <text:line-break>
+  if (ucs4Character == 0x0d)
+    ucs4Character = (unsigned) '\n';
+
   unsigned char first;
   int len;
   if (ucs4Character < 0x80)
@@ -302,6 +337,8 @@ void libcdr::writeU8(WPXBinaryData &buffer, const int value)
 
 void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> characters, unsigned short charset)
 {
+  if (!characters.size())
+    return;
   static const unsigned short symbolmap [] =
   {
     0x0020, 0x0021, 0x2200, 0x0023, 0x2203, 0x0025, 0x0026, 0x220D, // 0x20 ..
@@ -334,6 +371,7 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
     0x23A0, 0x23A4, 0x23A5, 0x23A6, 0x23AB, 0x23AC, 0x23AD, 0x0020  // .. 0xFE
   };
 
+#ifndef USE_ICU
   static const unsigned short cp874map[] =
   {
     0x20AC, 0x0020, 0x0020, 0x0020, 0x0020, 0x2026, 0x0020, 0x0020,
@@ -533,70 +571,147 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
     0x0111, 0x00F1, 0x0323, 0x00F3, 0x00F4, 0x01A1, 0x00F6, 0x00F7,
     0x00F8, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x01B0, 0x20AB, 0x00FF
   };
+#endif
 
 #ifdef USE_ICU
   if (!charset && characters.size())
     charset = getEncoding(&characters[0], characters.size());
 #endif
 
-  for (std::vector<unsigned char>::const_iterator iter = characters.begin();
-       iter != characters.end(); ++iter)
+  if (charset == 0x02) // SYMBOL
   {
     uint32_t ucs4Character = 0;
-    if (*iter < 0x20)
-      ucs4Character = 0x20;
-    else if (*iter >= 0x20 && *iter < 0x7f)
+    for (std::vector<unsigned char>::const_iterator iter = characters.begin();
+         iter != characters.end(); ++iter)
     {
-      if (charset == 2) // SYMBOL
-        ucs4Character = symbolmap[*iter - 0x20];
+      if (*iter < 0x20)
+        ucs4Character = 0x20;
       else
-        ucs4Character = *iter;
-    }
-    else if (*iter == 0x7f)
-      ucs4Character = 0x20;
-    else
-    {
-      switch (charset)
-      {
-      case 0: // ANSI
-        ucs4Character = cp1252map[*iter - 0x80];
-        break;
-      case 2: // SYMBOL
         ucs4Character = symbolmap[*iter - 0x20];
-        break;
-      case 0xa1: // GREEEK
-        ucs4Character = cp1253map[*iter - 0x80];
-        break;
-      case 0xa2: // TURKISH
-        ucs4Character = cp1254map[*iter - 0x80];
-        break;
-      case 0xa3: // VIETNAMESE
-        ucs4Character = cp1258map[*iter - 0x80];
-        break;
-      case 0xb1: // HEBREW
-        ucs4Character = cp1255map[*iter - 0x80];
-        break;
-      case 0xb2: // ARABIC
-        ucs4Character = cp1256map[*iter - 0x80];
-        break;
-      case 0xba: // BALTIC
-        ucs4Character = cp1257map[*iter - 0x80];
-        break;
-      case 0xcc: // RUSSIAN
-        ucs4Character = cp1251map[*iter - 0x80];
-        break;
-      case 0xde: // THAI
-        ucs4Character = cp874map[*iter - 0x80];
-        break;
-      case 0xee: // CENTRAL EUROPE
-        ucs4Character = cp1250map[*iter - 0x80];
-        break;
-      default:
-        ucs4Character = *iter;
-        break;
+      _appendUCS4(text, ucs4Character);
+    }
+  }
+  else
+  {
+#ifdef USE_ICU
+    UErrorCode status = U_ZERO_ERROR;
+    UConverter *conv = NULL;
+    switch (charset)
+    {
+    case 0x80: // SHIFTJIS
+      conv = ucnv_open("windows-932", &status);
+      break;
+    case 0x81: // HANGUL
+      conv = ucnv_open("windows-949", &status);
+      break;
+    case 0x86: // GB2312
+      conv = ucnv_open("windows-936", &status);
+      break;
+    case 0x88: // CHINESEBIG5
+      conv = ucnv_open("windows-950", &status);
+    case 0xa1: // GREEEK
+      conv = ucnv_open("windows-1253", &status);
+      break;
+    case 0xa2: // TURKISH
+      conv = ucnv_open("windows-1254", &status);
+      break;
+    case 0xa3: // VIETNAMESE
+      conv = ucnv_open("windows-1258", &status);
+      break;
+    case 0xb1: // HEBREW
+      conv = ucnv_open("windows-1255", &status);
+      break;
+    case 0xb2: // ARABIC
+      conv = ucnv_open("windows-1256", &status);
+      break;
+    case 0xba: // BALTIC
+      conv = ucnv_open("windows-1257", &status);
+      break;
+    case 0xcc: // RUSSIAN
+      conv = ucnv_open("windows-1251", &status);
+      break;
+    case 0xde: // THAI
+      conv = ucnv_open("windows-874", &status);
+      break;
+    case 0xee: // CENTRAL EUROPE
+      conv = ucnv_open("windows-1250", &status);
+      break;
+    default:
+      conv = ucnv_open("windows-1252", &status);
+      break;
+    }
+    if (U_SUCCESS(status) && conv)
+    {
+      const char *src = (const char *)&characters[0];
+      const char *srcLimit = (const char *)src + characters.size();
+      while (src < srcLimit)
+      {
+        uint32_t ucs4Character = (uint32_t)ucnv_getNextUChar(conv, &src, srcLimit, &status);
+        if (U_SUCCESS(status))
+        {
+          _appendUCS4(text, ucs4Character);
+        }
       }
     }
-    _appendUCS4(text, ucs4Character);
+    if (conv)
+    {
+      ucnv_close(conv);
+    }
+
+#else
+    for (std::vector<unsigned char>::const_iterator iter = characters.begin();
+         iter != characters.end(); ++iter)
+    {
+      uint32_t ucs4Character = 0;
+      if (*iter < 0x20)
+        ucs4Character = 0x20;
+      else if (*iter >= 0x20 && *iter < 0x7f)
+        ucs4Character = *iter;
+      else if (*iter == 0x7f)
+        ucs4Character = 0x20;
+      else
+      {
+        switch (charset)
+        {
+        case 0: // ANSI
+          ucs4Character = cp1252map[*iter - 0x80];
+          break;
+        case 0xa1: // GREEEK
+          ucs4Character = cp1253map[*iter - 0x80];
+          break;
+        case 0xa2: // TURKISH
+          ucs4Character = cp1254map[*iter - 0x80];
+          break;
+        case 0xa3: // VIETNAMESE
+          ucs4Character = cp1258map[*iter - 0x80];
+          break;
+        case 0xb1: // HEBREW
+          ucs4Character = cp1255map[*iter - 0x80];
+          break;
+        case 0xb2: // ARABIC
+          ucs4Character = cp1256map[*iter - 0x80];
+          break;
+        case 0xba: // BALTIC
+          ucs4Character = cp1257map[*iter - 0x80];
+          break;
+        case 0xcc: // RUSSIAN
+          ucs4Character = cp1251map[*iter - 0x80];
+          break;
+        case 0xde: // THAI
+          ucs4Character = cp874map[*iter - 0x80];
+          break;
+        case 0xee: // CENTRAL EUROPE
+          ucs4Character = cp1250map[*iter - 0x80];
+          break;
+        default:
+          ucs4Character = *iter;
+          break;
+        }
+      }
+      _appendUCS4(text, ucs4Character);
+    }
+#endif
+
   }
 }
 
