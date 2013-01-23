@@ -134,7 +134,7 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   {
     version = getCDRVersion(input);
   }
-  catch (libcdr::EndOfStreamException const&)
+  catch (libcdr::EndOfStreamException const &)
   {
     // This can only happen if isSupported() has not been called before
     return false;
