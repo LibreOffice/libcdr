@@ -31,7 +31,7 @@
 
 #include "libcdr_utils.h"
 
-#ifdef ENABLE_LANGUAGE_GUESSING
+#ifdef USE_ICU
 #include <unicode/ucsdet.h>
 #endif
 
@@ -41,7 +41,7 @@
 
 namespace
 {
-#ifdef ENABLE_LANGUAGE_GUESSING
+#ifdef USE_ICU
 static unsigned short getEncodingFromICUName(const char *name)
 {
   // ANSI
@@ -534,7 +534,7 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
     0x00F8, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x01B0, 0x20AB, 0x00FF
   };
 
-#ifdef ENABLE_LANGUAGE_GUESSING
+#ifdef USE_ICU
   if (!charset && characters.size())
     charset = getEncoding(&characters[0], characters.size());
 #endif
