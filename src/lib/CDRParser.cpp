@@ -84,6 +84,10 @@ struct CDRStltRecord
   unsigned dropCapId;
 };
 
+static void processNameForEncoding(WPXString & /* name */, unsigned short & /* encoding */)
+{
+}
+
 } // anonymous namespace
 
 libcdr::CDRParser::CDRParser(const std::vector<WPXInputStream *> &externalStreams, libcdr::CDRCollector *collector)
@@ -2332,6 +2336,7 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
       else
         break;
     }
+    processNameForEncoding(name, fontEncoding);
   }
   m_collector->collectFont(fontId, fontEncoding, name);
 }
