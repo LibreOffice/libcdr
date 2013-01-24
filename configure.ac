@@ -62,26 +62,19 @@ PKG_CHECK_MODULES([ZLIB],[zlib],[],[
 AC_SUBST(ZLIB_CFLAGS)
 AC_SUBST(ZLIB_LIBS)
 
-AC_ARG_WITH([icu],
-	[AS_HELP_STRING([--without-icu], [Disable the use of ICU])],
-	[with_icu="$enableval"],
-	[with_icu=yes]
-)
-
 # ========
 # Find icu
 # ========
-AS_IF([test x$with_icu = xyes], [
+PKG_CHECK_MODULES([ICU],[icu-i18n],[],[
 	AC_PATH_PROG([ICU_CONFIG],[icu-config])
 	AC_MSG_CHECKING([ICU installation])
 	if ${ICU_CONFIG} --cflags >/dev/null 2>&1; then
 		ICU_CFLAGS=`${ICU_CONFIG} --cppflags-searchpath`
 		ICU_LIBS=`${ICU_CONFIG} --ldflags`
 		AC_MSG_RESULT([found])
-		AC_DEFINE([USE_ICU], [1], [Enable the use of ICU])
 	else
 		AC_MSG_ERROR([libicu config program icu-config not found])
-	fi],
+	fi]
 )
 AC_SUBST(ICU_CFLAGS)
 AC_SUBST(ICU_LIBS)
