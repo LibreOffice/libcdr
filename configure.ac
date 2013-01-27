@@ -69,7 +69,7 @@ PKG_CHECK_MODULES([ICU],[icu-i18n],[],[
 	AC_PATH_PROG([ICU_CONFIG],[icu-config])
 	AC_MSG_CHECKING([ICU installation])
 	if ${ICU_CONFIG} --cflags >/dev/null 2>&1; then
-		ICU_CFLAGS=`${ICU_CONFIG} --cppflags-searchpath`
+		ICU_CFLAGS=`${ICU_CONFIG} --cppflags-searchpath --cxxflags`
 		ICU_LIBS=`${ICU_CONFIG} --ldflags`
 		AC_MSG_RESULT([found])
 	else
