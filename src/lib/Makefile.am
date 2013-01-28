@@ -64,8 +64,7 @@ endif
 
 
 EXTRA_DIST = \
-	libcdr.rc.in \
-	makefile.mk
+	libcdr.rc.in
 
 # These may be in the builddir too
 BUILD_EXTRA_DIST = \
