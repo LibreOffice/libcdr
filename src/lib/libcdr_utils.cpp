@@ -333,7 +333,7 @@ void libcdr::writeU8(WPXBinaryData &buffer, const int value)
 
 void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> characters, unsigned short charset)
 {
-  if (!characters.size())
+  if (characters.empty())
     return;
   static const unsigned short symbolmap [] =
   {
@@ -367,7 +367,7 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
     0x23A0, 0x23A4, 0x23A5, 0x23A6, 0x23AB, 0x23AC, 0x23AD, 0x0020  // .. 0xFE
   };
 
-  if (!charset && characters.size())
+  if (!charset && !characters.empty())
     charset = getEncoding(&characters[0], characters.size());
 
   if (charset == 0x02) // SYMBOL

@@ -239,11 +239,11 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     WPXPropertyListVector::Iter i(path);
     for (i.rewind(); i.next();)
     {
-      bool ignoreM = false;
       if (!i()["libwpg:path-action"])
         continue;
       if (i()["svg:x"] && i()["svg:y"])
       {
+        bool ignoreM = false;
         x = i()["svg:x"]->getDouble();
         y = i()["svg:y"]->getDouble();
         if (firstPoint)
