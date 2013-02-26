@@ -116,7 +116,11 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
   }
 
   // sweep is inversed each time the arc is flipped
-  sweep = (m_v0*m_v4 < m_v3*m_v1);
+  if (v0 < 0)
+    sweep = !sweep;
+  if (v4 < 0)
+    sweep = !sweep;
+  
 }
 
 double libcdr::CDRTransform::_getScaleX() const

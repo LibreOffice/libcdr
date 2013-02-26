@@ -1219,15 +1219,16 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   }
   else
   {
-    double x0 = cx + rx;
-    double y0 = cy;
+    angle2 += M_PI/2.0;
+    double x0 = cx + rx*cos(angle1);
+    double y0 = cy - ry*sin(angle1);
 
-    double x1 = cx;
-    double y1 = cy - ry;
+    double x1 = cx + rx*cos(angle2);
+    double y1 = cy - ry*sin(angle2);
 
     m_collector->collectMoveTo(x0, y0);
-    m_collector->collectArcTo(rx, ry, false, true, x1, y1);
-    m_collector->collectArcTo(rx, ry, true, true, x0, y0);
+    m_collector->collectArcTo(rx, ry, false, false, x1, y1);
+    m_collector->collectArcTo(rx, ry, true, false, x0, y0);
     m_collector->collectClosePath();
   }
 }
