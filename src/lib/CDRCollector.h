@@ -61,7 +61,7 @@ public:
   std::map<unsigned, WPXBinaryData> m_vects;
   std::vector<CDRPage> m_pages;
   std::map<unsigned, CDRColor> m_documentPalette;
-  std::map<unsigned, WPXString> m_fonts;
+  std::map<unsigned, CDRFont> m_fonts;
   std::map<unsigned, CDRText> m_texts;
 
   unsigned _getRGBColor(const CDRColor &color);

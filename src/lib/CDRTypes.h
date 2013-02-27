@@ -344,6 +344,17 @@ struct CDRText
   CDRCharacterStyle m_charStyle;
 };
 
+struct CDRFont
+{
+  CDRFont() : m_name(), m_encoding(0) {}
+  CDRFont(const WPXString &name, unsigned short encoding)
+    : m_name(name), m_encoding(encoding) {}
+  CDRFont(const CDRFont &font)
+    : m_name(font.m_name), m_encoding(font.m_encoding) {}
+  WPXString m_name;
+  unsigned short m_encoding;
+};
+
 } // namespace libcdr
 
 #endif /* __CDRTYPES_H__ */

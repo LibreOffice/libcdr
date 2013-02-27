@@ -239,9 +239,9 @@ void libcdr::CDRStylesCollector::collectPaletteEntry(unsigned colorId, unsigned 
   m_ps.m_documentPalette[colorId] = color;
 }
 
-void libcdr::CDRStylesCollector::collectFont(unsigned fontId, unsigned short, const WPXString &font)
+void libcdr::CDRStylesCollector::collectFont(unsigned fontId, unsigned short encoding, const WPXString &font)
 {
-  m_ps.m_fonts[fontId] = font;
+  m_ps.m_fonts[fontId] = CDRFont(font, encoding);
 }
 
 void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
@@ -267,6 +267,12 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
     iter = styleOverrides.find((tmpCharDescription >> 16) & 0xff);
     if (iter != styleOverrides.end())
       tmpCharStyle.overrideCharacterStyle(iter->second);
+    if (!tmpCharStyle.m_charSet)
+    {
+      std::map<unsigned, CDRFont>::const_iterator iterFont = m_ps.m_fonts.find(tmpCharStyle.m_fontId);
+      if (iterFont != m_ps.m_fonts.end())
+        tmpCharStyle.m_charSet = iterFont->second.m_encoding;
+    }
     if ((uint32_t)(charDescriptions[i] & 0xffffff) != tmpCharDescription)
     {
       if (!tmpTextData.empty())
