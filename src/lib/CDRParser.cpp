@@ -87,59 +87,30 @@ struct CDRStltRecord
 static void processNameForEncoding(WPXString &name, unsigned short &encoding)
 {
   std::string fontName(name.cstr());
-  size_t found;
+  size_t found = std::string::npos;
+
   if ((found=fontName.rfind(" CE")) != std::string::npos)
-  {
     encoding = 0xee;
-    fontName.replace(found, 3, "");
-    name = fontName.c_str();
-  }
   else if ((found=fontName.rfind(" Cyrillic")) != std::string::npos)
-  {
     encoding = 0xcc;
-    fontName.replace(found, 9, "");
-    name = fontName.c_str();
-  }
   else if ((found=fontName.rfind(" Cyr")) != std::string::npos)
-  {
     encoding = 0xcc;
-    fontName.replace(found, 4, "");
-    name = fontName.c_str();
-  }
   else if ((found=fontName.rfind(" Baltic")) != std::string::npos)
-  {
     encoding = 0xba;
-    fontName.replace(found, 7, "");
-    name = fontName.c_str();
-  }
   else if ((found=fontName.rfind(" Greek")) != std::string::npos)
-  {
     encoding = 0xa1;
-    fontName.replace(found, 6, "");
-    name = fontName.c_str();
-  }
   else if ((found=fontName.rfind(" Tur")) != std::string::npos)
-  {
     encoding = 0xa2;
-    fontName.replace(found, 4, "");
-    name = fontName.c_str();
-  }
   else if ((found=fontName.rfind(" Hebrew")) != std::string::npos)
-  {
     encoding = 0xb1;
-    fontName.replace(found, 7, "");
-    name = fontName.c_str();
-  }
   else if ((found=fontName.rfind(" Arabic")) != std::string::npos)
-  {
     encoding = 0xb2;
-    fontName.replace(found, 7, "");
-    name = fontName.c_str();
-  }
   else if ((found=fontName.rfind(" Thai")) != std::string::npos)
-  {
     encoding = 0xde;
-    fontName.replace(found, 5, "");
+
+  if (found != std::string::npos)
+  {
+    fontName.erase(found, std::string::npos);
     name = fontName.c_str();
   }
   return;
