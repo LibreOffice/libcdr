@@ -1206,10 +1206,10 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
     double x1 = cx + rx*cos(angle2);
     double y1 = cy - ry*sin(angle2);
 
-    bool largeArc = (angle2 - angle1 > M_PI || angle2 - angle1 < -M_PI);
+    bool largeArc = (angle2 - angle1 > M_PI);
 
     m_collector->collectMoveTo(x0, y0);
-    m_collector->collectArcTo(rx, ry, largeArc, true, x1, y1);
+    m_collector->collectArcTo(rx, ry, largeArc, false, x1, y1);
     if (pie)
     {
       m_collector->collectLineTo(cx, cy);

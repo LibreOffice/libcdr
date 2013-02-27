@@ -120,7 +120,7 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
     sweep = !sweep;
   if (v4 < 0)
     sweep = !sweep;
-  
+
 }
 
 double libcdr::CDRTransform::_getScaleX() const
