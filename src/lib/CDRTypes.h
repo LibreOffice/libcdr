@@ -203,14 +203,6 @@ struct CDRImage
   {
     return (m_y1 + m_y2) / 2.0;
   }
-  double getWidth() const
-  {
-    return fabs(m_x1 - m_x2);
-  }
-  double getHeight() const
-  {
-    return fabs(m_y1 - m_y2);
-  }
   const WPXBinaryData &getImage() const
   {
     return m_image;

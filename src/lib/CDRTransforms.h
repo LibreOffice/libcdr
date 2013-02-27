@@ -47,7 +47,6 @@ public:
   void applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const;
   double getScaleX() const;
   double getScaleY() const;
-  double getRotation() const;
   double getTranslateX() const;
   double getTranslateY() const;
   bool getFlipX() const;
@@ -80,7 +79,6 @@ public:
   void applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const;
   double getScaleX() const;
   double getScaleY() const;
-  double getRotation() const;
   double getTranslateX() const;
   double getTranslateY() const;
   bool getFlipX() const;

@@ -328,18 +328,38 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   {
     double cx = m_currentImage.getMiddleX();
     double cy = m_currentImage.getMiddleY();
+    double corner1x = m_currentImage.m_x1;
+    double corner1y = m_currentImage.m_y1;
+    double corner2x = m_currentImage.m_x1;
+    double corner2y = m_currentImage.m_y2;
+    double corner3x = m_currentImage.m_x2;
+    double corner3y = m_currentImage.m_y2;
     m_currentTransforms.applyToPoint(cx, cy);
+    m_currentTransforms.applyToPoint(corner1x, corner1y);
+    m_currentTransforms.applyToPoint(corner2x, corner2y);
+    m_currentTransforms.applyToPoint(corner3x, corner3y);
     if (!m_groupTransforms.empty())
+    {
       m_groupTransforms.top().applyToPoint(cx, cy);
+      m_groupTransforms.top().applyToPoint(corner1x, corner1y);
+      m_groupTransforms.top().applyToPoint(corner2x, corner2y);
+      m_groupTransforms.top().applyToPoint(corner3x, corner3y);
+    }
     CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
     tmpTrafo.applyToPoint(cx, cy);
+    tmpTrafo.applyToPoint(corner1x, corner1y);
+    tmpTrafo.applyToPoint(corner2x, corner2y);
+    tmpTrafo.applyToPoint(corner3x, corner3y);
     tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
     tmpTrafo.applyToPoint(cx, cy);
+    tmpTrafo.applyToPoint(corner1x, corner1y);
+    tmpTrafo.applyToPoint(corner2x, corner2y);
+    tmpTrafo.applyToPoint(corner3x, corner3y);
     bool flipX(m_currentTransforms.getFlipX());
     bool flipY(m_currentTransforms.getFlipY());
-    double width = m_currentTransforms.getScaleX() * m_currentImage.getWidth();
-    double height = m_currentTransforms.getScaleY() * m_currentImage.getHeight();
-    double rotate = m_currentTransforms.getRotation();
+    double width = sqrt((corner2x - corner3x)*(corner2x - corner3x) + (corner2y - corner3y)*(corner2y - corner3y));
+    double height = sqrt((corner2x - corner1x)*(corner2x - corner1x) + (corner2y - corner1y)*(corner2y - corner1y));
+    double rotate = atan2(corner3y-corner2y, corner3x-corner2x);
 
     WPXPropertyList propList;
 

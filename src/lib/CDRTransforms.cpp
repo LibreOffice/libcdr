@@ -165,20 +165,6 @@ bool libcdr::CDRTransform::getFlipY() const
   return (0 > _getScaleY());
 }
 
-double libcdr::CDRTransform::getRotation() const
-{
-  double x0 = 0.0;
-  double x1 = 1.0;
-  double y0 = 0.0;
-  double y1 = 0.0;
-  applyToPoint(x0, y0);
-  applyToPoint(x1, y1);
-  double angle = atan2(y1-y0, x1-x0);
-  if (angle < 0.0)
-    angle += 2*M_PI;
-  return angle;
-}
-
 double libcdr::CDRTransform::getTranslateX() const
 {
   double x = 0.0;
@@ -282,20 +268,6 @@ double libcdr::CDRTransforms::getScaleY() const
 bool libcdr::CDRTransforms::getFlipY() const
 {
   return (0 > _getScaleY());
-}
-
-double libcdr::CDRTransforms::getRotation() const
-{
-  double x0 = 0.0;
-  double x1 = 1.0;
-  double y0 = 0.0;
-  double y1 = 0.0;
-  applyToPoint(x0, y0);
-  applyToPoint(x1, y1);
-  double angle = atan2(y1-y0, x1-x0);
-  if (angle < 0.0)
-    angle += 2*M_PI;
-  return angle;
 }
 
 double libcdr::CDRTransforms::getTranslateX() const
