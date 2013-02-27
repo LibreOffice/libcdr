@@ -368,10 +368,9 @@ void libcdr::CDRSVGGenerator::drawEllipse(const WPXPropertyList &propList)
   m_outputSink << "rx=\"" << doubleToString(72*propList["svg:rx"]->getDouble()) << "\" ry=\"" << doubleToString(72*propList["svg:ry"]->getDouble()) << "\" ";
   writeStyle();
   if (propList["libwpg:rotate"] && propList["libwpg:rotate"]->getDouble() != 0.0)
-    m_outputSink << " transform=\" translate(" << doubleToString(72*propList["svg:cx"]->getDouble()) << ", " << doubleToString(72*propList["svg:cy"]->getDouble())
-                 << ") rotate(" << doubleToString(-propList["libwpg:rotate"]->getDouble())
-                 << ") translate(" << doubleToString(-72*propList["svg:cx"]->getDouble())
-                 << ", " << doubleToString(-72*propList["svg:cy"]->getDouble())
+    m_outputSink << " transform=\" rotate(" << doubleToString(-propList["libwpg:rotate"]->getDouble())
+                 << ", " << doubleToString(72*propList["svg:cy"]->getDouble())
+                 << ", " << doubleToString(72*propList["svg:cy"]->getDouble())
                  << ")\" ";
   m_outputSink << "/>\n";
 }
@@ -459,7 +458,7 @@ void libcdr::CDRSVGGenerator::drawPath(const ::WPXPropertyListVector &path)
       m_outputSink << (propList["libwpg:sweep"] ? propList["libwpg:sweep"]->getInt() : 1) << " ";
       m_outputSink << doubleToString(72*(propList["svg:x"]->getDouble())) << "," << doubleToString(72*(propList["svg:y"]->getDouble()));
     }
-    else if ((i >= path.count()-1 && i > 2) && propList["libwpg:path-action"] && propList["libwpg:path-action"]->getStr() == "Z" )
+    else if (propList["libwpg:path-action"] && propList["libwpg:path-action"]->getStr() == "Z")
     {
       isClosed = true;
       m_outputSink << "\nZ";
@@ -478,8 +477,34 @@ void libcdr::CDRSVGGenerator::drawGraphicObject(const ::WPXPropertyList &propLis
   WPXString base64 = binaryData.getBase64Data();
   m_outputSink << "<svg:image ";
   if (propList["svg:x"] && propList["svg:y"] && propList["svg:width"] && propList["svg:height"])
-    m_outputSink << "x=\"" << doubleToString(72*(propList["svg:x"]->getDouble())) << "\" y=\"" << doubleToString(72*(propList["svg:y"]->getDouble())) << "\" ";
-  m_outputSink << "width=\"" << doubleToString(72*(propList["svg:width"]->getDouble())) << "\" height=\"" << doubleToString(72*(propList["svg:height"]->getDouble())) << "\" ";
+  {
+    double x(propList["svg:x"]->getDouble());
+    double y(propList["svg:y"]->getDouble());
+    double width(propList["svg:width"]->getDouble());
+    double height(propList["svg:height"]->getDouble());
+    bool flipX(propList["draw:mirror-horizontal"] && propList["draw:mirror-horizontal"]->getInt());
+    bool flipY(propList["draw:mirror-vertical"] && propList["draw:mirror-vertical"]->getInt());
+
+    double xmiddle = x + width / 2.0;
+    double ymiddle = y + height / 2.0;
+    m_outputSink << "x=\"" << doubleToString(72*x) << "\" y=\"" << doubleToString(72*y) << "\" ";
+    m_outputSink << "width=\"" << doubleToString(72*width) << "\" height=\"" << doubleToString(72*height) << "\" ";
+    m_outputSink << "transform=\"";
+    m_outputSink << " translate(" << doubleToString(72*xmiddle) << ", " << doubleToString (72*ymiddle) << ") ";
+    m_outputSink << " scale(" << (flipX ? "-1" : "1") << ", " << (flipY ? "-1" : "1") << ") ";
+    // rotation is around the center of the object's bounding box
+    if (propList["libwpg:rotate"])
+    {
+      double angle(propList["libwpg:rotate"]->getDouble());
+      while (angle > 180.0)
+        angle -= 360.0;
+      while (angle < -180.0)
+        angle += 360.0;
+      m_outputSink << " rotate(" << doubleToString(angle) << ") ";
+    }
+    m_outputSink << " translate(" << doubleToString(-72*xmiddle) << ", " << doubleToString (-72*ymiddle) << ") ";
+    m_outputSink << "\" ";
+  }
   m_outputSink << "xlink:href=\"data:" << propList["libwpg:mime-type"]->getStr().cstr() << ";base64,";
   m_outputSink << base64.cstr();
   m_outputSink << "\" />\n";
@@ -487,15 +512,60 @@ void libcdr::CDRSVGGenerator::drawGraphicObject(const ::WPXPropertyList &propLis
 
 void libcdr::CDRSVGGenerator::startTextObject(const ::WPXPropertyList &propList, const ::WPXPropertyListVector & /* path */)
 {
+  double x = 0.0;
+  double y = 0.0;
+  double height = 0.0;
   m_outputSink << "<svg:text ";
   if (propList["svg:x"] && propList["svg:y"])
-    m_outputSink << "x=\"" << doubleToString(72*(propList["svg:x"]->getDouble())) << "\" y=\"" << doubleToString(72*(propList["svg:y"]->getDouble())) << "\"";
+  {
+    x = propList["svg:x"]->getDouble();
+    y = propList["svg:y"]->getDouble();
+  }
+
+  double xmiddle = x;
+  double ymiddle = y;
+
+  if (propList["svg:width"])
+  {
+    double width = propList["svg:width"]->getDouble();
+    xmiddle += width / 2.0;
+  }
+
+  if (propList["svg:height"])
+  {
+    height = propList["svg:height"]->getDouble();
+    ymiddle += height / 2.0;
+  }
+
+  if (propList["draw:textarea-vertical-align"])
+  {
+    if (propList["draw:textarea-vertical-align"]->getStr() == "middle")
+      y = ymiddle;
+    if (propList["draw:textarea-vertical-align"]->getStr() == "bottom")
+    {
+      y += height;
+      if (propList["fo:padding-bottom"])
+        y -= propList["fo:padding-bottom"]->getDouble();
+    }
+  }
+  else
+    y += height;
+
+  if (propList["fo:padding-left"])
+    x += propList["fo:padding-left"]->getDouble();
+
+  m_outputSink << "x=\"" << doubleToString(72*x) << "\" y=\"" << doubleToString(72*y) << "\"";
+
+  // rotation is around the center of the object's bounding box
   if (propList["libwpg:rotate"] && propList["libwpg:rotate"]->getDouble() != 0.0)
-    m_outputSink << " transform=\"translate(" << doubleToString(72*propList["svg:x"]->getDouble()) << ", " << doubleToString(72*propList["svg:y"]->getDouble())
-                 << ") rotate(" << doubleToString(-propList["libwpg:rotate"]->getDouble())
-                 << ") translate(" << doubleToString(-72*propList["svg:x"]->getDouble())
-                 << ", " << doubleToString(-72*propList["svg:y"]->getDouble())
-                 << ")\"";
+  {
+    double angle(propList["libwpg:rotate"]->getDouble());
+    while (angle > 180.0)
+      angle -= 360.0;
+    while (angle < -180.0)
+      angle += 360.0;
+    m_outputSink << " transform=\"rotate(" << doubleToString(angle) << ", " << doubleToString(72*xmiddle) << ", " << doubleToString(72*ymiddle) << ")\" ";
+  }
   m_outputSink << ">\n";
 
 }
