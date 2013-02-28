@@ -118,7 +118,7 @@ private:
   unsigned m_spnd;
   unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentVectLevel, m_currentPageLevel;
   CDRImage m_currentImage;
-  CDRText m_currentText;
+  const std::vector<CDRText> *m_currentText;
   double m_currentTextOffsetX;
   double m_currentTextOffsetY;
   CDRBBox m_currentBBox;

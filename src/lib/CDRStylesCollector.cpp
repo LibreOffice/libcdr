@@ -298,7 +298,8 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   }
 
   CDR_DEBUG_MSG(("CDRStylesCollector::collectText - Text: %s\n", text.cstr()));
-  m_ps.m_texts[textId] = CDRText(text, tmpCharStyle);
+  std::vector<CDRText> &paragraphVector = m_ps.m_texts[textId];
+  paragraphVector.push_back(CDRText(text, tmpCharStyle));
 }
 
 void libcdr::CDRStylesCollector::collectStlt(const std::map<unsigned, CDRCharacterStyle> &charStyles)

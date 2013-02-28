@@ -52,7 +52,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   m_isPageProperties(false), m_isPageStarted(false), m_ignorePage(false),
   m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFildId(0), m_currentOutlId(0), m_spnd(0),
   m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
-  m_currentImage(), m_currentText(), m_currentTextOffsetX(0.0), m_currentTextOffsetY(0.0),
+  m_currentImage(), m_currentText(0), m_currentTextOffsetX(0.0), m_currentTextOffsetY(0.0),
   m_currentBBox(), m_currentPath(), m_currentTransforms(), m_fillTransforms(),
   m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(0),
   m_contentOutputElements(), m_fillOutputElements(),
@@ -391,7 +391,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
 
     outputElement.addGraphicObject(propList, m_currentImage.getImage());
   }
-  if (m_currentText.m_text.len())
+  if (m_currentText && !m_currentText->empty())
   {
     double currentTextOffsetX = 0.0;
     double currentTextOffsetY = 0.0;
@@ -417,17 +417,20 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     textFrameProps.insert("fo:padding-left", 0.0);
     textFrameProps.insert("fo:padding-right", 0.0);
     outputElement.addStartTextObject(textFrameProps, WPXPropertyListVector());
-    outputElement.addStartTextLine(WPXPropertyList());
-    WPXPropertyList spanProps;
-    double fontSize = (double)cdr_round(144.0*m_currentText.m_charStyle.m_fontSize) / 2.0;
-    spanProps.insert("fo:font-size", fontSize, WPX_POINT);
-    std::map<unsigned, CDRFont>::const_iterator iterFont = m_ps.m_fonts.find(m_currentText.m_charStyle.m_fontId);
-    if (iterFont != m_ps.m_fonts.end())
-      spanProps.insert("style:font-name", iterFont->second.m_name);
-    outputElement.addStartTextSpan(spanProps);
-    outputElement.addInsertText(m_currentText.m_text);
-    outputElement.addEndTextSpan();
-    outputElement.addEndTextLine();
+    for (unsigned i = 0; i < m_currentText->size(); ++i)
+    {
+      outputElement.addStartTextLine(WPXPropertyList());
+      WPXPropertyList spanProps;
+      double fontSize = (double)cdr_round(144.0*(*m_currentText)[i].m_charStyle.m_fontSize) / 2.0;
+      spanProps.insert("fo:font-size", fontSize, WPX_POINT);
+      std::map<unsigned, CDRFont>::const_iterator iterFont = m_ps.m_fonts.find((*m_currentText)[i].m_charStyle.m_fontId);
+      if (iterFont != m_ps.m_fonts.end())
+        spanProps.insert("style:font-name", iterFont->second.m_name);
+      outputElement.addStartTextSpan(spanProps);
+      outputElement.addInsertText((*m_currentText)[i].m_text);
+      outputElement.addEndTextSpan();
+      outputElement.addEndTextLine();
+    }
     outputElement.addEndTextObject();
   }
   m_currentImage = libcdr::CDRImage();
@@ -436,7 +439,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   m_currentTransforms.clear();
   m_fillTransforms = libcdr::CDRTransforms();
   m_fillOpacity = 1.0;
-  m_currentText = CDRText();
+  m_currentText = 0;
 }
 
 void libcdr::CDRContentCollector::collectTransform(const CDRTransforms &transforms, bool considerGroupTransform)
@@ -1136,16 +1139,16 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const WPXBin
 
 void libcdr::CDRContentCollector::collectArtisticText()
 {
-  std::map<unsigned, CDRText>::const_iterator iter = m_ps.m_texts.find(m_spnd);
+  std::map<unsigned, std::vector<CDRText> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
-    m_currentText = iter->second;
+    m_currentText = &(iter->second);
 }
 
 void libcdr::CDRContentCollector::collectParagraphText()
 {
-  std::map<unsigned, CDRText>::const_iterator iter = m_ps.m_texts.find(m_spnd);
+  std::map<unsigned, std::vector<CDRText> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
-    m_currentText = iter->second;
+    m_currentText = &(iter->second);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

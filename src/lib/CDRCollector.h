@@ -62,7 +62,7 @@ public:
   std::vector<CDRPage> m_pages;
   std::map<unsigned, CDRColor> m_documentPalette;
   std::map<unsigned, CDRFont> m_fonts;
-  std::map<unsigned, CDRText> m_texts;
+  std::map<unsigned, std::vector<CDRText> > m_texts;
 
   unsigned _getRGBColor(const CDRColor &color);
   unsigned getBMPColor(const CDRColor &color);

@@ -2648,6 +2648,7 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     if (m_version >= 1500)
       input->seek(12, WPX_SEEK_CUR);
     unsigned num = readU32(input);
+    unsigned num4 = 1;
     if (!num)
     {
       if (m_version >= 800)
@@ -2659,92 +2660,96 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
       input->seek(24, WPX_SEEK_CUR);
       if (m_version < 800)
         input->seek(8, WPX_SEEK_CUR);
-      input->seek(4, WPX_SEEK_CUR);
+      num4 = readU32(input);
     }
 
-    unsigned stlId = readU32(input);
-    if (m_version >= 1300 && num)
+    for (unsigned j = 0; j < num4; ++j)
+    {
+      unsigned stlId = readU32(input);
+      if (m_version >= 1300 && num)
+        input->seek(1, WPX_SEEK_CUR);
       input->seek(1, WPX_SEEK_CUR);
-    input->seek(1, WPX_SEEK_CUR);
-    unsigned numRecords = readU32(input);
-    std::map<unsigned, CDRCharacterStyle> charStyles;
-    unsigned i = 0;
-    for (i=0; i<numRecords; ++i)
-    {
-      readU8(input);
-      readU8(input);
-      unsigned char fl2 = readU8(input);
-      unsigned char fl3 = 0;
-      if (m_version >= 800)
-        fl3 = readU8(input);
+      unsigned numRecords = readU32(input);
+      std::map<unsigned, CDRCharacterStyle> charStyles;
+      unsigned i = 0;
+      for (i=0; i<numRecords; ++i)
+      {
+        readU8(input);
+        readU8(input);
+        unsigned char fl2 = readU8(input);
+        unsigned char fl3 = 0;
+        if (m_version >= 800)
+          fl3 = readU8(input);
 
-      CDRCharacterStyle charStyle;
-      // Read more information depending on the flags
-      if (fl2&1) // Font
-      {
-        unsigned flag = readU32(input);
-        charStyle.m_charSet = (flag >> 16);
-        charStyle.m_fontId = flag & 0xff;
-      }
-      if (fl2&2) // Bold/Italic, etc.
-        input->seek(4, WPX_SEEK_CUR);
-      if (fl2&4) // Font Size
-        charStyle.m_fontSize = readCoordinate(input);
-      if (fl2&8) // assumption
-        input->seek(4, WPX_SEEK_CUR);
-      if (fl2&0x10) // Offset X
-        input->seek(4, WPX_SEEK_CUR);
-      if (fl2&0x20) // Offset Y
-        input->seek(4, WPX_SEEK_CUR);
-      if (fl2&0x40) // Font Colour
-      {
-        input->seek(4, WPX_SEEK_CUR);
-        if (m_version >= 1500)
-          input->seek(48, WPX_SEEK_CUR);
-      }
-      if (fl2&0x80) // Font Outl Colour
-        input->seek(4, WPX_SEEK_CUR);
-
-      if (fl3&8) // Encoding
-      {
-        if (m_version >= 1300)
+        CDRCharacterStyle charStyle;
+        // Read more information depending on the flags
+        if (fl2&1) // Font
         {
-          unsigned tlen = readU32(input);
-          input->seek(tlen*2, WPX_SEEK_CUR);
+          unsigned flag = readU32(input);
+          charStyle.m_charSet = (flag >> 16);
+          charStyle.m_fontId = flag & 0xff;
         }
-        else
+        if (fl2&2) // Bold/Italic, etc.
           input->seek(4, WPX_SEEK_CUR);
+        if (fl2&4) // Font Size
+          charStyle.m_fontSize = readCoordinate(input);
+        if (fl2&8) // assumption
+          input->seek(4, WPX_SEEK_CUR);
+        if (fl2&0x10) // Offset X
+          input->seek(4, WPX_SEEK_CUR);
+        if (fl2&0x20) // Offset Y
+          input->seek(4, WPX_SEEK_CUR);
+        if (fl2&0x40) // Font Colour
+        {
+          input->seek(4, WPX_SEEK_CUR);
+          if (m_version >= 1500)
+            input->seek(48, WPX_SEEK_CUR);
+        }
+        if (fl2&0x80) // Font Outl Colour
+          input->seek(4, WPX_SEEK_CUR);
+
+        if (fl3&8) // Encoding
+        {
+          if (m_version >= 1300)
+          {
+            unsigned tlen = readU32(input);
+            input->seek(tlen*2, WPX_SEEK_CUR);
+          }
+          else
+            input->seek(4, WPX_SEEK_CUR);
+        }
+        if (fl3&0x20) // Something
+        {
+          unsigned flag = readU8(input);
+          if (flag)
+            input->seek(52, WPX_SEEK_CUR);
+        }
+
+        charStyles[2*i] = charStyle;
       }
-      if (fl3&0x20) // Something
+      unsigned numChars = readU32(input);
+      std::vector<uint64_t> charDescriptions(numChars);
+      for (i=0; i<numChars; ++i)
       {
-        unsigned flag = readU8(input);
-        if (flag)
-          input->seek(52, WPX_SEEK_CUR);
+        if (m_version >= 1200)
+          charDescriptions[i] = readU64(input);
+        else
+          charDescriptions[i] = readU32(input);
       }
-
-      charStyles[2*i] = charStyle;
-    }
-    unsigned numChars = readU32(input);
-    std::vector<uint64_t> charDescriptions(numChars);
-    for (i=0; i<numChars; ++i)
-    {
+      unsigned numBytes = numChars;
       if (m_version >= 1200)
-        charDescriptions[i] = readU64(input);
-      else
-        charDescriptions[i] = readU32(input);
-    }
-    unsigned numBytes = numChars;
-    if (m_version >= 1200)
-      numBytes = readU32(input);
-    unsigned long numBytesRead = 0;
-    const unsigned char *buffer = input->read(numBytes, numBytesRead);
-    if (numBytesRead != numBytes)
-      throw GenericException();
-    std::vector<unsigned char> textData(numBytesRead);
-    if (numBytesRead)
-      memcpy(&textData[0], buffer, numBytesRead);
+        numBytes = readU32(input);
+      unsigned long numBytesRead = 0;
+      const unsigned char *buffer = input->read(numBytes, numBytesRead);
+      if (numBytesRead != numBytes)
+        throw GenericException();
+      std::vector<unsigned char> textData(numBytesRead);
+      if (numBytesRead)
+        memcpy(&textData[0], buffer, numBytesRead);
+      input->seek(1, WPX_SEEK_CUR); //skip the 0 ending character
 
-    m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
+      m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
+    }
 #ifndef DEBUG
   }
   catch (...)
