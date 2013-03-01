@@ -241,7 +241,12 @@ void libcdr::CDRStylesCollector::collectPaletteEntry(unsigned colorId, unsigned 
 
 void libcdr::CDRStylesCollector::collectFont(unsigned fontId, unsigned short encoding, const WPXString &font)
 {
-  m_ps.m_fonts[fontId] = CDRFont(font, encoding);
+  std::map<unsigned, CDRFont>::const_iterator iter = m_ps.m_fonts.find(fontId);
+  // Asume that the first font with the given ID is a font
+  // that we want, the others are substitution fonts. We might
+  // be utterly wrong in this one
+  if (iter == m_ps.m_fonts.end())
+    m_ps.m_fonts[fontId] = CDRFont(font, encoding);
 }
 
 void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,

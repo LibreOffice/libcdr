@@ -95,6 +95,8 @@ static void processNameForEncoding(WPXString &name, unsigned short &encoding)
     encoding = 0xcc;
   else if ((found=fontName.rfind(" Cyr")) != std::string::npos)
     encoding = 0xcc;
+  else if ((found=fontName.rfind(" CYR")) != std::string::npos)
+    encoding = 0xcc;
   else if ((found=fontName.rfind(" Baltic")) != std::string::npos)
     encoding = 0xba;
   else if ((found=fontName.rfind(" Greek")) != std::string::npos)
@@ -2348,8 +2350,8 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
-  unsigned fontId = readU32(input);
-  unsigned short fontEncoding = fontId >> 16;
+  unsigned short fontId = readU16(input);
+  unsigned short fontEncoding = readU16(input);
   input->seek(14, WPX_SEEK_CUR);
   WPXString name;
   if (m_version >= 1200)
