@@ -1145,10 +1145,8 @@ void libcdr::CDRContentCollector::collectArtisticText(double, double)
     m_currentText = &(iter->second);
 }
 
-void libcdr::CDRContentCollector::collectParagraphText(double x, double y, double width, double height)
+void libcdr::CDRContentCollector::collectParagraphText(double, double, double width, double height)
 {
-  m_currentBox.m_x = x;
-  m_currentBox.m_y = y;
   m_currentBox.m_w = width;
   m_currentBox.m_h = height;
   std::map<unsigned, std::vector<CDRText> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
