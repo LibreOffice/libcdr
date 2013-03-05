@@ -114,7 +114,10 @@ static unsigned short getEncodingFromICUName(const char *name)
 
 static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLength)
 {
-  if (!buffer || !bufferLength)
+  if (!buffer || bufferLength < 30)
+    // Under 30, we get a lot of bogus information
+    // Eventually first verify whether the encoding 0 is plausible
+    // and only if not continue guessing ????
     return 0;
   UErrorCode status = U_ZERO_ERROR;
   UCharsetDetector *csd = 0;
