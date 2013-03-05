@@ -199,7 +199,7 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
   m_infoSectionOffset = readU32(input, m_bigEndian);
   m_thumbnailOffset = readU32(input, m_bigEndian);
 #ifdef DEBUG
-  CDRBBox box = readBBox(input);
+  CDRBox box = readBBox(input);
 #endif
   CDR_DEBUG_MSG(("CMX Offsets: index section 0x%.8x, info section: 0x%.8x, thumbnail: 0x%.8x\n",
                  m_indexSectionOffset, m_infoSectionOffset, m_thumbnailOffset));
@@ -297,7 +297,7 @@ void libcdr::CMXParser::readPage(WPXInputStream *input, unsigned length)
 
 void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
 {
-  CDRBBox box;
+  CDRBox box;
   CDRTransform matrix;
   unsigned flags = 0;
   if (m_precision == libcdr::PRECISION_32BIT)
@@ -622,13 +622,13 @@ libcdr::CDRTransform libcdr::CMXParser::readMatrix(WPXInputStream *input)
   }
 }
 
-libcdr::CDRBBox libcdr::CMXParser::readBBox(WPXInputStream *input)
+libcdr::CDRBox libcdr::CMXParser::readBBox(WPXInputStream *input)
 {
   double x0 = readCoordinate(input, m_bigEndian);
   double y0 = readCoordinate(input, m_bigEndian);
   double x1 = readCoordinate(input, m_bigEndian);
   double y1 = readCoordinate(input, m_bigEndian);
-  CDRBBox box(x0, y0, x1, y1);
+  CDRBox box(x0, y0, x1, y1);
   return box;
 }
 

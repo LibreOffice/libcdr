@@ -121,7 +121,7 @@ private:
   const std::vector<CDRText> *m_currentText;
   double m_currentTextOffsetX;
   double m_currentTextOffsetY;
-  CDRBBox m_currentBBox;
+  CDRBox m_currentBBox;
 
   CDRPath m_currentPath;
   CDRTransforms m_currentTransforms;

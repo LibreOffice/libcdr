@@ -73,7 +73,7 @@ private:
 
   // Types readers
   CDRTransform readMatrix(WPXInputStream *input);
-  CDRBBox readBBox(WPXInputStream *input);
+  CDRBox readBBox(WPXInputStream *input);
   void readFill(WPXInputStream *input);
 
   // Complex types readers

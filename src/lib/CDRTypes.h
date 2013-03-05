@@ -38,15 +38,15 @@ namespace libcdr
 {
 class CDRPath;
 
-struct CDRBBox
+struct CDRBox
 {
   double m_x;
   double m_y;
   double m_w;
   double m_h;
-  CDRBBox()
+  CDRBox()
     : m_x(0.0), m_y(0.0), m_w(0.0), m_h(0.0) {}
-  CDRBBox(double x0, double y0, double x1, double y1)
+  CDRBox(double x0, double y0, double x1, double y1)
     : m_x(x0 < x1 ? x0 : x1), m_y(y0 < y1 ? y0 : y1), m_w(fabs(x1-x0)), m_h(fabs(y1-y0)) {}
   double getWidth() const
   {

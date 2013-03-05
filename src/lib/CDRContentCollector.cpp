@@ -111,7 +111,7 @@ void libcdr::CDRContentCollector::collectObject(unsigned level)
   m_currentObjectLevel = level;
   m_currentFildId = 0;
   m_currentOutlId = 0;
-  m_currentBBox = CDRBBox();
+  m_currentBBox = CDRBox();
 }
 
 void libcdr::CDRContentCollector::collectGroup(unsigned level)
@@ -1086,7 +1086,7 @@ void libcdr::CDRContentCollector::collectFillOpacity(double opacity)
 
 void libcdr::CDRContentCollector::collectBBox(double x0, double y0, double x1, double y1)
 {
-  CDRBBox bBox(x0, y0, x1, y1);
+  CDRBox bBox(x0, y0, x1, y1);
   if (m_currentVectLevel && m_page.width == 0.0 && m_page.height == 0.0)
   {
     m_page.width = bBox.getWidth();
