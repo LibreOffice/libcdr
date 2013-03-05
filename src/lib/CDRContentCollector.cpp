@@ -53,7 +53,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFildId(0), m_currentOutlId(0), m_spnd(0),
   m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
   m_currentImage(), m_currentText(0), m_currentTextOffsetX(0.0), m_currentTextOffsetY(0.0),
-  m_currentBBox(), m_currentPath(), m_currentTransforms(), m_fillTransforms(),
+  m_currentBox(), m_currentPath(), m_currentTransforms(), m_fillTransforms(),
   m_polygon(0), m_isInPolygon(false), m_isInSpline(false), m_outputElements(0),
   m_contentOutputElements(), m_fillOutputElements(),
   m_groupLevels(), m_groupTransforms(), m_splineData(), m_fillOpacity(1.0), m_ps(ps)
@@ -111,7 +111,7 @@ void libcdr::CDRContentCollector::collectObject(unsigned level)
   m_currentObjectLevel = level;
   m_currentFildId = 0;
   m_currentOutlId = 0;
-  m_currentBBox = CDRBox();
+  m_currentBox = CDRBox();
 }
 
 void libcdr::CDRContentCollector::collectGroup(unsigned level)
@@ -399,19 +399,19 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     if (!m_groupTransforms.empty())
       m_groupTransforms.top().applyToPoint(currentTextOffsetX, currentTextOffsetY);
     WPXPropertyList textFrameProps;
-    if (m_currentBBox.getWidth() > 0.0 && m_currentBBox.getHeight() > 0.0)
+    if (m_currentBox.getWidth() > 0.0 && m_currentBox.getHeight() > 0.0)
     {
-      textFrameProps.insert("svg:width", m_currentBBox.getWidth() * 1.05);
-      textFrameProps.insert("svg:height", m_currentBBox.getHeight());
-      currentTextOffsetX = m_currentBBox.getMinX();
-      currentTextOffsetY = m_currentBBox.getMinY();
+      textFrameProps.insert("svg:width", m_currentBox.getWidth() * 1.05);
+      textFrameProps.insert("svg:height", m_currentBox.getHeight());
+      currentTextOffsetX = m_currentBox.getMinX();
+      currentTextOffsetY = m_currentBox.getMinY();
     }
     CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
     tmpTrafo.applyToPoint(currentTextOffsetX, currentTextOffsetY);
     tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
     tmpTrafo.applyToPoint(currentTextOffsetX, currentTextOffsetY);
     textFrameProps.insert("svg:x", currentTextOffsetX);
-    textFrameProps.insert("svg:y", currentTextOffsetY - m_currentBBox.getHeight());
+    textFrameProps.insert("svg:y", currentTextOffsetY - m_currentBox.getHeight());
     textFrameProps.insert("fo:padding-top", 0.0);
     textFrameProps.insert("fo:padding-bottom", 0.0);
     textFrameProps.insert("fo:padding-left", 0.0);
@@ -1094,7 +1094,7 @@ void libcdr::CDRContentCollector::collectBBox(double x0, double y0, double x1, d
     m_page.offsetX = bBox.getMinX();
     m_page.offsetY = bBox.getMinY();
   }
-  m_currentBBox = bBox;
+  m_currentBox = bBox;
 }
 
 void libcdr::CDRContentCollector::collectSpnd(unsigned spnd)
@@ -1137,15 +1137,20 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const WPXBin
 #endif
 }
 
-void libcdr::CDRContentCollector::collectArtisticText(double /* x */, double /* y */)
+void libcdr::CDRContentCollector::collectArtisticText(double, double)
 {
+  m_currentBox.m_w *= 2.0;
   std::map<unsigned, std::vector<CDRText> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
     m_currentText = &(iter->second);
 }
 
-void libcdr::CDRContentCollector::collectParagraphText(double /* x */, double /* y */, double /* width */, double /* height */)
+void libcdr::CDRContentCollector::collectParagraphText(double x, double y, double width, double height)
 {
+  m_currentBox.m_x = x;
+  m_currentBox.m_y = y;
+  m_currentBox.m_w = width;
+  m_currentBox.m_h = height;
   std::map<unsigned, std::vector<CDRText> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
     m_currentText = &(iter->second);

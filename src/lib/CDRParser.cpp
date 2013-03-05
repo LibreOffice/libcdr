@@ -517,7 +517,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
         m_collector->collectPage(level);
       else if (listType == FOURCC_obj)
         m_collector->collectObject(level);
-      else if (listType == FOURCC_grp)
+      else if (listType == FOURCC_grp || listType == FOURCC_lnkg)
         m_collector->collectGroup(level);
       else if ((listType & 0xffffff) == FOURCC_CDR || (listType & 0xffffff) == FOURCC_cdr)
       {
