@@ -1962,11 +1962,11 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
       else if (chunkType == 0x25) // Path
         readPath(input);
       else if ((m_version >= 400 && chunkType == 0x04) || (m_version < 400 && chunkType == 0x03)) // Artistic text
-        m_collector->collectArtisticText();
+        readArtisticText(input);
       else if ((m_version >= 400 && chunkType == 0x05) || (m_version < 400 && chunkType == 0x04)) // Bitmap
         readBitmap(input);
       else if ((m_version >= 400 && chunkType == 0x06) || (m_version < 400 && chunkType == 0x05)) // Paragraph text
-        m_collector->collectParagraphText();
+        readParagraphText(input);
       else if (chunkType == 0x14) // Polygon
         readPolygonCoords(input);
     }
@@ -2973,6 +2973,21 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
     }
   }
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
+}
+
+void libcdr::CDRParser::readArtisticText(WPXInputStream *input)
+{
+  double x = readCoordinate(input);
+  double y = readCoordinate(input);
+  m_collector->collectArtisticText(x, y);
+}
+
+void libcdr::CDRParser::readParagraphText(WPXInputStream *input)
+{
+  input->seek(4, WPX_SEEK_CUR);
+  double width = readCoordinate(input);
+  double height = readCoordinate(input);
+  m_collector->collectParagraphText(0.0, 0.0, width, height);
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

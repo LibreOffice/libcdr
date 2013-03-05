@@ -126,8 +126,8 @@ public:
   virtual void collectFont(unsigned fontId, unsigned short fontEncoding, const WPXString &font) = 0;
   virtual void collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
                            const std::vector<uint64_t> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides) = 0;
-  virtual void collectArtisticText() = 0;
-  virtual void collectParagraphText() = 0;
+  virtual void collectArtisticText(double x, double y) = 0;
+  virtual void collectParagraphText(double x, double y, double width, double height) = 0;
   virtual void collectStlt(const std::map<unsigned, CDRCharacterStyle> &charStyles) = 0;
 };
 

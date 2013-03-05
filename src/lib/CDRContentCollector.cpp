@@ -1137,14 +1137,14 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const WPXBin
 #endif
 }
 
-void libcdr::CDRContentCollector::collectArtisticText()
+void libcdr::CDRContentCollector::collectArtisticText(double /* x */, double /* y */)
 {
   std::map<unsigned, std::vector<CDRText> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
     m_currentText = &(iter->second);
 }
 
-void libcdr::CDRContentCollector::collectParagraphText()
+void libcdr::CDRContentCollector::collectParagraphText(double /* x */, double /* y */, double /* width */, double /* height */)
 {
   std::map<unsigned, std::vector<CDRText> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())

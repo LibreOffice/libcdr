@@ -89,8 +89,8 @@ public:
   void collectFont(unsigned, unsigned short, const WPXString &) {}
   void collectText(unsigned, unsigned, const std::vector<unsigned char>&,
                    const std::vector<uint64_t>&, const std::map<unsigned, CDRCharacterStyle>&) {}
-  void collectArtisticText();
-  void collectParagraphText();
+  void collectArtisticText(double x, double y);
+  void collectParagraphText(double x, double y, double width, double height);
   void collectStlt(const std::map<unsigned, CDRCharacterStyle> &) {}
 
 private:
