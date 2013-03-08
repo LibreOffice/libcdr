@@ -68,7 +68,7 @@ struct CDRStltRecord
   CDRStltRecord()
     : parentId(0), fillId(0), outlId(0), fontRecId(0), alignId(0),
       intervalId(0), set5Id(0), set11Id(0), tabId(0),
-      bulletId(0), identId(0), hyphenId(0), dropCapId(0) {}
+      bulletId(0), indentId(0), hyphenId(0), dropCapId(0) {}
   unsigned parentId;
   unsigned fillId;
   unsigned outlId;
@@ -79,7 +79,7 @@ struct CDRStltRecord
   unsigned set11Id;
   unsigned tabId;
   unsigned bulletId;
-  unsigned identId;
+  unsigned indentId;
   unsigned hyphenId;
   unsigned dropCapId;
 };
@@ -2415,8 +2415,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     }
     unsigned numFonts = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%x\n", numFonts));
-    std::map<unsigned,unsigned short> fontIds;
-    std::map<unsigned,unsigned short> fontEncodings;
+    std::map<unsigned,unsigned short> fontIds, fontEncodings;
     std::map<unsigned,double> fontSizes;
     for (i=0; i<numFonts; ++i)
     {
@@ -2435,10 +2434,13 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         input->seek(20, WPX_SEEK_CUR);
     }
     unsigned numAligns = readU32(input);
+    std::map<unsigned,unsigned> aligns;
     CDR_DEBUG_MSG(("CDRParser::readStlt numAligns 0x%x\n", numAligns));
     for (i=0; i<numAligns; ++i)
     {
-      input->seek(12, WPX_SEEK_CUR);
+      unsigned alignId = readU32(input);
+      input->seek(4, WPX_SEEK_CUR);
+      aligns[alignId] = readU32(input);
     }
     unsigned numIntervals = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numIntervals 0x%x\n", numIntervals));
@@ -2483,10 +2485,15 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       }
     }
     unsigned numIndents = readU32(input);
+    std::map<unsigned, double> rightIndents, firstIndents, leftIndents;
     CDR_DEBUG_MSG(("CDRParser::readStlt numIndents 0x%x\n", numIndents));
     for (i=0; i<numIndents; ++i)
     {
-      input->seek(28, WPX_SEEK_CUR);
+      unsigned indentId = readU32(input);
+      input->seek(12, WPX_SEEK_CUR);
+      rightIndents[indentId] = readCoordinate(input);
+      firstIndents[indentId] = readCoordinate(input);
+      leftIndents[indentId] = readCoordinate(input);
     }
     unsigned numHypens = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numHypens 0x%x\n", numHypens));
@@ -2546,7 +2553,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         {
           style.tabId = readU32(input);
           style.bulletId = readU32(input);
-          style.identId = readU32(input);
+          style.indentId = readU32(input);
           style.hyphenId = readU32(input);
           style.dropCapId = readU32(input);
         }
@@ -2578,17 +2585,80 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
               break;
           }
         }
-        if (!fontRecordId)
-          continue;
-        std::map<unsigned, unsigned short>::const_iterator iterFontId = fontIds.find(fontRecordId);
-        if (iterFontId != fontIds.end())
-          tmpCharStyle.m_fontId = iterFontId->second;
-        std::map<unsigned, unsigned short>::const_iterator iterCharSet = fontEncodings.find(fontRecordId);
-        if (iterCharSet != fontEncodings.end())
-          tmpCharStyle.m_charSet = iterCharSet->second;
-        std::map<unsigned, double>::const_iterator iterFontSize = fontSizes.find(fontRecordId);
-        if (iterFontSize != fontSizes.end())
-          tmpCharStyle.m_fontSize = iterFontSize->second;
+        unsigned alignId = 0;
+        if (iter->second.alignId)
+          alignId = iter->second.alignId;
+        else if (iter->second.parentId)
+        {
+          unsigned parentId = iter->second.parentId;
+          while (true)
+          {
+            std::map<unsigned, CDRStltRecord>::const_iterator iter2 = styles.find(parentId);
+            if (iter2 == styles.end())
+              break;
+            if (iter2->second.alignId)
+            {
+              alignId = iter2->second.alignId;
+              break;
+            }
+            if (iter2->second.parentId)
+              parentId = iter2->second.parentId;
+            else
+              break;
+          }
+        }
+        unsigned indentId = 0;
+        if (iter->second.indentId)
+          indentId = iter->second.indentId;
+        else if (iter->second.parentId)
+        {
+          unsigned parentId = iter->second.parentId;
+          while (true)
+          {
+            std::map<unsigned, CDRStltRecord>::const_iterator iter2 = styles.find(parentId);
+            if (iter2 == styles.end())
+              break;
+            if (iter2->second.indentId)
+            {
+              indentId = iter2->second.indentId;
+              break;
+            }
+            if (iter2->second.parentId)
+              parentId = iter2->second.parentId;
+            else
+              break;
+          }
+        }
+        if (fontRecordId)
+        {
+          std::map<unsigned, unsigned short>::const_iterator iterFontId = fontIds.find(fontRecordId);
+          if (iterFontId != fontIds.end())
+            tmpCharStyle.m_fontId = iterFontId->second;
+          std::map<unsigned, unsigned short>::const_iterator iterCharSet = fontEncodings.find(fontRecordId);
+          if (iterCharSet != fontEncodings.end())
+            tmpCharStyle.m_charSet = iterCharSet->second;
+          std::map<unsigned, double>::const_iterator iterFontSize = fontSizes.find(fontRecordId);
+          if (iterFontSize != fontSizes.end())
+            tmpCharStyle.m_fontSize = iterFontSize->second;
+        }
+        if (alignId)
+        {
+          std::map<unsigned, unsigned>::const_iterator iterAlign = aligns.find(alignId);
+          if (iterAlign != aligns.end())
+            tmpCharStyle.m_align = iterAlign->second;
+        }
+        if (indentId)
+        {
+          std::map<unsigned, double>::const_iterator iterRight = rightIndents.find(indentId);
+          if (iterRight != rightIndents.end())
+            tmpCharStyle.m_rightIndent = iterRight->second;
+          std::map<unsigned, double>::const_iterator iterFirst = firstIndents.find(indentId);
+          if (iterFirst != firstIndents.end())
+            tmpCharStyle.m_firstIndent = iterFirst->second;
+          std::map<unsigned, double>::const_iterator iterLeft = leftIndents.find(indentId);
+          if (iterLeft != leftIndents.end())
+            tmpCharStyle.m_leftIndent = iterLeft->second;
+        }
         charStyles[iter->first] = tmpCharStyle;
       }
     }

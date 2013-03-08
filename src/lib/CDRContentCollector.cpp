@@ -437,7 +437,39 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     outputElement.addStartTextObject(textFrameProps, WPXPropertyListVector());
     for (unsigned i = 0; i < m_currentText->size(); ++i)
     {
-      outputElement.addStartTextLine(WPXPropertyList());
+      WPXPropertyList paraProps;
+      bool rtl = false;
+      switch ((*m_currentText)[i].m_charStyle.m_align)
+      {
+      case 1:  // Left
+        if (!rtl)
+          paraProps.insert("fo:text-align", "left");
+        else
+          paraProps.insert("fo:text-align", "end");
+        break;
+      case 2:  // Center
+        paraProps.insert("fo:text-align", "center");
+        break;
+      case 3:  // Right
+        if (!rtl)
+          paraProps.insert("fo:text-align", "end");
+        else
+          paraProps.insert("fo:text-align", "left");
+        break;
+      case 4:  // Full justify
+        paraProps.insert("fo:text-align", "justify");
+        break;
+      case 5:  // Force justify
+        paraProps.insert("fo:text-align", "full");
+        break;
+      case 0:  // None
+      default:
+        break;
+      }
+      paraProps.insert("fo:text-indent", (*m_currentText)[i].m_charStyle.m_firstIndent);
+      paraProps.insert("fo:margin-left", (*m_currentText)[i].m_charStyle.m_leftIndent);
+      paraProps.insert("fo:margin-right", (*m_currentText)[i].m_charStyle.m_rightIndent);
+      outputElement.addStartTextLine(paraProps);
       WPXPropertyList spanProps;
       double fontSize = (double)cdr_round(144.0*(*m_currentText)[i].m_charStyle.m_fontSize) / 2.0;
       spanProps.insert("fo:font-size", fontSize, WPX_POINT);

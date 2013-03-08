@@ -153,13 +153,17 @@ struct CDRLineStyle
 
 struct CDRCharacterStyle
 {
-  unsigned short m_charSet;
-  unsigned short m_fontId;
+  unsigned short m_charSet, m_fontId;
   double m_fontSize;
+  unsigned m_align;
+  double m_leftIndent, m_firstIndent, m_rightIndent;
   CDRCharacterStyle()
-    : m_charSet(0), m_fontId(0), m_fontSize(0.0) {}
-  CDRCharacterStyle(unsigned short charSet, unsigned short fontId, double fontSize)
-    : m_charSet(charSet), m_fontId(fontId), m_fontSize(fontSize) {}
+    : m_charSet(0), m_fontId(0), m_fontSize(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
+      m_rightIndent(0.0) {}
+  CDRCharacterStyle(unsigned short charSet, unsigned short fontId, double fontSize, unsigned align,
+                    double leftIndent, double firstIndent, double rightIndent)
+    : m_charSet(charSet), m_fontId(fontId), m_fontSize(fontSize), m_align(align),
+      m_leftIndent(leftIndent), m_firstIndent(firstIndent), m_rightIndent(rightIndent) {}
   void overrideCharacterStyle(const CDRCharacterStyle &override)
   {
     if (override.m_charSet)
@@ -168,6 +172,14 @@ struct CDRCharacterStyle
       m_fontId = override.m_fontId;
     if (override.m_fontSize > 0.0)
       m_fontSize = override.m_fontSize;
+    if (override.m_align)
+      m_align = override.m_align;
+    if (override.m_leftIndent != 0.0 && override.m_firstIndent != 0.0 && override.m_rightIndent != 0.0)
+    {
+      m_leftIndent = override.m_leftIndent;
+      m_firstIndent = override.m_firstIndent;
+      m_rightIndent = override.m_rightIndent;
+    }
   }
 };
 
