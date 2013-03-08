@@ -408,10 +408,23 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     }
     else if (m_currentBBox.getWidth() != 0.0 && m_currentBBox.getHeight() != 0.0)
     {
-      x1 = m_currentBBox.getMinX();
       y1 = m_currentBBox.getMinY();
-      x2 = m_currentBBox.getMinX() + m_currentBBox.getWidth();
       y2 = m_currentBBox.getMinY() + m_currentBBox.getHeight();
+      if ((*m_currentText)[0].m_charStyle.m_align == 2) // Center
+      {
+        x1 = m_currentBBox.getMinX() - m_currentBBox.getWidth() / 4.0;
+        x2 = m_currentBBox.getMinX() + (3.0 * m_currentBBox.getWidth() / 4.0);
+      }
+      else if ((*m_currentText)[0].m_charStyle.m_align == 3) // Right
+      {
+        x1 = m_currentBBox.getMinX() - m_currentBBox.getWidth() / 2.0;
+        x2 = m_currentBBox.getMinX() + m_currentBBox.getWidth() / 2.0;
+      }
+      else
+      {
+        x1 = m_currentBBox.getMinX();
+        x2 = m_currentBBox.getMinX() + m_currentBBox.getWidth();
+      }
     }
 
     CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
