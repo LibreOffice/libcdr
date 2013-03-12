@@ -87,27 +87,28 @@ struct CDRStltRecord
 static void processNameForEncoding(WPXString &name, unsigned short &encoding)
 {
   std::string fontName(name.cstr());
+  size_t length = fontName.length();
   size_t found = std::string::npos;
 
-  if ((found=fontName.rfind(" CE")) != std::string::npos)
+  if (length > 3 && (found=fontName.find(" CE", length - 3)) != std::string::npos)
     encoding = 0xee;
-  else if ((found=fontName.rfind(" Cyrillic")) != std::string::npos)
+  else if (length > 9 && (found=fontName.rfind(" Cyrillic", length - 9)) != std::string::npos)
     encoding = 0xcc;
-  else if ((found=fontName.rfind(" Cyr")) != std::string::npos)
+  else if (length > 4 && (found=fontName.rfind(" Cyr", length - 4)) != std::string::npos)
     encoding = 0xcc;
-  else if ((found=fontName.rfind(" CYR")) != std::string::npos)
+  else if (length > 4 && (found=fontName.rfind(" CYR", length - 4)) != std::string::npos)
     encoding = 0xcc;
-  else if ((found=fontName.rfind(" Baltic")) != std::string::npos)
+  else if (length > 7 && (found=fontName.rfind(" Baltic", length - 7)) != std::string::npos)
     encoding = 0xba;
-  else if ((found=fontName.rfind(" Greek")) != std::string::npos)
+  else if (length > 6 && (found=fontName.rfind(" Greek", length - 6)) != std::string::npos)
     encoding = 0xa1;
-  else if ((found=fontName.rfind(" Tur")) != std::string::npos)
+  else if (length > 4 && (found=fontName.rfind(" Tur", length - 4)) != std::string::npos)
     encoding = 0xa2;
-  else if ((found=fontName.rfind(" Hebrew")) != std::string::npos)
+  else if (length > 7 && (found=fontName.rfind(" Hebrew", length - 7)) != std::string::npos)
     encoding = 0xb1;
-  else if ((found=fontName.rfind(" Arabic")) != std::string::npos)
+  else if (length > 7 && (found=fontName.rfind(" Arabic", length - 7)) != std::string::npos)
     encoding = 0xb2;
-  else if ((found=fontName.rfind(" Thai")) != std::string::npos)
+  else if (length > 5 && (found=fontName.rfind(" Thai", length - 5)) != std::string::npos)
     encoding = 0xde;
 
   if (found != std::string::npos)
