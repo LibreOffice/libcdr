@@ -53,6 +53,7 @@ typedef short int16_t;
 typedef unsigned uint32_t;
 typedef int int32_t;
 typedef unsigned __int64 uint64_t;
+typedef __int64 int64_t;
 
 #else
 

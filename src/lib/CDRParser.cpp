@@ -110,6 +110,11 @@ static void processNameForEncoding(WPXString &name, unsigned short &encoding)
     encoding = 0xb2;
   else if (length > 5 && (found=fontName.rfind(" Thai", length - 5)) != std::string::npos)
     encoding = 0xde;
+  else if (length >= 4 && (found=fontName.find("GOST", 0, 4)) != std::string::npos)
+  {
+    encoding = 0xcc;
+	found = std::string::npos;
+  }
 
   if (found != std::string::npos)
   {
