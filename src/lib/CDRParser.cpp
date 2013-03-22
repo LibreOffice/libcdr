@@ -104,6 +104,8 @@ static void processNameForEncoding(WPXString &name, unsigned short &encoding)
     encoding = 0xa1;
   else if (length > 4 && (found=fontName.rfind(" Tur", length - 4)) != std::string::npos)
     encoding = 0xa2;
+  else if (length > 4 && (found=fontName.rfind(" TUR", length - 4)) != std::string::npos)
+    encoding = 0xa2;
   else if (length > 7 && (found=fontName.rfind(" Hebrew", length - 7)) != std::string::npos)
     encoding = 0xb1;
   else if (length > 7 && (found=fontName.rfind(" Arabic", length - 7)) != std::string::npos)
