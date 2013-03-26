@@ -73,8 +73,8 @@ public:
   void collectPageSize(double, double, double, double) {}
   void collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy);
   void collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2);
-  void collectBmp(unsigned, unsigned, unsigned, unsigned, unsigned, const std::vector<unsigned>&, const std::vector<unsigned char>&) {}
-  void collectBmp(unsigned, const std::vector<unsigned char>&) {}
+  void collectBmp(unsigned, unsigned, unsigned, unsigned, unsigned, const std::vector<unsigned> &, const std::vector<unsigned char> &) {}
+  void collectBmp(unsigned, const std::vector<unsigned char> &) {}
   void collectBmpf(unsigned, unsigned, unsigned, const std::vector<unsigned char> &) {}
   void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector);
   void collectFillTransform(const CDRTransforms &fillTrafo);
@@ -87,8 +87,8 @@ public:
   void collectVectorPattern(unsigned id, const WPXBinaryData &data);
   void collectPaletteEntry(unsigned, unsigned, const CDRColor &) {}
   void collectFont(unsigned, unsigned short, const WPXString &) {}
-  void collectText(unsigned, unsigned, const std::vector<unsigned char>&,
-                   const std::vector<uint64_t>&, const std::map<unsigned, CDRCharacterStyle>&) {}
+  void collectText(unsigned, unsigned, const std::vector<unsigned char> &,
+                   const std::vector<uint64_t> &, const std::map<unsigned, CDRCharacterStyle> &) {}
   void collectArtisticText(double x, double y);
   void collectParagraphText(double x, double y, double width, double height);
   void collectStlt(const std::map<unsigned, CDRCharacterStyle> &) {}

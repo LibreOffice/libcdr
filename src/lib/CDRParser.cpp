@@ -115,7 +115,7 @@ static void processNameForEncoding(WPXString &name, unsigned short &encoding)
   else if (length >= 4 && (found=fontName.find("GOST", 0, 4)) != std::string::npos)
   {
     encoding = 0xcc;
-	found = std::string::npos;
+    found = std::string::npos;
   }
 
   if (found != std::string::npos)
@@ -2386,7 +2386,8 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
         break;
     }
   }
-  processNameForEncoding(name, fontEncoding);
+  if (!fontEncoding)
+    processNameForEncoding(name, fontEncoding);
   m_collector->collectFont(fontId, fontEncoding, name);
 }
 
