@@ -456,55 +456,25 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
 
 void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> characters)
 {
-  for (std::vector<unsigned char>::const_iterator iter = characters.begin();
-       iter != characters.end();)
+  UErrorCode status = U_ZERO_ERROR;
+  UConverter *conv = ucnv_open("UTF-16LE", &status);
+
+  if (U_SUCCESS(status) && conv)
   {
-    uint16_t high_surrogate = 0;
-    bool fail = false;
-    uint32_t ucs4Character = 0;
-    while (true)
+    const char *src = (const char *)&characters[0];
+    const char *srcLimit = (const char *)src + characters.size();
+    while (src < srcLimit)
     {
-      if (iter == characters.end())
+      uint32_t ucs4Character = (uint32_t)ucnv_getNextUChar(conv, &src, srcLimit, &status);
+      if (U_SUCCESS(status))
       {
-        fail = true;
-        break;
-      }
-      uint16_t character = *iter++;
-      character |= (uint16_t)(*iter++) << 8;
-      if (character >= 0xdc00 && character < 0xe000) /* low surrogate */
-      {
-        if (high_surrogate)
-        {
-          ucs4Character = SURROGATE_VALUE(high_surrogate, character);
-          high_surrogate = 0;
-          break;
-        }
-        else
-        {
-          fail = true;
-          break;
-        }
-      }
-      else
-      {
-        if (high_surrogate)
-        {
-          fail = true;
-          break;
-        }
-        if (character >= 0xd800 && character < 0xdc00) /* high surrogate */
-          high_surrogate = character;
-        else
-        {
-          ucs4Character = character;
-          break;
-        }
+        _appendUCS4(text, ucs4Character);
       }
     }
-    if (fail)
-      throw libcdr::GenericException();
-
-    _appendUCS4(text, ucs4Character);
+  }
+  if (conv)
+  {
+    ucnv_close(conv);
   }
 }
 
