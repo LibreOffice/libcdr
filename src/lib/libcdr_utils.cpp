@@ -156,7 +156,7 @@ static void _appendUCS4(WPXString &text, UChar32 ucs4Character)
   if (ucs4Character == (UChar32) 0x0d)
     ucs4Character = (UChar32) '\n';
 
-  unsigned char outbuf[5];
+  unsigned char outbuf[U8_MAX_LENGTH+1];
   int i = 0;
   U8_APPEND_UNSAFE(&outbuf[0], i, ucs4Character);
   outbuf[i] = 0;
