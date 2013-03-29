@@ -34,6 +34,7 @@
 #include <unicode/ucsdet.h>
 #include <unicode/ucnv.h>
 #include <unicode/utypes.h>
+#include <unicode/utf8.h>
 
 #define CDR_NUM_ELEMENTS(array) sizeof(array)/sizeof(array[0])
 
@@ -148,29 +149,19 @@ static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLe
   }
 }
 
-static void _appendUCS4(WPXString &text, UChar ucs4Character)
+static void _appendUCS4(WPXString &text, UChar32 ucs4Character)
 {
   // Convert carriage returns to new line characters
   // Writerperfect/LibreOffice will replace them by <text:line-break>
-  if (ucs4Character == (UChar)0x0d)
-    ucs4Character = (UChar)'\n';
+  if (ucs4Character == (UChar32) 0x0d)
+    ucs4Character = (UChar32) '\n';
 
-  UErrorCode status = U_ZERO_ERROR;
-  UConverter *conv = ucnv_open("UTF-8", &status);
+  unsigned char outbuf[5];
+  int i = 0;
+  U8_APPEND_UNSAFE(&outbuf[0], i, ucs4Character);
+  outbuf[i] = 0;
 
-  if (U_SUCCESS(status) && conv)
-  {
-    char outbuf[7] = { 0, 0, 0, 0, 0, 0, 0 };
-    ucnv_fromUChars(conv, &outbuf[0], 7, &ucs4Character, 1, &status);
-    if (U_SUCCESS(status))
-    {
-      text.append(outbuf);
-    }
-  }
-  if (conv)
-  {
-    ucnv_close(conv);
-  }
+  text.append((char *)outbuf);
 }
 
 } // anonymous namespace
@@ -310,7 +301,7 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
 {
   if (characters.empty())
     return;
-  static const UChar symbolmap [] =
+  static const UChar32 symbolmap [] =
   {
     0x0020, 0x0021, 0x2200, 0x0023, 0x2203, 0x0025, 0x0026, 0x220D, // 0x20 ..
     0x0028, 0x0029, 0x2217, 0x002B, 0x002C, 0x2212, 0x002E, 0x002F,
@@ -412,17 +403,13 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
       const char *srcLimit = (const char *)src + characters.size();
       while (src < srcLimit)
       {
-        UChar ucs4Character = ucnv_getNextUChar(conv, &src, srcLimit, &status);
-        if (U_SUCCESS(status))
-        {
+        UChar32 ucs4Character = ucnv_getNextUChar(conv, &src, srcLimit, &status);
+        if (U_SUCCESS(status) && U_IS_UNICODE_CHAR(ucs4Character))
           _appendUCS4(text, ucs4Character);
-        }
       }
     }
     if (conv)
-    {
       ucnv_close(conv);
-    }
   }
 }
 
@@ -437,17 +424,13 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
     const char *srcLimit = (const char *)src + characters.size();
     while (src < srcLimit)
     {
-      UChar ucs4Character = ucnv_getNextUChar(conv, &src, srcLimit, &status);
-      if (U_SUCCESS(status))
-      {
+      UChar32 ucs4Character = ucnv_getNextUChar(conv, &src, srcLimit, &status);
+      if (U_SUCCESS(status) && U_IS_UNICODE_CHAR(ucs4Character))
         _appendUCS4(text, ucs4Character);
-      }
     }
   }
   if (conv)
-  {
     ucnv_close(conv);
-  }
 }
 
 #ifdef DEBUG
