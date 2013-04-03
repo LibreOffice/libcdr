@@ -166,7 +166,7 @@ struct CDRCharacterStyle
       m_leftIndent(leftIndent), m_firstIndent(firstIndent), m_rightIndent(rightIndent) {}
   void overrideCharacterStyle(const CDRCharacterStyle &override)
   {
-    if (override.m_charSet)
+    if (override.m_charSet || override.m_fontId)
       m_charSet = override.m_charSet;
     if (override.m_fontId)
       m_fontId = override.m_fontId;
