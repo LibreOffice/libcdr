@@ -167,9 +167,10 @@ struct CDRCharacterStyle
   void overrideCharacterStyle(const CDRCharacterStyle &override)
   {
     if (override.m_charSet || override.m_fontId)
+    {
       m_charSet = override.m_charSet;
-    if (override.m_fontId)
       m_fontId = override.m_fontId;
+    }
     if (override.m_fontSize > 0.0)
       m_fontSize = override.m_fontSize;
     if (override.m_align)
