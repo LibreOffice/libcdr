@@ -75,14 +75,11 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
     return;
   }
 
-  double c = cos(rotation);
-  double s = sin(rotation);
-
   // rx > 0, ry = 0
   if (CDR_ALMOST_ZERO(ry))
   {
-    double x = m_v0*c + m_v1*s;
-    double y = m_v3*c + m_v4*s;
+    double x = m_v0*cos(rotation) + m_v1*sin(rotation);
+    double y = m_v3*cos(rotation) + m_v4*sin(rotation);
     rx *= sqrt(x*x + y*y);
     if (CDR_ALMOST_ZERO(rx))
     {
@@ -96,8 +93,8 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
   // rx = 0, ry > 0
   if (CDR_ALMOST_ZERO(rx))
   {
-    double x = -m_v0*s + m_v1*c;
-    double y = -m_v3*s + m_v4*c;
+    double x = -m_v0*sin(rotation) + m_v1*cos(rotation);
+    double y = -m_v3*sin(rotation) + m_v4*cos(rotation);
     ry *= sqrt(x*x + y*y);
     if (CDR_ALMOST_ZERO(ry))
     {
@@ -111,10 +108,10 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
   double v0, v1, v2, v3;
   if (!CDR_ALMOST_ZERO(determinant))
   {
-    v0 = ry*(m_v4*c - m_v3*s);
-    v1 = ry*(m_v0*s - m_v1*c);
-    v2 = -rx*(m_v4*s + m_v3*c);
-    v3 = rx*(m_v1*s + m_v0*c);
+    v0 = ry*(m_v4*cos(rotation)- m_v3*sin(rotation));
+    v1 = ry*(m_v0*sin(rotation)- m_v1*cos(rotation));
+    v2 = -rx*(m_v4*sin(rotation) + m_v3*cos(rotation));
+    v3 = rx*(m_v1*sin(rotation) + m_v0*cos(rotation));
 
     // Transformed ellipse
     double A = v0*v0 + v2*v2;
@@ -127,8 +124,8 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
     else
     {
       rotation = atan2(B, A-C) / 2.0;
-      c = cos(rotation);
-      s = sin(rotation);
+      double c = cos(rotation);
+      double s = sin(rotation);
       double cc = c*c;
       double ss = s*s;
       double sc = B*s*c;
@@ -150,10 +147,10 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
   }
 
   // Special case of a close to singular transformation
-  v0 = ry*(m_v4*c - m_v3*s);
-  v1 = ry*(m_v1*c - m_v0*s);
-  v2 = rx*(m_v3*c + m_v4*s);
-  v3 = rx*(m_v0*c + m_v1*s);
+  v0 = ry*(m_v4*cos(rotation) - m_v3*sin(rotation));
+  v1 = ry*(m_v1*cos(rotation) - m_v0*sin(rotation));
+  v2 = rx*(m_v3*cos(rotation) + m_v4*sin(rotation));
+  v3 = rx*(m_v0*cos(rotation) + m_v1*sin(rotation));
 
   // The result of transformation is a point
   if (CDR_ALMOST_ZERO(v3*v3 + v1*v1) && CDR_ALMOST_ZERO(v2*v2 + v0*v0))
