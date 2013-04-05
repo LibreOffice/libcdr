@@ -75,6 +75,7 @@ umask 022
 %files tools
 %defattr(755,root,root,755)
 %{_bindir}/cdr2*
+%{_bindir}/cmx2*
 
 %files devel
 %defattr(644,root,root,755)
