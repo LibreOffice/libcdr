@@ -115,15 +115,19 @@ AS_CASE([$host],
 		native_win32=yes
 		LIBCDR_WIN32_RESOURCE=libcdr-win32res.lo
 		CDR2RAW_WIN32_RESOURCE=cdr2raw-win32res.lo
+		CDR2TEXT_WIN32_RESOURCE=cdr2raw-win32res.lo
 		CDR2XHTML_WIN32_RESOURCE=cdr2xhtml-win32res.lo
 		CMX2RAW_WIN32_RESOURCE=cmx2raw-win32res.lo
+		CMX2TEXT_WIN32_RESOURCE=cmx2raw-win32res.lo
 		CMX2XHTML_WIN32_RESOURCE=cmx2xhtml-win32res.lo
 	], [
 		native_win32=no
 		LIBCDR_WIN32_RESOURCE=
 		CDR2RAW_WIN32_RESOURCE=
+		CDR2TEXT_WIN32_RESOURCE=
 		CDR2XHTML_WIN32_RESOURCE=
 		CMX2RAW_WIN32_RESOURCE=
+		CMX2TEXT_WIN32_RESOURCE=
 		CMX2XHTML_WIN32_RESOURCE=
 	]
 )
@@ -131,8 +135,10 @@ AC_MSG_RESULT([$native_win32])
 AM_CONDITIONAL(OS_WIN32, [test "x$native_win32" = "xyes"])
 AC_SUBST(LIBCDR_WIN32_RESOURCE)
 AC_SUBST(CDR2RAW_WIN32_RESOURCE)
+AC_SUBST(CDR2TEXT_WIN32_RESOURCE)
 AC_SUBST(CDR2XHTML_WIN32_RESOURCE)
 AC_SUBST(CMX2RAW_WIN32_RESOURCE)
+AC_SUBST(CMX2TEXT_WIN32_RESOURCE)
 AC_SUBST(CMX2XHTML_WIN32_RESOURCE)
 
 AC_MSG_CHECKING([for Win32 platform in general])
@@ -280,6 +286,9 @@ src/conv/raw/cmx2raw.rc
 src/conv/svg/Makefile
 src/conv/svg/cdr2xhtml.rc
 src/conv/svg/cmx2xhtml.rc
+src/conv/text/Makefile
+src/conv/text/cdr2text.rc
+src/conv/text/cmx2text.rc
 src/lib/Makefile
 src/lib/libcdr.rc
 build/Makefile

@@ -1,0 +1,10 @@
+.deps
+.libs
+*.lo
+*.la
+*.o
+Makefile
+Makefile.in
+cdr2text
+cmx2text
+*.rc
