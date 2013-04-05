@@ -43,7 +43,7 @@
 #endif
 
 #define CDR_EPSILON 1E-6
-#define CDR_ALMOST_ZERO(m) fabs(m) <= CDR_EPSILON
+#define CDR_ALMOST_ZERO(m) (fabs(m) <= CDR_EPSILON)
 
 #ifdef _MSC_VER
 

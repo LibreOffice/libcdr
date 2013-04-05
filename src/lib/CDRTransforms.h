@@ -44,7 +44,7 @@ public:
   CDRTransform(const CDRTransform &trafo);
 
   void applyToPoint(double &x, double &y) const;
-  void applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const;
+  void applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &endx, double &endy) const;
   double getScaleX() const;
   double getScaleY() const;
   double getTranslateX() const;

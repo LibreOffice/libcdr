@@ -56,71 +56,123 @@ void libcdr::CDRTransform::applyToPoint(double &x, double &y) const
   x = tmpX;
 }
 
-void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const
+void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &endx, double &endy) const
 {
-  // First transform the end-point, which is the easiest
-  applyToPoint(x, y);
+  // Transform the end-point, which is the easiest
+  applyToPoint(endx, endy);
 
-  // represent ellipse as a transformed unit circle
-  double v0 = m_v0*rx*cos(rotation) - m_v1*rx*sin(rotation);
-  double v1 = m_v1*ry*cos(rotation) + m_v0*ry*sin(rotation);
-  double v3 = m_v3*rx*cos(rotation) - m_v4*rx*sin(rotation);
-  double v4 = m_v4*ry*cos(rotation) + m_v3*ry*sin(rotation);
+  // Determine whether sweep should change
+  double determinant = m_v0*m_v4 - m_v1*m_v3;
+  if (determinant < 0.0)
+    sweep = !sweep;
 
-  // centered implicit equation
-  double A = v0*v0 + v1*v1;
-  double C = v3*v3 + v4*v4;
-  double B = 2.0*(v0*v3  +  v1*v4);
+  // Transform a centered ellipse
 
-  double r1, r2;
-  // convert implicit equation to angle and halfaxis:
-  if (CDR_ALMOST_ZERO(B))
+  // rx = 0 and ry = 0
+  if (CDR_ALMOST_ZERO(rx) && CDR_ALMOST_ZERO(ry))
   {
-    rotation = 0;
-    r1 = A;
-    r2 = C;
+    rotation = rx = ry = 0.0;
+    return;
   }
-  else
+
+  double c = cos(rotation);
+  double s = sin(rotation);
+
+  // rx > 0, ry = 0
+  if (CDR_ALMOST_ZERO(ry))
   {
-    if (CDR_ALMOST_ZERO(A-C))
+    double x = m_v0*c + m_v1*s;
+    double y = m_v3*c + m_v4*s;
+    rx *= sqrt(x*x + y*y);
+    if (CDR_ALMOST_ZERO(rx))
     {
-      r1 = A + B / 2.0;
-      r2 = A - B / 2.0;
-      rotation = M_PI / 4.0;
+      rotation = rx = ry = 0;
+      return;
     }
+    rotation = atan2(y, x);
+    return;
+  }
+
+  // rx = 0, ry > 0
+  if (CDR_ALMOST_ZERO(rx))
+  {
+    double x = -m_v0*s + m_v1*c;
+    double y = -m_v3*s + m_v4*c;
+    ry *= sqrt(x*x + y*y);
+    if (CDR_ALMOST_ZERO(ry))
+    {
+      rotation = rx = ry = 0;
+      return;
+    }
+    rotation = atan2(y, x) - M_PI/2.0;
+    return;
+  }
+
+  double v0, v1, v2, v3;
+  if (!CDR_ALMOST_ZERO(determinant))
+  {
+    v0 = ry*(m_v4*c - m_v3*s);
+    v1 = ry*(m_v0*s - m_v1*c);
+    v2 = -rx*(m_v4*s + m_v3*c);
+    v3 = rx*(m_v1*s + m_v0*c);
+
+    // Transformed ellipse
+    double A = v0*v0 + v2*v2;
+    double B = 2.0*(v0*v1 + v2*v3);
+    double C = v1*v1 + v3*v3;
+
+    // Rotate the transformed ellipse
+    if (CDR_ALMOST_ZERO(B))
+      rotation = 0;
     else
     {
-      double radical = 1.0 + B*B /((A-C)*(A-C));
-      radical = radical < 0.0 ? 0.0 : sqrt (radical);
+      rotation = atan2(B, A-C) / 2.0;
+      c = cos(rotation);
+      s = sin(rotation);
+      double cc = c*c;
+      double ss = s*s;
+      double sc = B*s*c;
+      B = A;
+      A = B*cc + sc + C*ss;
+      C = B*ss - sc + C*cc;
+    }
 
-      r1 = (A+C + radical*(A-C)) / 2.0;
-      r2 = (A+C - radical*(A-C)) / 2.0;
-      rotation = atan2(B,(A-C)) / 2.0;
+    // Compute rx and ry from A and C
+    if (!CDR_ALMOST_ZERO(A) && !CDR_ALMOST_ZERO(C))
+    {
+      double abdet = fabs(rx*ry*determinant);
+      A = sqrt(fabs(A));
+      C = sqrt(fabs(C));
+      rx = abdet / A;
+      ry = abdet / C;
+      return;
     }
   }
 
-  // Prevent sqrt of a negative number, however small it might be.
-  r1 = r1 < 0.0 ? 0.0 : sqrt(r1);
-  r2 = r2 < 0.0 ? 0.0 : sqrt(r2);
+  // Special case of a close to singular transformation
+  v0 = ry*(m_v4*c - m_v3*s);
+  v1 = ry*(m_v1*c - m_v0*s);
+  v2 = rx*(m_v3*c + m_v4*s);
+  v3 = rx*(m_v0*c + m_v1*s);
 
-  // now r1 and r2 are half-axis:
-  if ((A-C) <= 0)
+  // The result of transformation is a point
+  if (CDR_ALMOST_ZERO(v3*v3 + v1*v1) && CDR_ALMOST_ZERO(v2*v2 + v0*v0))
   {
-    ry = r1;
-    rx = r2;
+    rotation = rx = ry = 0;
+    return;
   }
-  else
+  else // The result of transformation is a line
   {
-    ry = r2;
-    rx = r1;
+    double x = sqrt(v3*v3 + v1*v1);
+    double y = sqrt(v2*v2 + v0*v0);
+    if (v3*v3 + v1*v1 >= v2*v2 + v0*v0)
+      y = (v2*v2 + v0*v0) / x;
+    else
+      x = (v3*v3 + v1*v1) / y;
+    rx = sqrt(x*x + y*y);
+    ry = 0;
+    rotation = atan2(y, x);
   }
-
-  // sweep is inversed each time the arc is flipped
-  if (v0 < 0)
-    sweep = !sweep;
-  if (v4 < 0)
-    sweep = !sweep;
-
 }
 
 double libcdr::CDRTransform::_getScaleX() const
