@@ -115,10 +115,7 @@ static unsigned short getEncodingFromICUName(const char *name)
 
 static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLength)
 {
-  if (!buffer || bufferLength < 30)
-    // Under 30, we get a lot of bogus information
-    // Eventually first verify whether the encoding 0 is plausible
-    // and only if not continue guessing ????
+  if (!buffer)
     return 0;
   UErrorCode status = U_ZERO_ERROR;
   UCharsetDetector *csd = 0;
@@ -138,8 +135,22 @@ static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLe
     const char *name = ucsdet_getName(csm, &status);
     if (U_FAILURE(status) || !name)
       throw libcdr::EncodingException();
+    int32_t confidence = ucsdet_getConfidence(csm, &status);
+    if (U_FAILURE(status))
+      throw libcdr::EncodingException();
+    CDR_DEBUG_MSG(("UCSDET: getEncoding name %s, confidence %i\n", name, confidence));
     unsigned short encoding = getEncodingFromICUName(name);
     ucsdet_close(csd);
+    /* From ICU documentation
+     * A confidence value of ten does have a general meaning - it is used
+     * for charsets that can represent the input data, but for which there
+     * is no other indication that suggests that the charset is the correct
+     * one. Pure 7 bit ASCII data, for example, is compatible with a great
+     * many charsets, most of which will appear as possible matches with
+     * a confidence of 10.
+     */
+    if (confidence == 10)
+      return 0;
     return encoding;
   }
   catch (const libcdr::EncodingException &)
