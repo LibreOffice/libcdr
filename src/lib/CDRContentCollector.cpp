@@ -396,7 +396,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     double y1 = m_currentTextBox.m_y;
     double x2 = m_currentTextBox.m_x + m_currentTextBox.m_w;
     double y2 = m_currentTextBox.m_y - m_currentTextBox.m_h;
-    if (m_currentTextBox.m_h != 0.0 && m_currentTextBox.m_w != 0)
+    if (!CDR_ALMOST_ZERO(m_currentTextBox.m_h) && !CDR_ALMOST_ZERO(m_currentTextBox.m_w))
     {
       m_currentTransforms.applyToPoint(x1, y1);
       m_currentTransforms.applyToPoint(x2, y2);
@@ -406,7 +406,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         m_groupTransforms.top().applyToPoint(x2, y2);
       }
     }
-    else if (m_currentBBox.getWidth() != 0.0 && m_currentBBox.getHeight() != 0.0)
+    else if (!CDR_ALMOST_ZERO(m_currentBBox.getWidth()) && !CDR_ALMOST_ZERO(m_currentBBox.getHeight()))
     {
       y1 = m_currentBBox.getMinY();
       y2 = m_currentBBox.getMinY() + m_currentBBox.getHeight();
@@ -1015,7 +1015,7 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
           gap = iter->second.dashArray[1];
         }
 
-        unsigned count = iter->second.dashArray.size() / 2;
+        unsigned long count = iter->second.dashArray.size() / 2;
         unsigned i = 0;
         for (; i < count;)
         {
@@ -1081,21 +1081,21 @@ void libcdr::CDRContentCollector::_generateBitmapFromPattern(WPXBinaryData &bitm
 
   // Create DIB file header
   writeU16(bitmap, 0x4D42);  // Type
-  writeU32(bitmap, tmpDIBFileSize); // Size
+  writeU32(bitmap, (int)tmpDIBFileSize); // Size
   writeU16(bitmap, 0); // Reserved1
   writeU16(bitmap, 0); // Reserved2
-  writeU32(bitmap, tmpDIBOffsetBits); // OffsetBits
+  writeU32(bitmap, (int)tmpDIBOffsetBits); // OffsetBits
 
   // Create DIB Info header
   writeU32(bitmap, 40); // Size
 
-  writeU32(bitmap, width);  // Width
-  writeU32(bitmap, height); // Height
+  writeU32(bitmap, (int)width);  // Width
+  writeU32(bitmap, (int)height); // Height
 
   writeU16(bitmap, 1); // Planes
   writeU16(bitmap, 32); // BitCount
   writeU32(bitmap, 0); // Compression
-  writeU32(bitmap, tmpDIBImageSize); // SizeImage
+  writeU32(bitmap, (int)tmpDIBImageSize); // SizeImage
   writeU32(bitmap, 0); // XPelsPerMeter
   writeU32(bitmap, 0); // YPelsPerMeter
   writeU32(bitmap, 0); // ColorsUsed
@@ -1119,9 +1119,9 @@ void libcdr::CDRContentCollector::_generateBitmapFromPattern(WPXBinaryData &bitm
       while (k < width && l < 8)
       {
         if (c & 0x80)
-          writeU32(bitmap, background);
+          writeU32(bitmap, (int)background);
         else
-          writeU32(bitmap, foreground);
+          writeU32(bitmap, (int)foreground);
         c <<= 1;
         l++;
         k++;

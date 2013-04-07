@@ -86,7 +86,7 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
     if (size != tmpNumBytesRead)
       return;
 
-    strm.avail_in = tmpNumBytesRead;
+    strm.avail_in = (uInt)tmpNumBytesRead;
     strm.next_in = (Bytef *)tmpBuffer;
 
     do
@@ -122,7 +122,7 @@ const unsigned char *libcdr::CDRInternalStream::read(unsigned long numBytes, uns
   if (numBytes == 0)
     return 0;
 
-  int numBytesToRead;
+  unsigned numBytesToRead;
 
   if ((m_offset+numBytes) < m_buffer.size())
     numBytesToRead = numBytes;
