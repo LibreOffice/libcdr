@@ -479,9 +479,9 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       default:
         break;
       }
-      paraProps.insert("fo:text-indent", (*m_currentText)[i].m_charStyle.m_firstIndent);
-      paraProps.insert("fo:margin-left", (*m_currentText)[i].m_charStyle.m_leftIndent);
-      paraProps.insert("fo:margin-right", (*m_currentText)[i].m_charStyle.m_rightIndent);
+//      paraProps.insert("fo:text-indent", (*m_currentText)[i].m_charStyle.m_firstIndent);
+//      paraProps.insert("fo:margin-left", (*m_currentText)[i].m_charStyle.m_leftIndent);
+//      paraProps.insert("fo:margin-right", (*m_currentText)[i].m_charStyle.m_rightIndent);
       outputElement.addStartTextLine(paraProps);
       WPXPropertyList spanProps;
       double fontSize = (double)cdr_round(144.0*(*m_currentText)[i].m_charStyle.m_fontSize) / 2.0;
