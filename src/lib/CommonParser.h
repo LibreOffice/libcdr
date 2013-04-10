@@ -56,6 +56,7 @@ protected:
   double readRectCoord(WPXInputStream *input, bool bigEndian = false);
   double readCoordinate(WPXInputStream *input, bool bigEndian = false);
   unsigned readUnsigned(WPXInputStream *input, bool bigEndian = false);
+  unsigned short readUnsignedShort(WPXInputStream *input, bool bigEndian = false);
   int readInteger(WPXInputStream *input, bool bigEndian = false);
   double readAngle(WPXInputStream *input, bool bigEndian = false);
 

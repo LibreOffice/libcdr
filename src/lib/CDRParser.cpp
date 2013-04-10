@@ -2958,14 +2958,14 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
     CDR_DEBUG_MSG(("Styd should not be present in this file version\n"));
     return;
   }
-  /* unsigned styleId = */ readU16(input);
+  unsigned styleId = readUnsigned(input);
   long startPosition = input->tell();
   unsigned chunkLength = readUnsigned(input);
   unsigned numOfArgs = readUnsigned(input);
   unsigned startOfArgs = readUnsigned(input);
   unsigned startOfArgTypes = readUnsigned(input);
-  /* unsigned parentId = */
-  readUnsigned(input);
+  CDRCharacterStyle charStyle;
+  charStyle.m_parentId =  readUnsigned(input);
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   std::vector<unsigned> argTypes(numOfArgs, 0);
   unsigned i = 0;
@@ -2976,8 +2976,6 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
   while (i>0)
     argTypes[--i] = readUnsigned(input);
 
-  unsigned fillId = 0;
-  unsigned outlId = 0;
   for (i=0; i < argTypes.size(); i++)
   {
     input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
@@ -2987,14 +2985,22 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
     case STYD_NAME:
       break;
     case STYD_FILL_ID:
-      fillId = readUnsigned(input);
+      charStyle.m_fillId = readUnsigned(input);
       break;
     case STYD_OUTL_ID:
-      outlId = readUnsigned(input);
+      charStyle.m_outlId = readUnsigned(input);
       break;
     case STYD_FONTS:
+      if (m_version >= 600)
+        input->seek(4, WPX_SEEK_CUR);
+      charStyle.m_fontId = readUnsignedShort(input);
+      charStyle.m_charSet = readUnsignedShort(input);
+      if (m_version >= 600)
+        input->seek(8, WPX_SEEK_CUR);
+      charStyle.m_fontSize = readCoordinate(input);
       break;
     case STYD_ALIGN:
+      charStyle.m_align = readUnsigned(input);
       break;
     case STYD_BULLETS:
       break;
@@ -3014,11 +3020,8 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
       break;
     }
   }
-  fillId++;
-  fillId--;
-  outlId++;
-  outlId--;
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
+  m_collector->collectStld(styleId, charStyle);
 }
 
 void libcdr::CDRParser::readArtisticText(WPXInputStream * /*input*/)

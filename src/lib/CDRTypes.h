@@ -159,11 +159,12 @@ struct CDRCharacterStyle
   double m_leftIndent, m_firstIndent, m_rightIndent;
   unsigned m_outlId, m_fillId, m_parentId;
   CDRCharacterStyle()
-    : m_charSet(0), m_fontId(0), m_fontSize(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
+    : m_charSet((unsigned short)-1), m_fontId((unsigned short)-1),
+      m_fontSize(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
       m_rightIndent(0.0), m_outlId(0), m_fillId(0), m_parentId(0) {}
   void overrideCharacterStyle(const CDRCharacterStyle &override)
   {
-    if (override.m_charSet || override.m_fontId)
+    if (override.m_charSet != (unsigned short)-1 || override.m_fontId != (unsigned short)-1)
     {
       m_charSet = override.m_charSet;
       m_fontId = override.m_fontId;

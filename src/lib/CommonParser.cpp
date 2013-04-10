@@ -60,6 +60,15 @@ unsigned libcdr::CommonParser::readUnsigned(WPXInputStream *input, bool bigEndia
   return readU32(input, bigEndian);
 }
 
+unsigned short libcdr::CommonParser::readUnsignedShort(WPXInputStream *input, bool bigEndian)
+{
+  if (m_precision == PRECISION_UNKNOWN)
+    throw UnknownPrecisionException();
+  else if (m_precision == PRECISION_16BIT)
+    return (unsigned short)readU8(input, bigEndian);
+  return readU16(input, bigEndian);
+}
+
 int libcdr::CommonParser::readInteger(WPXInputStream *input, bool bigEndian)
 {
   if (m_precision == PRECISION_UNKNOWN)
