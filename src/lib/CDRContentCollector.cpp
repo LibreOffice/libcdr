@@ -489,6 +489,9 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       std::map<unsigned, CDRFont>::const_iterator iterFont = m_ps.m_fonts.find((*m_currentText)[i].m_charStyle.m_fontId);
       if (iterFont != m_ps.m_fonts.end())
         spanProps.insert("style:font-name", iterFont->second.m_name);
+      std::map<unsigned, CDRFillStyle>::const_iterator iterFill = m_ps.m_fillStyles.find((*m_currentText)[i].m_charStyle.m_fillId);
+      if (iterFill != m_ps.m_fillStyles.end())
+        spanProps.insert("fo:color", m_ps.getRGBColorString(iterFill->second.color1));
       outputElement.addStartTextSpan(spanProps);
       outputElement.addInsertText((*m_currentText)[i].m_text);
       outputElement.addEndTextSpan();

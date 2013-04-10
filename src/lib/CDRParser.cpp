@@ -2410,17 +2410,23 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     unsigned numFills = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numFills 0x%x\n", numFills));
     unsigned i = 0;
+    std::map<unsigned, unsigned> fillIds;
     for (i=0; i<numFills; ++i)
     {
-      input->seek(12, WPX_SEEK_CUR);
+      unsigned fillId = readU32(input);
+      input->seek(4, WPX_SEEK_CUR);
+      fillIds[fillId] = readU32(input);
       if (m_version >= 1300)
         input->seek(48, WPX_SEEK_CUR);
     }
     unsigned numOutls = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numOutls 0x%x\n", numOutls));
+    std::map<unsigned, unsigned> outlIds;
     for (i=0; i<numOutls; ++i)
     {
-      input->seek(12, WPX_SEEK_CUR);
+      unsigned outlId = readU32(input);
+      input->seek(4, WPX_SEEK_CUR);
+      outlIds[outlId] = readU32(input);
     }
     unsigned numFonts = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%x\n", numFonts));
@@ -2638,6 +2644,50 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
               break;
           }
         }
+        unsigned fillId = 0;
+        if (iter->second.fillId)
+          fillId = iter->second.fillId;
+        else if (iter->second.parentId)
+        {
+          unsigned parentId = iter->second.parentId;
+          while (true)
+          {
+            std::map<unsigned, CDRStltRecord>::const_iterator iter2 = styles.find(parentId);
+            if (iter2 == styles.end())
+              break;
+            if (iter2->second.fillId)
+            {
+              fillId = iter2->second.fillId;
+              break;
+            }
+            if (iter2->second.parentId)
+              parentId = iter2->second.parentId;
+            else
+              break;
+          }
+        }
+        unsigned outlId = 0;
+        if (iter->second.outlId)
+          outlId = iter->second.outlId;
+        else if (iter->second.parentId)
+        {
+          unsigned parentId = iter->second.parentId;
+          while (true)
+          {
+            std::map<unsigned, CDRStltRecord>::const_iterator iter2 = styles.find(parentId);
+            if (iter2 == styles.end())
+              break;
+            if (iter2->second.outlId)
+            {
+              outlId = iter2->second.outlId;
+              break;
+            }
+            if (iter2->second.parentId)
+              parentId = iter2->second.parentId;
+            else
+              break;
+          }
+        }
         if (fontRecordId)
         {
           std::map<unsigned, unsigned short>::const_iterator iterFontId = fontIds.find(fontRecordId);
@@ -2667,6 +2717,18 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
           std::map<unsigned, double>::const_iterator iterLeft = leftIndents.find(indentId);
           if (iterLeft != leftIndents.end())
             tmpCharStyle.m_leftIndent = iterLeft->second;
+        }
+        if (fillId)
+        {
+          std::map<unsigned, unsigned>::const_iterator iterFill = fillIds.find(fillId);
+          if (iterFill != fillIds.end())
+            tmpCharStyle.m_fillId = iterFill->second;
+        }
+        if (outlId)
+        {
+          std::map<unsigned, unsigned>::const_iterator iterOutl = outlIds.find(outlId);
+          if (iterOutl != outlIds.end())
+            tmpCharStyle.m_outlId = iterOutl->second;
         }
         charStyles[iter->first] = tmpCharStyle;
       }
@@ -2771,9 +2833,8 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
         // Read more information depending on the flags
         if (fl2&1) // Font
         {
-          unsigned flag = readU32(input);
-          charStyle.m_charSet = (flag >> 16);
-          charStyle.m_fontId = flag & 0xff;
+          charStyle.m_fontId = readU16(input);
+          charStyle.m_charSet = readU16(input);
         }
         if (fl2&2) // Bold/Italic, etc.
           input->seek(4, WPX_SEEK_CUR);
@@ -2787,12 +2848,12 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
           input->seek(4, WPX_SEEK_CUR);
         if (fl2&0x40) // Font Colour
         {
-          input->seek(4, WPX_SEEK_CUR);
+          charStyle.m_fillId = readU32(input);
           if (m_version >= 1500)
             input->seek(48, WPX_SEEK_CUR);
         }
         if (fl2&0x80) // Font Outl Colour
-          input->seek(4, WPX_SEEK_CUR);
+          charStyle.m_outlId = readU32(input);
 
         if (fl3&8) // Encoding
         {
