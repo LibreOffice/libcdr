@@ -91,7 +91,7 @@ public:
                    const std::vector<uint64_t> &, const std::map<unsigned, CDRCharacterStyle> &) {}
   void collectArtisticText(double x, double y);
   void collectParagraphText(double x, double y, double width, double height);
-  void collectStlt(const std::map<unsigned, CDRCharacterStyle> &) {}
+  void collectStld(unsigned, const CDRCharacterStyle &) {}
 
 private:
   CDRContentCollector(const CDRContentCollector &);
@@ -118,7 +118,7 @@ private:
   unsigned m_spnd;
   unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentVectLevel, m_currentPageLevel;
   CDRImage m_currentImage;
-  const std::vector<CDRText> *m_currentText;
+  const std::vector<CDRTextLine> *m_currentText;
   CDRBox m_currentBBox;
   CDRBox m_currentTextBox;
 

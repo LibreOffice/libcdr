@@ -157,16 +157,10 @@ struct CDRCharacterStyle
   double m_fontSize;
   unsigned m_align;
   double m_leftIndent, m_firstIndent, m_rightIndent;
-  unsigned m_outlId, m_fillId;
+  unsigned m_outlId, m_fillId, m_parentId;
   CDRCharacterStyle()
     : m_charSet(0), m_fontId(0), m_fontSize(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
-      m_rightIndent(0.0), m_outlId(0), m_fillId(0) {}
-  CDRCharacterStyle(unsigned short charSet, unsigned short fontId, double fontSize, unsigned align,
-                    double leftIndent, double firstIndent, double rightIndent, unsigned outlId,
-                    unsigned fillId)
-    : m_charSet(charSet), m_fontId(fontId), m_fontSize(fontSize), m_align(align),
-      m_leftIndent(leftIndent), m_firstIndent(firstIndent), m_rightIndent(rightIndent),
-      m_outlId(outlId), m_fillId(fillId) {}
+      m_rightIndent(0.0), m_outlId(0), m_fillId(0), m_parentId(0) {}
   void overrideCharacterStyle(const CDRCharacterStyle &override)
   {
     if (override.m_charSet || override.m_fontId)
@@ -362,6 +356,21 @@ struct CDRText
     : m_text(text), m_charStyle(charStyle) {}
   WPXString m_text;
   CDRCharacterStyle m_charStyle;
+};
+
+struct CDRTextLine
+{
+  CDRTextLine() : m_line() {}
+  CDRTextLine(const CDRTextLine &line) : m_line(line.m_line) {}
+  void append(const CDRText &text)
+  {
+    m_line.push_back(text);
+  }
+  void clear()
+  {
+    m_line.clear();
+  }
+  std::vector<CDRText> m_line;
 };
 
 struct CDRFont

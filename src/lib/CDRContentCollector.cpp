@@ -410,12 +410,12 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     {
       y1 = m_currentBBox.getMinY();
       y2 = m_currentBBox.getMinY() + m_currentBBox.getHeight();
-      if ((*m_currentText)[0].m_charStyle.m_align == 2) // Center
+      if ((*m_currentText)[0].m_line[0].m_charStyle.m_align == 2) // Center
       {
         x1 = m_currentBBox.getMinX() - m_currentBBox.getWidth() / 4.0;
         x2 = m_currentBBox.getMinX() + (3.0 * m_currentBBox.getWidth() / 4.0);
       }
-      else if ((*m_currentText)[0].m_charStyle.m_align == 3) // Right
+      else if ((*m_currentText)[0].m_line[0].m_charStyle.m_align == 3) // Right
       {
         x1 = m_currentBBox.getMinX() - m_currentBBox.getWidth() / 2.0;
         x2 = m_currentBBox.getMinX() + m_currentBBox.getWidth() / 2.0;
@@ -452,7 +452,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     {
       WPXPropertyList paraProps;
       bool rtl = false;
-      switch ((*m_currentText)[i].m_charStyle.m_align)
+      switch ((*m_currentText)[i].m_line[0].m_charStyle.m_align)
       {
       case 1:  // Left
         if (!rtl)
@@ -483,18 +483,21 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
 //      paraProps.insert("fo:margin-left", (*m_currentText)[i].m_charStyle.m_leftIndent);
 //      paraProps.insert("fo:margin-right", (*m_currentText)[i].m_charStyle.m_rightIndent);
       outputElement.addStartTextLine(paraProps);
-      WPXPropertyList spanProps;
-      double fontSize = (double)cdr_round(144.0*(*m_currentText)[i].m_charStyle.m_fontSize) / 2.0;
-      spanProps.insert("fo:font-size", fontSize, WPX_POINT);
-      std::map<unsigned, CDRFont>::const_iterator iterFont = m_ps.m_fonts.find((*m_currentText)[i].m_charStyle.m_fontId);
-      if (iterFont != m_ps.m_fonts.end())
-        spanProps.insert("style:font-name", iterFont->second.m_name);
-      std::map<unsigned, CDRFillStyle>::const_iterator iterFill = m_ps.m_fillStyles.find((*m_currentText)[i].m_charStyle.m_fillId);
-      if (iterFill != m_ps.m_fillStyles.end())
-        spanProps.insert("fo:color", m_ps.getRGBColorString(iterFill->second.color1));
-      outputElement.addStartTextSpan(spanProps);
-      outputElement.addInsertText((*m_currentText)[i].m_text);
-      outputElement.addEndTextSpan();
+      for (unsigned j = 0; j < (*m_currentText)[i].m_line.size(); ++j)
+      {
+        WPXPropertyList spanProps;
+        double fontSize = (double)cdr_round(144.0*(*m_currentText)[i].m_line[j].m_charStyle.m_fontSize) / 2.0;
+        spanProps.insert("fo:font-size", fontSize, WPX_POINT);
+        std::map<unsigned, CDRFont>::const_iterator iterFont = m_ps.m_fonts.find((*m_currentText)[i].m_line[j].m_charStyle.m_fontId);
+        if (iterFont != m_ps.m_fonts.end())
+          spanProps.insert("style:font-name", iterFont->second.m_name);
+        std::map<unsigned, CDRFillStyle>::const_iterator iterFill = m_ps.m_fillStyles.find((*m_currentText)[i].m_line[j].m_charStyle.m_fillId);
+        if (iterFill != m_ps.m_fillStyles.end())
+          spanProps.insert("fo:color", m_ps.getRGBColorString(iterFill->second.color1));
+        outputElement.addStartTextSpan(spanProps);
+        outputElement.addInsertText((*m_currentText)[i].m_line[j].m_text);
+        outputElement.addEndTextSpan();
+      }
       outputElement.addEndTextLine();
     }
     outputElement.addEndTextObject();
@@ -1207,7 +1210,7 @@ void libcdr::CDRContentCollector::collectArtisticText(double x, double y)
 {
   m_currentTextBox = CDRBox(x, y, x, y);
   m_currentBBox.m_w *= 2.0;
-  std::map<unsigned, std::vector<CDRText> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
+  std::map<unsigned, std::vector<CDRTextLine> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
     m_currentText = &(iter->second);
 }
@@ -1218,7 +1221,7 @@ void libcdr::CDRContentCollector::collectParagraphText(double x, double y, doubl
   m_currentTextBox.m_y = y;
   m_currentTextBox.m_w = width;
   m_currentTextBox.m_h = height;
-  std::map<unsigned, std::vector<CDRText> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
+  std::map<unsigned, std::vector<CDRTextLine> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
     m_currentText = &(iter->second);
 }

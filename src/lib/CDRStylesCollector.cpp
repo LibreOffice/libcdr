@@ -28,6 +28,7 @@
  */
 
 #include <math.h>
+#include <stack>
 #include "CDRStylesCollector.h"
 #include "CDRInternalStream.h"
 #include "libcdr_utils.h"
@@ -39,6 +40,7 @@
 #ifndef DUMP_IMAGE
 #define DUMP_IMAGE 0
 #endif
+
 
 libcdr::CDRStylesCollector::CDRStylesCollector(libcdr::CDRParserState &ps) :
   m_ps(ps), m_page(8.5, 11.0, -4.25, -5.5), m_charStyles()
@@ -255,21 +257,18 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   if (data.empty() || charDescriptions.empty())
     return;
 
-  WPXString text;
   uint32_t tmpCharDescription = 0;
   unsigned i = 0;
   unsigned j = 0;
   std::vector<unsigned char> tmpTextData;
-  CDRCharacterStyle defaultCharStyle;
-  CDRCharacterStyle tmpCharStyle;
+  CDRCharacterStyle defaultCharStyle, tmpCharStyle;
+  getRecursedStyle(defaultCharStyle, styleId);
 
-  std::map<unsigned, CDRCharacterStyle>::const_iterator iter = m_charStyles.find(styleId);
-  if (iter != m_charStyles.end())
-    defaultCharStyle = iter->second;
+  CDRTextLine line;
   for (i=0, j=0; i<charDescriptions.size() && j<data.size(); ++i)
   {
     tmpCharStyle = defaultCharStyle;
-    iter = styleOverrides.find((tmpCharDescription >> 16) & 0xff);
+    std::map<unsigned, CDRCharacterStyle>::const_iterator iter = styleOverrides.find((tmpCharDescription >> 16) & 0xff);
     if (iter != styleOverrides.end())
       tmpCharStyle.overrideCharacterStyle(iter->second);
     if (!tmpCharStyle.m_charSet)
@@ -280,6 +279,7 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
     }
     if ((uint32_t)(charDescriptions[i] & 0xffffff) != tmpCharDescription)
     {
+      WPXString text;
       if (!tmpTextData.empty())
       {
         if (tmpCharDescription & 0x01)
@@ -287,8 +287,10 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
         else
           appendCharacters(text, tmpTextData, tmpCharStyle.m_charSet);
       }
+      line.append(CDRText(text, tmpCharStyle));
       tmpTextData.clear();
       tmpCharDescription = (uint32_t)(charDescriptions[i] & 0xffffff);
+
     }
     tmpTextData.push_back(data[j++]);
     if (tmpCharDescription & 0x01)
@@ -296,20 +298,49 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   }
   if (!tmpTextData.empty())
   {
+    WPXString text;
     if (tmpCharDescription & 0x01)
       appendCharacters(text, tmpTextData);
     else
       appendCharacters(text, tmpTextData, tmpCharStyle.m_charSet);
+    line.append(CDRText(text, tmpCharStyle));
   }
 
   CDR_DEBUG_MSG(("CDRStylesCollector::collectText - Text: %s\n", text.cstr()));
-  std::vector<CDRText> &paragraphVector = m_ps.m_texts[textId];
-  paragraphVector.push_back(CDRText(text, tmpCharStyle));
+  std::vector<CDRTextLine> &paragraphVector = m_ps.m_texts[textId];
+  paragraphVector.push_back(line);
 }
 
-void libcdr::CDRStylesCollector::collectStlt(const std::map<unsigned, CDRCharacterStyle> &charStyles)
+void libcdr::CDRStylesCollector::collectStld(unsigned id, const CDRCharacterStyle &charStyle)
 {
-  m_charStyles = charStyles;
+  m_charStyles[id] = charStyle;
+}
+
+void libcdr::CDRStylesCollector::getRecursedStyle(CDRCharacterStyle &charStyle, unsigned styleId)
+{
+  std::map<unsigned, CDRCharacterStyle>::const_iterator iter = m_charStyles.find(styleId);
+  if (iter == m_charStyles.end())
+    return;
+
+  std::stack<CDRCharacterStyle> styleStack;
+  styleStack.push(iter->second);
+  if (iter->second.m_parentId)
+  {
+    std::map<unsigned, CDRCharacterStyle>::const_iterator iter2 = m_charStyles.find(iter->second.m_parentId);
+    while (iter2 != m_charStyles.end())
+    {
+      styleStack.push(iter2->second);
+      if (iter2->second.m_parentId)
+        iter2 = m_charStyles.find(iter2->second.m_parentId);
+      else
+        iter2 = m_charStyles.end();
+    }
+  }
+  while (!styleStack.empty())
+  {
+    charStyle.overrideCharacterStyle(styleStack.top());
+    styleStack.pop();
+  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

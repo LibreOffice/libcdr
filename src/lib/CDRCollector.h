@@ -62,7 +62,7 @@ public:
   std::vector<CDRPage> m_pages;
   std::map<unsigned, CDRColor> m_documentPalette;
   std::map<unsigned, CDRFont> m_fonts;
-  std::map<unsigned, std::vector<CDRText> > m_texts;
+  std::map<unsigned, std::vector<CDRTextLine> > m_texts;
 
   unsigned _getRGBColor(const CDRColor &color);
   unsigned getBMPColor(const CDRColor &color);
@@ -128,7 +128,7 @@ public:
                            const std::vector<uint64_t> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides) = 0;
   virtual void collectArtisticText(double x, double y) = 0;
   virtual void collectParagraphText(double x, double y, double width, double height) = 0;
-  virtual void collectStlt(const std::map<unsigned, CDRCharacterStyle> &charStyles) = 0;
+  virtual void collectStld(unsigned id, const CDRCharacterStyle &charStyle) = 0;
 };
 
 } // namespace libcdr

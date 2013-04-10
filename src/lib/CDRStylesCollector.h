@@ -93,11 +93,13 @@ public:
                    const std::vector<uint64_t> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides);
   void collectArtisticText(double, double) {}
   void collectParagraphText(double, double, double, double) {}
-  void collectStlt(const std::map<unsigned, CDRCharacterStyle> &charStyles);
+  void collectStld(unsigned id, const CDRCharacterStyle &charStyle);
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);
   CDRStylesCollector &operator=(const CDRStylesCollector &);
+
+  void getRecursedStyle(CDRCharacterStyle &charStyle, unsigned styleId);
 
   CDRParserState &m_ps;
   CDRPage m_page;

@@ -47,33 +47,6 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-// The local variable name and CDRStltRecord member name have to be identical
-// for this macro to work
-
-#define CDR_EXTRACT(membername) \
-        if (iter->second.membername) \
-          membername = iter->second.membername; \
-        else if (iter->second.parentId) \
-        { \
-          unsigned parentId = iter->second.parentId; \
-          while (true) \
-          { \
-            std::map<unsigned, CDRStltRecord>::const_iterator iter2 = styles.find(parentId); \
-            if (iter2 == styles.end()) \
-              break; \
-            if (iter2->second.membername) \
-            { \
-              membername = iter2->second.membername; \
-              break; \
-            } \
-            if (iter2->second.parentId) \
-              parentId = iter2->second.parentId; \
-            else \
-              break; \
-          } \
-        }
-
-
 namespace
 {
 
@@ -2425,6 +2398,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
   try
   {
 #endif
+    std::map<unsigned, CDRCharacterStyle> charStyles;
     if (m_version < 700)
       return;
     if (!_redirectX6Chunk(&input, length))
@@ -2551,7 +2525,6 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     {
       input->seek(28, WPX_SEEK_CUR);
     }
-    std::map<unsigned, CDRCharacterStyle> charStyles;
     try
     {
       bool set11Flag(false);
@@ -2601,12 +2574,11 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         }
         styles[styleId] = style;
       }
-      CDRCharacterStyle tmpCharStyle;
       for (std::map<unsigned, CDRStltRecord>::const_iterator iter = styles.begin();
            iter != styles.end(); ++iter)
       {
-        unsigned fontRecId = 0;
-        CDR_EXTRACT(fontRecId)
+        CDRCharacterStyle tmpCharStyle;
+        unsigned fontRecId =  iter->second.fontRecId;
         if (fontRecId)
         {
           std::map<unsigned, unsigned short>::const_iterator iterFontId = fontIds.find(fontRecId);
@@ -2619,16 +2591,14 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
           if (iterFontSize != fontSizes.end())
             tmpCharStyle.m_fontSize = iterFontSize->second;
         }
-        unsigned alignId = 0;
-        CDR_EXTRACT(alignId);
+        unsigned alignId = iter->second.alignId;
         if (alignId)
         {
           std::map<unsigned, unsigned>::const_iterator iterAlign = aligns.find(alignId);
           if (iterAlign != aligns.end())
             tmpCharStyle.m_align = iterAlign->second;
         }
-        unsigned indentId = 0;
-        CDR_EXTRACT(indentId);
+        unsigned indentId = iter->second.indentId;
         if (indentId)
         {
           std::map<unsigned, double>::const_iterator iterRight = rightIndents.find(indentId);
@@ -2641,22 +2611,24 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
           if (iterLeft != leftIndents.end())
             tmpCharStyle.m_leftIndent = iterLeft->second;
         }
-        unsigned fillId = 0;
-        CDR_EXTRACT(fillId);
+        unsigned fillId = iter->second.fillId;
         if (fillId)
         {
           std::map<unsigned, unsigned>::const_iterator iterFill = fillIds.find(fillId);
           if (iterFill != fillIds.end())
             tmpCharStyle.m_fillId = iterFill->second;
         }
-        unsigned outlId = 0;
-        CDR_EXTRACT(outlId);
+        unsigned outlId = iter->second.outlId;
         if (outlId)
         {
           std::map<unsigned, unsigned>::const_iterator iterOutl = outlIds.find(outlId);
           if (iterOutl != outlIds.end())
             tmpCharStyle.m_outlId = iterOutl->second;
         }
+        unsigned parentId = iter->second.parentId;
+        if (parentId)
+          tmpCharStyle.m_parentId = parentId;
+        m_collector->collectStld(iter->first, tmpCharStyle);
         charStyles[iter->first] = tmpCharStyle;
       }
     }
@@ -2676,7 +2648,6 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         throw libcdr::EndOfStreamException();
       }
     }
-    m_collector->collectStlt(charStyles);
 #ifndef DEBUG
   }
   catch (...)
@@ -3005,6 +2976,8 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
   while (i>0)
     argTypes[--i] = readUnsigned(input);
 
+  unsigned fillId = 0;
+  unsigned outlId = 0;
   for (i=0; i < argTypes.size(); i++)
   {
     input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
@@ -3014,8 +2987,10 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
     case STYD_NAME:
       break;
     case STYD_FILL_ID:
+      fillId = readUnsigned(input);
       break;
     case STYD_OUTL_ID:
+      outlId = readUnsigned(input);
       break;
     case STYD_FONTS:
       break;
@@ -3039,14 +3014,20 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
       break;
     }
   }
+  fillId++;
+  fillId--;
+  outlId++;
+  outlId--;
   input->seek(startPosition+chunkLength, WPX_SEEK_SET);
 }
 
-void libcdr::CDRParser::readArtisticText(WPXInputStream *input)
+void libcdr::CDRParser::readArtisticText(WPXInputStream * /*input*/)
 {
+#if 0
   double x = readCoordinate(input);
   double y = readCoordinate(input);
-  m_collector->collectArtisticText(x, y);
+#endif
+  m_collector->collectArtisticText(0.0, 0.0);
 }
 
 void libcdr::CDRParser::readParagraphText(WPXInputStream *input)
