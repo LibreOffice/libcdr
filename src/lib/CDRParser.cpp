@@ -2773,13 +2773,15 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
         charStyles[2*i] = charStyle;
       }
       unsigned numChars = readU32(input);
-      std::vector<uint64_t> charDescriptions(numChars);
+      std::vector<unsigned char> charDescriptions(numChars);
       for (i=0; i<numChars; ++i)
       {
+        unsigned tmpCharDescription = 0;
         if (m_version >= 1200)
-          charDescriptions[i] = readU64(input);
+          tmpCharDescription = readU64(input) & 0xffffffff;
         else
-          charDescriptions[i] = readU32(input);
+          tmpCharDescription = readU32(input);
+        charDescriptions[i] = (tmpCharDescription >> 16) | (tmpCharDescription & 0x01);
       }
       unsigned numBytes = numChars;
       if (m_version >= 1200)
@@ -2793,7 +2795,8 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
         memcpy(&textData[0], buffer, numBytesRead);
       input->seek(1, WPX_SEEK_CUR); //skip the 0 ending character
 
-      m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
+      if (!textData.empty())
+        m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
     }
 #ifndef DEBUG
   }
@@ -2888,7 +2891,7 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
 
     std::map<unsigned, CDRCharacterStyle> charStyles;
     unsigned numChars = readU32(input);
-    std::vector<uint64_t> charDescriptions(numChars);
+    std::vector<unsigned char> charDescriptions(numChars);
     for (i=0; i<numChars; ++i)
     {
       charDescriptions[i] = readU64(input);
@@ -2902,7 +2905,8 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
     if (numBytesRead)
       memcpy(&textData[0], buffer, numBytesRead);
 
-    m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
+    if (!textData.empty())
+      m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
 #ifndef DEBUG
   }
   catch (...)
@@ -2913,7 +2917,6 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
 
 void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
 {
-
   input->seek(0x28, WPX_SEEK_CUR);
   input->seek(48, WPX_SEEK_CUR);
   input->seek(4, WPX_SEEK_CUR);

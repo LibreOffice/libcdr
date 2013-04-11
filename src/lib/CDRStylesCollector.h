@@ -90,7 +90,7 @@ public:
   void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color);
   void collectFont(unsigned fontId, unsigned short fontEncoding, const WPXString &font);
   void collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
-                   const std::vector<uint64_t> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides);
+                   const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides);
   void collectArtisticText(double, double) {}
   void collectParagraphText(double, double, double, double) {}
   void collectStld(unsigned id, const CDRCharacterStyle &charStyle);
