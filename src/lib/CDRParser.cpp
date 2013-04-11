@@ -2961,7 +2961,7 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
     CDR_DEBUG_MSG(("Styd should not be present in this file version\n"));
     return;
   }
-  unsigned styleId = readUnsigned(input);
+  unsigned styleId = readU16(input);
   long startPosition = input->tell();
   unsigned chunkLength = readUnsigned(input);
   unsigned numOfArgs = readUnsigned(input);

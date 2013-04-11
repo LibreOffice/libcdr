@@ -304,9 +304,9 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
     else
       appendCharacters(text, tmpTextData, tmpCharStyle.m_charSet);
     line.append(CDRText(text, tmpCharStyle));
+    CDR_DEBUG_MSG(("CDRStylesCollector::collectText - Text: %s\n", text.cstr()));
   }
 
-  CDR_DEBUG_MSG(("CDRStylesCollector::collectText - Text: %s\n", text.cstr()));
   std::vector<CDRTextLine> &paragraphVector = m_ps.m_texts[textId];
   paragraphVector.push_back(line);
 }
