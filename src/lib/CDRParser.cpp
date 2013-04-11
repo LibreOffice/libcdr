@@ -2917,22 +2917,51 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
 
 void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
 {
-  input->seek(0x28, WPX_SEEK_CUR);
+  input->seek(0x24, WPX_SEEK_CUR);
+  unsigned textId = readU32(input);
   input->seek(48, WPX_SEEK_CUR);
   input->seek(4, WPX_SEEK_CUR);
-  /* unsigned stlId = */
-  readU32(input);
+  unsigned stlId = readU32(input);
   unsigned numSt = readU32(input);
   unsigned i = 0;
+  std::map<unsigned, CDRCharacterStyle> charStyles;
   for (; i<numSt; ++i)
   {
-    input->seek(60, WPX_SEEK_CUR);
+    CDRCharacterStyle charStyle;
+    unsigned char flag = readU8(input);
+    input->seek(3, WPX_SEEK_CUR);
+    if (flag&0x01)
+    {
+      charStyle.m_fontId = readU16(input);
+      charStyle.m_charSet = readU16(input);
+    }
+    else
+      input->seek(4, WPX_SEEK_CUR);
+    input->seek(4, WPX_SEEK_CUR);
+    if (flag&0x04)
+      charStyle.m_fontSize = readCoordinate(input);
+    else
+      input->seek(4, WPX_SEEK_CUR);
+    input->seek(44, WPX_SEEK_CUR);
+    if (flag&0x10)
+      charStyle.m_fillId = readU32(input);
+    if (flag&0x20)
+      charStyle.m_outlId = readU32(input);
+    charStyles[2*i] = charStyle;
   }
   unsigned numChars = readU32(input);
+  std::vector<unsigned char> textData;
+  std::vector<unsigned char> charDescriptions;
   for (i=0; i<numChars; ++i)
   {
-    input->seek(12, WPX_SEEK_CUR);
+    input->seek(4, WPX_SEEK_CUR);
+    textData.push_back(readU8(input));
+    input->seek(5, WPX_SEEK_CUR);
+    charDescriptions.push_back(readU8(input) << 1);
+    input->seek(1, WPX_SEEK_CUR);
   }
+  if (!textData.empty())
+    m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
 }
 
 void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
