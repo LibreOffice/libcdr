@@ -2921,11 +2921,15 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
 
 void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
 {
-  input->seek(0x24, WPX_SEEK_CUR);
+  unsigned fflag1 = readU32(input);
+  input->seek(0x20, WPX_SEEK_CUR);
   unsigned textId = readU32(input);
   input->seek(48, WPX_SEEK_CUR);
   input->seek(4, WPX_SEEK_CUR);
+  if (!fflag1)
+    input->seek(8, WPX_SEEK_CUR);
   unsigned stlId = readU32(input);
+  printf("Fridrich %x\n", stlId);
   unsigned numSt = readU32(input);
   unsigned i = 0;
   std::map<unsigned, CDRCharacterStyle> charStyles;
