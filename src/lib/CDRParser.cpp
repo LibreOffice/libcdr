@@ -2689,7 +2689,11 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     if (m_version >= 800)
     {
       if (readU32(input))
+      {
         input->seek(32, WPX_SEEK_CUR);
+        if (m_version >= 1300)
+          input->seek(8, WPX_SEEK_CUR);
+      }
     }
     if (m_version >= 1500)
       input->seek(12, WPX_SEEK_CUR);
