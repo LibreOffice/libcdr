@@ -2966,20 +2966,54 @@ void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
 
 void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
 {
-  input->seek(10, WPX_SEEK_CUR);
-  /* unsigned stlId = */
-  readU16(input);
+  input->seek(4, WPX_SEEK_CUR);
+  unsigned textId = readU16(input);
+  input->seek(4, WPX_SEEK_CUR);
+  unsigned stlId = readU16(input);
   unsigned numSt = readU16(input);
   unsigned i = 0;
+  std::map<unsigned, CDRCharacterStyle> charStyles;
   for (; i<numSt; ++i)
   {
-    input->seek(36, WPX_SEEK_CUR);
+    CDRCharacterStyle charStyle;
+    unsigned char flag = readU8(input);
+    input->seek(1, WPX_SEEK_CUR);
+    if (flag&0x01)
+    {
+      charStyle.m_fontId = readU8(input);
+      charStyle.m_charSet = readU8(input);
+    }
+    else
+      input->seek(2, WPX_SEEK_CUR);
+    input->seek(6, WPX_SEEK_CUR);
+    if (flag&0x04)
+      charStyle.m_fontSize = readCoordinate(input);
+    else
+      input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, WPX_SEEK_CUR);
+    if (flag&0x10)
+      charStyle.m_fillId = readU32(input);
+    else
+      input->seek(4, WPX_SEEK_CUR);
+    if (flag&0x20)
+      charStyle.m_outlId = readU32(input);
+    else
+      input->seek(4, WPX_SEEK_CUR);
+    input->seek(14, WPX_SEEK_CUR);
+    charStyles[2*i] = charStyle;
   }
   unsigned numChars = readU16(input);
+  std::vector<unsigned char> textData;
+  std::vector<unsigned char> charDescriptions;
   for (i=0; i<numChars; ++i)
   {
-    input->seek(8, WPX_SEEK_CUR);
+    input->seek(4, WPX_SEEK_CUR);
+    textData.push_back(readU8(input));
+    input->seek(1, WPX_SEEK_CUR);
+    charDescriptions.push_back((readU16(input) >> 3) & 0xff);
   }
+  if (!textData.empty())
+    m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
 }
 
 void libcdr::CDRParser::readStyd(WPXInputStream *input)
@@ -3017,10 +3051,10 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
     case STYD_NAME:
       break;
     case STYD_FILL_ID:
-      charStyle.m_fillId = readUnsigned(input);
+      charStyle.m_fillId = readU32(input);
       break;
     case STYD_OUTL_ID:
-      charStyle.m_outlId = readUnsigned(input);
+      charStyle.m_outlId = readU32(input);
       break;
     case STYD_FONTS:
       if (m_version >= 600)
