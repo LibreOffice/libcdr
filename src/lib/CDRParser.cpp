@@ -128,13 +128,22 @@ static void processNameForEncoding(WPXString &name, unsigned short &encoding)
   return;
 }
 
-static void _processX6StyleString(const char *styleString, libcdr::CDRCharacterStyle &style)
+static void _readX6StyleString(WPXInputStream *input, unsigned length, libcdr::CDRCharacterStyle &style)
 {
+  std::vector<unsigned char> styleBuffer(length);
+  unsigned long numBytesRead = 0;
+  const unsigned char *tmpBuffer = input->read(length, numBytesRead);
+  if (numBytesRead)
+    memcpy(&styleBuffer[0], tmpBuffer, numBytesRead);
+  WPXString styleString;
+  libcdr::appendCharacters(styleString, styleBuffer);
+  CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
+
   boost::property_tree::ptree pt;
   try
   {
     std::stringstream ss;
-    ss << styleString;
+    ss << styleString.cstr();
     boost::property_tree::read_json(ss, pt);
   }
   catch (...)
@@ -150,19 +159,6 @@ static void _processX6StyleString(const char *styleString, libcdr::CDRCharacterS
   unsigned fontSize = pt.get("character.latin.size", 0);
   if (fontSize)
     style.m_fontSize = (double)fontSize / 254000.0;
-}
-
-static void _readX6StyleString(WPXInputStream *input, unsigned length, libcdr::CDRCharacterStyle &style)
-{
-  std::vector<unsigned char> styleBuffer(length);
-  unsigned long numBytesRead = 0;
-  const unsigned char *tmpBuffer = input->read(length, numBytesRead);
-  if (numBytesRead)
-    memcpy(&styleBuffer[0], tmpBuffer, numBytesRead);
-  WPXString styleString;
-  libcdr::appendCharacters(styleString, styleBuffer);
-  CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
-  _processX6StyleString(styleString.cstr(), style);
 }
 
 
