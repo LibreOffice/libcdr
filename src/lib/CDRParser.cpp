@@ -27,11 +27,13 @@
  * instead of those above.
  */
 
-#include <libwpd-stream/libwpd-stream.h>
 #include <locale.h>
 #include <math.h>
-#include <set>
 #include <string.h>
+#include <sstream>
+#include <set>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include "libcdr_utils.h"
 #include "CDRDocumentStructure.h"
 #include "CDRInternalStream.h"
@@ -125,6 +127,35 @@ static void processNameForEncoding(WPXString &name, unsigned short &encoding)
   }
   return;
 }
+
+static void _processX6StyleString(const char *styleString, libcdr::CDRCharacterStyle & /*style*/)
+{
+  boost::property_tree::ptree pt;
+  try
+  {
+    std::stringstream ss;
+    ss << styleString;
+    boost::property_tree::read_json(ss, pt);
+  }
+  catch (...)
+  {
+    return;
+  }
+}
+
+static void _readX6StyleString(WPXInputStream *input, unsigned length, libcdr::CDRCharacterStyle &style)
+{
+  std::vector<unsigned char> styleBuffer(length);
+  unsigned long numBytesRead = 0;
+  const unsigned char *tmpBuffer = input->read(length, numBytesRead);
+  if (numBytesRead)
+    memcpy(&styleBuffer[0], tmpBuffer, numBytesRead);
+  WPXString styleString;
+  libcdr::appendCharacters(styleString, styleBuffer);
+  CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
+  _processX6StyleString(styleString.cstr(), style);
+}
+
 
 } // anonymous namespace
 
@@ -2813,18 +2844,6 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
 #endif
 }
 
-void libcdr::CDRParser::_readX6StyleString(WPXInputStream *input, unsigned length, WPXString &styleString)
-{
-  std::vector<unsigned char> styleBuffer(length);
-  unsigned long numBytesRead = 0;
-  const unsigned char *tmpBuffer = input->read(length, numBytesRead);
-  if (numBytesRead)
-    memcpy(&styleBuffer[0], tmpBuffer, numBytesRead);
-  appendCharacters(styleString, styleBuffer);
-  CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
-}
-
-
 void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
 {
 #ifndef DEBUG
@@ -2873,14 +2892,16 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
     input->seek(1, WPX_SEEK_CUR);
 
     unsigned len2 = readU32(input);
-    WPXString styleString;
-    _readX6StyleString(input, 2*len2, styleString);
+    CDRCharacterStyle defaultStyle;
+    _readX6StyleString(input, 2*len2, defaultStyle);
 
     unsigned numRecords = readU32(input);
 
     unsigned i = 0;
+    std::map<unsigned, CDRCharacterStyle> charStyles;
     for (i=0; i<numRecords; ++i)
     {
+      charStyles[i*2] = defaultStyle;
       input->seek(4, WPX_SEEK_CUR);
       unsigned flag = readU8(input);
       input->seek(1, WPX_SEEK_CUR);
@@ -2888,15 +2909,12 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
       if (flag & 0x04)
       {
         lenN = readU32(input);
-        styleString.clear();
-        _readX6StyleString(input, 2*lenN, styleString);
+        input->seek(2*lenN, WPX_SEEK_CUR);
       }
       lenN = readU32(input);
-      styleString.clear();
-      _readX6StyleString(input, 2*lenN, styleString);
+      _readX6StyleString(input, 2*lenN, charStyles[i*2]);
     }
 
-    std::map<unsigned, CDRCharacterStyle> charStyles;
     unsigned numChars = readU32(input);
     std::vector<unsigned char> charDescriptions(numChars);
     for (i=0; i<numChars; ++i)

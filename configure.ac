@@ -90,6 +90,17 @@ AC_SUBST(ICU_CFLAGS)
 AC_SUBST(ICU_LIBS)
 
 
+# ===========================
+# Find required boost headers
+# ===========================
+
+AC_CHECK_HEADERS(
+	[boost/property_tree/ptree.hpp boost/property_tree/json_parser.hpp],
+	[],
+	[AC_MSG_ERROR(Required boost headers not found. Install boost >= 1.41.0)],
+	[]
+)
+
 # =================================
 # Libtool/Version Makefile settings
 # =================================
