@@ -128,7 +128,7 @@ static void processNameForEncoding(WPXString &name, unsigned short &encoding)
   return;
 }
 
-static void _processX6StyleString(const char *styleString, libcdr::CDRCharacterStyle & /*style*/)
+static void _processX6StyleString(const char *styleString, libcdr::CDRCharacterStyle &style)
 {
   boost::property_tree::ptree pt;
   try
@@ -141,6 +141,15 @@ static void _processX6StyleString(const char *styleString, libcdr::CDRCharacterS
   {
     return;
   }
+  std::string fontName = pt.get("character.latin.font", style.m_fontName.cstr());
+  style.m_fontName = fontName.c_str();
+  unsigned short encoding = pt.get("character.latin.charset", 0);
+  if (encoding || style.m_charSet == (unsigned short)-1)
+    style.m_charSet = encoding;
+  processNameForEncoding(style.m_fontName, style.m_charSet);
+  unsigned fontSize = pt.get("character.latin.size", 0);
+  if (fontSize)
+    style.m_fontSize = (double)fontSize / 254000.0;
 }
 
 static void _readX6StyleString(WPXInputStream *input, unsigned length, libcdr::CDRCharacterStyle &style)
