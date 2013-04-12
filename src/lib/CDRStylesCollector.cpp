@@ -241,16 +241,6 @@ void libcdr::CDRStylesCollector::collectPaletteEntry(unsigned colorId, unsigned 
   m_ps.m_documentPalette[colorId] = color;
 }
 
-void libcdr::CDRStylesCollector::collectFont(unsigned fontId, unsigned short encoding, const WPXString &font)
-{
-  std::map<unsigned, CDRFont>::const_iterator iter = m_ps.m_fonts.find(fontId);
-  // Asume that the first font with the given ID is a font
-  // that we want, the others are substitution fonts. We might
-  // be utterly wrong in this one
-  if (iter == m_ps.m_fonts.end())
-    m_ps.m_fonts[fontId] = CDRFont(font, encoding);
-}
-
 void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
     const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides)
 {
@@ -271,12 +261,6 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
     std::map<unsigned, CDRCharacterStyle>::const_iterator iter = styleOverrides.find(tmpCharDescription & 0xfe);
     if (iter != styleOverrides.end())
       tmpCharStyle.overrideCharacterStyle(iter->second);
-    if (!tmpCharStyle.m_charSet)
-    {
-      std::map<unsigned, CDRFont>::const_iterator iterFont = m_ps.m_fonts.find(tmpCharStyle.m_fontId);
-      if (iterFont != m_ps.m_fonts.end())
-        tmpCharStyle.m_charSet = iterFont->second.m_encoding;
-    }
     if (charDescriptions[i] != tmpCharDescription)
     {
       WPXString text;

@@ -488,9 +488,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         WPXPropertyList spanProps;
         double fontSize = (double)cdr_round(144.0*(*m_currentText)[i].m_line[j].m_charStyle.m_fontSize) / 2.0;
         spanProps.insert("fo:font-size", fontSize, WPX_POINT);
-        std::map<unsigned, CDRFont>::const_iterator iterFont = m_ps.m_fonts.find((*m_currentText)[i].m_line[j].m_charStyle.m_fontId);
-        if (iterFont != m_ps.m_fonts.end())
-          spanProps.insert("style:font-name", iterFont->second.m_name);
+        if ((*m_currentText)[i].m_line[j].m_charStyle.m_fontName.len())
+          spanProps.insert("style:font-name", (*m_currentText)[i].m_line[j].m_charStyle.m_fontName);
         std::map<unsigned, CDRFillStyle>::const_iterator iterFill = m_ps.m_fillStyles.find((*m_currentText)[i].m_line[j].m_charStyle.m_fillId);
         if (iterFill != m_ps.m_fillStyles.end())
           spanProps.insert("fo:color", m_ps.getRGBColorString(iterFill->second.color1));

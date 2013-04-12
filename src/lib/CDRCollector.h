@@ -61,7 +61,6 @@ public:
   std::map<unsigned, WPXBinaryData> m_vects;
   std::vector<CDRPage> m_pages;
   std::map<unsigned, CDRColor> m_documentPalette;
-  std::map<unsigned, CDRFont> m_fonts;
   std::map<unsigned, std::vector<CDRTextLine> > m_texts;
 
   unsigned _getRGBColor(const CDRColor &color);
@@ -123,7 +122,6 @@ public:
   virtual void collectSpnd(unsigned spnd) = 0;
   virtual void collectVectorPattern(unsigned id, const WPXBinaryData &data) = 0;
   virtual void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color) = 0;
-  virtual void collectFont(unsigned fontId, unsigned short fontEncoding, const WPXString &font) = 0;
   virtual void collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
                            const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides) = 0;
   virtual void collectArtisticText(double x, double y) = 0;

@@ -33,6 +33,7 @@
 #include <math.h>
 #include <libwpd/libwpd.h>
 #include "CDRTransforms.h"
+#include "libcdr_utils.h"
 
 namespace libcdr
 {
@@ -153,23 +154,27 @@ struct CDRLineStyle
 
 struct CDRCharacterStyle
 {
-  unsigned short m_charSet, m_fontId;
+  unsigned short m_charSet;
+  WPXString m_fontName;
   double m_fontSize;
   unsigned m_align;
   double m_leftIndent, m_firstIndent, m_rightIndent;
   unsigned m_outlId, m_fillId, m_parentId;
   CDRCharacterStyle()
-    : m_charSet((unsigned short)-1), m_fontId((unsigned short)-1),
+    : m_charSet((unsigned short)-1), m_fontName(),
       m_fontSize(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
-      m_rightIndent(0.0), m_outlId(0), m_fillId(0), m_parentId(0) {}
+      m_rightIndent(0.0), m_outlId(0), m_fillId(0), m_parentId(0)
+  {
+    m_fontName.clear();
+  }
   void overrideCharacterStyle(const CDRCharacterStyle &override)
   {
-    if (override.m_charSet != (unsigned short)-1 || override.m_fontId != (unsigned short)-1)
+    if (override.m_charSet != (unsigned short)-1 || override.m_fontName.len())
     {
       m_charSet = override.m_charSet;
-      m_fontId = override.m_fontId;
+      m_fontName = override.m_fontName;
     }
-    if (override.m_fontSize > 0.0)
+    if (!CDR_ALMOST_ZERO(override.m_fontSize))
       m_fontSize = override.m_fontSize;
     if (override.m_align)
       m_align = override.m_align;

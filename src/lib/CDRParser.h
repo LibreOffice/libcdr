@@ -115,9 +115,12 @@ private:
 
   std::vector<WPXInputStream *> m_externalStreams;
 
+  std::map<unsigned, CDRFont> m_fonts;
+
   unsigned m_version;
   unsigned m_fillId;
   unsigned m_outlId;
+
 };
 } // namespace libcdr
 

@@ -86,7 +86,6 @@ public:
   void collectSpnd(unsigned spnd);
   void collectVectorPattern(unsigned id, const WPXBinaryData &data);
   void collectPaletteEntry(unsigned, unsigned, const CDRColor &) {}
-  void collectFont(unsigned, unsigned short, const WPXString &) {}
   void collectText(unsigned, unsigned, const std::vector<unsigned char> &,
                    const std::vector<unsigned char> &, const std::map<unsigned, CDRCharacterStyle> &) {}
   void collectArtisticText(double x, double y);
