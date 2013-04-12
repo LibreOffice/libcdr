@@ -2724,7 +2724,7 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
       unsigned i = 0;
       for (i=0; i<numRecords; ++i)
       {
-        readU8(input);
+        unsigned char fl0 = readU8(input);
         readU8(input);
         unsigned char fl2 = readU8(input);
         unsigned char fl3 = 0;
@@ -2773,6 +2773,9 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
           if (flag)
             input->seek(52, WPX_SEEK_CUR);
         }
+        if (fl0 == 0x02)
+          if (m_version >= 1300)
+            input->seek(48, WPX_SEEK_CUR);
 
         charStyles[2*i] = charStyle;
       }
@@ -3098,13 +3101,11 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
   m_collector->collectStld(styleId, charStyle);
 }
 
-void libcdr::CDRParser::readArtisticText(WPXInputStream * /*input*/)
+void libcdr::CDRParser::readArtisticText(WPXInputStream *input)
 {
-#if 0
   double x = readCoordinate(input);
   double y = readCoordinate(input);
-#endif
-  m_collector->collectArtisticText(0.0, 0.0);
+  m_collector->collectArtisticText(x, y);
 }
 
 void libcdr::CDRParser::readParagraphText(WPXInputStream *input)
