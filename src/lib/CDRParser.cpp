@@ -129,7 +129,7 @@ static void processNameForEncoding(WPXString &name, unsigned short &encoding)
   return;
 }
 
-int parseColourString(const char *colourString, libcdr::CDRColor &colour, double &opacity)
+static int parseColourString(const char *colourString, libcdr::CDRColor &colour, double &opacity)
 {
   using namespace ::boost::spirit::classic;
   bool bRes = false;
@@ -190,15 +190,49 @@ static void _readX6StyleString(WPXInputStream *input, unsigned length, libcdr::C
   {
     return;
   }
-  std::string fontName = pt.get("character.latin.font", style.m_fontName.cstr());
-  style.m_fontName = fontName.c_str();
+  boost::optional<std::string> fontName = pt.get_optional<std::string>("character.latin.font");
+  if (!!fontName)
+    style.m_fontName = fontName.get().c_str();
   unsigned short encoding = pt.get("character.latin.charset", 0);
   if (encoding || style.m_charSet == (unsigned short)-1)
     style.m_charSet = encoding;
   processNameForEncoding(style.m_fontName, style.m_charSet);
-  unsigned fontSize = pt.get("character.latin.size", 0);
-  if (fontSize)
-    style.m_fontSize = (double)fontSize / 254000.0;
+  boost::optional<unsigned> fontSize = pt.get_optional<unsigned>("character.latin.size");
+  if (!!fontSize)
+    style.m_fontSize = (double)fontSize.get() / 254000.0;
+
+  if (pt.count("character.outline"))
+  {
+    style.m_lineStyle.lineType = 0;
+    boost::optional<unsigned> lineWidth = pt.get_optional<unsigned>("character.outline.width");
+    if (!!lineWidth)
+      style.m_lineStyle.lineWidth = (double)lineWidth.get() / 254000.0;
+    boost::optional<std::string> color = pt.get_optional<std::string>("character.outline.color");
+    if (!!color)
+    {
+      double opacity = 1.0;
+      parseColourString(color.get().c_str(), style.m_lineStyle.color, opacity);
+    }
+  }
+
+  if (pt.count("character.fill"))
+  {
+    boost::optional<unsigned short> type = pt.get_optional<unsigned short>("character.fill.type");
+    if (!!type)
+      style.m_fillStyle.fillType = type.get();
+    boost::optional<std::string> color1 = pt.get_optional<std::string>("character.fill.primaryColor");
+    if (!!color1)
+    {
+      double opacity = 1.0;
+      parseColourString(color1.get().c_str(), style.m_fillStyle.color1, opacity);
+    }
+    boost::optional<std::string> color2 = pt.get_optional<std::string>("character.fill.primaryColor");
+    if (!!color2)
+    {
+      double opacity = 1.0;
+      parseColourString(color2.get().c_str(), style.m_fillStyle.color2, opacity);
+    }
+  }
 }
 
 
