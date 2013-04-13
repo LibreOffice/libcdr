@@ -205,9 +205,8 @@ static void _readX6StyleString(WPXInputStream *input, unsigned length, libcdr::C
 } // anonymous namespace
 
 libcdr::CDRParser::CDRParser(const std::vector<WPXInputStream *> &externalStreams, libcdr::CDRCollector *collector)
-  : CommonParser(collector),
-    m_externalStreams(externalStreams), m_fonts(),
-    m_version(0), m_fillId(0), m_outlId(0) {}
+  : CommonParser(collector), m_externalStreams(externalStreams),
+    m_fonts(), m_fillStyles(), m_lineStyles(), m_version(0) {}
 
 libcdr::CDRParser::~CDRParser()
 {
@@ -1513,8 +1512,7 @@ void libcdr::CDRParser::readWaldoOutl(WPXInputStream *input)
   unsigned short capsType = readU16(input);
   unsigned startMarkerId = readU32(input);
   unsigned endMarkerId = readU32(input);
-  m_collector->collectOutl(++m_outlId, lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
-  m_collector->collectOutlId(m_outlId);
+  m_collector->collectLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
 }
 
 void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
@@ -1607,8 +1605,7 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
   default:
     break;
   }
-  m_collector->collectFild(++m_fillId, fillType, color1, color2, gradient, imageFill);
-  m_collector->collectFildId(m_fillId);
+  m_collector->collectFillStyle(fillType, color1, color2, gradient, imageFill);
 }
 
 void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
@@ -1958,7 +1955,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   default:
     break;
   }
-  m_collector->collectFild(fillId, fillType, color1, color2, gradient, imageFill);
+  m_fillStyles[fillId] = CDRFillStyle(fillType, color1, color2, gradient, imageFill);
 }
 
 void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
@@ -2007,7 +2004,7 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
     input->seek(fixPosition + 22, WPX_SEEK_SET);
   unsigned startMarkerId = readU32(input);
   unsigned endMarkerId = readU32(input);
-  m_collector->collectOutl(lineId, lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
+  m_lineStyles[lineId] = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
 }
 
 void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
@@ -2059,14 +2056,27 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
       if (m_version < 400)
         readWaldoFill(input);
       else
-        m_collector->collectFildId(readU32(input));
+      {
+        unsigned fillId = readU32(input);
+        std::map<unsigned, CDRFillStyle>::const_iterator iter = m_fillStyles.find(fillId);
+        if (iter != m_fillStyles.end())
+          m_collector->collectFillStyle(iter->second.fillType, iter->second.color1, iter->second.color2,
+                                        iter->second.gradient, iter->second.imageFill);
+      }
     }
     else if (argTypes[i] == 0x0a)
     {
       if (m_version < 400)
         readWaldoOutl(input);
       else
-        m_collector->collectOutlId(readU32(input));
+      {
+        unsigned outlId = readU32(input);
+        std::map<unsigned, CDRLineStyle>::const_iterator iter = m_lineStyles.find(outlId);
+        if (iter != m_lineStyles.end())
+          m_collector->collectLineStyle(iter->second.lineType, iter->second.capsType, iter->second.joinType, iter->second.lineWidth,
+                                        iter->second.stretch, iter->second.angle, iter->second.color, iter->second.dashArray,
+                                        iter->second.startMarkerId, iter->second.endMarkerId);
+      }
     }
     else if (argTypes[i] == 0x2af8)
       readPolygonTransform(input);
@@ -2709,16 +2719,24 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         unsigned fillId = iter->second.fillId;
         if (fillId)
         {
-          std::map<unsigned, unsigned>::const_iterator iterFill = fillIds.find(fillId);
-          if (iterFill != fillIds.end())
-            tmpCharStyle.m_fillId = iterFill->second;
+          std::map<unsigned, unsigned>::const_iterator iterFillId = fillIds.find(fillId);
+          if (iterFillId != fillIds.end())
+          {
+            std::map<unsigned, CDRFillStyle>::const_iterator iterFillStyle = m_fillStyles.find(iterFillId->second);
+            if (iterFillStyle != m_fillStyles.end())
+              tmpCharStyle.m_fillStyle = iterFillStyle->second;
+          }
         }
         unsigned outlId = iter->second.outlId;
         if (outlId)
         {
-          std::map<unsigned, unsigned>::const_iterator iterOutl = outlIds.find(outlId);
-          if (iterOutl != outlIds.end())
-            tmpCharStyle.m_outlId = iterOutl->second;
+          std::map<unsigned, unsigned>::const_iterator iterOutlId = outlIds.find(outlId);
+          if (iterOutlId != outlIds.end())
+          {
+            std::map<unsigned, CDRLineStyle>::const_iterator iterLineStyle = m_lineStyles.find(iterOutlId->second);
+            if (iterLineStyle != m_lineStyles.end())
+              tmpCharStyle.m_lineStyle = iterLineStyle->second;
+          }
         }
         unsigned parentId = iter->second.parentId;
         if (parentId)
@@ -2853,13 +2871,20 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
           input->seek(4, WPX_SEEK_CUR);
         if (fl2&0x40) // Font Colour
         {
-          charStyle.m_fillId = readU32(input);
+          unsigned fillId = readU32(input);
+          std::map<unsigned, CDRFillStyle>::const_iterator iter = m_fillStyles.find(fillId);
+          if (iter != m_fillStyles.end())
+            charStyle.m_fillStyle = iter->second;
           if (m_version >= 1500)
             input->seek(48, WPX_SEEK_CUR);
         }
         if (fl2&0x80) // Font Outl Colour
-          charStyle.m_outlId = readU32(input);
-
+        {
+          unsigned outlId = readU32(input);
+          std::map<unsigned, CDRLineStyle>::const_iterator iter = m_lineStyles.find(outlId);
+          if (iter != m_lineStyles.end())
+            charStyle.m_lineStyle = iter->second;
+        }
         if (fl3&8) // Encoding
         {
           if (m_version >= 1300)
@@ -3053,9 +3078,19 @@ void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
       input->seek(4, WPX_SEEK_CUR);
     input->seek(44, WPX_SEEK_CUR);
     if (flag&0x10)
-      charStyle.m_fillId = readU32(input);
+    {
+      unsigned fillId = readU32(input);
+      std::map<unsigned, CDRFillStyle>::const_iterator iter = m_fillStyles.find(fillId);
+      if (iter != m_fillStyles.end())
+        charStyle.m_fillStyle = iter->second;
+    }
     if (flag&0x20)
-      charStyle.m_outlId = readU32(input);
+    {
+      unsigned outlId = readU32(input);
+      std::map<unsigned, CDRLineStyle>::const_iterator iter = m_lineStyles.find(outlId);
+      if (iter != m_lineStyles.end())
+        charStyle.m_lineStyle = iter->second;
+    }
     charStyles[2*i] = charStyle;
   }
   unsigned numChars = readU32(input);
@@ -3109,11 +3144,21 @@ void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
       input->seek(2, WPX_SEEK_CUR);
     input->seek(2, WPX_SEEK_CUR);
     if (flag&0x10)
-      charStyle.m_fillId = readU32(input);
+    {
+      unsigned fillId = readU32(input);
+      std::map<unsigned, CDRFillStyle>::const_iterator iter = m_fillStyles.find(fillId);
+      if (iter != m_fillStyles.end())
+        charStyle.m_fillStyle = iter->second;
+    }
     else
       input->seek(4, WPX_SEEK_CUR);
     if (flag&0x20)
-      charStyle.m_outlId = readU32(input);
+    {
+      unsigned outlId = readU32(input);
+      std::map<unsigned, CDRLineStyle>::const_iterator iter = m_lineStyles.find(outlId);
+      if (iter != m_lineStyles.end())
+        charStyle.m_lineStyle = iter->second;
+    }
     else
       input->seek(4, WPX_SEEK_CUR);
     input->seek(14, WPX_SEEK_CUR);
@@ -3168,11 +3213,21 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
     case STYD_NAME:
       break;
     case STYD_FILL_ID:
-      charStyle.m_fillId = readU32(input);
+    {
+      unsigned fillId = readU32(input);
+      std::map<unsigned, CDRFillStyle>::const_iterator iter = m_fillStyles.find(fillId);
+      if (iter != m_fillStyles.end())
+        charStyle.m_fillStyle = iter->second;
       break;
+    }
     case STYD_OUTL_ID:
-      charStyle.m_outlId = readU32(input);
+    {
+      unsigned outlId = readU32(input);
+      std::map<unsigned, CDRLineStyle>::const_iterator iter = m_lineStyles.find(outlId);
+      if (iter != m_lineStyles.end())
+        charStyle.m_lineStyle = iter->second;
       break;
+    }
     case STYD_FONTS:
     {
       if (m_version >= 600)

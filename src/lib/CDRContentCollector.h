@@ -63,11 +63,10 @@ public:
   void collectClosePath();
   void collectLevel(unsigned level);
   void collectTransform(const CDRTransforms &transforms, bool considerGroupTransform);
-  void collectFildId(unsigned id);
-  void collectOutlId(unsigned id);
-  void collectFild(unsigned, unsigned short, const CDRColor &, const CDRColor &, const CDRGradient &, const CDRImageFill &) {}
-  void collectOutl(unsigned, unsigned short, unsigned short, unsigned short, double, double, double, const CDRColor &,
-                   const std::vector<unsigned> &, unsigned, unsigned) {}
+  void collectFillStyle(unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill);
+  void collectLineStyle(unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
+                        double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
+                        unsigned startMarkerId, unsigned endMarkerId);
   void collectRotate(double angle, double cx, double cy);
   void collectFlags(unsigned flags, bool considerFlags);
   void collectPageSize(double, double, double, double) {}
@@ -113,7 +112,8 @@ private:
 
   CDRPage m_page;
   unsigned m_pageIndex;
-  unsigned m_currentFildId, m_currentOutlId;
+  CDRFillStyle m_currentFillStyle;
+  CDRLineStyle m_currentLineStyle;
   unsigned m_spnd;
   unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentVectLevel, m_currentPageLevel;
   CDRImage m_currentImage;

@@ -50,7 +50,7 @@
 libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, libwpg::WPGPaintInterface *painter) :
   m_painter(painter),
   m_isPageProperties(false), m_isPageStarted(false), m_ignorePage(false),
-  m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFildId(0), m_currentOutlId(0), m_spnd(0),
+  m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFillStyle(), m_currentLineStyle(), m_spnd(0),
   m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
   m_currentImage(), m_currentText(0), m_currentBBox(), m_currentTextBox(), m_currentPath(),
   m_currentTransforms(), m_fillTransforms(), m_polygon(0), m_isInPolygon(false), m_isInSpline(false),
@@ -108,8 +108,8 @@ void libcdr::CDRContentCollector::collectObject(unsigned level)
   if (!m_isPageStarted && !m_currentVectLevel && !m_ignorePage)
     _startPage(m_page.width, m_page.height);
   m_currentObjectLevel = level;
-  m_currentFildId = 0;
-  m_currentOutlId = 0;
+  m_currentFillStyle = CDRFillStyle();
+  m_currentLineStyle = CDRLineStyle();
   m_currentBBox = CDRBox();
 }
 
@@ -490,9 +490,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         spanProps.insert("fo:font-size", fontSize, WPX_POINT);
         if ((*m_currentText)[i].m_line[j].m_charStyle.m_fontName.len())
           spanProps.insert("style:font-name", (*m_currentText)[i].m_line[j].m_charStyle.m_fontName);
-        std::map<unsigned, CDRFillStyle>::const_iterator iterFill = m_ps.m_fillStyles.find((*m_currentText)[i].m_line[j].m_charStyle.m_fillId);
-        if (iterFill != m_ps.m_fillStyles.end())
-          spanProps.insert("fo:color", m_ps.getRGBColorString(iterFill->second.color1));
+        if ((*m_currentText)[i].m_line[j].m_charStyle.m_fillStyle.fillType != (unsigned short)-1)
+          spanProps.insert("fo:color", m_ps.getRGBColorString((*m_currentText)[i].m_line[j].m_charStyle.m_fillStyle.color1));
         outputElement.addStartTextSpan(spanProps);
         outputElement.addInsertText((*m_currentText)[i].m_line[j].m_text);
         outputElement.addEndTextSpan();
@@ -593,14 +592,16 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
   }
 }
 
-void libcdr::CDRContentCollector::collectFildId(unsigned id)
+void libcdr::CDRContentCollector::collectFillStyle(unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill)
 {
-  m_currentFildId = id;
+  m_currentFillStyle = CDRFillStyle(fillType, color1, color2, gradient, imageFill);
 }
 
-void libcdr::CDRContentCollector::collectOutlId(unsigned id)
+void libcdr::CDRContentCollector::collectLineStyle(unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
+    double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
+    unsigned startMarkerId, unsigned endMarkerId)
 {
-  m_currentOutlId = id;
+  m_currentLineStyle = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
 }
 
 void libcdr::CDRContentCollector::collectRotate(double angle, double cx, double cy)
@@ -634,43 +635,42 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
 {
   if (m_fillOpacity < 1.0)
     propList.insert("draw:opacity", m_fillOpacity, WPX_PERCENT);
-  if (m_currentFildId == 0)
+  if (m_currentFillStyle.fillType == 0)
     propList.insert("draw:fill", "none");
   else
   {
-    std::map<unsigned, CDRFillStyle>::iterator iter = m_ps.m_fillStyles.find(m_currentFildId);
-    if (iter == m_ps.m_fillStyles.end())
+    if (m_currentFillStyle.fillType == (unsigned short)-1)
       propList.insert("draw:fill", "none");
     else
     {
-      switch (iter->second.fillType)
+      switch (m_currentFillStyle.fillType)
       {
       case 1: // Solid
         propList.insert("draw:fill", "solid");
-        propList.insert("draw:fill-color", m_ps.getRGBColorString(iter->second.color1));
+        propList.insert("draw:fill-color", m_ps.getRGBColorString(m_currentFillStyle.color1));
         propList.insert("svg:fill-rule", "evenodd");
         break;
       case 2: // Gradient
-        if (iter->second.gradient.m_stops.empty())
+        if (m_currentFillStyle.gradient.m_stops.empty())
           propList.insert("draw:fill", "none");
-        else if (iter->second.gradient.m_stops.size() == 1)
+        else if (m_currentFillStyle.gradient.m_stops.size() == 1)
         {
           propList.insert("draw:fill", "solid");
-          propList.insert("draw:fill-color", m_ps.getRGBColorString(iter->second.gradient.m_stops[0].m_color));
+          propList.insert("draw:fill-color", m_ps.getRGBColorString(m_currentFillStyle.gradient.m_stops[0].m_color));
           propList.insert("svg:fill-rule", "evenodd");
         }
-        else if (iter->second.gradient.m_stops.size() == 2)
+        else if (m_currentFillStyle.gradient.m_stops.size() == 2)
         {
-          double angle = iter->second.gradient.m_angle;
+          double angle = m_currentFillStyle.gradient.m_angle;
           while (angle < 0.0)
             angle += 360.0;
           while (angle > 360.0)
             angle -= 360.0;
           propList.insert("draw:fill", "gradient");
-          propList.insert("draw:start-color", m_ps.getRGBColorString(iter->second.gradient.m_stops[0].m_color));
-          propList.insert("draw:end-color", m_ps.getRGBColorString(iter->second.gradient.m_stops[1].m_color));
+          propList.insert("draw:start-color", m_ps.getRGBColorString(m_currentFillStyle.gradient.m_stops[0].m_color));
+          propList.insert("draw:end-color", m_ps.getRGBColorString(m_currentFillStyle.gradient.m_stops[1].m_color));
           propList.insert("draw:angle", (int)angle);
-          switch (iter->second.gradient.m_type)
+          switch (m_currentFillStyle.gradient.m_type)
           {
           case 1: // linear
           case 3: // conical
@@ -681,19 +681,19 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             while (angle > 360.0)
               angle -= 360.0;
             propList.insert("draw:angle", (int)angle);
-            propList.insert("draw:border", (double)(iter->second.gradient.m_edgeOffset)/100.0, WPX_PERCENT);
+            propList.insert("draw:border", (double)(m_currentFillStyle.gradient.m_edgeOffset)/100.0, WPX_PERCENT);
             break;
           case 2: // radial
-            propList.insert("draw:border", (2.0 * (double)(iter->second.gradient.m_edgeOffset)/100.0), WPX_PERCENT);
+            propList.insert("draw:border", (2.0 * (double)(m_currentFillStyle.gradient.m_edgeOffset)/100.0), WPX_PERCENT);
             propList.insert("draw:style", "radial");
-            propList.insert("svg:cx", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
-            propList.insert("svg:cy", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
+            propList.insert("svg:cx", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/200.0), WPX_PERCENT);
+            propList.insert("svg:cy", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/200.0), WPX_PERCENT);
             break;
           case 4: // square
-            propList.insert("draw:border", (2.0 * (double)(iter->second.gradient.m_edgeOffset)/100.0), WPX_PERCENT);
+            propList.insert("draw:border", (2.0 * (double)(m_currentFillStyle.gradient.m_edgeOffset)/100.0), WPX_PERCENT);
             propList.insert("draw:style", "square");
-            propList.insert("svg:cx", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
-            propList.insert("svg:cy", (double)(0.5 + iter->second.gradient.m_centerXOffset/200.0), WPX_PERCENT);
+            propList.insert("svg:cx", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/200.0), WPX_PERCENT);
+            propList.insert("svg:cy", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/200.0), WPX_PERCENT);
             break;
           default:
             propList.insert("draw:style", "linear");
@@ -703,9 +703,9 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             while (angle > 360.0)
               angle -= 360.0;
             propList.insert("draw:angle", (int)angle);
-            for (unsigned i = 0; i < iter->second.gradient.m_stops.size(); i++)
+            for (unsigned i = 0; i < m_currentFillStyle.gradient.m_stops.size(); i++)
             {
-              libcdr::CDRGradientStop &gradStop = iter->second.gradient.m_stops[i];
+              libcdr::CDRGradientStop &gradStop = m_currentFillStyle.gradient.m_stops[i];
               WPXPropertyList stopElement;
               stopElement.insert("svg:offset", gradStop.m_offset, WPX_PERCENT);
               stopElement.insert("svg:stop-color", m_ps.getRGBColorString(gradStop.m_color));
@@ -719,16 +719,16 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
         {
           propList.insert("draw:fill", "gradient");
           propList.insert("draw:style", "linear");
-          double angle = iter->second.gradient.m_angle;
+          double angle = m_currentFillStyle.gradient.m_angle;
           angle += 90.0;
           while (angle < 0.0)
             angle += 360.0;
           while (angle > 360.0)
             angle -= 360.0;
           propList.insert("draw:angle", (int)angle);
-          for (unsigned i = 0; i < iter->second.gradient.m_stops.size(); i++)
+          for (unsigned i = 0; i < m_currentFillStyle.gradient.m_stops.size(); i++)
           {
-            libcdr::CDRGradientStop &gradStop = iter->second.gradient.m_stops[i];
+            libcdr::CDRGradientStop &gradStop = m_currentFillStyle.gradient.m_stops[i];
             WPXPropertyList stopElement;
             stopElement.insert("svg:offset", gradStop.m_offset, WPX_PERCENT);
             stopElement.insert("svg:stop-color", m_ps.getRGBColorString(gradStop.m_color));
@@ -739,15 +739,15 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
         break;
       case 7: // Pattern
       {
-        std::map<unsigned, CDRPattern>::iterator iterPattern = m_ps.m_patterns.find(iter->second.imageFill.id);
+        std::map<unsigned, CDRPattern>::iterator iterPattern = m_ps.m_patterns.find(m_currentFillStyle.imageFill.id);
         if (iterPattern != m_ps.m_patterns.end())
         {
           propList.insert("draw:fill", "bitmap");
           WPXBinaryData image;
-          _generateBitmapFromPattern(image, iterPattern->second, iter->second.color1, iter->second.color2);
+          _generateBitmapFromPattern(image, iterPattern->second, m_currentFillStyle.color1, m_currentFillStyle.color2);
 #if DUMP_PATTERN
           WPXString filename;
-          filename.sprintf("pattern%.8x.bmp", iter->second.imageFill.id);
+          filename.sprintf("pattern%.8x.bmp", m_currentFillStyle.imageFill.id);
           FILE *f = fopen(filename.cstr(), "wb");
           if (f)
           {
@@ -760,36 +760,36 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
           propList.insert("draw:fill-image", image.getBase64Data());
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
-          if (iter->second.imageFill.isRelative)
+          if (m_currentFillStyle.imageFill.isRelative)
           {
-            propList.insert("svg:width", iter->second.imageFill.width, WPX_PERCENT);
-            propList.insert("svg:height", iter->second.imageFill.height, WPX_PERCENT);
+            propList.insert("svg:width", m_currentFillStyle.imageFill.width, WPX_PERCENT);
+            propList.insert("svg:height", m_currentFillStyle.imageFill.height, WPX_PERCENT);
           }
           else
           {
             double scaleX = 1.0;
             double scaleY = 1.0;
-            if (iter->second.imageFill.flags & 0x04) // scale fill with image
+            if (m_currentFillStyle.imageFill.flags & 0x04) // scale fill with image
             {
               scaleX = m_currentTransforms.getScaleX();
               scaleY = m_currentTransforms.getScaleY();
             }
-            propList.insert("svg:width", iter->second.imageFill.width * scaleX);
-            propList.insert("svg:height", iter->second.imageFill.height * scaleY);
+            propList.insert("svg:width", m_currentFillStyle.imageFill.width * scaleX);
+            propList.insert("svg:height", m_currentFillStyle.imageFill.height * scaleY);
           }
           propList.insert("draw:fill-image-ref-point", "bottom-left");
-          if (iter->second.imageFill.isRelative)
+          if (m_currentFillStyle.imageFill.isRelative)
           {
-            if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
-              propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
-            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 1.0)
-              propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
+            if (m_currentFillStyle.imageFill.xOffset != 0.0 && m_currentFillStyle.imageFill.xOffset != 1.0)
+              propList.insert("draw:fill-image-ref-point-x", m_currentFillStyle.imageFill.xOffset, WPX_PERCENT);
+            if (m_currentFillStyle.imageFill.yOffset != 0.0 && m_currentFillStyle.imageFill.yOffset != 1.0)
+              propList.insert("draw:fill-image-ref-point-y", m_currentFillStyle.imageFill.yOffset, WPX_PERCENT);
           }
           else
           {
             if (m_fillTransforms.getTranslateX() != 0.0)
             {
-              double xOffset = m_fillTransforms.getTranslateX() / iter->second.imageFill.width;
+              double xOffset = m_fillTransforms.getTranslateX() / m_currentFillStyle.imageFill.width;
               while (xOffset < 0.0)
                 xOffset += 1.0;
               while (xOffset > 1.0)
@@ -798,7 +798,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             }
             if (m_fillTransforms.getTranslateY() != 0.0)
             {
-              double yOffset = m_fillTransforms.getTranslateY() / iter->second.imageFill.width;
+              double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.width;
               while (yOffset < 0.0)
                 yOffset += 1.0;
               while (yOffset > 1.0)
@@ -811,7 +811,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
         {
           // We did not find the pattern, so fill solid with the background colour
           propList.insert("draw:fill", "solid");
-          propList.insert("draw:fill-color", m_ps.getRGBColorString(iter->second.color2));
+          propList.insert("draw:fill-color", m_ps.getRGBColorString(m_currentFillStyle.color2));
           propList.insert("svg:fill-rule", "evenodd");
         }
       }
@@ -819,43 +819,43 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
       case 9: // Bitmap
       case 11: // Texture
       {
-        std::map<unsigned, WPXBinaryData>::iterator iterBmp = m_ps.m_bmps.find(iter->second.imageFill.id);
+        std::map<unsigned, WPXBinaryData>::iterator iterBmp = m_ps.m_bmps.find(m_currentFillStyle.imageFill.id);
         if (iterBmp != m_ps.m_bmps.end())
         {
           propList.insert("libwpg:mime-type", "image/bmp");
           propList.insert("draw:fill", "bitmap");
           propList.insert("draw:fill-image", iterBmp->second.getBase64Data());
           propList.insert("style:repeat", "repeat");
-          if (iter->second.imageFill.isRelative)
+          if (m_currentFillStyle.imageFill.isRelative)
           {
-            propList.insert("svg:width", iter->second.imageFill.width, WPX_PERCENT);
-            propList.insert("svg:height", iter->second.imageFill.height, WPX_PERCENT);
+            propList.insert("svg:width", m_currentFillStyle.imageFill.width, WPX_PERCENT);
+            propList.insert("svg:height", m_currentFillStyle.imageFill.height, WPX_PERCENT);
           }
           else
           {
             double scaleX = 1.0;
             double scaleY = 1.0;
-            if (iter->second.imageFill.flags & 0x04) // scale fill with image
+            if (m_currentFillStyle.imageFill.flags & 0x04) // scale fill with image
             {
               scaleX = m_currentTransforms.getScaleX();
               scaleY = m_currentTransforms.getScaleY();
             }
-            propList.insert("svg:width", iter->second.imageFill.width * scaleX);
-            propList.insert("svg:height", iter->second.imageFill.height * scaleY);
+            propList.insert("svg:width", m_currentFillStyle.imageFill.width * scaleX);
+            propList.insert("svg:height", m_currentFillStyle.imageFill.height * scaleY);
           }
           propList.insert("draw:fill-image-ref-point", "bottom-left");
-          if (iter->second.imageFill.isRelative)
+          if (m_currentFillStyle.imageFill.isRelative)
           {
-            if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
-              propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
-            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 1.0)
-              propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
+            if (m_currentFillStyle.imageFill.xOffset != 0.0 && m_currentFillStyle.imageFill.xOffset != 1.0)
+              propList.insert("draw:fill-image-ref-point-x", m_currentFillStyle.imageFill.xOffset, WPX_PERCENT);
+            if (m_currentFillStyle.imageFill.yOffset != 0.0 && m_currentFillStyle.imageFill.yOffset != 1.0)
+              propList.insert("draw:fill-image-ref-point-y", m_currentFillStyle.imageFill.yOffset, WPX_PERCENT);
           }
           else
           {
             if (m_fillTransforms.getTranslateX() != 0.0)
             {
-              double xOffset = m_fillTransforms.getTranslateX() / iter->second.imageFill.width;
+              double xOffset = m_fillTransforms.getTranslateX() / m_currentFillStyle.imageFill.width;
               while (xOffset < 0.0)
                 xOffset += 1.0;
               while (xOffset > 1.0)
@@ -864,7 +864,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             }
             if (m_fillTransforms.getTranslateY() != 0.0)
             {
-              double yOffset = m_fillTransforms.getTranslateY() / iter->second.imageFill.width;
+              double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.width;
               while (yOffset < 0.0)
                 yOffset += 1.0;
               while (yOffset > 1.0)
@@ -879,43 +879,43 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
       break;
       case 10: // Full color
       {
-        std::map<unsigned, WPXBinaryData>::iterator iterVect = m_ps.m_vects.find(iter->second.imageFill.id);
+        std::map<unsigned, WPXBinaryData>::iterator iterVect = m_ps.m_vects.find(m_currentFillStyle.imageFill.id);
         if (iterVect != m_ps.m_vects.end())
         {
           propList.insert("draw:fill", "bitmap");
           propList.insert("libwpg:mime-type", "image/svg+xml");
           propList.insert("draw:fill-image", iterVect->second.getBase64Data());
           propList.insert("style:repeat", "repeat");
-          if (iter->second.imageFill.isRelative)
+          if (m_currentFillStyle.imageFill.isRelative)
           {
-            propList.insert("svg:width", iter->second.imageFill.width, WPX_PERCENT);
-            propList.insert("svg:height", iter->second.imageFill.height, WPX_PERCENT);
+            propList.insert("svg:width", m_currentFillStyle.imageFill.width, WPX_PERCENT);
+            propList.insert("svg:height", m_currentFillStyle.imageFill.height, WPX_PERCENT);
           }
           else
           {
             double scaleX = 1.0;
             double scaleY = 1.0;
-            if (iter->second.imageFill.flags & 0x04) // scale fill with image
+            if (m_currentFillStyle.imageFill.flags & 0x04) // scale fill with image
             {
               scaleX = m_currentTransforms.getScaleX();
               scaleY = m_currentTransforms.getScaleY();
             }
-            propList.insert("svg:width", iter->second.imageFill.width * scaleX);
-            propList.insert("svg:height", iter->second.imageFill.height * scaleY);
+            propList.insert("svg:width", m_currentFillStyle.imageFill.width * scaleX);
+            propList.insert("svg:height", m_currentFillStyle.imageFill.height * scaleY);
           }
           propList.insert("draw:fill-image-ref-point", "bottom-left");
-          if (iter->second.imageFill.isRelative)
+          if (m_currentFillStyle.imageFill.isRelative)
           {
-            if (iter->second.imageFill.xOffset != 0.0 && iter->second.imageFill.xOffset != 1.0)
-              propList.insert("draw:fill-image-ref-point-x", iter->second.imageFill.xOffset, WPX_PERCENT);
-            if (iter->second.imageFill.yOffset != 0.0 && iter->second.imageFill.yOffset != 1.0)
-              propList.insert("draw:fill-image-ref-point-y", iter->second.imageFill.yOffset, WPX_PERCENT);
+            if (m_currentFillStyle.imageFill.xOffset != 0.0 && m_currentFillStyle.imageFill.xOffset != 1.0)
+              propList.insert("draw:fill-image-ref-point-x", m_currentFillStyle.imageFill.xOffset, WPX_PERCENT);
+            if (m_currentFillStyle.imageFill.yOffset != 0.0 && m_currentFillStyle.imageFill.yOffset != 1.0)
+              propList.insert("draw:fill-image-ref-point-y", m_currentFillStyle.imageFill.yOffset, WPX_PERCENT);
           }
           else
           {
             if (m_fillTransforms.getTranslateX() != 0.0)
             {
-              double xOffset = m_fillTransforms.getTranslateX() / iter->second.imageFill.width;
+              double xOffset = m_fillTransforms.getTranslateX() / m_currentFillStyle.imageFill.width;
               while (xOffset < 0.0)
                 xOffset += 1.0;
               while (xOffset > 1.0)
@@ -924,7 +924,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
             }
             if (m_fillTransforms.getTranslateY() != 0.0)
             {
-              double yOffset = m_fillTransforms.getTranslateY() / iter->second.imageFill.width;
+              double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.width;
               while (yOffset < 0.0)
                 yOffset += 1.0;
               while (yOffset > 1.0)
@@ -947,7 +947,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
 
 void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
 {
-  if (m_currentOutlId == 0)
+  if (m_currentLineStyle.lineType == (unsigned short)-1)
   {
     propList.insert("draw:stroke", "solid");
     propList.insert("svg:stroke-width", 0.0);
@@ -955,34 +955,27 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
   }
   else
   {
-    std::map<unsigned, CDRLineStyle>::iterator iter = m_ps.m_lineStyles.find(m_currentOutlId);
-    if (iter == m_ps.m_lineStyles.end())
-    {
-      propList.insert("draw:stroke", "solid");
-      propList.insert("svg:stroke-width", 0.0);
-      propList.insert("svg:stroke-color", "#000000");
-    }
-    else if (iter->second.lineType & 0x1)
+    if (m_currentLineStyle.lineType & 0x1)
       propList.insert("draw:stroke", "none");
-    else if (iter->second.lineType & 0x6)
+    else if (m_currentLineStyle.lineType & 0x6)
     {
-      if (iter->second.dashArray.size() && (iter->second.lineType & 0x4))
+      if (m_currentLineStyle.dashArray.size() && (m_currentLineStyle.lineType & 0x4))
         propList.insert("draw:stroke", "dash");
       else
         propList.insert("draw:stroke", "solid");
       double scale = 1.0;
-      if (iter->second.lineType & 0x20) // scale line with image
+      if (m_currentLineStyle.lineType & 0x20) // scale line with image
       {
         scale = m_currentTransforms.getScaleX();
         double scaleY = m_currentTransforms.getScaleY();
         if (scaleY > scale)
           scale = scaleY;
       }
-      scale *= iter->second.stretch;
-      propList.insert("svg:stroke-width", iter->second.lineWidth * scale);
-      propList.insert("svg:stroke-color", m_ps.getRGBColorString(iter->second.color));
+      scale *= m_currentLineStyle.stretch;
+      propList.insert("svg:stroke-width", m_currentLineStyle.lineWidth * scale);
+      propList.insert("svg:stroke-color", m_ps.getRGBColorString(m_currentLineStyle.color));
 
-      switch (iter->second.capsType)
+      switch (m_currentLineStyle.capsType)
       {
       case 1:
         propList.insert("svg:stroke-linecap", "round");
@@ -994,7 +987,7 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
         propList.insert("svg:stroke-linecap", "butt");
       }
 
-      switch (iter->second.joinType)
+      switch (m_currentLineStyle.joinType)
       {
       case 1:
         propList.insert("svg:stroke-linejoin", "round");
@@ -1006,7 +999,7 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
         propList.insert("svg:stroke-linejoin", "miter");
       }
 
-      if (iter->second.dashArray.size())
+      if (m_currentLineStyle.dashArray.size())
       {
         int dots1 = 0;
         int dots2 = 0;
@@ -1014,35 +1007,35 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
         unsigned dots2len = 0;
         unsigned gap = 0;
 
-        if (iter->second.dashArray.size() >= 2)
+        if (m_currentLineStyle.dashArray.size() >= 2)
         {
-          dots1len = iter->second.dashArray[0];
-          gap = iter->second.dashArray[1];
+          dots1len = m_currentLineStyle.dashArray[0];
+          gap = m_currentLineStyle.dashArray[1];
         }
 
-        unsigned long count = iter->second.dashArray.size() / 2;
+        unsigned long count = m_currentLineStyle.dashArray.size() / 2;
         unsigned i = 0;
         for (; i < count;)
         {
-          if (dots1len == iter->second.dashArray[2*i])
+          if (dots1len == m_currentLineStyle.dashArray[2*i])
             dots1++;
           else
             break;
-          gap = gap < iter->second.dashArray[2*i+1] ?  iter->second.dashArray[2*i+1] : gap;
+          gap = gap < m_currentLineStyle.dashArray[2*i+1] ?  m_currentLineStyle.dashArray[2*i+1] : gap;
           i++;
         }
         if (i < count)
         {
-          dots2len = iter->second.dashArray[2*i];
-          gap = gap < iter->second.dashArray[2*i+1] ? iter->second.dashArray[2*i+1] : gap;
+          dots2len = m_currentLineStyle.dashArray[2*i];
+          gap = gap < m_currentLineStyle.dashArray[2*i+1] ? m_currentLineStyle.dashArray[2*i+1] : gap;
         }
         for (; i < count;)
         {
-          if (dots2len == iter->second.dashArray[2*i])
+          if (dots2len == m_currentLineStyle.dashArray[2*i])
             dots2++;
           else
             break;
-          gap = gap < iter->second.dashArray[2*i+1] ? iter->second.dashArray[2*i+1] : gap;
+          gap = gap < m_currentLineStyle.dashArray[2*i+1] ? m_currentLineStyle.dashArray[2*i+1] : gap;
           i++;
         }
         if (!dots2)
@@ -1051,10 +1044,10 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
           dots2len = dots1len;
         }
         propList.insert("draw:dots1", dots1);
-        propList.insert("draw:dots1-length", 72.0*(iter->second.lineWidth * scale)*dots1len, WPX_POINT);
+        propList.insert("draw:dots1-length", 72.0*(m_currentLineStyle.lineWidth * scale)*dots1len, WPX_POINT);
         propList.insert("draw:dots2", dots2);
-        propList.insert("draw:dots2-length", 72.0*(iter->second.lineWidth * scale)*dots2len, WPX_POINT);
-        propList.insert("draw:distance", 72.0*(iter->second.lineWidth * scale)*gap, WPX_POINT);
+        propList.insert("draw:dots2-length", 72.0*(m_currentLineStyle.lineWidth * scale)*dots2len, WPX_POINT);
+        propList.insert("draw:distance", 72.0*(m_currentLineStyle.lineWidth * scale)*gap, WPX_POINT);
       }
     }
     else

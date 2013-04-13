@@ -741,7 +741,6 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
         switch (tagId)
         {
         case CMX_Tag_RenderAttr_OutlineSpec:
-          m_collector->collectOutlId(readU16(input, m_bigEndian));
           break;
         default:
           break;
@@ -750,8 +749,6 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
       }
       while (tagId != CMX_Tag_EndTag);
     }
-    else if (m_precision == libcdr::PRECISION_16BIT)
-      m_collector->collectOutlId(readU16(input, m_bigEndian));
   }
   if (bitMask & 0x04) // lens
   {

@@ -51,19 +51,6 @@ libcdr::CDRStylesCollector::~CDRStylesCollector()
 {
 }
 
-void libcdr::CDRStylesCollector::collectFild(unsigned id, unsigned short fillType, const libcdr::CDRColor &color1, const libcdr::CDRColor &color2,
-    const libcdr::CDRGradient &gradient, const libcdr::CDRImageFill &imageFill)
-{
-  m_ps.m_fillStyles[id] = CDRFillStyle(fillType, color1, color2, gradient, imageFill);
-}
-
-void libcdr::CDRStylesCollector::collectOutl(unsigned id, unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
-    double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
-    unsigned startMarkerId, unsigned endMarkerId)
-{
-  m_ps.m_lineStyles[id] = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
-}
-
 void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap)
 {
   libcdr::CDRInternalStream stream(bitmap);

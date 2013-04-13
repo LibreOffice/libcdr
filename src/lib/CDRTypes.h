@@ -123,7 +123,7 @@ struct CDRFillStyle
   CDRGradient gradient;
   CDRImageFill imageFill;
   CDRFillStyle()
-    : fillType(0), color1(), color2(), gradient(), imageFill() {}
+    : fillType((unsigned short)-1), color1(), color2(), gradient(), imageFill() {}
   CDRFillStyle(unsigned short ft, CDRColor c1, CDRColor c2, const CDRGradient &gr, const CDRImageFill &img)
     : fillType(ft), color1(c1), color2(c2), gradient(gr), imageFill(img) {}
 };
@@ -141,7 +141,7 @@ struct CDRLineStyle
   unsigned startMarkerId;
   unsigned endMarkerId;
   CDRLineStyle()
-    : lineType(0), capsType(0), joinType(0), lineWidth(0.0),
+    : lineType((unsigned short)-1), capsType(0), joinType(0), lineWidth(0.0),
       stretch(0.0), angle(0.0), color(), dashArray(),
       startMarkerId(0), endMarkerId(0) {}
   CDRLineStyle(unsigned short lt, unsigned short ct, unsigned short jt,
@@ -159,11 +159,13 @@ struct CDRCharacterStyle
   double m_fontSize;
   unsigned m_align;
   double m_leftIndent, m_firstIndent, m_rightIndent;
-  unsigned m_outlId, m_fillId, m_parentId;
+  CDRLineStyle m_lineStyle;
+  CDRFillStyle m_fillStyle;
+  unsigned m_parentId;
   CDRCharacterStyle()
     : m_charSet((unsigned short)-1), m_fontName(),
       m_fontSize(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
-      m_rightIndent(0.0), m_outlId(0), m_fillId(0), m_parentId(0)
+      m_rightIndent(0.0), m_lineStyle(), m_fillStyle(), m_parentId(0)
   {
     m_fontName.clear();
   }
@@ -184,10 +186,10 @@ struct CDRCharacterStyle
       m_firstIndent = override.m_firstIndent;
       m_rightIndent = override.m_rightIndent;
     }
-    if (override.m_outlId)
-      m_outlId = override.m_outlId;
-    if (override.m_fillId)
-      m_fillId = override.m_fillId;
+    if (override.m_lineStyle.lineType != (unsigned short)-1)
+      m_lineStyle = override.m_lineStyle;
+    if (override.m_fillStyle.fillType != (unsigned short)-1)
+      m_fillStyle = override.m_fillStyle;
   }
 };
 
