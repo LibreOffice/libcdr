@@ -34,6 +34,7 @@
 #include <set>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/spirit/include/classic.hpp>
 #include "libcdr_utils.h"
 #include "CDRDocumentStructure.h"
 #include "CDRInternalStream.h"
@@ -126,6 +127,45 @@ static void processNameForEncoding(WPXString &name, unsigned short &encoding)
     name = fontName.c_str();
   }
   return;
+}
+
+int parseColourString(const char *colourString, libcdr::CDRColor &colour, double &opacity)
+{
+  using namespace ::boost::spirit::classic;
+  bool bRes = false;
+
+  std::string colourModel;
+  unsigned val0, val1, val2, val3, val4;
+
+  if (colourString)
+  {
+    bRes = parse(colourString,
+                 //  Begin grammar
+                 (
+                   (repeat_p(1, more)[alnum_p])[assign_a(colourModel)] >> (',' | eps_p)
+                   >> (repeat_p(1, more)[alnum_p]) >> (',' | eps_p)
+                   >> int_p[assign_a(val0)] >> (',' | eps_p)
+                   >> int_p[assign_a(val1)] >> (',' | eps_p)
+                   >> int_p[assign_a(val2)] >> (',' | eps_p)
+                   >> int_p[assign_a(val3)] >> (',' | eps_p)
+                   >> int_p[assign_a(val4)] >> (',' | eps_p)
+                   >> (repeat_p(8)[alnum_p] >> ('-') >> repeat_p(3)[repeat_p(4)[alnum_p] >> ('-')] >> repeat_p(12)[alnum_p])
+                 ) >> end_p,
+                 //  End grammar
+                 space_p).full;
+  }
+
+  if( !bRes )
+    return -1;
+
+  if (colourModel == "CMYK")
+    colour.m_colorModel = 2;
+  else if (colourModel == "CMYK255")
+    colour.m_colorModel = 3;
+  colour.m_colorValue = val0 | (val1 << 8) | (val2 << 16) | (val3 << 24);
+  opacity = (double)val4 / 100.0;
+
+  return 1;
 }
 
 static void _readX6StyleString(WPXInputStream *input, unsigned length, libcdr::CDRCharacterStyle &style)
