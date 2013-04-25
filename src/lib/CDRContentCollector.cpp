@@ -661,7 +661,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
         }
         else if (m_currentFillStyle.gradient.m_stops.size() == 2)
         {
-          double angle = m_currentFillStyle.gradient.m_angle;
+          double angle = m_currentFillStyle.gradient.m_angle * 180 / M_PI;
           while (angle < 0.0)
             angle += 360.0;
           while (angle > 360.0)
@@ -719,7 +719,7 @@ void libcdr::CDRContentCollector::_fillProperties(WPXPropertyList &propList, WPX
         {
           propList.insert("draw:fill", "gradient");
           propList.insert("draw:style", "linear");
-          double angle = m_currentFillStyle.gradient.m_angle;
+          double angle = m_currentFillStyle.gradient.m_angle * 180 / M_PI;
           angle += 90.0;
           while (angle < 0.0)
             angle += 360.0;
