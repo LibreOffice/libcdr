@@ -48,7 +48,7 @@ static unsigned getCDRVersion(WPXInputStream *input)
   unsigned riff = readU32(input);
   if ((riff & 0xffff) == 0x4c57) // "WL<micro>\0"
     return 200;
-  if (riff != FOURCC_RIFF)
+  if (riff != CDR_FOURCC_RIFF)
     return 0;
   input->seek(4, WPX_SEEK_CUR);
   char signature_c = (char)readU8(input);

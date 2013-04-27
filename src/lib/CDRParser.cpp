@@ -619,38 +619,38 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       length=blockLengths[length];
     unsigned long position = input->tell();
     unsigned listType(0);
-    if (fourCC == FOURCC_RIFF || fourCC == FOURCC_LIST)
+    if (fourCC == CDR_FOURCC_RIFF || fourCC == CDR_FOURCC_LIST)
     {
       listType = readU32(input);
-      if (listType == FOURCC_stlt && m_version >= 700)
+      if (listType == CDR_FOURCC_stlt && m_version >= 700)
         fourCC = listType;
       else
         m_collector->collectOtherList();
     }
     CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%u)\n", level, toFourCC(fourCC), length, length));
 
-    if (fourCC == FOURCC_RIFF || fourCC == FOURCC_LIST)
+    if (fourCC == CDR_FOURCC_RIFF || fourCC == CDR_FOURCC_LIST)
     {
       CDR_DEBUG_MSG(("CDR listType: %s\n", toFourCC(listType)));
       unsigned cmprsize = length-4;
-      if (listType == FOURCC_cmpr)
+      if (listType == CDR_FOURCC_cmpr)
       {
         cmprsize  = readU32(input);
         input->seek(12, WPX_SEEK_CUR);
-        if (readU32(input) != FOURCC_CPng)
+        if (readU32(input) != CDR_FOURCC_CPng)
           return false;
         if (readU16(input) != 1)
           return false;
         if (readU16(input) != 4)
           return false;
       }
-      else if (listType == FOURCC_page)
+      else if (listType == CDR_FOURCC_page)
         m_collector->collectPage(level);
-      else if (listType == FOURCC_obj)
+      else if (listType == CDR_FOURCC_obj)
         m_collector->collectObject(level);
-      else if (listType == FOURCC_grp || listType == FOURCC_lnkg)
+      else if (listType == CDR_FOURCC_grp || listType == CDR_FOURCC_lnkg)
         m_collector->collectGroup(level);
-      else if ((listType & 0xffffff) == FOURCC_CDR || (listType & 0xffffff) == FOURCC_cdr)
+      else if ((listType & 0xffffff) == CDR_FOURCC_CDR || (listType & 0xffffff) == CDR_FOURCC_cdr)
       {
         m_version = getCDRVersion((listType & 0xff000000) >> 24);
         if (m_version < 600)
@@ -658,10 +658,10 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
         else
           m_precision = libcdr::PRECISION_32BIT;
       }
-      else if (listType == FOURCC_vect || listType == FOURCC_clpt)
+      else if (listType == CDR_FOURCC_vect || listType == CDR_FOURCC_clpt)
         m_collector->collectVect(level);
 
-      bool compressed = (listType == FOURCC_cmpr ? true : false);
+      bool compressed = (listType == CDR_FOURCC_cmpr ? true : false);
       CDRInternalStream tmpStream(input, cmprsize, compressed);
       if (!compressed)
       {
@@ -696,71 +696,71 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   long recordStart = input->tell();
   switch (fourCC)
   {
-  case FOURCC_DISP:
+  case CDR_FOURCC_DISP:
     readDisp(input, length);
     break;
-  case FOURCC_loda:
-  case FOURCC_lobj:
+  case CDR_FOURCC_loda:
+  case CDR_FOURCC_lobj:
     readLoda(input, length);
     break;
-  case FOURCC_vrsn:
+  case CDR_FOURCC_vrsn:
     readVersion(input, length);
     break;
-  case FOURCC_trfd:
+  case CDR_FOURCC_trfd:
     readTrfd(input, length);
     break;
-  case FOURCC_outl:
+  case CDR_FOURCC_outl:
     readOutl(input, length);
     break;
-  case FOURCC_fild:
-  case FOURCC_fill:
+  case CDR_FOURCC_fild:
+  case CDR_FOURCC_fill:
     readFild(input, length);
     break;
-  case FOURCC_arrw:
+  case CDR_FOURCC_arrw:
     break;
-  case FOURCC_flgs:
+  case CDR_FOURCC_flgs:
     readFlags(input, length);
     break;
-  case FOURCC_mcfg:
+  case CDR_FOURCC_mcfg:
     readMcfg(input, length);
     break;
-  case FOURCC_bmp:
+  case CDR_FOURCC_bmp:
     readBmp(input, length);
     break;
-  case FOURCC_bmpf:
+  case CDR_FOURCC_bmpf:
     readBmpf(input, length);
     break;
-  case FOURCC_ppdt:
+  case CDR_FOURCC_ppdt:
     readPpdt(input, length);
     break;
-  case FOURCC_ftil:
+  case CDR_FOURCC_ftil:
     readFtil(input, length);
     break;
-  case FOURCC_iccd:
+  case CDR_FOURCC_iccd:
     readIccd(input, length);
     break;
-  case FOURCC_bbox:
+  case CDR_FOURCC_bbox:
     readBBox(input, length);
     break;
-  case FOURCC_spnd:
+  case CDR_FOURCC_spnd:
     readSpnd(input, length);
     break;
-  case FOURCC_uidr:
+  case CDR_FOURCC_uidr:
     readUidr(input, length);
     break;
-  case FOURCC_vpat:
+  case CDR_FOURCC_vpat:
     readVpat(input, length);
     break;
-  case FOURCC_font:
+  case CDR_FOURCC_font:
     readFont(input, length);
     break;
-  case FOURCC_stlt:
+  case CDR_FOURCC_stlt:
     readStlt(input, length);
     break;
-  case FOURCC_txsm:
+  case CDR_FOURCC_txsm:
     readTxsm(input, length);
     break;
-  case FOURCC_styd:
+  case CDR_FOURCC_styd:
     readStyd(input);
     break;
   default:
