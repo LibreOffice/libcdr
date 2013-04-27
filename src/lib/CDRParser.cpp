@@ -3095,7 +3095,6 @@ void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
   if (!fflag1)
     input->seek(8, WPX_SEEK_CUR);
   unsigned stlId = readU32(input);
-  printf("Fridrich %x\n", stlId);
   unsigned numSt = readU32(input);
   unsigned i = 0;
   std::map<unsigned, CDRCharacterStyle> charStyles;
