@@ -133,6 +133,30 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   try
   {
     version = getCDRVersion(input);
+    if (version)
+    {
+      input->seek(0, WPX_SEEK_SET);
+      CDRParserState ps;
+      CDRStylesCollector stylesCollector(ps);
+      CDRParser stylesParser(std::vector<WPXInputStream *>(), &stylesCollector);
+      if (version >= 300)
+        retVal = stylesParser.parseRecords(input);
+      else
+        retVal = stylesParser.parseWaldo(input);
+      if (ps.m_pages.empty())
+        retVal = false;
+      if (retVal)
+      {
+        input->seek(0, WPX_SEEK_SET);
+        CDRContentCollector contentCollector(ps, painter);
+        CDRParser contentParser(std::vector<WPXInputStream *>(), &contentCollector);
+        if (version >= 300)
+          retVal = contentParser.parseRecords(input);
+        else
+          retVal = contentParser.parseWaldo(input);
+      }
+      return retVal;
+    }
   }
   catch (libcdr::EndOfStreamException const &)
   {
@@ -140,101 +164,84 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
     return false;
   }
 
-  if (version)
+  WPXInputStream *tmpInput = input;
+  std::vector<WPXInputStream *> dataStreams;
+  try
   {
+    CDRZipStream zinput(input);
+    bool isZipDocument = zinput.isOLEStream();
+    std::vector<std::string> dataFiles;
+    if (isZipDocument)
+    {
+      input = zinput.getDocumentOLEStream("content/riffData.cdr");
+      if (!input)
+      {
+        input = zinput.getDocumentOLEStream("content/root.dat");
+        if (input)
+        {
+          WPXInputStream *tmpStream = zinput.getDocumentOLEStream("content/dataFileList.dat");
+          if (tmpStream)
+          {
+            std::string dataFileName;
+            while (!tmpStream->atEOS())
+            {
+              unsigned char character = readU8(tmpStream);
+              if (character == 0x0a)
+              {
+                dataFiles.push_back(dataFileName);
+                dataFileName.clear();
+              }
+              else
+                dataFileName += (char)character;
+            }
+            if (!dataFileName.empty())
+              dataFiles.push_back(dataFileName);
+          }
+        }
+      }
+    }
+    dataStreams.reserve(dataFiles.size());
+    for (unsigned i=0; i<dataFiles.size(); i++)
+    {
+      std::string streamName("content/data/");
+      streamName += dataFiles[i];
+      CDR_DEBUG_MSG(("Extracting stream: %s\n", streamName.c_str()));
+      dataStreams.push_back(zinput.getDocumentOLEStream(streamName.c_str()));
+    }
+    if (!input)
+      input = tmpInput;
     input->seek(0, WPX_SEEK_SET);
     CDRParserState ps;
+    // libcdr extension to the getDocumentOLEStream. Will extract the first stream in the
+    // given directory
+    WPXInputStream *cmykProfile = zinput.getDocumentOLEStream("color/profiles/cmyk/");
+    if (cmykProfile)
+    {
+      ps.setColorTransform(cmykProfile);
+      delete cmykProfile;
+    }
+    WPXInputStream *rgbProfile = zinput.getDocumentOLEStream("color/profiles/rgb/");
+    if (rgbProfile)
+    {
+      ps.setColorTransform(rgbProfile);
+      delete rgbProfile;
+    }
     CDRStylesCollector stylesCollector(ps);
-    CDRParser stylesParser(std::vector<WPXInputStream *>(), &stylesCollector);
-    if (version >= 300)
-      retVal = stylesParser.parseRecords(input);
-    else
-      retVal = stylesParser.parseWaldo(input);
+    CDRParser stylesParser(dataStreams, &stylesCollector);
+    retVal = stylesParser.parseRecords(input);
     if (ps.m_pages.empty())
       retVal = false;
     if (retVal)
     {
       input->seek(0, WPX_SEEK_SET);
       CDRContentCollector contentCollector(ps, painter);
-      CDRParser contentParser(std::vector<WPXInputStream *>(), &contentCollector);
-      if (version >= 300)
-        retVal = contentParser.parseRecords(input);
-      else
-        retVal = contentParser.parseWaldo(input);
-    }
-    return retVal;
-  }
-
-  WPXInputStream *tmpInput = input;
-  CDRZipStream zinput(input);
-  bool isZipDocument = zinput.isOLEStream();
-  std::vector<std::string> dataFiles;
-  if (isZipDocument)
-  {
-    input = zinput.getDocumentOLEStream("content/riffData.cdr");
-    if (!input)
-    {
-      input = zinput.getDocumentOLEStream("content/root.dat");
-      if (input)
-      {
-        WPXInputStream *tmpStream = zinput.getDocumentOLEStream("content/dataFileList.dat");
-        if (tmpStream)
-        {
-          std::string dataFileName;
-          while (!tmpStream->atEOS())
-          {
-            unsigned char character = readU8(tmpStream);
-            if (character == 0x0a)
-            {
-              dataFiles.push_back(dataFileName);
-              dataFileName.clear();
-            }
-            else
-              dataFileName += (char)character;
-          }
-          if (!dataFileName.empty())
-            dataFiles.push_back(dataFileName);
-        }
-      }
+      CDRParser contentParser(dataStreams, &contentCollector);
+      retVal = contentParser.parseRecords(input);
     }
   }
-  std::vector<WPXInputStream *> dataStreams(dataFiles.size());
-  for (unsigned i=0; i<dataFiles.size(); i++)
+  catch (libcdr::EndOfStreamException const &)
   {
-    std::string streamName("content/data/");
-    streamName += dataFiles[i];
-    CDR_DEBUG_MSG(("Extracting stream: %s\n", streamName.c_str()));
-    dataStreams[i] = zinput.getDocumentOLEStream(streamName.c_str());
-  }
-  if (!input)
-    input = tmpInput;
-  input->seek(0, WPX_SEEK_SET);
-  CDRParserState ps;
-  // libcdr extension to the getDocumentOLEStream. Will extract the first stream in the
-  // given directory
-  WPXInputStream *cmykProfile = zinput.getDocumentOLEStream("color/profiles/cmyk/");
-  if (cmykProfile)
-  {
-    ps.setColorTransform(cmykProfile);
-    delete cmykProfile;
-  }
-  WPXInputStream *rgbProfile = zinput.getDocumentOLEStream("color/profiles/rgb/");
-  if (rgbProfile)
-  {
-    ps.setColorTransform(rgbProfile);
-    delete rgbProfile;
-  }
-  CDRStylesCollector stylesCollector(ps);
-  CDRParser stylesParser(dataStreams, &stylesCollector);
-  retVal = stylesParser.parseRecords(input);
-  if (ps.m_pages.empty())
     retVal = false;
-  if (retVal)
-  {
-    input->seek(0, WPX_SEEK_SET);
-    CDRContentCollector contentCollector(ps, painter);
-    CDRParser contentParser(dataStreams, &contentCollector);
-    retVal = contentParser.parseRecords(input);
   }
   if (input != tmpInput)
     delete input;
