@@ -377,6 +377,7 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
       break;
     case 0x88: // CHINESEBIG5
       conv = ucnv_open("windows-950", &status);
+      break;
     case 0xa1: // GREEEK
       conv = ucnv_open("windows-1253", &status);
       break;
