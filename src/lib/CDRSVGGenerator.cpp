@@ -29,7 +29,7 @@
  */
 
 #include "CDRSVGGenerator.h"
-#include "libcdr.h"
+#include <libcdr/libcdr.h>
 #include <locale.h>
 #include <sstream>
 #include <string>

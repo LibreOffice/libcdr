@@ -29,7 +29,7 @@
 
 #include <string>
 #include <string.h>
-#include "CMXDocument.h"
+#include <libcdr/libcdr.h>
 #include "CDRDocumentStructure.h"
 #include "CMXParser.h"
 #include "CDRSVGGenerator.h"

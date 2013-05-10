@@ -43,7 +43,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(LIBWPD_INCLUDE_DIR);$(LIBWPG_INCLUDE_DIR);$(LCMS2_INCLUDE_DIR);$(ZLIB_INCLUDE_DIR);$(ICU_INCLUDE_DIR);$(BOOST_INCLUDE_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\inc;$(LIBWPD_INCLUDE_DIR);$(LIBWPG_INCLUDE_DIR);$(LCMS2_INCLUDE_DIR);$(ZLIB_INCLUDE_DIR);$(ICU_INCLUDE_DIR);$(BOOST_INCLUDE_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;DEBUG;WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -74,7 +74,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>$(LIBWPD_INCLUDE_DIR);$(LIBWPG_INCLUDE_DIR);$(LCMS2_INCLUDE_DIR);$(ZLIB_INCLUDE_DIR);$(ICU_INCLUDE_DIR);$(BOOST_INCLUDE_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\inc;$(LIBWPD_INCLUDE_DIR);$(LIBWPG_INCLUDE_DIR);$(LCMS2_INCLUDE_DIR);$(ZLIB_INCLUDE_DIR);$(ICU_INCLUDE_DIR);$(BOOST_INCLUDE_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;WIN32;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -206,27 +206,27 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\inc\libcdr\CDRDocument.h" />
+    <ClInclude Include="..\..\inc\libcdr\CDRStringVector.h" />
+    <ClInclude Include="..\..\inc\libcdr\CMXDocument.h" />
+    <ClInclude Include="..\..\inc\libcdr\libcdr.h" />
     <ClInclude Include="..\..\src\lib\CDRCollector.h" />
     <ClInclude Include="..\..\src\lib\CDRColorPalettes.h" />
     <ClInclude Include="..\..\src\lib\CDRColorProfiles.h" />
     <ClInclude Include="..\..\src\lib\CDRContentCollector.h" />
-    <ClInclude Include="..\..\src\lib\CDRDocument.h" />
     <ClInclude Include="..\..\src\lib\CDRDocumentStructure.h" />
     <ClInclude Include="..\..\src\lib\CDRInternalStream.h" />
     <ClInclude Include="..\..\src\lib\CDROutputElementList.h" />
     <ClInclude Include="..\..\src\lib\CDRParser.h" />
     <ClInclude Include="..\..\src\lib\CDRPath.h" />
-    <ClInclude Include="..\..\src\lib\CDRStringVector.h" />
     <ClInclude Include="..\..\src\lib\CDRStylesCollector.h" />
     <ClInclude Include="..\..\src\lib\CDRSVGGenerator.h" />
     <ClInclude Include="..\..\src\lib\CDRTransforms.h" />
     <ClInclude Include="..\..\src\lib\CDRTypes.h" />
     <ClInclude Include="..\..\src\lib\CDRZipStream.h" />
-    <ClInclude Include="..\..\src\lib\CMXDocument.h" />
     <ClInclude Include="..\..\src\lib\CMXDocumentStructure.h" />
     <ClInclude Include="..\..\src\lib\CMXParser.h" />
     <ClInclude Include="..\..\src\lib\CommonParser.h" />
-    <ClInclude Include="..\..\src\lib\libcdr.h" />
     <ClInclude Include="..\..\src\lib\libcdr_utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

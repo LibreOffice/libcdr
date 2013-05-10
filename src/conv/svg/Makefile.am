@@ -1,6 +1,6 @@
 bin_PROGRAMS = cdr2xhtml cmx2xhtml
 
-AM_CXXFLAGS = -I$(top_srcdir)/src/lib -I$(top_builddir)/src/lib $(WPD_CFLAGS) $(WPG_CFLAGS) $(DEBUG_CXXFLAGS)
+AM_CXXFLAGS = -I$(top_srcdir)/inc $(WPD_CFLAGS) $(WPG_CFLAGS) $(DEBUG_CXXFLAGS)
 
 cdr2xhtml_DEPENDENCIES = @CDR2XHTML_WIN32_RESOURCE@
 

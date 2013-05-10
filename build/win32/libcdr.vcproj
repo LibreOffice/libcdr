@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(LIBWPD_INCLUDE_DIR),$(LIBWPG_INCLUDE_DIR),$(LCMS2_INCLUDE_DIR),$(ZLIB_INCLUDE_DIR),$(ICU_INCLUDE_DIR),$(BOOST_INCLUDE_DIR)"
+				AdditionalIncludeDirectories="..\..\inc,$(LIBWPD_INCLUDE_DIR),$(LIBWPG_INCLUDE_DIR),$(LCMS2_INCLUDE_DIR),$(ZLIB_INCLUDE_DIR),$(ICU_INCLUDE_DIR),$(BOOST_INCLUDE_DIR)"
 				PreprocessorDefinitions="_DEBUG;DEBUG;WIN32;_LIB;_CRT_SECURE_NO_WARNINGS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -116,7 +116,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(LIBWPD_INCLUDE_DIR),$(LIBWPG_INCLUDE_DIR),$(LCMS2_INCLUDE_DIR),$(ZLIB_INCLUDE_DIR),$(ICU_INCLUDE_DIR),$(BOOST_INCLUDE_DIR)"
+				AdditionalIncludeDirectories="..\..\inc,$(LIBWPD_INCLUDE_DIR),$(LIBWPG_INCLUDE_DIR),$(LCMS2_INCLUDE_DIR),$(ZLIB_INCLUDE_DIR),$(ICU_INCLUDE_DIR),$(BOOST_INCLUDE_DIR)"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -217,7 +217,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\lib\CDRDocument.cpp"
+				RelativePath="..\..\inc\libcdr\CDRDocument.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -552,6 +552,22 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath="..\..\inc\libcdr\CDRDocument.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\inc\libcdr\CDRStringVector.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\inc\libcdr\CMXDocument.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\inc\libcdr\libcdr.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\CDRCollector.h"
 				>
 			</File>
@@ -565,10 +581,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\lib\CDRContentCollector.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\lib\CDRDocument.h"
 				>
 			</File>
 			<File
@@ -592,10 +604,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\lib\CDRStringVector.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\lib\CDRStylesCollector.h"
 				>
 			</File>
@@ -616,10 +624,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\lib\CMXDocument.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\lib\CMXDocumentStructure.h"
 				>
 			</File>
@@ -629,10 +633,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\lib\CommonParser.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\lib\libcdr.h"
 				>
 			</File>
 			<File

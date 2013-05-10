@@ -40,8 +40,8 @@ RSC=rc.exe
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /GX /O2 /I "libwpd-0.9" /D "WIN32" /D "NDEBUG" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GR /GX /O2 /I "libwpd-0.9" /D "NDEBUG" /D "WIN32" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /FD /c
+# ADD BASE CPP /nologo /W3 /GX /O2 /I "..\..\inc" /I "libwpd-0.9" /D "WIN32" /D "NDEBUG" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GR /GX /O2 /I "..\..\inc" /I "libwpd-0.9" /D "NDEBUG" /D "WIN32" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -64,8 +64,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "libwpd-0.9" /D "WIN32" /D "_DEBUG" /D "DEBUG" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /GR /GX /ZI /Od /I "libwpd-0.9" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /FD /GZ /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\inc" /I "libwpd-0.9" /D "WIN32" /D "_DEBUG" /D "DEBUG" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /GR /GX /ZI /Od /I "..\..\inc" /I "libwpd-0.9" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -159,6 +159,22 @@ SOURCE=..\..\src\lib\libcdr_utils.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=..\..\inc\libcdr\CDRDocument.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\inc\libcdr\CDRStringVector.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\inc\libcdr\CMXDocument.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\inc\libcdr\libcdr.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\lib\CDRCollector.h
 # End Source File
 # Begin Source File
@@ -172,10 +188,6 @@ SOURCE=..\..\src\lib\CDRColorProfiles.h
 # Begin Source File
 
 SOURCE=..\..\src\lib\CDRContentCollector.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\CDRDocument.h
 # End Source File
 # Begin Source File
 
@@ -199,10 +211,6 @@ SOURCE=..\..\src\lib\CDRPath.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\lib\CDRStringVector.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\lib\CDRStylesCollector.h
 # End Source File
 # Begin Source File
@@ -223,10 +231,6 @@ SOURCE=..\..\src\lib\CDRZipStream.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\lib\CMXDocument.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\lib\CMXDocumentStructure.h
 # End Source File
 # Begin Source File
@@ -236,10 +240,6 @@ SOURCE=..\..\src\lib\CMXParser.h
 # Begin Source File
 
 SOURCE=..\..\src\lib\CommonParser.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\lib\libcdr.h
 # End Source File
 # Begin Source File
 

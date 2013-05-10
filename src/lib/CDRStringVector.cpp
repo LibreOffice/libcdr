@@ -28,7 +28,7 @@
  */
 
 #include <vector>
-#include "CDRStringVector.h"
+#include <libcdr/libcdr.h>
 
 namespace libcdr
 {

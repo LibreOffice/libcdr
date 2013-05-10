@@ -29,10 +29,10 @@
 
 #include <math.h>
 #include <string.h>
+#include <libcdr/libcdr.h>
 #include "CDRSVGGenerator.h"
 #include "CDRContentCollector.h"
 #include "CDRInternalStream.h"
-#include "CMXDocument.h"
 #include "libcdr_utils.h"
 
 #ifndef M_PI

@@ -35,7 +35,7 @@
 #include <sstream>
 #include <libwpd/libwpd.h>
 #include <libwpg/libwpg.h>
-#include "CDRStringVector.h"
+#include <libcdr/libcdr.h>
 
 namespace libcdr
 {

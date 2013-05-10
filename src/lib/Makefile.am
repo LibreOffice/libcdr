@@ -7,12 +7,12 @@ endif
 lib_LTLIBRARIES = libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.la
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_includedir = $(includedir)/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@/libcdr
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_include_HEADERS = \
-	libcdr.h \
-	CDRDocument.h \
-	CDRStringVector.h \
-	CMXDocument.h
+	$(top_srcdir)/inc/libcdr/libcdr.h \
+	$(top_srcdir)/inc/libcdr/CDRDocument.h \
+	$(top_srcdir)/inc/libcdr/CDRStringVector.h \
+	$(top_srcdir)/inc/libcdr/CMXDocument.h
 
-AM_CXXFLAGS = $(WPD_CFLAGS) $(WPG_CFLAGS) $(LCMS2_CFLAGS) $(ZLIB_CFLAGS) $(ICU_CFLAGS) $(DEBUG_CXXFLAGS)
+AM_CXXFLAGS = -I$(top_srcdir)/inc $(WPD_CFLAGS) $(WPG_CFLAGS) $(LCMS2_CFLAGS) $(ZLIB_CFLAGS) $(ICU_CFLAGS) $(DEBUG_CXXFLAGS)
 
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_LIBADD  = $(WPD_LIBS) $(LCMS2_LIBS) $(ZLIB_LIBS) $(ICU_LIBS) @LIBCDR_WIN32_RESOURCE@
 libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_la_DEPENDENCIES = @LIBCDR_WIN32_RESOURCE@

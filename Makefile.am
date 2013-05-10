@@ -4,7 +4,7 @@ pkgconfdir = $(libdir)/pkgconfig
 
 pkgconf_DATA = libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.pc
 
-SUBDIRS = src build docs
+SUBDIRS = build inc src docs
 
 EXTRA_DIST = \
 	AUTHORS \
@@ -14,13 +14,13 @@ EXTRA_DIST = \
 	NEWS \
 	README \
 	autogen.sh \
-	libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.pc.in \
+	libcdr.pc.in \
 	libcdr-zip.in \
 	libcdr.spec \
 	libcdr.spec.in
 
 distclean-local:
-	rm -rf *.cache *~
+	rm -rf *.cache *~ *.out *.pc
 
 rpm: dist
 	rpmbuild -ta $(PACKAGE)-$(VERSION).tar.gz

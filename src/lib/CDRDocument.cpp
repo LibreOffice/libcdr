@@ -29,7 +29,7 @@
 
 #include <string>
 #include <string.h>
-#include "CDRDocument.h"
+#include <libcdr/libcdr.h>
 #include "CDRParser.h"
 #include "CDRSVGGenerator.h"
 #include "CDRContentCollector.h"

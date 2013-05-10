@@ -293,6 +293,8 @@ AM_CONDITIONAL([WITH_LIBCDR_DOCS], [test "x$build_docs" != "xno"])
 # =====================
 AC_CONFIG_FILES([
 Makefile
+inc/Makefile
+inc/libcdr/Makefile
 src/Makefile
 src/conv/Makefile
 src/conv/raw/Makefile
@@ -310,7 +312,7 @@ build/Makefile
 build/win32/Makefile
 docs/Makefile
 docs/doxygen/Makefile
-libcdr-0.0.pc
+libcdr-$CDR_MAJOR_VERSION.$CDR_MINOR_VERSION.pc:libcdr.pc.in
 libcdr.spec
 libcdr-zip
 ])

@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "libcdr.h"
+#include <libcdr/libcdr.h>
 #include <libwpd-stream/libwpd-stream.h>
 #include <libwpd/libwpd.h>
 #include <libwpg/libwpg.h>

@@ -1,6 +1,6 @@
 bin_PROGRAMS = cdr2raw cmx2raw
 
-AM_CXXFLAGS = -I$(top_srcdir)/src/lib -I$(top_builddir)/src/lib $(WPD_CFLAGS) $(WPG_CFLAGS) $(DEBUG_CXXFLAGS)
+AM_CXXFLAGS = -I$(top_srcdir)/inc $(WPD_CFLAGS) $(WPG_CFLAGS) $(DEBUG_CXXFLAGS)
 
 cdr2raw_DEPENDENCIES = @CDR2RAW_WIN32_RESOURCE@
 
