@@ -2419,8 +2419,13 @@ bool libcdr::CDRParser::_redirectX6Chunk(WPXInputStream **input, unsigned &lengt
     {
       unsigned streamOffset = readU32(*input);
       *input = m_externalStreams[streamNumber];
-      (*input)->seek(streamOffset, WPX_SEEK_SET);
-      return true;
+      if (*input)
+      {
+        (*input)->seek(streamOffset, WPX_SEEK_SET);
+        return !(*input)->atEOS();
+      }
+      else
+        return false;
     }
     else if (streamNumber == 0xffffffff)
       return true;
