@@ -62,6 +62,8 @@ void libcdr::CDRParserState::setColorTransform(const std::vector<unsigned char> 
   if (profile.empty())
     return;
   cmsHPROFILE tmpProfile = cmsOpenProfileFromMem(&profile[0], cmsUInt32Number(profile.size()));
+  if (!tmpProfile)
+    return;
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
   cmsColorSpaceSignature signature = cmsGetColorSpace(tmpProfile);
   switch (signature)
