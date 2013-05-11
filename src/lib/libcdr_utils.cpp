@@ -427,6 +427,9 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
 
 void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> characters)
 {
+  if (characters.empty())
+    return;
+
   UErrorCode status = U_ZERO_ERROR;
   UConverter *conv = ucnv_open("UTF-16LE", &status);
 
