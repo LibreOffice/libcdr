@@ -189,6 +189,12 @@ void libcdr::CDRContentCollector::collectClosePath()
   m_currentPath.appendClosePath();
 }
 
+void libcdr::CDRContentCollector::collectPath(const CDRPath &path)
+{
+  CDR_DEBUG_MSG(("CDRContentCollector::collectPath\n"));
+  m_currentPath.appendPath(path);
+}
+
 void libcdr::CDRContentCollector::_flushCurrentPath()
 {
   CDR_DEBUG_MSG(("CDRContentCollector::collectFlushPath\n"));

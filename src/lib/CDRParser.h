@@ -88,6 +88,7 @@ private:
   void readFlags(WPXInputStream *input, unsigned length);
   void readMcfg(WPXInputStream *input, unsigned length);
   void readPath(WPXInputStream *input);
+  void readArrw(WPXInputStream *input, unsigned length);
   void readPolygonCoords(WPXInputStream *input);
   void readPolygonTransform(WPXInputStream *input);
   void readBmp(WPXInputStream *input, unsigned length);

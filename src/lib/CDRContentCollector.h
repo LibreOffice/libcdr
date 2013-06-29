@@ -61,6 +61,7 @@ public:
   void collectLineTo(double x, double y);
   void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y);
   void collectClosePath();
+  void collectPath(const CDRPath &path);
   void collectLevel(unsigned level);
   void collectTransform(const CDRTransforms &transforms, bool considerGroupTransform);
   void collectFillStyle(unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill);

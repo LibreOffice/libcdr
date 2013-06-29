@@ -31,6 +31,7 @@
 #define __COMMONPARSER_H__
 
 #include "CDRCollector.h"
+#include "CDRPath.h"
 
 class WPXInputSTream;
 
@@ -60,6 +61,7 @@ protected:
   int readInteger(WPXInputStream *input, bool bigEndian = false);
   double readAngle(WPXInputStream *input, bool bigEndian = false);
 
+  void processPath(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &types, CDRPath &path);
   void outputPath(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &types);
 
   CDRCollector *m_collector;

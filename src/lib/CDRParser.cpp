@@ -717,6 +717,7 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
     readFild(input, length);
     break;
   case CDR_FOURCC_arrw:
+    readArrw(input, length);
     break;
   case CDR_FOURCC_flgs:
     readFlags(input, length);
@@ -1476,6 +1477,31 @@ void libcdr::CDRParser::readPath(WPXInputStream *input)
   for (unsigned k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
   outputPath(points, pointTypes);
+}
+
+void libcdr::CDRParser::readArrw(WPXInputStream *input, unsigned length)
+{
+  CDR_DEBUG_MSG(("CDRParser::readArrw\n"));
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  /* unsigned arrowId = */
+  readU32(input);
+  input->seek(4, WPX_SEEK_CUR);
+  unsigned short pointNum = readU16(input);
+  input->seek(4, WPX_SEEK_CUR);
+  std::vector<std::pair<double, double> > points;
+  std::vector<unsigned char> pointTypes;
+  for (unsigned j=0; j<pointNum; j++)
+  {
+    std::pair<double, double> point;
+    point.first = (double)readCoordinate(input);
+    point.second = (double)readCoordinate(input);
+    points.push_back(point);
+  }
+  for (unsigned k=0; k<pointNum; k++)
+    pointTypes.push_back(readU8(input));
+  CDRPath path;
+  processPath(points, pointTypes, path);
 }
 
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)

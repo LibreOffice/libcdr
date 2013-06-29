@@ -94,6 +94,7 @@ public:
   virtual void collectLineTo(double x, double y) = 0;
   virtual void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y) = 0;
   virtual void collectClosePath() = 0;
+  virtual void collectPath(const CDRPath &path) = 0;
   virtual void collectLevel(unsigned level) = 0;
   virtual void collectTransform(const CDRTransforms &transforms, bool considerGroupTransform) = 0;
   virtual void collectFillStyle(unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill) = 0;

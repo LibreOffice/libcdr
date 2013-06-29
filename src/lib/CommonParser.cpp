@@ -90,6 +90,14 @@ double libcdr::CommonParser::readAngle(WPXInputStream *input, bool bigEndian)
 void libcdr::CommonParser::outputPath(const std::vector<std::pair<double, double> > &points,
                                       const std::vector<unsigned char> &types)
 {
+  CDRPath path;
+  processPath(points, types, path);
+  m_collector->collectPath(path);
+}
+
+void libcdr::CommonParser::processPath(const std::vector<std::pair<double, double> > &points,
+                                       const std::vector<unsigned char> &types, CDRPath &path)
+{
   bool isClosedPath = false;
   std::vector<std::pair<double, double> >tmpPoints;
   for (unsigned k=0; k<points.size(); k++)
@@ -114,25 +122,25 @@ void libcdr::CommonParser::outputPath(const std::vector<std::pair<double, double
     if (!(type & 0x40) && !(type & 0x80))
     {
       tmpPoints.clear();
-      m_collector->collectMoveTo(points[k].first, points[k].second);
+      path.appendMoveTo(points[k].first, points[k].second);
     }
     else if ((type & 0x40) && !(type & 0x80))
     {
       tmpPoints.clear();
-      m_collector->collectLineTo(points[k].first, points[k].second);
+      path.appendLineTo(points[k].first, points[k].second);
       if (isClosedPath)
-        m_collector->collectClosePath();
+        path.appendClosePath();
     }
     else if (!(type & 0x40) && (type & 0x80))
     {
       if (tmpPoints.size() >= 2)
-        m_collector->collectCubicBezier(tmpPoints[0].first, tmpPoints[0].second,
-                                        tmpPoints[1].first, tmpPoints[1].second,
-                                        points[k].first, points[k].second);
+        path.appendCubicBezierTo(tmpPoints[0].first, tmpPoints[0].second,
+                                 tmpPoints[1].first, tmpPoints[1].second,
+                                 points[k].first, points[k].second);
       else
-        m_collector->collectLineTo(points[k].first, points[k].second);
+        path.appendLineTo(points[k].first, points[k].second);
       if (isClosedPath)
-        m_collector->collectClosePath();
+        path.appendClosePath();
       tmpPoints.clear();
     }
     else if((type & 0x40) && (type & 0x80))
