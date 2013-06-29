@@ -29,6 +29,7 @@
 
 #include <math.h>
 #include "CDRPath.h"
+#include "CDRTypes.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -405,6 +406,19 @@ libcdr::CDRPath::CDRPath(const libcdr::CDRPath &path) : m_elements(), m_isClosed
     m_elements.push_back((*iter)->clone());
   m_isClosed = path.isClosed();
 }
+
+libcdr::CDRPath &libcdr::CDRPath::operator=(const libcdr::CDRPath &path)
+{
+  // Check for self-assignment
+  if (this == &path)
+    return *this;
+  clear();
+  for (std::vector<CDRPathElement *>::const_iterator iter = path.m_elements.begin(); iter != path.m_elements.end(); ++iter)
+    m_elements.push_back((*iter)->clone());
+  m_isClosed = path.isClosed();
+  return *this;
+}
+
 
 libcdr::CDRPath::~CDRPath()
 {

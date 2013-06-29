@@ -61,7 +61,7 @@ public:
   void collectTransform(const CDRTransforms &, bool) {}
   void collectFillStyle(unsigned short, const CDRColor &, const CDRColor &, const CDRGradient &, const CDRImageFill &) {}
   void collectLineStyle(unsigned short, unsigned short, unsigned short, double, double, double, const CDRColor &,
-                        const std::vector<unsigned> &, unsigned, unsigned) {}
+                        const std::vector<unsigned> &, const CDRPath &, const CDRPath &) {}
   void collectRotate(double,double,double) {}
   void collectFlags(unsigned, bool) {}
   void collectPageSize(double width, double height, double offsetX, double offsetY);

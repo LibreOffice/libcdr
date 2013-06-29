@@ -254,7 +254,7 @@ static void _readX6StyleString(WPXInputStream *input, unsigned length, libcdr::C
 
 libcdr::CDRParser::CDRParser(const std::vector<WPXInputStream *> &externalStreams, libcdr::CDRCollector *collector)
   : CommonParser(collector), m_externalStreams(externalStreams),
-    m_fonts(), m_fillStyles(), m_lineStyles(), m_version(0) {}
+    m_fonts(), m_fillStyles(), m_lineStyles(), m_arrows(), m_version(0) {}
 
 libcdr::CDRParser::~CDRParser()
 {
@@ -1488,8 +1488,7 @@ void libcdr::CDRParser::readArrw(WPXInputStream *input, unsigned length)
   CDR_DEBUG_MSG(("CDRParser::readArrw\n"));
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
-  /* unsigned arrowId = */
-  readU32(input);
+  unsigned arrowId = readU32(input);
   input->seek(4, WPX_SEEK_CUR);
   unsigned short pointNum = readU16(input);
   input->seek(4, WPX_SEEK_CUR);
@@ -1506,6 +1505,7 @@ void libcdr::CDRParser::readArrw(WPXInputStream *input, unsigned length)
     pointTypes.push_back(readU8(input));
   CDRPath path;
   processPath(points, pointTypes, path);
+  m_arrows[arrowId] = path;
 }
 
 void libcdr::CDRParser::readBitmap(WPXInputStream *input)
@@ -1591,8 +1591,16 @@ void libcdr::CDRParser::readWaldoOutl(WPXInputStream *input)
   unsigned short joinType = readU16(input);
   unsigned short capsType = readU16(input);
   unsigned startMarkerId = readU32(input);
+  std::map<unsigned, CDRPath>::const_iterator iter = m_arrows.find(startMarkerId);
+  CDRPath startMarker;
+  if (iter != m_arrows.end())
+    startMarker = iter->second;
   unsigned endMarkerId = readU32(input);
-  m_collector->collectLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
+  iter = m_arrows.find(endMarkerId);
+  CDRPath endMarker;
+  if (iter != m_arrows.end())
+    endMarker = iter->second;
+  m_collector->collectLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker);
 }
 
 void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
@@ -2083,8 +2091,16 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
   else
     input->seek(fixPosition + 22, WPX_SEEK_SET);
   unsigned startMarkerId = readU32(input);
+  std::map<unsigned, CDRPath>::const_iterator iter = m_arrows.find(startMarkerId);
+  CDRPath startMarker;
+  if (iter != m_arrows.end())
+    startMarker = iter->second;
   unsigned endMarkerId = readU32(input);
-  m_lineStyles[lineId] = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarkerId, endMarkerId);
+  iter = m_arrows.find(endMarkerId);
+  CDRPath endMarker;
+  if (iter != m_arrows.end())
+    endMarker = iter->second;
+  m_lineStyles[lineId] = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker);
 }
 
 void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
@@ -2155,7 +2171,7 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
         if (iter != m_lineStyles.end())
           m_collector->collectLineStyle(iter->second.lineType, iter->second.capsType, iter->second.joinType, iter->second.lineWidth,
                                         iter->second.stretch, iter->second.angle, iter->second.color, iter->second.dashArray,
-                                        iter->second.startMarkerId, iter->second.endMarkerId);
+                                        iter->second.startMarker, iter->second.endMarker);
       }
     }
     else if (argTypes[i] == 0x2af8)

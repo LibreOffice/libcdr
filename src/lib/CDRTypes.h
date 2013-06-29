@@ -33,11 +33,11 @@
 #include <math.h>
 #include <libwpd/libwpd.h>
 #include "CDRTransforms.h"
+#include "CDRPath.h"
 #include "libcdr_utils.h"
 
 namespace libcdr
 {
-class CDRPath;
 
 struct CDRBox
 {
@@ -138,18 +138,18 @@ struct CDRLineStyle
   double angle;
   CDRColor color;
   std::vector<unsigned> dashArray;
-  unsigned startMarkerId;
-  unsigned endMarkerId;
+  CDRPath startMarker;
+  CDRPath endMarker;
   CDRLineStyle()
     : lineType((unsigned short)-1), capsType(0), joinType(0), lineWidth(0.0),
       stretch(0.0), angle(0.0), color(), dashArray(),
-      startMarkerId(0), endMarkerId(0) {}
+      startMarker(), endMarker() {}
   CDRLineStyle(unsigned short lt, unsigned short ct, unsigned short jt,
                double lw, double st, double a, const CDRColor &c, const std::vector<unsigned> &da,
-               unsigned smi, unsigned emi)
+               const CDRPath &sm, const CDRPath &em)
     : lineType(lt), capsType(ct), joinType(jt), lineWidth(lw),
       stretch(st), angle(a), color(c), dashArray(da),
-      startMarkerId(smi), endMarkerId(emi) {}
+      startMarker(sm), endMarker(em) {}
 };
 
 struct CDRCharacterStyle

@@ -94,7 +94,7 @@ public:
   virtual void collectFillStyle(unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill) = 0;
   virtual void collectLineStyle(unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
                                 double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
-                                unsigned startMarkerId, unsigned endMarkerId) = 0;
+                                const CDRPath &startMarker, const CDRPath &endMarker) = 0;
   virtual void collectRotate(double angle, double cx, double cy) = 0;
   virtual void collectFlags(unsigned flags, bool considerFlags) = 0;
   virtual void collectPageSize(double width, double height, double offsetX, double offsetY) = 0;

@@ -33,12 +33,11 @@
 #include <vector>
 #include <libwpd/libwpd.h>
 
-#include "CDRTypes.h"
-
 namespace libcdr
 {
 
 class CDRTransform;
+class CDRTransforms;
 
 class CDRPathElement
 {
@@ -59,6 +58,8 @@ public:
   CDRPath(const CDRPath &path);
   ~CDRPath();
 
+  CDRPath &operator=(const CDRPath &path);
+
   void appendMoveTo(double x, double y);
   void appendLineTo(double x, double y);
   void appendCubicBezierTo(double x1, double y1, double x2, double y2, double x, double y);
@@ -76,9 +77,6 @@ public:
   void clear();
   bool empty() const;
   bool isClosed() const;
-
-private:
-  CDRPath &operator=(const CDRPath &path);
 
 private:
   std::vector<CDRPathElement *> m_elements;

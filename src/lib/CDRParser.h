@@ -119,6 +119,7 @@ private:
   std::map<unsigned, CDRFont> m_fonts;
   std::map<unsigned, CDRFillStyle> m_fillStyles;
   std::map<unsigned, CDRLineStyle> m_lineStyles;
+  std::map<unsigned, CDRPath> m_arrows;
 
   unsigned m_version;
 
