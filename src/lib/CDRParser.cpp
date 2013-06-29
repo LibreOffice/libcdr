@@ -1278,59 +1278,61 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
       r0 = readRectCoord(input);
     }
   }
+  CDRPath path;
   if (r0 > 0.0)
-    m_collector->collectMoveTo(0.0, -r0/scaleY);
+    path.appendMoveTo(0.0, -r0/scaleY);
   else
-    m_collector->collectMoveTo(0.0, 0.0);
+    path.appendMoveTo(0.0, 0.0);
   if (r1 > 0.0)
   {
-    m_collector->collectLineTo(0.0, y0+r1/scaleY);
+    path.appendLineTo(0.0, y0+r1/scaleY);
     if (corner_type == 0)
-      m_collector->collectQuadraticBezier(0.0, y0, r1/scaleX, y0);
+      path.appendQuadraticBezierTo(0.0, y0, r1/scaleX, y0);
     else if (corner_type == 1)
-      m_collector->collectQuadraticBezier(r1/scaleX, y0+r1/scaleY, r1/scaleX, y0);
+      path.appendQuadraticBezierTo(r1/scaleX, y0+r1/scaleY, r1/scaleX, y0);
     else if (corner_type == 2)
-      m_collector->collectLineTo(r1/scaleX, y0);
+      path.appendLineTo(r1/scaleX, y0);
   }
   else
-    m_collector->collectLineTo(0.0, y0);
+    path.appendLineTo(0.0, y0);
   if (r2 > 0.0)
   {
-    m_collector->collectLineTo(x0-r2/scaleX, y0);
+    path.appendLineTo(x0-r2/scaleX, y0);
     if (corner_type == 0)
-      m_collector->collectQuadraticBezier(x0, y0, x0, y0+r2/scaleY);
+      path.appendQuadraticBezierTo(x0, y0, x0, y0+r2/scaleY);
     else if (corner_type == 1)
-      m_collector->collectQuadraticBezier(x0-r2/scaleX, y0+r2/scaleY, x0, y0+r2/scaleY);
+      path.appendQuadraticBezierTo(x0-r2/scaleX, y0+r2/scaleY, x0, y0+r2/scaleY);
     else if (corner_type == 2)
-      m_collector->collectLineTo(x0, y0+r2/scaleY);
+      path.appendLineTo(x0, y0+r2/scaleY);
   }
   else
-    m_collector->collectLineTo(x0, y0);
+    path.appendLineTo(x0, y0);
   if (r3 > 0.0)
   {
-    m_collector->collectLineTo(x0, -r3/scaleY);
+    path.appendLineTo(x0, -r3/scaleY);
     if (corner_type == 0)
-      m_collector->collectQuadraticBezier(x0, 0.0, x0-r3/scaleX, 0.0);
+      path.appendQuadraticBezierTo(x0, 0.0, x0-r3/scaleX, 0.0);
     else if (corner_type == 1)
-      m_collector->collectQuadraticBezier(x0-r3/scaleX, -r3/scaleY, x0-r3/scaleX, 0.0);
+      path.appendQuadraticBezierTo(x0-r3/scaleX, -r3/scaleY, x0-r3/scaleX, 0.0);
     else if (corner_type == 2)
-      m_collector->collectLineTo(x0-r3/scaleX, 0.0);
+      path.appendLineTo(x0-r3/scaleX, 0.0);
   }
   else
-    m_collector->collectLineTo(x0, 0.0);
+    path.appendLineTo(x0, 0.0);
   if (r0 > 0.0)
   {
-    m_collector->collectLineTo(r0/scaleX, 0.0);
+    path.appendLineTo(r0/scaleX, 0.0);
     if (corner_type == 0)
-      m_collector->collectQuadraticBezier(0.0, 0.0, 0.0, -r0/scaleY);
+      path.appendQuadraticBezierTo(0.0, 0.0, 0.0, -r0/scaleY);
     else if (corner_type == 1)
-      m_collector->collectQuadraticBezier(r0/scaleX, -r0/scaleY, 0.0, -r0/scaleY);
+      path.appendQuadraticBezierTo(r0/scaleX, -r0/scaleY, 0.0, -r0/scaleY);
     else if (corner_type == 2)
-      m_collector->collectLineTo(0.0, -r0/scaleY);
+      path.appendLineTo(0.0, -r0/scaleY);
   }
   else
-    m_collector->collectLineTo(0.0, 0.0);
-  m_collector->collectClosePath();
+    path.appendLineTo(0.0, 0.0);
+  path.appendClosePath();
+  m_collector->collectPath(path);
 }
 
 void libcdr::CDRParser::readEllipse(WPXInputStream *input)
@@ -1358,6 +1360,7 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   while (angle2 > 2*M_PI)
     angle2 -= 2*M_PI;
 
+  CDRPath path;
   if (angle1 != angle2)
   {
     if (angle2 < angle1)
@@ -1370,13 +1373,13 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
 
     bool largeArc = (angle2 - angle1 > M_PI);
 
-    m_collector->collectMoveTo(x0, y0);
-    m_collector->collectArcTo(rx, ry, largeArc, false, x1, y1);
+    path.appendMoveTo(x0, y0);
+    path.appendArcTo(rx, ry, 0.0, largeArc, false, x1, y1);
     if (pie)
     {
-      m_collector->collectLineTo(cx, cy);
-      m_collector->collectLineTo(x0, y0);
-      m_collector->collectClosePath();
+      path.appendLineTo(cx, cy);
+      path.appendLineTo(x0, y0);
+      path.appendClosePath();
     }
   }
   else
@@ -1388,11 +1391,12 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
     double x1 = cx + rx*cos(angle2);
     double y1 = cy - ry*sin(angle2);
 
-    m_collector->collectMoveTo(x0, y0);
-    m_collector->collectArcTo(rx, ry, false, false, x1, y1);
-    m_collector->collectArcTo(rx, ry, true, false, x0, y0);
-    m_collector->collectClosePath();
+    path.appendMoveTo(x0, y0);
+    path.appendArcTo(rx, ry, 0.0, false, false, x1, y1);
+    path.appendArcTo(rx, ry, 0.0, true, false, x0, y0);
+    path.appendClosePath();
   }
+  m_collector->collectPath(path);
 }
 
 void libcdr::CDRParser::readDisp(WPXInputStream *input, unsigned length)
@@ -1524,11 +1528,13 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
     input->seek(8, WPX_SEEK_CUR);
     imageId = readUnsigned(input);
     input->seek(20, WPX_SEEK_CUR);
-    m_collector->collectMoveTo(x1, y1);
-    m_collector->collectLineTo(x1, y2);
-    m_collector->collectLineTo(x2, y2);
-    m_collector->collectLineTo(x2, y1);
-    m_collector->collectLineTo(x1, y1);
+    CDRPath path;
+    path.appendMoveTo(x1, y1);
+    path.appendLineTo(x1, y2);
+    path.appendLineTo(x2, y2);
+    path.appendLineTo(x2, y1);
+    path.appendLineTo(x1, y1);
+    m_collector->collectPath(path);
   }
   else
   {

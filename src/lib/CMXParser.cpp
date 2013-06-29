@@ -479,6 +479,7 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
     return;
 
   m_collector->collectObject(1);
+  CDRPath path;
   if (angle1 != angle2)
   {
     if (angle2 < angle1)
@@ -491,13 +492,13 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
 
     bool largeArc = (angle2 - angle1 > M_PI || angle2 - angle1 < -M_PI);
 
-    m_collector->collectMoveTo(x0, y0);
-    m_collector->collectArcTo(rx, ry, largeArc, true, x1, y1);
+    path.appendMoveTo(x0, y0);
+    path.appendArcTo(rx, ry, 0.0, largeArc, true, x1, y1);
     if (pie)
     {
-      m_collector->collectLineTo(cx, cy);
-      m_collector->collectLineTo(x0, y0);
-      m_collector->collectClosePath();
+      path.appendLineTo(cx, cy);
+      path.appendLineTo(x0, y0);
+      path.appendClosePath();
     }
   }
   else
@@ -508,10 +509,11 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
     double x1 = cx;
     double y1 = cy - ry;
 
-    m_collector->collectMoveTo(x0, y0);
-    m_collector->collectArcTo(rx, ry, false, true, x1, y1);
-    m_collector->collectArcTo(rx, ry, true, true, x0, y0);
+    path.appendMoveTo(x0, y0);
+    path.appendArcTo(rx, ry, 0.0, false, true, x1, y1);
+    path.appendArcTo(rx, ry, 0.0, true, true, x0, y0);
   }
+  m_collector->collectPath(path);
   m_collector->collectRotate(rotation, cx, cy);
   m_collector->collectLevel(1);
 }
@@ -577,26 +579,28 @@ void libcdr::CMXParser::readRectangle(WPXInputStream *input)
   double y0 = cy - height / 2.0;
   double x1 = cx + width / 2.0;
   double y1 = cy + height / 2.0;
+  CDRPath path;
   if (radius > 0.0)
   {
-    m_collector->collectMoveTo(x0, y0-radius);
-    m_collector->collectLineTo(x0, y1+radius);
-    m_collector->collectQuadraticBezier(x0, y1, x0+radius, y1);
-    m_collector->collectLineTo(x1-radius, y1);
-    m_collector->collectQuadraticBezier(x1, y1, x1, y1+radius);
-    m_collector->collectLineTo(x1, y0-radius);
-    m_collector->collectQuadraticBezier(x1, y0, x1-radius, y0);
-    m_collector->collectLineTo(x0+radius, y0);
-    m_collector->collectQuadraticBezier(x0, y0, x0, y0-radius);
+    path.appendMoveTo(x0, y0-radius);
+    path.appendLineTo(x0, y1+radius);
+    path.appendQuadraticBezierTo(x0, y1, x0+radius, y1);
+    path.appendLineTo(x1-radius, y1);
+    path.appendQuadraticBezierTo(x1, y1, x1, y1+radius);
+    path.appendLineTo(x1, y0-radius);
+    path.appendQuadraticBezierTo(x1, y0, x1-radius, y0);
+    path.appendLineTo(x0+radius, y0);
+    path.appendQuadraticBezierTo(x0, y0, x0, y0-radius);
   }
   else
   {
-    m_collector->collectMoveTo(x0, y0);
-    m_collector->collectLineTo(x0, y1);
-    m_collector->collectLineTo(x1, y1);
-    m_collector->collectLineTo(x1, y0);
-    m_collector->collectLineTo(x0, y0);
+    path.appendMoveTo(x0, y0);
+    path.appendLineTo(x0, y1);
+    path.appendLineTo(x1, y1);
+    path.appendLineTo(x1, y0);
+    path.appendLineTo(x0, y0);
   }
+  m_collector->collectPath(path);
   m_collector->collectRotate(angle, cx, cy);
   m_collector->collectLevel(1);
 }

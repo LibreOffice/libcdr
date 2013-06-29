@@ -55,12 +55,6 @@ public:
   void collectGroup(unsigned level);
   void collectVect(unsigned level);
   void collectOtherList();
-  void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y);
-  void collectQuadraticBezier(double x1, double y1, double x, double y);
-  void collectMoveTo(double x, double y);
-  void collectLineTo(double x, double y);
-  void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y);
-  void collectClosePath();
   void collectPath(const CDRPath &path);
   void collectLevel(unsigned level);
   void collectTransform(const CDRTransforms &transforms, bool considerGroupTransform);

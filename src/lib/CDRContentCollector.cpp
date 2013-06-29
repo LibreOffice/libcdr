@@ -153,42 +153,6 @@ void libcdr::CDRContentCollector::collectOtherList()
 //  m_isPageProperties = false;
 }
 
-void libcdr::CDRContentCollector::collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y)
-{
-  CDR_DEBUG_MSG(("CDRContentCollector::collectCubicBezier(%f, %f, %f, %f, %f, %f)\n", x1, y1, x2, y2, x, y));
-  m_currentPath.appendCubicBezierTo(x1, y1, x2, y2, x, y);
-}
-
-void libcdr::CDRContentCollector::collectQuadraticBezier(double x1, double y1, double x, double y)
-{
-  CDR_DEBUG_MSG(("CDRContentCollector::collectQuadraticBezier(%f, %f, %f, %f)\n", x1, y1, x, y));
-  m_currentPath.appendQuadraticBezierTo(x1, y1, x, y);
-}
-
-void libcdr::CDRContentCollector::collectMoveTo(double x, double y)
-{
-  CDR_DEBUG_MSG(("CDRContentCollector::collectMoveTo(%f, %f)\n", x, y));
-  m_currentPath.appendMoveTo(x,y);
-}
-
-void libcdr::CDRContentCollector::collectLineTo(double x, double y)
-{
-  CDR_DEBUG_MSG(("CDRContentCollector::collectLineTo(%f, %f)\n", x, y));
-  m_currentPath.appendLineTo(x, y);
-}
-
-void libcdr::CDRContentCollector::collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y)
-{
-  CDR_DEBUG_MSG(("CDRContentCollector::collectArcTo(%f, %f)\n", x, y));
-  m_currentPath.appendArcTo(rx, ry, 0.0, largeArc, sweep, x, y);
-}
-
-void libcdr::CDRContentCollector::collectClosePath()
-{
-  CDR_DEBUG_MSG(("CDRContentCollector::collectClosePath\n"));
-  m_currentPath.appendClosePath();
-}
-
 void libcdr::CDRContentCollector::collectPath(const CDRPath &path)
 {
   CDR_DEBUG_MSG(("CDRContentCollector::collectPath\n"));

@@ -88,12 +88,6 @@ public:
   virtual void collectGroup(unsigned level) = 0;
   virtual void collectVect(unsigned level) = 0;
   virtual void collectOtherList() = 0;
-  virtual void collectCubicBezier(double x1, double y1, double x2, double y2, double x, double y) = 0;
-  virtual void collectQuadraticBezier(double x1, double y1, double x, double y) = 0;
-  virtual void collectMoveTo(double x, double y) = 0;
-  virtual void collectLineTo(double x, double y) = 0;
-  virtual void collectArcTo(double rx, double ry, bool largeArc, bool sweep, double x, double y) = 0;
-  virtual void collectClosePath() = 0;
   virtual void collectPath(const CDRPath &path) = 0;
   virtual void collectLevel(unsigned level) = 0;
   virtual void collectTransform(const CDRTransforms &transforms, bool considerGroupTransform) = 0;
