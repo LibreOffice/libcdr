@@ -28,6 +28,7 @@
  */
 
 #include <math.h>
+#include <map>
 #include "CDRPath.h"
 #include "CDRTypes.h"
 
@@ -126,6 +127,7 @@ public:
   CDRPathElement *clone();
 private:
   std::vector<std::pair<double, double> > m_points;
+  unsigned knot(unsigned i) const;
 };
 
 class CDRArcToElement : public CDRPathElement
@@ -265,56 +267,97 @@ libcdr::CDRPathElement *libcdr::CDRQuadraticBezierToElement::clone()
   return new CDRQuadraticBezierToElement(m_x1, m_y1, m_x, m_y);
 }
 
+#define CDR_SPLINE_DEGREE 3
+
+unsigned libcdr::CDRSplineToElement::knot(unsigned i) const
+{
+  /* Emulates knot vector of an uniform B-Spline of degree 3 */
+  if (i < CDR_SPLINE_DEGREE)
+    return 0;
+  if (i > m_points.size())
+    return (unsigned)(m_points.size() - CDR_SPLINE_DEGREE);
+  else
+    return i - CDR_SPLINE_DEGREE;
+}
+
 void libcdr::CDRSplineToElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
 
-#if 0
   node.insert("libwpg:path-action", "M");
   node.insert("svg:x", m_points[0].first);
   node.insert("svg:y", m_points[0].second);
   vec.append(node);
 
-  for (unsigned j = 0; j < m_points.size(); ++j)
-  {
-    node.clear();
-    node.insert("libwpg:path-action", "L");
-    node.insert("svg:x", m_points[j].first);
-    node.insert("svg:y", m_points[j].second);
-    vec.append(node);
-  }
+  /* Decomposition of a spline of 3rd degree into Bezier segments
+   * adapted from the algorithm DecomposeCurve (Les Piegl, Wayne Tiller:
+   * The NURBS Book, 2nd Edition, 1997
+   */
 
-  node.clear();
-  node.insert("libwpg:path-action", "M");
-  node.insert("svg:x", m_points[0].first);
-  node.insert("svg:y", m_points[0].second);
-  vec.append(node);
-#endif
-  for (unsigned i = 1; i < m_points.size()-1; i++)
+  unsigned m = m_points.size() + CDR_SPLINE_DEGREE + 1;
+  unsigned a = CDR_SPLINE_DEGREE;
+  unsigned b = CDR_SPLINE_DEGREE + 1;
+  std::vector< std::pair<double, double> > Qw(CDR_SPLINE_DEGREE+1), NextQw(CDR_SPLINE_DEGREE+1);
+  unsigned i = 0;
+  for (; i <= CDR_SPLINE_DEGREE; i++)
+    Qw[i] = m_points[i];
+  while (b < m)
   {
-    node.clear();
-    node.insert("libwpg:path-action", "Q");
-    node.insert("svg:x1", m_points[i].first);
-    node.insert("svg:y1", m_points[i].second);
-    if (i < m_points.size() - 2)
+    i = b;
+    while (b < m && knot(b+1) == knot(b))
+      b++;
+    unsigned mult = b - i + 1;
+    if (mult < CDR_SPLINE_DEGREE)
     {
-      node.insert("svg:x", (m_points[i].first+m_points[i+1].first)/2.0);
-      node.insert("svg:y", (m_points[i].second+m_points[i+1].second)/2.0);
+      double numer = (double)(knot(b) - knot(a));
+      unsigned j = CDR_SPLINE_DEGREE;
+      std::map<unsigned, double> alphas;
+      for (; j >mult; j--)
+        alphas[j-mult-1] = numer/double(knot(a+j)-knot(a));
+      unsigned r = CDR_SPLINE_DEGREE - mult;
+      for (j=1; j<=r; j++)
+      {
+        unsigned save = r - j;
+        unsigned s = mult+j;
+        for (unsigned k = CDR_SPLINE_DEGREE; k>=s; k--)
+        {
+          double alpha = alphas[k-s];
+          Qw[k].first = alpha*Qw[k].first + (1.0-alpha)*Qw[k-1].first;
+          Qw[k].second = alpha*Qw[k].second + (1.0-alpha)*Qw[k-1].second;
+        }
+        if (b < m)
+        {
+          NextQw[save].first = Qw[CDR_SPLINE_DEGREE].first;
+          NextQw[save].second = Qw[CDR_SPLINE_DEGREE].second;
+        }
+      }
     }
-    else
-    {
-      node.insert("svg:x", m_points[i+1].first);
-      node.insert("svg:y", m_points[i+1].second);
-    }
-    vec.append(node);
-  }
+    // Pass the segment to the path
 
-  // For the while, just move to the end point
-  node.clear();
-  node.insert("libwpg:path-action", "L");
-  node.insert("svg:x", m_points.back().first);
-  node.insert("svg:y", m_points.back().second);
-  vec.append(node);
+    node.clear();
+    node.insert("libwpg:path-action", "C");
+    node.insert("svg:x1", Qw[1].first);
+    node.insert("svg:y1", Qw[1].second);
+    node.insert("svg:x2", Qw[2].first);
+    node.insert("svg:y2", Qw[2].second);
+    node.insert("svg:x", Qw[3].first);
+    node.insert("svg:y", Qw[3].second);
+
+    vec.append(node);
+
+    std::swap(Qw, NextQw);
+
+    if (b < m)
+    {
+      for (i=CDR_SPLINE_DEGREE-mult; i <= CDR_SPLINE_DEGREE; i++)
+      {
+        Qw[i].first = m_points[b-CDR_SPLINE_DEGREE+i].first;
+        Qw[i].second = m_points[b-CDR_SPLINE_DEGREE+i].second;
+      }
+      a = b;
+      b++;
+    }
+  }
 }
 
 void libcdr::CDRSplineToElement::transform(const CDRTransforms &trafos)
