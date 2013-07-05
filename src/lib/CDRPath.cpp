@@ -36,6 +36,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#ifndef DEBUG_SPLINES
+#define DEBUG_SPLINES 0
+#endif
+
 namespace libcdr
 {
 
@@ -276,13 +280,29 @@ unsigned libcdr::CDRSplineToElement::knot(unsigned i) const
     return 0;
   if (i > m_points.size())
     return (unsigned)(m_points.size() - CDR_SPLINE_DEGREE);
-  else
-    return i - CDR_SPLINE_DEGREE;
+  return i - CDR_SPLINE_DEGREE;
 }
 
 void libcdr::CDRSplineToElement::writeOut(WPXPropertyListVector &vec) const
 {
   WPXPropertyList node;
+
+#if DEBUG_SPLINES
+  /* Code for visual debugging of the spline decomposition */
+
+  node.insert("libwpg:path-action", "M");
+  node.insert("svg:x", m_points[0].first);
+  node.insert("svg:y", m_points[0].second);
+  vec.append(node);
+
+  for (unsigned j = 0; j < m_points.size(); ++j)
+  {
+    node.insert("libwpg:path-action", "L");
+    node.insert("svg:x", m_points[j].first);
+    node.insert("svg:y", m_points[j].second);
+    vec.append(node);
+  }
+#endif
 
   node.insert("libwpg:path-action", "M");
   node.insert("svg:x", m_points[0].first);
