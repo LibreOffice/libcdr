@@ -98,6 +98,7 @@ AC_SUBST(ICU_LIBS)
 AC_CHECK_HEADERS(
 	boost/optional.hpp \
 	boost/property_tree/ptree.hpp \
+	boost/scoped_ptr.hpp \
 	boost/spirit/include/classic.hpp \
 	boost/property_tree/json_parser.hpp,
 	[],

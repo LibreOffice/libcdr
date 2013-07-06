@@ -29,6 +29,7 @@
 
 #include <string>
 #include <string.h>
+#include <boost/scoped_ptr.hpp>
 #include <libcdr/libcdr.h>
 #include "CDRParser.h"
 #include "CDRSVGGenerator.h"
@@ -179,13 +180,13 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
         input = zinput.getDocumentOLEStream("content/root.dat");
         if (input)
         {
-          WPXInputStream *tmpStream = zinput.getDocumentOLEStream("content/dataFileList.dat");
-          if (tmpStream)
+          boost::scoped_ptr<WPXInputStream> tmpStream(zinput.getDocumentOLEStream("content/dataFileList.dat"));
+          if (bool(tmpStream))
           {
             std::string dataFileName;
             while (!tmpStream->atEOS())
             {
-              unsigned char character = readU8(tmpStream);
+              unsigned char character = readU8(tmpStream.get());
               if (character == 0x0a)
               {
                 dataFiles.push_back(dataFileName);
