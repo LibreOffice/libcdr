@@ -1492,17 +1492,18 @@ void libcdr::CDRParser::readArrw(WPXInputStream *input, unsigned length)
   input->seek(4, WPX_SEEK_CUR);
   unsigned short pointNum = readU16(input);
   input->seek(4, WPX_SEEK_CUR);
-  std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
+  for (unsigned k=0; k<pointNum; k++)
+    pointTypes.push_back(readU8(input));
+  input->seek(1, WPX_SEEK_CUR);
+  std::vector<std::pair<double, double> > points;
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
-    point.first = (double)readCoordinate(input);
     point.second = (double)readCoordinate(input);
+    point.first = (double)readCoordinate(input);
     points.push_back(point);
   }
-  for (unsigned k=0; k<pointNum; k++)
-    pointTypes.push_back(readU8(input));
   CDRPath path;
   processPath(points, pointTypes, path);
   m_arrows[arrowId] = path;

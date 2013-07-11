@@ -1044,7 +1044,7 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
     startMarker.writeOut(path, viewBox, width);
     propList.insert("draw:marker-start-viewbox", viewBox);
     propList.insert("draw:marker-start-path", path);
-    propList.insert("draw:marker-start-width", width);
+    // propList.insert("draw:marker-start-width", width);
   }
   if (!m_currentLineStyle.endMarker.empty())
   {
@@ -1061,7 +1061,7 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
     endMarker.writeOut(path, viewBox, width);
     propList.insert("draw:marker-end-viewbox", viewBox);
     propList.insert("draw:marker-end-path", path);
-    propList.insert("draw:marker-end-width", width);
+    // propList.insert("draw:marker-end-width", width);
   }
 
 
