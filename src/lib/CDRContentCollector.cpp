@@ -1054,7 +1054,7 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
       endMarker.transform(m_groupTransforms.top());
     CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
     endMarker.transform(tmpTrafo);
-    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
+    tmpTrafo = CDRTransform(-1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
     endMarker.transform(tmpTrafo);
     WPXString path, viewBox;
     double width;

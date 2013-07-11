@@ -777,7 +777,7 @@ void libcdr::CDRPath::writeOut(WPXString &path, WPXString &viewBox, double &widt
   }
 
 
-  width = qx - px;
+  width = qy - py;
   viewBox.sprintf("%i %i %i %i", 0, 0, (unsigned)(2540*(qx - px)), (unsigned)(2540*(qy - py)));
 
   for(unsigned i = 0; i < vec.count(); ++i)
