@@ -70,6 +70,7 @@ public:
   void appendPath(const CDRPath &path);
 
   void writeOut(WPXPropertyListVector &vec) const;
+  void writeOut(WPXString &path, WPXString &viewBox, double &width) const;
   void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();

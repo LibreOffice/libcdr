@@ -1026,8 +1026,46 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
       propList.insert("svg:stroke-width", 0.0);
       propList.insert("svg:stroke-color", "#000000");
     }
-
   }
+
+  // Deal with line markers (arrows, etc.)
+  if (!m_currentLineStyle.startMarker.empty())
+  {
+    CDRPath startMarker(m_currentLineStyle.startMarker);
+    startMarker.transform(m_currentTransforms);
+    if (!m_groupTransforms.empty())
+      startMarker.transform(m_groupTransforms.top());
+    CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
+    startMarker.transform(tmpTrafo);
+    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
+    startMarker.transform(tmpTrafo);
+    WPXString path, viewBox;
+    double width;
+    startMarker.writeOut(path, viewBox, width);
+    propList.insert("draw:marker-start-viewbox", viewBox);
+    propList.insert("draw:marker-start-path", path);
+    propList.insert("draw:marker-start-width", width);
+  }
+  if (!m_currentLineStyle.endMarker.empty())
+  {
+    CDRPath endMarker(m_currentLineStyle.endMarker);
+    endMarker.transform(m_currentTransforms);
+    if (!m_groupTransforms.empty())
+      endMarker.transform(m_groupTransforms.top());
+    CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
+    endMarker.transform(tmpTrafo);
+    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
+    endMarker.transform(tmpTrafo);
+    WPXString path, viewBox;
+    double width;
+    endMarker.writeOut(path, viewBox, width);
+    propList.insert("draw:marker-end-viewbox", viewBox);
+    propList.insert("draw:marker-end-path", path);
+    propList.insert("draw:marker-end-width", width);
+  }
+
+
+
 }
 
 void libcdr::CDRContentCollector::_generateBitmapFromPattern(WPXBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor)
