@@ -66,7 +66,6 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
   else
   {
     int ret;
-    unsigned have;
     z_stream strm;
     unsigned char out[CHUNK];
 
@@ -88,6 +87,7 @@ libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned lon
 
     strm.avail_in = (uInt)tmpNumBytesRead;
     strm.next_in = (Bytef *)tmpBuffer;
+    unsigned have;
 
     do
     {
