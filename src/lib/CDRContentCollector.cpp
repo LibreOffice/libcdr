@@ -161,7 +161,7 @@ void libcdr::CDRContentCollector::collectPath(const CDRPath &path)
 
 void libcdr::CDRContentCollector::_flushCurrentPath()
 {
-  CDR_DEBUG_MSG(("CDRContentCollector::collectFlushPath\n"));
+  CDR_DEBUG_MSG(("CDRContentCollector::_flushCurrentPath\n"));
   CDROutputElementList outputElement;
   if (!m_currentPath.empty() || (!m_splineData.empty() && m_isInSpline))
   {
@@ -1035,9 +1035,7 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
     startMarker.transform(m_currentTransforms);
     if (!m_groupTransforms.empty())
       startMarker.transform(m_groupTransforms.top());
-    CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
-    startMarker.transform(tmpTrafo);
-    tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
+    CDRTransform tmpTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, 0);
     startMarker.transform(tmpTrafo);
     WPXString path, viewBox;
     double width;
@@ -1052,9 +1050,7 @@ void libcdr::CDRContentCollector::_lineProperties(WPXPropertyList &propList)
     endMarker.transform(m_currentTransforms);
     if (!m_groupTransforms.empty())
       endMarker.transform(m_groupTransforms.top());
-    CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
-    endMarker.transform(tmpTrafo);
-    tmpTrafo = CDRTransform(-1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
+    CDRTransform tmpTrafo = CDRTransform(-1.0, 0.0, 0.0, 0.0, -1.0, 0);
     endMarker.transform(tmpTrafo);
     WPXString path, viewBox;
     double width;
