@@ -3290,7 +3290,7 @@ void libcdr::CDRParser::readUdta(WPXInputStream *input)
   unsigned short c;
   for (;;)
   {
-	if ((c = readU16(input)) == 0) break;
+    if ((c = readU16(input)) == 0) break;
     name.push_back((unsigned char)(c & 0xff));
     name.push_back((unsigned char)(c >> 8));
   }
