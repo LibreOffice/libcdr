@@ -761,6 +761,9 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   case CDR_FOURCC_txsm:
     readTxsm(input, length);
     break;
+  case CDR_FOURCC_udta:
+    readUdta(input);
+    break;
   case CDR_FOURCC_styd:
     readStyd(input);
     break;
@@ -3277,6 +3280,22 @@ void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
   }
   if (!textData.empty())
     m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
+}
+
+void libcdr::CDRParser::readUdta(WPXInputStream *input)
+{
+  CDR_DEBUG_MSG(("libcdr::CDRParser::readUdta\n"));
+  input->seek(6, WPX_SEEK_CUR); // Not sure what these 6 bytes are for.  Font id?
+  std::vector<unsigned char> name;
+  unsigned short c;
+  for (;;)
+  {
+	if ((c = readU16(input)) == 0) break;
+    name.push_back((unsigned char)(c & 0xff));
+    name.push_back((unsigned char)(c >> 8));
+  }
+  WPXString fieldName;
+  appendCharacters(fieldName, name);
 }
 
 void libcdr::CDRParser::readStyd(WPXInputStream *input)

@@ -126,6 +126,7 @@
 #define CDR_FOURCC_txsm 0x6d737874
 #define CDR_FOURCC_txtj 0x6a747874
 
+#define CDR_FOURCC_udta 0x61746475
 #define CDR_FOURCC_uidr 0x72646975
 #define CDR_FOURCC_uil  0x206c6975
 #define CDR_FOURCC_url  0x206c7275

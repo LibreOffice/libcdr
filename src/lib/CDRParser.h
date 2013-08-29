@@ -109,6 +109,7 @@ private:
   void readTxsm16(WPXInputStream *input);
   void readTxsm6(WPXInputStream *input);
   void readTxsm5(WPXInputStream *input);
+  void readUdta(WPXInputStream *input);
   void readArtisticText(WPXInputStream *input);
   void readParagraphText(WPXInputStream *input);
 
