@@ -3285,17 +3285,20 @@ void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
 void libcdr::CDRParser::readUdta(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("libcdr::CDRParser::readUdta\n"));
-  input->seek(6, WPX_SEEK_CUR); // Not sure what these 6 bytes are for.  Font id?
-  std::vector<unsigned char> name;
-  unsigned short c;
-  for (;;)
+  if (m_version == 1400)
   {
-    if ((c = readU16(input)) == 0) break;
-    name.push_back((unsigned char)(c & 0xff));
-    name.push_back((unsigned char)(c >> 8));
+    input->seek(6, WPX_SEEK_CUR); // Not sure what these bytes are for.  Field id?
+    std::vector<unsigned char> name;
+    unsigned short c;
+    for (;;)
+    {
+      if ((c = readU16(input)) == 0) break;
+      name.push_back((unsigned char)(c & 0xff));
+      name.push_back((unsigned char)(c >> 8));
+    }
+    WPXString fieldName;
+    appendCharacters(fieldName, name);
   }
-  WPXString fieldName;
-  appendCharacters(fieldName, name);
 }
 
 void libcdr::CDRParser::readStyd(WPXInputStream *input)
