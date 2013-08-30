@@ -3285,7 +3285,7 @@ void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
 void libcdr::CDRParser::readUdta(WPXInputStream *input)
 {
   CDR_DEBUG_MSG(("libcdr::CDRParser::readUdta\n"));
-  if (m_version == 1400)
+  if (m_version >= 1300 && m_version <= 1500)
   {
     input->seek(6, WPX_SEEK_CUR); // Not sure what these bytes are for.  Field id?
     std::vector<unsigned char> name;
