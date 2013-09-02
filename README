@@ -12,9 +12,11 @@ features:
 Above that libcdr provides a public API for rendering preview of pages for
 applications that have no notion of pages themselves.
 
-libcdr requires libwpd and libwpg to build. Most up to date code is available
-from Git repository at Freedesktop and is currently recommended instead of
-regular releases. Please visit http://cgit.freedesktop.org/libreoffice/libcdr/.
+libcdr requires boost, icu, lcms2, libwpd, libwpg and zlib to build.
+Most up to date code is available from Git repository at Freedesktop and
+is currently recommended instead of regular releases. Please visit
+http://cgit.freedesktop.org/libreoffice/libcdr/. See
+http://www.freedesktop.org/wiki/Software/libcdr for more information.
 
 For convenience of use in third-party projects the library is available under
 three licenses: GNU GPL 2.1+, GNU Lesser GPL 2.1+ and MPL 1.1+.
