@@ -14,8 +14,8 @@ applications that have no notion of pages themselves.
 
 libcdr requires boost, icu, lcms2, libwpd, libwpg and zlib to build.
 Most up to date code is available from Git repository at libreoffice.org
-(git://gerrit.libreoffice.org/libcdr), which is mirrored at
-freedesktop.org (git://anongit.freedesktop.org/libreoffice/libcdr). See
+(https://gerrit.libreoffice.org/gitweb?p=libcdr.git), which is mirrored at
+freedesktop.org (http://cgit.freedesktop.org/libreoffice/libcdr/). See
 http://www.freedesktop.org/wiki/Software/libcdr for more information.
 
 For convenience of use in third-party projects the library is available under
