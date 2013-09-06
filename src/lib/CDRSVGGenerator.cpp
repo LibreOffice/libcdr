@@ -618,7 +618,7 @@ void libcdr::CDRSVGGenerator::writeStyle(bool /* isClosed */)
   }
 
   if (m_style["draw:stroke"] && m_style["draw:stroke"]->getStr() == "solid")
-    m_outputSink << "stroke-dasharray:  solid; ";
+    m_outputSink << "stroke-dasharray:  none; ";
   else if (m_style["draw:stroke"] && m_style["draw:stroke"]->getStr() == "dash")
   {
     int dots1 = m_style["draw:dots1"]->getInt();
