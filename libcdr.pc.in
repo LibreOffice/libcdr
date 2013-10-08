@@ -6,6 +6,6 @@ includedir=@includedir@
 Name: libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@
 Description: Library for parsing the Corel Draw file format structure
 Version: @VERSION@
-Requires: libwpd-0.9 libwpd-stream-0.9 libwpg-0.2 lcms2
-Libs: -L${libdir} -lcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@ -lz
+Requires: libwpd-0.9 libwpd-stream-0.9 libwpg-0.2
+Libs: -L${libdir} -lcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@
 Cflags: -I${includedir}/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@
