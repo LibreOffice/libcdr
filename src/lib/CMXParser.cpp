@@ -638,14 +638,14 @@ libcdr::CDRBox libcdr::CMXParser::readBBox(WPXInputStream *input)
 
 void libcdr::CMXParser::readFill(WPXInputStream *input)
 {
-  unsigned char tagId = 0;
-  unsigned short tagLength = 0;
   unsigned fillIdentifier = readU16(input, m_bigEndian);
   switch (fillIdentifier)
   {
   case 1:
     if (m_precision == libcdr::PRECISION_32BIT)
     {
+      unsigned char tagId = 0;
+      unsigned short tagLength = 0;
       do
       {
         long startOffset = input->tell();

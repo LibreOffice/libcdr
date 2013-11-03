@@ -119,7 +119,6 @@ static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLe
     return 0;
   UErrorCode status = U_ZERO_ERROR;
   UCharsetDetector *csd = 0;
-  const UCharsetMatch *csm = 0;
   try
   {
     csd = ucsdet_open(&status);
@@ -129,7 +128,7 @@ static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLe
     ucsdet_setText(csd, (const char *)buffer, bufferLength, &status);
     if (U_FAILURE(status))
       throw libcdr::EncodingException();
-    csm = ucsdet_detect(csd, &status);
+    const UCharsetMatch *csm = ucsdet_detect(csd, &status);
     if (U_FAILURE(status) || !csm)
       throw libcdr::EncodingException();
     const char *name = ucsdet_getName(csm, &status);
