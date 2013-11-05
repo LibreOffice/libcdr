@@ -144,7 +144,7 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\CDRStringVector.cpp">
+    <ClCompile Include="..\..\src\lib\librevenge::RVNGStringVector.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -207,7 +207,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\inc\libcdr\CDRDocument.h" />
-    <ClInclude Include="..\..\inc\libcdr\CDRStringVector.h" />
+    <ClInclude Include="..\..\inc\libcdr\librevenge::RVNGStringVector.h" />
     <ClInclude Include="..\..\inc\libcdr\CMXDocument.h" />
     <ClInclude Include="..\..\inc\libcdr\libcdr.h" />
     <ClInclude Include="..\..\src\lib\CDRCollector.h" />

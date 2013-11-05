@@ -33,8 +33,8 @@
 #include <map>
 #include <list>
 #include <vector>
-#include <libwpd/libwpd.h>
-#include <libwpg/libwpg.h>
+#include <librevenge/librevenge.h>
+#include <librevenge/librevenge.h>
 
 namespace libcdr
 {
@@ -49,18 +49,18 @@ public:
   CDROutputElementList &operator=(const CDROutputElementList &elementList);
   virtual ~CDROutputElementList();
   void append(const CDROutputElementList &elementList);
-  void draw(libwpg::WPGPaintInterface *painter) const;
-  void addStyle(const WPXPropertyList &propList, const WPXPropertyListVector &propListVec);
-  void addPath(const WPXPropertyListVector &propListVec);
-  void addGraphicObject(const WPXPropertyList &propList, const ::WPXBinaryData &binaryData);
-  void addStartTextObject(const WPXPropertyList &propList, const WPXPropertyListVector &propListVec);
-  void addStartTextLine(const WPXPropertyList &propList);
-  void addStartTextSpan(const WPXPropertyList &propList);
-  void addInsertText(const WPXString &text);
-  void addEndTextSpan();
-  void addEndTextLine();
+  void draw(librevenge::RVNGDrawingInterface *painter) const;
+  void addStyle(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
+  void addPath(const librevenge::RVNGPropertyListVector &propListVec);
+  void addGraphicObject(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGBinaryData &binaryData);
+  void addStartTextObject(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
+  void addOpenParagraph(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
+  void addOpenSpan(const librevenge::RVNGPropertyList &propList);
+  void addInsertText(const librevenge::RVNGString &text);
+  void addCloseSpan();
+  void addCloseParagraph();
   void addEndTextObject();
-  void addStartGroup(const WPXPropertyList &propList);
+  void addStartGroup(const librevenge::RVNGPropertyList &propList);
   void addEndGroup();
   bool empty() const
   {

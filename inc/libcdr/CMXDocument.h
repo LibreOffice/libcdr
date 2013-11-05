@@ -29,11 +29,7 @@
 #ifndef __CMXDOCUMENT_H__
 #define __CMXDOCUMENT_H__
 
-#include <libwpd/libwpd.h>
-#include <libwpg/libwpg.h>
-#include "CDRStringVector.h"
-
-class WPXInputStream;
+#include <librevenge/librevenge.h>
 
 namespace libcdr
 {
@@ -41,11 +37,9 @@ class CMXDocument
 {
 public:
 
-  static bool isSupported(WPXInputStream *input);
+  static bool isSupported(librevenge::RVNGInputStream *input);
 
-  static bool parse(WPXInputStream *input, libwpg::WPGPaintInterface *painter);
-
-  static bool generateSVG(WPXInputStream *input, CDRStringVector &output);
+  static bool parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *painter);
 };
 
 } // namespace libcdr

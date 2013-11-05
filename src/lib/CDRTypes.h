@@ -31,7 +31,7 @@
 
 #include <vector>
 #include <math.h>
-#include <libwpd/libwpd.h>
+#include <librevenge/librevenge.h>
 #include "CDRTransforms.h"
 #include "CDRPath.h"
 #include "libcdr_utils.h"
@@ -155,7 +155,7 @@ struct CDRLineStyle
 struct CDRCharacterStyle
 {
   unsigned short m_charSet;
-  WPXString m_fontName;
+  librevenge::RVNGString m_fontName;
   double m_fontSize;
   unsigned m_align;
   double m_leftIndent, m_firstIndent, m_rightIndent;
@@ -209,13 +209,13 @@ struct CDRPolygon
 
 struct CDRImage
 {
-  WPXBinaryData m_image;
+  librevenge::RVNGBinaryData m_image;
   double m_x1;
   double m_x2;
   double m_y1;
   double m_y2;
   CDRImage() : m_image(), m_x1(0.0), m_x2(0.0), m_y1(0.0), m_y2(0.0) {}
-  CDRImage(const WPXBinaryData &image, double x1, double x2, double y1, double y2)
+  CDRImage(const librevenge::RVNGBinaryData &image, double x1, double x2, double y1, double y2)
     : m_image(image), m_x1(x1), m_x2(x2), m_y1(y1), m_y2(y2) {}
   double getMiddleX() const
   {
@@ -225,7 +225,7 @@ struct CDRImage
   {
     return (m_y1 + m_y2) / 2.0;
   }
-  const WPXBinaryData &getImage() const
+  const librevenge::RVNGBinaryData &getImage() const
   {
     return m_image;
   }
@@ -360,9 +360,9 @@ struct CDRLab4Color
 struct CDRText
 {
   CDRText() : m_text(), m_charStyle() {}
-  CDRText(const WPXString &text, const CDRCharacterStyle &charStyle)
+  CDRText(const librevenge::RVNGString &text, const CDRCharacterStyle &charStyle)
     : m_text(text), m_charStyle(charStyle) {}
-  WPXString m_text;
+  librevenge::RVNGString m_text;
   CDRCharacterStyle m_charStyle;
 };
 
@@ -384,11 +384,11 @@ struct CDRTextLine
 struct CDRFont
 {
   CDRFont() : m_name(), m_encoding(0) {}
-  CDRFont(const WPXString &name, unsigned short encoding)
+  CDRFont(const librevenge::RVNGString &name, unsigned short encoding)
     : m_name(name), m_encoding(encoding) {}
   CDRFont(const CDRFont &font)
     : m_name(font.m_name), m_encoding(font.m_encoding) {}
-  WPXString m_name;
+  librevenge::RVNGString m_name;
   unsigned short m_encoding;
 };
 

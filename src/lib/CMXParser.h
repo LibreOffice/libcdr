@@ -34,7 +34,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <libwpd-stream/libwpd-stream.h>
+#include <librevenge-stream/librevenge-stream.h>
 #include "CDRTypes.h"
 #include "CommonParser.h"
 
@@ -48,36 +48,36 @@ class CMXParser : protected CommonParser
 public:
   explicit CMXParser(CDRCollector *collector);
   virtual ~CMXParser();
-  bool parseRecords(WPXInputStream *input, long size = -1, unsigned level = 0);
+  bool parseRecords(librevenge::RVNGInputStream *input, long size = -1, unsigned level = 0);
 
 private:
   CMXParser();
   CMXParser(const CMXParser &);
   CMXParser &operator=(const CMXParser &);
-  bool parseRecord(WPXInputStream *input, unsigned level = 0);
-  void readRecord(unsigned fourCC, unsigned &length, WPXInputStream *input);
+  bool parseRecord(librevenge::RVNGInputStream *input, unsigned level = 0);
+  void readRecord(unsigned fourCC, unsigned &length, librevenge::RVNGInputStream *input);
 
-  void readCMXHeader(WPXInputStream *input);
-  void readDisp(WPXInputStream *input, unsigned length);
-  void readCcmm(WPXInputStream *input, long &recordEnd);
-  void readPage(WPXInputStream *input, unsigned length);
+  void readCMXHeader(librevenge::RVNGInputStream *input);
+  void readDisp(librevenge::RVNGInputStream *input, unsigned length);
+  void readCcmm(librevenge::RVNGInputStream *input, long &recordEnd);
+  void readPage(librevenge::RVNGInputStream *input, unsigned length);
 
   // Command readers
-  void readBeginPage(WPXInputStream *input);
-  void readBeginLayer(WPXInputStream *input);
-  void readBeginGroup(WPXInputStream *input);
-  void readPolyCurve(WPXInputStream *input);
-  void readEllipse(WPXInputStream *input);
-  void readRectangle(WPXInputStream *input);
-  void readJumpAbsolute(WPXInputStream *input);
+  void readBeginPage(librevenge::RVNGInputStream *input);
+  void readBeginLayer(librevenge::RVNGInputStream *input);
+  void readBeginGroup(librevenge::RVNGInputStream *input);
+  void readPolyCurve(librevenge::RVNGInputStream *input);
+  void readEllipse(librevenge::RVNGInputStream *input);
+  void readRectangle(librevenge::RVNGInputStream *input);
+  void readJumpAbsolute(librevenge::RVNGInputStream *input);
 
   // Types readers
-  CDRTransform readMatrix(WPXInputStream *input);
-  CDRBox readBBox(WPXInputStream *input);
-  void readFill(WPXInputStream *input);
+  CDRTransform readMatrix(librevenge::RVNGInputStream *input);
+  CDRBox readBBox(librevenge::RVNGInputStream *input);
+  void readFill(librevenge::RVNGInputStream *input);
 
   // Complex types readers
-  void readRenderingAttributes(WPXInputStream *input);
+  void readRenderingAttributes(librevenge::RVNGInputStream *input);
 
   bool m_bigEndian;
   unsigned short m_unit;

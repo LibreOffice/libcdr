@@ -1,27 +1,34 @@
+if BUILD_TOOLS
+
 bin_PROGRAMS = cdr2xhtml cmx2xhtml
 
-AM_CXXFLAGS = -I$(top_srcdir)/inc $(WPD_CFLAGS) $(WPG_CFLAGS) $(DEBUG_CXXFLAGS)
+AM_CXXFLAGS = \
+	-I$(top_srcdir)/inc \
+	$(REVENGE_CFLAGS) \
+	$(REVENGE_GENERATORS_CFLAGS) \
+	$(REVENGE_STREAM_CFLAGS) \
+	$(DEBUG_CXXFLAGS)
 
 cdr2xhtml_DEPENDENCIES = @CDR2XHTML_WIN32_RESOURCE@
 
-if STATIC_TOOLS
-cdr2xhtml_LDADD = ../../lib/@CDR_OBJDIR@/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.a $(WPD_LIBS) @CDR2XHTML_WIN32_RESOURCE@
-cdr2xhtml_LDFLAGS = -all-static 
-else
-cdr2xhtml_LDADD = ../../lib/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.la $(WPD_LIBS) @CDR2XHTML_WIN32_RESOURCE@ 
-endif
+cdr2xhtml_LDADD = \
+	../../lib/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.la \
+	$(REVENGE_GENERATORS_LIBS) \
+	$(REVENGE_LIBS) \
+	$(REVENGE_STREAM_LIBS) \
+	@CDR2XHTML_WIN32_RESOURCE@ 
 
 cdr2xhtml_SOURCES = \
 	cdr2xhtml.cpp
 
 cmx2xhtml_DEPENDENCIES = @CMX2XHTML_WIN32_RESOURCE@
 
-if STATIC_TOOLS
-cmx2xhtml_LDADD = ../../lib/@CDR_OBJDIR@/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.a $(WPD_LIBS) @CMX2XHTML_WIN32_RESOURCE@
-cmx2xhtml_LDFLAGS = -all-static 
-else
-cmx2xhtml_LDADD = ../../lib/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.la $(WPD_LIBS) @CMX2XHTML_WIN32_RESOURCE@ 
-endif
+cmx2xhtml_LDADD = \
+	../../lib/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.la \
+	$(REVENGE_LIBS) \
+	$(REVENGE_GENERATORS_LIBS) \
+	$(REVENGE_STREAM_LIBS) \
+	@CMX2XHTML_WIN32_RESOURCE@ 
 
 cmx2xhtml_SOURCES = \
 	cmx2xhtml.cpp
@@ -47,3 +54,5 @@ EXTRA_DIST = \
 BUILD_EXTRA_DIST = \
 	cdr2xhtml.rc \
 	cmx2xhtml.rc
+
+endif

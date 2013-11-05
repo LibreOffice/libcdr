@@ -33,7 +33,7 @@
 #include <map>
 #include <vector>
 #include <stack>
-#include <libwpg/libwpg.h>
+#include <librevenge/librevenge.h>
 #include <lcms2.h>
 #include "CDRTypes.h"
 #include "CDRPath.h"
@@ -46,7 +46,7 @@ namespace libcdr
 class CDRContentCollector : public CDRCollector
 {
 public:
-  CDRContentCollector(CDRParserState &ps, ::libwpg::WPGPaintInterface *painter);
+  CDRContentCollector(CDRParserState &ps, ::librevenge::RVNGDrawingInterface *painter);
   virtual ~CDRContentCollector();
 
   // collector functions
@@ -78,7 +78,7 @@ public:
   void collectColorProfile(const std::vector<unsigned char> &) {}
   void collectBBox(double x0, double y0, double x1, double y1);
   void collectSpnd(unsigned spnd);
-  void collectVectorPattern(unsigned id, const WPXBinaryData &data);
+  void collectVectorPattern(unsigned id, const librevenge::RVNGBinaryData &data);
   void collectPaletteEntry(unsigned, unsigned, const CDRColor &) {}
   void collectText(unsigned, unsigned, const std::vector<unsigned char> &,
                    const std::vector<unsigned char> &, const std::map<unsigned, CDRCharacterStyle> &) {}
@@ -95,11 +95,11 @@ private:
   void _endPage();
   void _flushCurrentPath();
 
-  void _fillProperties(WPXPropertyList &propList, WPXPropertyListVector &vec);
-  void _lineProperties(WPXPropertyList &propList);
-  void _generateBitmapFromPattern(WPXBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor);
+  void _fillProperties(librevenge::RVNGPropertyList &propList, librevenge::RVNGPropertyListVector &vec);
+  void _lineProperties(librevenge::RVNGPropertyList &propList);
+  void _generateBitmapFromPattern(librevenge::RVNGBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor);
 
-  libwpg::WPGPaintInterface *m_painter;
+  librevenge::RVNGDrawingInterface *m_painter;
 
   bool m_isPageProperties;
   bool m_isPageStarted;

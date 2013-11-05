@@ -34,31 +34,42 @@
 
 #include <vector>
 
-#include <libwpd-stream/libwpd-stream.h>
+#include <librevenge-stream/librevenge-stream.h>
 
 namespace libcdr
 {
 
-class CDRInternalStream : public WPXInputStream
+class CDRInternalStream : public librevenge::RVNGInputStream
 {
 public:
-  CDRInternalStream(WPXInputStream *input, unsigned long size, bool compressed=false);
+  CDRInternalStream(librevenge::RVNGInputStream *input, unsigned long size, bool compressed=false);
   CDRInternalStream(const std::vector<unsigned char> &buffer);
   ~CDRInternalStream() {}
 
-  bool isOLEStream()
+  virtual bool isStructured()
   {
     return false;
   }
-  WPXInputStream *getDocumentOLEStream(const char *)
+  virtual unsigned subStreamCount()
   {
     return 0;
   }
-
+  virtual const char *subStreamName(unsigned)
+  {
+    return 0;
+  }
+  virtual librevenge::RVNGInputStream *getSubStreamByName(const char *)
+  {
+    return 0;
+  }
+  virtual librevenge::RVNGInputStream *getSubStreamById(unsigned)
+  {
+    return 0;
+  }
   const unsigned char *read(unsigned long numBytes, unsigned long &numBytesRead);
-  int seek(long offset, WPX_SEEK_TYPE seekType);
+  int seek(long offset, librevenge::RVNG_SEEK_TYPE seekType);
   long tell();
-  bool atEOS();
+  bool isEnd();
   unsigned long getSize() const
   {
     return m_buffer.size();

@@ -27,7 +27,7 @@
  * instead of those above.
  */
 
-#include <libwpd-stream/libwpd-stream.h>
+#include <librevenge-stream/librevenge-stream.h>
 #include <locale.h>
 #include <math.h>
 #include <set>
@@ -59,7 +59,7 @@ libcdr::CMXParser::~CMXParser()
 {
 }
 
-bool libcdr::CMXParser::parseRecords(WPXInputStream *input, long size, unsigned level)
+bool libcdr::CMXParser::parseRecords(librevenge::RVNGInputStream *input, long size, unsigned level)
 {
   if (!input)
   {
@@ -69,7 +69,7 @@ bool libcdr::CMXParser::parseRecords(WPXInputStream *input, long size, unsigned 
   long endPosition = -1;
   if (size > 0)
     endPosition = input->tell() + size;
-  while (!input->atEOS() && (endPosition < 0 || input->tell() < endPosition))
+  while (!input->isEnd() && (endPosition < 0 || input->tell() < endPosition))
   {
     if (!parseRecord(input, level))
       return false;
@@ -77,7 +77,7 @@ bool libcdr::CMXParser::parseRecords(WPXInputStream *input, long size, unsigned 
   return true;
 }
 
-bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
+bool libcdr::CMXParser::parseRecord(librevenge::RVNGInputStream *input, unsigned level)
 {
   if (!input)
   {
@@ -86,11 +86,11 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
   try
   {
     m_collector->collectLevel(level);
-    while (!input->atEOS() && readU8(input) == 0)
+    while (!input->isEnd() && readU8(input) == 0)
     {
     }
-    if (!input->atEOS())
-      input->seek(-1, WPX_SEEK_CUR);
+    if (!input->isEnd())
+      input->seek(-1, librevenge::RVNG_SEEK_CUR);
     else
       return true;
     unsigned fourCC = readU32(input);
@@ -104,7 +104,7 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
 #ifdef DEBUG
       unsigned listType = readU32(input);
 #else
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
 #endif
       CDR_DEBUG_MSG(("CMX listType: %s\n", toFourCC(listType)));
       unsigned dataSize = length-4;
@@ -115,7 +115,7 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
       readRecord(fourCC, length, input);
 
     if (input->tell() < endPosition)
-      input->seek(endPosition, WPX_SEEK_SET);
+      input->seek(endPosition, librevenge::RVNG_SEEK_SET);
     return true;
   }
   catch (...)
@@ -124,7 +124,7 @@ bool libcdr::CMXParser::parseRecord(WPXInputStream *input, unsigned level)
   }
 }
 
-void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, WPXInputStream *input)
+void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge::RVNGInputStream *input)
 {
   long recordEnd = input->tell() + length;
   switch (fourCC)
@@ -145,12 +145,12 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, WPXInputSt
     break;
   }
   if (input->tell() < recordEnd)
-    input->seek(recordEnd, WPX_SEEK_SET);
+    input->seek(recordEnd, librevenge::RVNG_SEEK_SET);
 }
 
-void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
+void libcdr::CMXParser::readCMXHeader(librevenge::RVNGInputStream *input)
 {
-  WPXString tmpString;
+  librevenge::RVNGString tmpString;
   unsigned i = 0;
   for (i = 0; i < 32; i++)
     tmpString.append((char)readU8(input));
@@ -194,7 +194,7 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
   CDR_DEBUG_MSG(("CMX Base Units: %u\n", m_unit));
   m_scale = readDouble(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMX Units Scale: %.9f\n", m_scale));
-  input->seek(12, WPX_SEEK_CUR);
+  input->seek(12, librevenge::RVNG_SEEK_CUR);
   m_indexSectionOffset = readU32(input, m_bigEndian);
   m_infoSectionOffset = readU32(input, m_bigEndian);
   m_thumbnailOffset = readU32(input, m_bigEndian);
@@ -206,9 +206,9 @@ void libcdr::CMXParser::readCMXHeader(WPXInputStream *input)
   CDR_DEBUG_MSG(("CMX Bounding Box: x: %f, y: %f, w: %f, h: %f\n", box.m_x, box.m_y, box.m_w, box.m_h));
 }
 
-void libcdr::CMXParser::readDisp(WPXInputStream *input, unsigned length)
+void libcdr::CMXParser::readDisp(librevenge::RVNGInputStream *input, unsigned length)
 {
-  WPXBinaryData previewImage;
+  librevenge::RVNGBinaryData previewImage;
   previewImage.append(0x42);
   previewImage.append(0x4d);
 
@@ -223,16 +223,16 @@ void libcdr::CMXParser::readDisp(WPXInputStream *input, unsigned length)
   previewImage.append(0x00);
 
   long startPosition = input->tell();
-  input->seek(0x18, WPX_SEEK_CUR);
+  input->seek(0x18, librevenge::RVNG_SEEK_CUR);
   int lengthX = length + 10 - readU32(input);
-  input->seek(startPosition, WPX_SEEK_SET);
+  input->seek(startPosition, librevenge::RVNG_SEEK_SET);
 
   previewImage.append((unsigned char)((lengthX) & 0x000000ff));
   previewImage.append((unsigned char)(((lengthX) & 0x0000ff00) >> 8));
   previewImage.append((unsigned char)(((lengthX) & 0x00ff0000) >> 16));
   previewImage.append((unsigned char)(((lengthX) & 0xff000000) >> 24));
 
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   for (unsigned i = 4; i<length; i++)
     previewImage.append(readU8(input));
 #if DUMP_PREVIEW_IMAGE
@@ -247,16 +247,16 @@ void libcdr::CMXParser::readDisp(WPXInputStream *input, unsigned length)
 #endif
 }
 
-void libcdr::CMXParser::readCcmm(WPXInputStream * /* input */, long &recordEnd)
+void libcdr::CMXParser::readCcmm(librevenge::RVNGInputStream * /* input */, long &recordEnd)
 {
   if (m_thumbnailOffset == (unsigned)-1)
     recordEnd += 0x10;
 }
 
-void libcdr::CMXParser::readPage(WPXInputStream *input, unsigned length)
+void libcdr::CMXParser::readPage(librevenge::RVNGInputStream *input, unsigned length)
 {
   long endPosition = length + input->tell();
-  while (!input->atEOS() && endPosition > input->tell())
+  while (!input->isEnd() && endPosition > input->tell())
   {
     long startPosition = input->tell();
     int instructionSize = readS16(input, m_bigEndian);
@@ -291,11 +291,11 @@ void libcdr::CMXParser::readPage(WPXInputStream *input, unsigned length)
     default:
       break;
     }
-    input->seek(m_nextInstructionOffset, WPX_SEEK_SET);
+    input->seek(m_nextInstructionOffset, librevenge::RVNG_SEEK_SET);
   }
 }
 
-void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
+void libcdr::CMXParser::readBeginPage(librevenge::RVNGInputStream *input)
 {
   CDRBox box;
   CDRTransform matrix;
@@ -318,7 +318,7 @@ void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
       switch (tagId)
       {
       case CMX_Tag_BeginPage_PageSpecification:
-        input->seek(2, WPX_SEEK_CUR);
+        input->seek(2, librevenge::RVNG_SEEK_CUR);
         flags = readU32(input, m_bigEndian);
         box = readBBox(input);
         break;
@@ -328,13 +328,13 @@ void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
       default:
         break;
       }
-      input->seek(startOffset + tagLength, WPX_SEEK_SET);
+      input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
     }
     while (tagId != CMX_Tag_EndTag);
   }
   else if (m_precision == libcdr::PRECISION_16BIT)
   {
-    input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
     flags = readU32(input, m_bigEndian);
     box = readBBox(input);
   }
@@ -344,14 +344,14 @@ void libcdr::CMXParser::readBeginPage(WPXInputStream *input)
   m_collector->collectFlags(flags, true);
   m_collector->collectPageSize(box.getWidth(), box.getHeight(), box.getMinX(), box.getMinY());
 }
-void libcdr::CMXParser::readBeginLayer(WPXInputStream * /* input */)
+void libcdr::CMXParser::readBeginLayer(librevenge::RVNGInputStream * /* input */)
 {
 }
-void libcdr::CMXParser::readBeginGroup(WPXInputStream * /* input */)
+void libcdr::CMXParser::readBeginGroup(librevenge::RVNGInputStream * /* input */)
 {
 }
 
-void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
+void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
 {
   unsigned pointNum = 0;
   std::vector<std::pair<double, double> > points;
@@ -390,7 +390,7 @@ void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
       default:
         break;
       }
-      input->seek(startOffset + tagLength, WPX_SEEK_SET);
+      input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
     }
     while (tagId != CMX_Tag_EndTag);
   }
@@ -416,7 +416,7 @@ void libcdr::CMXParser::readPolyCurve(WPXInputStream *input)
   m_collector->collectLevel(1);
 }
 
-void libcdr::CMXParser::readEllipse(WPXInputStream *input)
+void libcdr::CMXParser::readEllipse(librevenge::RVNGInputStream *input)
 {
   double angle1 = 0.0;
   double angle2 = 0.0;
@@ -460,7 +460,7 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
       default:
         break;
       }
-      input->seek(startOffset + tagLength, WPX_SEEK_SET);
+      input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
     }
     while (tagId != CMX_Tag_EndTag);
   }
@@ -518,7 +518,7 @@ void libcdr::CMXParser::readEllipse(WPXInputStream *input)
   m_collector->collectLevel(1);
 }
 
-void libcdr::CMXParser::readRectangle(WPXInputStream *input)
+void libcdr::CMXParser::readRectangle(librevenge::RVNGInputStream *input)
 {
   double cx = 0.0;
   double cy = 0.0;
@@ -557,13 +557,13 @@ void libcdr::CMXParser::readRectangle(WPXInputStream *input)
       default:
         break;
       }
-      input->seek(startOffset + tagLength, WPX_SEEK_SET);
+      input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
     }
     while (tagId != CMX_Tag_EndTag);
   }
   else if (m_precision == libcdr::PRECISION_16BIT)
   {
-    input->seek(3, WPX_SEEK_CUR);
+    input->seek(3, librevenge::RVNG_SEEK_CUR);
     cx = readCoordinate(input, m_bigEndian);
     cy = readCoordinate(input, m_bigEndian);
     width = readCoordinate(input, m_bigEndian);
@@ -605,7 +605,7 @@ void libcdr::CMXParser::readRectangle(WPXInputStream *input)
   m_collector->collectLevel(1);
 }
 
-libcdr::CDRTransform libcdr::CMXParser::readMatrix(WPXInputStream *input)
+libcdr::CDRTransform libcdr::CMXParser::readMatrix(librevenge::RVNGInputStream *input)
 {
   CDRTransform matrix;
   unsigned short type = readU16(input, m_bigEndian);
@@ -626,7 +626,7 @@ libcdr::CDRTransform libcdr::CMXParser::readMatrix(WPXInputStream *input)
   }
 }
 
-libcdr::CDRBox libcdr::CMXParser::readBBox(WPXInputStream *input)
+libcdr::CDRBox libcdr::CMXParser::readBBox(librevenge::RVNGInputStream *input)
 {
   double x0 = readCoordinate(input, m_bigEndian);
   double y0 = readCoordinate(input, m_bigEndian);
@@ -636,7 +636,7 @@ libcdr::CDRBox libcdr::CMXParser::readBBox(WPXInputStream *input)
   return box;
 }
 
-void libcdr::CMXParser::readFill(WPXInputStream *input)
+void libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
 {
   unsigned fillIdentifier = readU16(input, m_bigEndian);
   switch (fillIdentifier)
@@ -665,7 +665,7 @@ void libcdr::CMXParser::readFill(WPXInputStream *input)
         default:
           break;
         }
-        input->seek(startOffset + tagLength, WPX_SEEK_SET);
+        input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
       }
       while (tagId != CMX_Tag_EndTag);
     }
@@ -694,7 +694,7 @@ void libcdr::CMXParser::readFill(WPXInputStream *input)
   }
 }
 
-void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
+void libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *input)
 {
   unsigned char tagId = 0;
   unsigned short tagLength = 0;
@@ -720,7 +720,7 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
         default:
           break;
         }
-        input->seek(startOffset + tagLength, WPX_SEEK_SET);
+        input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
       }
       while (tagId != CMX_Tag_EndTag);
     }
@@ -749,7 +749,7 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
         default:
           break;
         }
-        input->seek(startOffset + tagLength, WPX_SEEK_SET);
+        input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
       }
       while (tagId != CMX_Tag_EndTag);
     }
@@ -774,7 +774,7 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
         default:
           break;
         }
-        input->seek(startOffset + tagLength, WPX_SEEK_SET);
+        input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
       }
       while (tagId != CMX_Tag_EndTag);
     }
@@ -799,7 +799,7 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
         default:
           break;
         }
-        input->seek(startOffset + tagLength, WPX_SEEK_SET);
+        input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
       }
       while (tagId != CMX_Tag_EndTag);
     }
@@ -824,14 +824,14 @@ void libcdr::CMXParser::readRenderingAttributes(WPXInputStream *input)
         default:
           break;
         }
-        input->seek(startOffset + tagLength, WPX_SEEK_SET);
+        input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
       }
       while (tagId != CMX_Tag_EndTag);
     }
   }
 }
 
-void libcdr::CMXParser::readJumpAbsolute(WPXInputStream *input)
+void libcdr::CMXParser::readJumpAbsolute(librevenge::RVNGInputStream *input)
 {
   if (m_precision == libcdr::PRECISION_32BIT)
   {
@@ -855,7 +855,7 @@ void libcdr::CMXParser::readJumpAbsolute(WPXInputStream *input)
       default:
         break;
       }
-      input->seek(endOffset, WPX_SEEK_SET);
+      input->seek(endOffset, librevenge::RVNG_SEEK_SET);
     }
     while (tagId != CMX_Tag_EndTag);
   }

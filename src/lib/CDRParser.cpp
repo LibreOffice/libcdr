@@ -90,7 +90,7 @@ struct CDRStltRecord
   unsigned dropCapId;
 };
 
-static void processNameForEncoding(WPXString &name, unsigned short &encoding)
+static void processNameForEncoding(librevenge::RVNGString &name, unsigned short &encoding)
 {
   std::string fontName(name.cstr());
   size_t length = fontName.length();
@@ -171,14 +171,14 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   return 1;
 }
 
-static void _readX6StyleString(WPXInputStream *input, unsigned length, libcdr::CDRCharacterStyle &style)
+static void _readX6StyleString(librevenge::RVNGInputStream *input, unsigned length, libcdr::CDRCharacterStyle &style)
 {
   std::vector<unsigned char> styleBuffer(length);
   unsigned long numBytesRead = 0;
   const unsigned char *tmpBuffer = input->read(length, numBytesRead);
   if (numBytesRead)
     memcpy(&styleBuffer[0], tmpBuffer, numBytesRead);
-  WPXString styleString;
+  librevenge::RVNGString styleString;
   libcdr::appendCharacters(styleString, styleBuffer);
   CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
 
@@ -252,7 +252,7 @@ static void _readX6StyleString(WPXInputStream *input, unsigned length, libcdr::C
 
 } // anonymous namespace
 
-libcdr::CDRParser::CDRParser(const std::vector<WPXInputStream *> &externalStreams, libcdr::CDRCollector *collector)
+libcdr::CDRParser::CDRParser(const std::vector<librevenge::RVNGInputStream *> &externalStreams, libcdr::CDRCollector *collector)
   : CommonParser(collector), m_externalStreams(externalStreams),
     m_fonts(), m_fillStyles(), m_lineStyles(), m_arrows(), m_version(0) {}
 
@@ -261,11 +261,11 @@ libcdr::CDRParser::~CDRParser()
   m_collector->collectLevel(0);
 }
 
-bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
+bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
 {
   try
   {
-    input->seek(0, WPX_SEEK_SET);
+    input->seek(0, librevenge::RVNG_SEEK_SET);
     unsigned short magic = readU16(input);
     if (magic != 0x4c57)
       return false;
@@ -273,15 +273,15 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     m_precision = libcdr::PRECISION_16BIT;
     if ('e' >= readU8(input))
       m_version = 100;
-    input->seek(1, WPX_SEEK_CUR);
+    input->seek(1, librevenge::RVNG_SEEK_CUR);
     std::vector<unsigned> offsets;
     unsigned i = 0;
     for (i = 0; i < 8; ++i)
       offsets.push_back(readU32(input));
-    input->seek(1, WPX_SEEK_CUR);
+    input->seek(1, librevenge::RVNG_SEEK_CUR);
     for (i = 0; i < 10; i++)
       offsets.push_back(readU32(input));
-    input->seek(offsets[0], WPX_SEEK_SET);
+    input->seek(offsets[0], librevenge::RVNG_SEEK_SET);
     CDR_DEBUG_MSG(("CDRParser::parseWaldo, Mcfg offset 0x%x\n", (unsigned)input->tell()));
     readMcfg(input, 275);
     std::vector<WaldoRecordInfo> records;
@@ -294,24 +294,24 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
     std::map<unsigned, WaldoRecordInfo> recordsOther;
     if (offsets[3])
     {
-      input->seek(offsets[3], WPX_SEEK_SET);
+      input->seek(offsets[3], librevenge::RVNG_SEEK_SET);
       if (!gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8, recordsOther))
         return false;
     }
     if (offsets[5])
     {
-      input->seek(offsets[5], WPX_SEEK_SET);
+      input->seek(offsets[5], librevenge::RVNG_SEEK_SET);
       gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8, recordsOther);
     }
     if (offsets[11])
     {
-      input->seek(offsets[11], WPX_SEEK_SET);
+      input->seek(offsets[11], librevenge::RVNG_SEEK_SET);
       gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8, recordsOther);
     }
     std::map<unsigned, WaldoRecordType1> records1;
     for (std::vector<WaldoRecordInfo>::iterator iterVec = records.begin(); iterVec != records.end(); ++iterVec)
     {
-      input->seek(iterVec->offset, WPX_SEEK_SET);
+      input->seek(iterVec->offset, librevenge::RVNG_SEEK_SET);
       unsigned length = readU32(input);
       if (length != 0x18)
       {
@@ -322,7 +322,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
       unsigned short previous = readU16(input);
       unsigned short child = readU16(input);
       unsigned short parent = readU16(input);
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
       unsigned short moreDataID = readU16(input);
       double x0 = readCoordinate(input);
       double y0 = readCoordinate(input);
@@ -334,8 +334,8 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
       {
         std::map<unsigned, WaldoRecordInfo>::const_iterator iter7 = records7.find(moreDataID);
         if (iter7 != records7.end())
-          input->seek(iter7->second.offset, WPX_SEEK_SET);
-        input->seek(0x26, WPX_SEEK_CUR);
+          input->seek(iter7->second.offset, librevenge::RVNG_SEEK_SET);
+        input->seek(0x26, librevenge::RVNG_SEEK_CUR);
         double v0 = readFixedPoint(input);
         double v1 = readFixedPoint(input);
         double v2 = readFixedPoint(input) / 1000.0;
@@ -383,7 +383,7 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
   }
 }
 
-bool libcdr::CDRParser::gatherWaldoInformation(WPXInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
+bool libcdr::CDRParser::gatherWaldoInformation(librevenge::RVNGInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
     std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
     std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
     std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther)
@@ -391,7 +391,7 @@ bool libcdr::CDRParser::gatherWaldoInformation(WPXInputStream *input, std::vecto
   try
   {
     unsigned short numRecords = readU16(input);
-    for (; numRecords > 0 && !input->atEOS(); --numRecords)
+    for (; numRecords > 0 && !input->isEnd(); --numRecords)
     {
       unsigned char recordType = readU8(input);
       unsigned recordId = readU32(input);
@@ -434,7 +434,7 @@ bool libcdr::CDRParser::gatherWaldoInformation(WPXInputStream *input, std::vecto
 }
 
 
-bool libcdr::CDRParser::parseWaldoStructure(WPXInputStream *input, std::stack<WaldoRecordType1> &waldoStack,
+bool libcdr::CDRParser::parseWaldoStructure(librevenge::RVNGInputStream *input, std::stack<WaldoRecordType1> &waldoStack,
     const std::map<unsigned, WaldoRecordType1> &records1, std::map<unsigned, WaldoRecordInfo> &records2)
 {
   while (!waldoStack.empty())
@@ -479,10 +479,10 @@ bool libcdr::CDRParser::parseWaldoStructure(WPXInputStream *input, std::stack<Wa
   return true;
 }
 
-void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, const WaldoRecordInfo &info)
+void libcdr::CDRParser::readWaldoRecord(librevenge::RVNGInputStream *input, const WaldoRecordInfo &info)
 {
   CDR_DEBUG_MSG(("CDRParser::readWaldoRecord, type %i, id %x, offset %x\n", info.type, info.id, info.offset));
-  input->seek(info.offset, WPX_SEEK_SET);
+  input->seek(info.offset, librevenge::RVNG_SEEK_SET);
   switch (info.type)
   {
   case 2:
@@ -505,7 +505,7 @@ void libcdr::CDRParser::readWaldoRecord(WPXInputStream *input, const WaldoRecord
   }
 }
 
-void libcdr::CDRParser::readWaldoTrfd(WPXInputStream *input)
+void libcdr::CDRParser::readWaldoTrfd(librevenge::RVNGInputStream *input)
 {
   if (m_version >= 400)
     return;
@@ -518,9 +518,9 @@ void libcdr::CDRParser::readWaldoTrfd(WPXInputStream *input)
   if (m_version >= 300)
   {
     long startPosition = input->tell();
-    input->seek(0x0a, WPX_SEEK_CUR);
+    input->seek(0x0a, librevenge::RVNG_SEEK_CUR);
     unsigned offset = readUnsigned(input);
-    input->seek(startPosition+offset, WPX_SEEK_SET);
+    input->seek(startPosition+offset, librevenge::RVNG_SEEK_SET);
     v0 = readFixedPoint(input);
     v1 = readFixedPoint(input);
     x0 = (double)readS32(input) / 1000.0;
@@ -545,7 +545,7 @@ void libcdr::CDRParser::readWaldoTrfd(WPXInputStream *input)
   m_collector->collectTransform(trafos, m_version < 400);
 }
 
-void libcdr::CDRParser::readWaldoLoda(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readWaldoLoda(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (m_version >= 300)
     return;
@@ -557,17 +557,17 @@ void libcdr::CDRParser::readWaldoLoda(WPXInputStream *input, unsigned length)
   unsigned fillOffset = readU16(input);
   if (outlOffset)
   {
-    input->seek(startPosition + outlOffset, WPX_SEEK_SET);
+    input->seek(startPosition + outlOffset, librevenge::RVNG_SEEK_SET);
     readWaldoOutl(input);
   }
   if (fillOffset)
   {
-    input->seek(startPosition + fillOffset, WPX_SEEK_SET);
+    input->seek(startPosition + fillOffset, librevenge::RVNG_SEEK_SET);
     readWaldoFill(input);
   }
   if (shapeOffset)
   {
-    input->seek(startPosition + shapeOffset, WPX_SEEK_SET);
+    input->seek(startPosition + shapeOffset, librevenge::RVNG_SEEK_SET);
     if (chunkType == 0x00) // Rectangle
       readRectangle(input);
     else if (chunkType == 0x01) // Ellipse
@@ -579,17 +579,17 @@ void libcdr::CDRParser::readWaldoLoda(WPXInputStream *input, unsigned length)
     else if (chunkType == 0x04) // Bitmap
       readBitmap(input);
   }
-  input->seek(startPosition + length, WPX_SEEK_SET);
+  input->seek(startPosition + length, librevenge::RVNG_SEEK_SET);
 }
 
-bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengths, unsigned level)
+bool libcdr::CDRParser::parseRecords(librevenge::RVNGInputStream *input, unsigned *blockLengths, unsigned level)
 {
   if (!input)
   {
     return false;
   }
   m_collector->collectLevel(level);
-  while (!input->atEOS())
+  while (!input->isEnd())
   {
     if (!parseRecord(input, blockLengths, level))
       return false;
@@ -597,7 +597,7 @@ bool libcdr::CDRParser::parseRecords(WPXInputStream *input, unsigned *blockLengt
   return true;
 }
 
-bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLengths, unsigned level)
+bool libcdr::CDRParser::parseRecord(librevenge::RVNGInputStream *input, unsigned *blockLengths, unsigned level)
 {
   if (!input)
   {
@@ -606,11 +606,11 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
   try
   {
     m_collector->collectLevel(level);
-    while (!input->atEOS() && readU8(input) == 0)
+    while (!input->isEnd() && readU8(input) == 0)
     {
     }
-    if (!input->atEOS())
-      input->seek(-1, WPX_SEEK_CUR);
+    if (!input->isEnd())
+      input->seek(-1, librevenge::RVNG_SEEK_CUR);
     else
       return true;
     unsigned fourCC = readU32(input);
@@ -636,7 +636,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
       if (listType == CDR_FOURCC_cmpr)
       {
         cmprsize  = readU32(input);
-        input->seek(12, WPX_SEEK_CUR);
+        input->seek(12, librevenge::RVNG_SEEK_CUR);
         if (readU32(input) != CDR_FOURCC_CPng)
           return false;
         if (readU16(input) != 1)
@@ -673,7 +673,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
         std::vector<unsigned> tmpBlockLengths;
         unsigned blocksLength = length + position - input->tell();
         CDRInternalStream tmpBlocksStream(input, blocksLength, compressed);
-        while (!tmpBlocksStream.atEOS())
+        while (!tmpBlocksStream.isEnd())
           tmpBlockLengths.push_back(readU32(&tmpBlocksStream));
         if (!parseRecords(&tmpStream, tmpBlockLengths.size() ? &tmpBlockLengths[0] : 0, level+1))
           return false;
@@ -682,7 +682,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
     else
       readRecord(fourCC, length, input);
 
-    input->seek(position + length, WPX_SEEK_SET);
+    input->seek(position + length, librevenge::RVNG_SEEK_SET);
     return true;
   }
   catch (...)
@@ -691,7 +691,7 @@ bool libcdr::CDRParser::parseRecord(WPXInputStream *input, unsigned *blockLength
   }
 }
 
-void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStream *input)
+void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, librevenge::RVNGInputStream *input)
 {
   long recordStart = input->tell();
   switch (fourCC)
@@ -770,17 +770,17 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
   default:
     break;
   }
-  input->seek(recordStart + length, WPX_SEEK_CUR);
+  input->seek(recordStart + length, librevenge::RVNG_SEEK_CUR);
 }
 
-double libcdr::CDRParser::readRectCoord(WPXInputStream *input)
+double libcdr::CDRParser::readRectCoord(librevenge::RVNGInputStream *input)
 {
   if (m_version < 1500)
     return readCoordinate(input);
   return readDouble(input) / 254000.0;
 }
 
-libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
+libcdr::CDRColor libcdr::CDRParser::readColor(librevenge::RVNGInputStream *input)
 {
   unsigned short colorModel = 0;
   unsigned colorValue = 0;
@@ -797,7 +797,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
       unsigned char y = 0;
       unsigned char k = 100;
       unsigned short paletteID = readU16(input);
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
       unsigned short ix = readU16(input);
       unsigned short tint = readU16(input);
       switch (paletteID)
@@ -1120,7 +1120,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
     else if (colorModel == 0x0e)
     {
       unsigned short paletteID = readU16(input);
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
       unsigned short ix = readU16(input);
       unsigned short tint = readU16(input);
       switch (paletteID)
@@ -1198,7 +1198,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
     }
     else
     {
-      input->seek(6, WPX_SEEK_CUR);
+      input->seek(6, librevenge::RVNG_SEEK_CUR);
       colorValue = readU32(input);
     }
   }
@@ -1216,7 +1216,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
     colorValue |= (m & 0xff);
     colorValue <<= 8;
     colorValue |= (c & 0xff);
-    input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
   }
   else
   {
@@ -1226,7 +1226,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
   return libcdr::CDRColor(colorModel, colorValue);
 }
 
-void libcdr::CDRParser::readRectangle(WPXInputStream *input)
+void libcdr::CDRParser::readRectangle(librevenge::RVNGInputStream *input)
 {
   double x0 = readRectCoord(input);
   double y0 = readRectCoord(input);
@@ -1250,16 +1250,16 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
     scaleX = readDouble(input);
     scaleY = readDouble(input);
     unsigned int scale_with = readU8(input);
-    input->seek(7, WPX_SEEK_CUR);
+    input->seek(7, librevenge::RVNG_SEEK_CUR);
     if (scale_with == 0)
     {
       r3 = readDouble(input);
       corner_type = readU8(input);
-      input->seek(15, WPX_SEEK_CUR);
+      input->seek(15, librevenge::RVNG_SEEK_CUR);
       r2 = readDouble(input);
-      input->seek(16, WPX_SEEK_CUR);
+      input->seek(16, librevenge::RVNG_SEEK_CUR);
       r1 = readDouble(input);
-      input->seek(16, WPX_SEEK_CUR);
+      input->seek(16, librevenge::RVNG_SEEK_CUR);
       r0 = readDouble(input);
 
       double width = fabs(x0*scaleX / 2.0);
@@ -1273,11 +1273,11 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
     {
       r3 = readRectCoord(input);
       corner_type = readU8(input);
-      input->seek(15, WPX_SEEK_CUR);
+      input->seek(15, librevenge::RVNG_SEEK_CUR);
       r2 = readRectCoord(input);
-      input->seek(16, WPX_SEEK_CUR);
+      input->seek(16, librevenge::RVNG_SEEK_CUR);
       r1 = readRectCoord(input);
-      input->seek(16, WPX_SEEK_CUR);
+      input->seek(16, librevenge::RVNG_SEEK_CUR);
       r0 = readRectCoord(input);
     }
   }
@@ -1338,7 +1338,7 @@ void libcdr::CDRParser::readRectangle(WPXInputStream *input)
   m_collector->collectPath(path);
 }
 
-void libcdr::CDRParser::readEllipse(WPXInputStream *input)
+void libcdr::CDRParser::readEllipse(librevenge::RVNGInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readEllipse\n"));
 
@@ -1402,12 +1402,12 @@ void libcdr::CDRParser::readEllipse(WPXInputStream *input)
   m_collector->collectPath(path);
 }
 
-void libcdr::CDRParser::readDisp(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readDisp(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
 #if DUMP_PREVIEW_IMAGE
-  WPXBinaryData previewImage;
+  librevenge::RVNGBinaryData previewImage;
   previewImage.append(0x42);
   previewImage.append(0x4d);
 
@@ -1422,16 +1422,16 @@ void libcdr::CDRParser::readDisp(WPXInputStream *input, unsigned length)
   previewImage.append(0x00);
 
   long startPosition = input->tell();
-  input->seek(0x18, WPX_SEEK_CUR);
+  input->seek(0x18, librevenge::RVNG_SEEK_CUR);
   int lengthX = length + 10 - readU32(input);
-  input->seek(startPosition, WPX_SEEK_SET);
+  input->seek(startPosition, librevenge::RVNG_SEEK_SET);
 
   previewImage.append((unsigned char)((lengthX) & 0x000000ff));
   previewImage.append((unsigned char)(((lengthX) & 0x0000ff00) >> 8));
   previewImage.append((unsigned char)(((lengthX) & 0x00ff0000) >> 16));
   previewImage.append((unsigned char)(((lengthX) & 0xff000000) >> 24));
 
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   for (unsigned i = 4; i<length; i++)
     previewImage.append(readU8(input));
   FILE *f = fopen("previewImage.bmp", "wb");
@@ -1445,12 +1445,12 @@ void libcdr::CDRParser::readDisp(WPXInputStream *input, unsigned length)
 #endif
 }
 
-void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
+void libcdr::CDRParser::readLineAndCurve(librevenge::RVNGInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readLineAndCurve\n"));
 
   unsigned short pointNum = readU16(input);
-  input->seek(2, WPX_SEEK_CUR);
+  input->seek(2, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
   for (unsigned j=0; j<pointNum; j++)
@@ -1465,13 +1465,13 @@ void libcdr::CDRParser::readLineAndCurve(WPXInputStream *input)
   outputPath(points, pointTypes);
 }
 
-void libcdr::CDRParser::readPath(WPXInputStream *input)
+void libcdr::CDRParser::readPath(librevenge::RVNGInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readPath\n"));
 
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned short pointNum = readU16(input)+readU16(input);
-  input->seek(16, WPX_SEEK_CUR);
+  input->seek(16, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
   for (unsigned j=0; j<pointNum; j++)
@@ -1486,19 +1486,19 @@ void libcdr::CDRParser::readPath(WPXInputStream *input)
   outputPath(points, pointTypes);
 }
 
-void libcdr::CDRParser::readArrw(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readArrw(librevenge::RVNGInputStream *input, unsigned length)
 {
   CDR_DEBUG_MSG(("CDRParser::readArrw\n"));
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned arrowId = readU32(input);
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned short pointNum = readU16(input);
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   std::vector<unsigned char> pointTypes;
   for (unsigned k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
-  input->seek(1, WPX_SEEK_CUR);
+  input->seek(1, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   for (unsigned j=0; j<pointNum; j++)
   {
@@ -1512,7 +1512,7 @@ void libcdr::CDRParser::readArrw(WPXInputStream *input, unsigned length)
   m_arrows[arrowId] = path;
 }
 
-void libcdr::CDRParser::readBitmap(WPXInputStream *input)
+void libcdr::CDRParser::readBitmap(librevenge::RVNGInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readBitmap\n"));
 
@@ -1528,10 +1528,10 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
     x2 = 0.0;
     y2 = 0.0;
     if (m_version < 400)
-      input->seek(2, WPX_SEEK_CUR);
-    input->seek(8, WPX_SEEK_CUR);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
+    input->seek(8, librevenge::RVNG_SEEK_CUR);
     imageId = readUnsigned(input);
-    input->seek(20, WPX_SEEK_CUR);
+    input->seek(20, librevenge::RVNG_SEEK_CUR);
     CDRPath path;
     path.appendMoveTo(x1, y1);
     path.appendLineTo(x1, y2);
@@ -1546,19 +1546,19 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
     y1 = (double)readCoordinate(input);
     x2 = (double)readCoordinate(input);
     y2 = (double)readCoordinate(input);
-    input->seek(16, WPX_SEEK_CUR);
+    input->seek(16, librevenge::RVNG_SEEK_CUR);
 
-    input->seek(16, WPX_SEEK_CUR);
+    input->seek(16, librevenge::RVNG_SEEK_CUR);
     imageId = readUnsigned(input);
     if (m_version < 800)
-      input->seek(8, WPX_SEEK_CUR);
+      input->seek(8, librevenge::RVNG_SEEK_CUR);
     else if (m_version >= 800 && m_version < 900)
-      input->seek(12, WPX_SEEK_CUR);
+      input->seek(12, librevenge::RVNG_SEEK_CUR);
     else
-      input->seek(20, WPX_SEEK_CUR);
+      input->seek(20, librevenge::RVNG_SEEK_CUR);
 
     unsigned short pointNum = readU16(input);
-    input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
     std::vector<std::pair<double, double> > points;
     std::vector<unsigned char> pointTypes;
     for (unsigned j=0; j<pointNum; j++)
@@ -1575,7 +1575,7 @@ void libcdr::CDRParser::readBitmap(WPXInputStream *input)
   m_collector->collectBitmap(imageId, x1, x2, y1, y2);
 }
 
-void libcdr::CDRParser::readWaldoOutl(WPXInputStream *input)
+void libcdr::CDRParser::readWaldoOutl(librevenge::RVNGInputStream *input)
 {
   if (m_version >= 400)
     return;
@@ -1585,13 +1585,13 @@ void libcdr::CDRParser::readWaldoOutl(WPXInputStream *input)
   double stretch = (double)readU16(input) / 100.0;
   double angle = readAngle(input);
   libcdr::CDRColor color = readColor(input);
-  input->seek(7, WPX_SEEK_CUR);
+  input->seek(7, librevenge::RVNG_SEEK_CUR);
   unsigned short numDash = readU8(input);
   int fixPosition = input->tell();
   std::vector<unsigned> dashArray;
   for (unsigned short i = 0; i < numDash; ++i)
     dashArray.push_back(readU8(input));
-  input->seek(fixPosition + 10, WPX_SEEK_SET);
+  input->seek(fixPosition + 10, librevenge::RVNG_SEEK_SET);
   unsigned short joinType = readU16(input);
   unsigned short capsType = readU16(input);
   unsigned startMarkerId = readU32(input);
@@ -1607,7 +1607,7 @@ void libcdr::CDRParser::readWaldoOutl(WPXInputStream *input)
   m_collector->collectLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker);
 }
 
-void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
+void libcdr::CDRParser::readWaldoFill(librevenge::RVNGInputStream *input)
 {
   if (m_version >= 400)
     return;
@@ -1631,7 +1631,7 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
     color2 = readColor(input);
     if (m_version >= 200)
     {
-      input->seek(7, WPX_SEEK_CUR);
+      input->seek(7, librevenge::RVNG_SEEK_CUR);
       gradient.m_edgeOffset = readS16(input);
       gradient.m_centerXOffset = readInteger(input);
       gradient.m_centerYOffset = readInteger(input);
@@ -1654,7 +1654,7 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
     color2 = readColor(input);
     if (m_version >= 200)
     {
-      input->seek(7, WPX_SEEK_CUR);
+      input->seek(7, librevenge::RVNG_SEEK_CUR);
       gradient.m_edgeOffset = readS16(input);
       gradient.m_centerXOffset = readInteger(input);
       gradient.m_centerYOffset = readInteger(input);
@@ -1676,7 +1676,7 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
     double tileOffsetX = (double)readU16(input) / 100.0;
     double tileOffsetY = (double)readU16(input) / 100.0;
     double rcpOffset = (double)readU16(input) / 100.0;
-    input->seek(1, WPX_SEEK_CUR);
+    input->seek(1, librevenge::RVNG_SEEK_CUR);
     color1 = readColor(input);
     color2 = readColor(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, false, tileOffsetX, tileOffsetY, rcpOffset, 0);
@@ -1690,7 +1690,7 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
     double tileOffsetX = (double)readU16(input) / 100.0;
     double tileOffsetY = (double)readU16(input) / 100.0;
     double rcpOffset = (double)readU16(input) / 100.0;
-    input->seek(1, WPX_SEEK_CUR);
+    input->seek(1, librevenge::RVNG_SEEK_CUR);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, false, tileOffsetX, tileOffsetY, rcpOffset, 0);
   }
   break;
@@ -1700,7 +1700,7 @@ void libcdr::CDRParser::readWaldoFill(WPXInputStream *input)
   m_collector->collectFillStyle(fillType, color1, color2, gradient, imageFill);
 }
 
-void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readTrfd(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -1710,16 +1710,16 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
   unsigned startOfArgs = readUnsigned(input);
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   unsigned i = 0;
-  input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
+  input->seek(startPosition+startOfArgs, librevenge::RVNG_SEEK_SET);
   while (i<numOfArgs)
     argOffsets[i++] = readUnsigned(input);
 
   CDRTransforms trafos;
   for (i=0; i < argOffsets.size(); i++)
   {
-    input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
+    input->seek(startPosition+argOffsets[i], librevenge::RVNG_SEEK_SET);
     if (m_version >= 1300)
-      input->seek(8, WPX_SEEK_CUR);
+      input->seek(8, librevenge::RVNG_SEEK_CUR);
     unsigned short tmpType = readU16(input);
     if (tmpType == 0x08) // trafo
     {
@@ -1730,7 +1730,7 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
       double v4 = 0.0;
       double y0 = 0.0;
       if (m_version >= 600)
-        input->seek(6, WPX_SEEK_CUR);
+        input->seek(6, librevenge::RVNG_SEEK_CUR);
       if (m_version >= 500)
       {
         v0 = readDouble(input);
@@ -1754,7 +1754,7 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
     else if (tmpType == 0x10)
     {
 #if 0
-      input->seek(6, WPX_SEEK_CUR);
+      input->seek(6, librevenge::RVNG_SEEK_CUR);
       unsigned short type = readU16(input);
       double x = readCoordinate(input);
       double y = readCoordinate(input);
@@ -1781,10 +1781,10 @@ void libcdr::CDRParser::readTrfd(WPXInputStream *input, unsigned length)
   }
   if (!trafos.empty())
     m_collector->collectTransform(trafos,m_version < 400);
-  input->seek(startPosition+chunkLength, WPX_SEEK_SET);
+  input->seek(startPosition+chunkLength, librevenge::RVNG_SEEK_SET);
 }
 
-void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -1792,9 +1792,9 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   unsigned short v13flag = 0;
   if (m_version >= 1300)
   {
-    input->seek(4, WPX_SEEK_CUR);
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
     v13flag = readU16(input);
-    input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
   }
   unsigned short fillType = readU16(input);
   libcdr::CDRColor color1;
@@ -1806,45 +1806,45 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   case 1: // Solid
   {
     if (m_version >= 1300)
-      input->seek(13, WPX_SEEK_CUR);
+      input->seek(13, librevenge::RVNG_SEEK_CUR);
     else
-      input->seek(2, WPX_SEEK_CUR);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
     color1 = readColor(input);
   }
   break;
   case 2: // Gradient
   {
     if (m_version >= 1300)
-      input->seek(8, WPX_SEEK_CUR);
+      input->seek(8, librevenge::RVNG_SEEK_CUR);
     else
-      input->seek(2, WPX_SEEK_CUR);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
     gradient.m_type = readU8(input);
     if (m_version >= 1300)
     {
-      input->seek(17, WPX_SEEK_CUR);
+      input->seek(17, librevenge::RVNG_SEEK_CUR);
       gradient.m_edgeOffset = readS16(input);
     }
     else if (m_version >= 600)
     {
-      input->seek(19, WPX_SEEK_CUR);
+      input->seek(19, librevenge::RVNG_SEEK_CUR);
       gradient.m_edgeOffset = readS32(input);
     }
     else
     {
-      input->seek(11, WPX_SEEK_CUR);
+      input->seek(11, librevenge::RVNG_SEEK_CUR);
       gradient.m_edgeOffset = readS16(input);
     }
     gradient.m_angle = readAngle(input);
     gradient.m_centerXOffset = readInteger(input);
     gradient.m_centerYOffset = readInteger(input);
     if (m_version >= 600)
-      input->seek(2, WPX_SEEK_CUR);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
     gradient.m_mode = (unsigned char)(readUnsigned(input) & 0xff);
     gradient.m_midPoint = (double)readU8(input) / 100.0;
-    input->seek(1, WPX_SEEK_CUR);
+    input->seek(1, librevenge::RVNG_SEEK_CUR);
     unsigned short numStops = (unsigned short)(readUnsigned(input) & 0xffff);
     if (m_version >= 1300)
-      input->seek(3, WPX_SEEK_CUR);
+      input->seek(3, librevenge::RVNG_SEEK_CUR);
     for (unsigned short i = 0; i < numStops; ++i)
     {
       libcdr::CDRGradientStop stop;
@@ -1852,13 +1852,13 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       if (m_version >= 1300)
       {
         if (v13flag == 0x9e || (m_version >= 1600 && v13flag == 0x96))
-          input->seek(26, WPX_SEEK_CUR);
+          input->seek(26, librevenge::RVNG_SEEK_CUR);
         else
-          input->seek(5, WPX_SEEK_CUR);
+          input->seek(5, librevenge::RVNG_SEEK_CUR);
       }
       stop.m_offset = (double)readUnsigned(input) / 100.0;
       if (m_version >= 1300)
-        input->seek(3, WPX_SEEK_CUR);
+        input->seek(3, librevenge::RVNG_SEEK_CUR);
       gradient.m_stops.push_back(stop);
     }
   }
@@ -1866,9 +1866,9 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   case 7: // Pattern
   {
     if (m_version >= 1300)
-      input->seek(8, WPX_SEEK_CUR);
+      input->seek(8, librevenge::RVNG_SEEK_CUR);
     else
-      input->seek(2, WPX_SEEK_CUR);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
     unsigned patternId = readU32(input);
     int tmpWidth = readInteger(input);
     int tmpHeight = readInteger(input);
@@ -1880,7 +1880,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       tileOffsetY = (double)readU16(input) / 100.0;
     }
     else
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
     double rcpOffset = (double)readU16(input) / 100.0;
     unsigned char flags = readU8(input);
     double patternWidth = (double)tmpWidth / (m_version < 600 ? 1000.0 : 254000.0);
@@ -1893,16 +1893,16 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       patternHeight = (double)tmpHeight / 100.0;
     }
     if (m_version >= 1300)
-      input->seek(6, WPX_SEEK_CUR);
+      input->seek(6, librevenge::RVNG_SEEK_CUR);
     else
-      input->seek(1, WPX_SEEK_CUR);
+      input->seek(1, librevenge::RVNG_SEEK_CUR);
     color1 = readColor(input);
     if (m_version >= 1300)
     {
       if (v13flag == 0x94 || (m_version >= 1600 && v13flag == 0x8c))
-        input->seek(31, WPX_SEEK_CUR);
+        input->seek(31, librevenge::RVNG_SEEK_CUR);
       else
-        input->seek(10, WPX_SEEK_CUR);
+        input->seek(10, librevenge::RVNG_SEEK_CUR);
     }
     color2 = readColor(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
@@ -1912,12 +1912,12 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   {
     if (m_version < 600)
       fillType = 10;
-    input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
     unsigned patternId = readUnsigned(input);
     if (m_version >= 1600)
-      input->seek(26, WPX_SEEK_CUR);
+      input->seek(26, librevenge::RVNG_SEEK_CUR);
     else if (m_version >= 1300)
-      input->seek(2, WPX_SEEK_CUR);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
     int tmpWidth = readUnsigned(input);
     int tmpHeight = readUnsigned(input);
     double tileOffsetX = 0.0;
@@ -1928,7 +1928,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       tileOffsetY = (double)readU16(input) / 100.0;
     }
     else
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
     double rcpOffset = (double)readU16(input) / 100.0;
     unsigned char flags = readU8(input);
     double patternWidth = (double)tmpWidth / (m_version < 600 ? 1000.0 :254000.0);
@@ -1941,9 +1941,9 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       patternHeight = (double)tmpHeight / 100.0;
     }
     if (m_version >= 1300)
-      input->seek(17, WPX_SEEK_CUR);
+      input->seek(17, librevenge::RVNG_SEEK_CUR);
     else
-      input->seek(21, WPX_SEEK_CUR);
+      input->seek(21, librevenge::RVNG_SEEK_CUR);
     if (m_version >= 600)
       patternId = readUnsigned(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
@@ -1954,12 +1954,12 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     if (m_version >= 1300)
     {
       if (v13flag == 0x4e)
-        input->seek(28, WPX_SEEK_CUR);
+        input->seek(28, librevenge::RVNG_SEEK_CUR);
       else
-        input->seek(4, WPX_SEEK_CUR);
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
     }
     else
-      input->seek(2, WPX_SEEK_CUR);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
     unsigned patternId = readUnsigned(input);
     int tmpWidth = readUnsigned(input);
     int tmpHeight = readUnsigned(input);
@@ -1971,7 +1971,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       tileOffsetY = (double)readU16(input) / 100.0;
     }
     else
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
     double rcpOffset = (double)readU16(input) / 100.0;
     unsigned char flags = readU8(input);
     double patternWidth = (double)tmpWidth / (m_version < 600 ? 1000.0 :254000.0);
@@ -1984,9 +1984,9 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
       patternHeight = (double)tmpHeight / 100.0;
     }
     if (m_version >= 1300)
-      input->seek(17, WPX_SEEK_CUR);
+      input->seek(17, librevenge::RVNG_SEEK_CUR);
     else
-      input->seek(21, WPX_SEEK_CUR);
+      input->seek(21, librevenge::RVNG_SEEK_CUR);
     if (m_version >= 600)
       patternId = readUnsigned(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
@@ -1999,12 +1999,12 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
     if (m_version >= 1300)
     {
       if (v13flag == 0x18e)
-        input->seek(36, WPX_SEEK_CUR);
+        input->seek(36, librevenge::RVNG_SEEK_CUR);
       else
-        input->seek(1, WPX_SEEK_CUR);
+        input->seek(1, librevenge::RVNG_SEEK_CUR);
     }
     else
-      input->seek(2, WPX_SEEK_CUR);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
     unsigned patternId = readU32(input);
     double patternWidth = 1.0;
     double patternHeight = 1.0;
@@ -2023,7 +2023,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
         tileOffsetY = (double)readU16(input) / 100.0;
       }
       else
-        input->seek(4, WPX_SEEK_CUR);
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
       rcpOffset = (double)readU16(input) / 100.0;
       flags = readU8(input);
       patternWidth = (double)tmpWidth / 254000.0;
@@ -2036,9 +2036,9 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
         patternHeight = (double)tmpHeight / 100.0;
       }
       if (m_version >= 1300)
-        input->seek(17, WPX_SEEK_CUR);
+        input->seek(17, librevenge::RVNG_SEEK_CUR);
       else
-        input->seek(21, WPX_SEEK_CUR);
+        input->seek(21, librevenge::RVNG_SEEK_CUR);
       patternId = readUnsigned(input);
     }
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
@@ -2050,7 +2050,7 @@ void libcdr::CDRParser::readFild(WPXInputStream *input, unsigned length)
   m_fillStyles[fillId] = CDRFillStyle(fillType, color1, color2, gradient, imageFill);
 }
 
-void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readOutl(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2061,7 +2061,7 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
     unsigned lngth = 0;
     while (id != 1)
     {
-      input->seek(lngth, WPX_SEEK_CUR);
+      input->seek(lngth, librevenge::RVNG_SEEK_CUR);
       id = readU32(input);
       lngth = readU32(input);
     }
@@ -2070,30 +2070,30 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
   unsigned short capsType = readU16(input);
   unsigned short joinType = readU16(input);
   if (m_version < 1300 && m_version >= 600)
-    input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
   double lineWidth = (double)readCoordinate(input);
   double stretch = (double)readU16(input) / 100.0;
   if (m_version >= 600)
-    input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
   double angle = readAngle(input);
   if (m_version >= 1300)
-    input->seek(46, WPX_SEEK_CUR);
+    input->seek(46, librevenge::RVNG_SEEK_CUR);
   else if (m_version >= 600)
-    input->seek(52, WPX_SEEK_CUR);
+    input->seek(52, librevenge::RVNG_SEEK_CUR);
   libcdr::CDRColor color = readColor(input);
   if (m_version < 600)
-    input->seek(10, WPX_SEEK_CUR);
+    input->seek(10, librevenge::RVNG_SEEK_CUR);
   else
-    input->seek(16, WPX_SEEK_CUR);
+    input->seek(16, librevenge::RVNG_SEEK_CUR);
   unsigned short numDash = readU16(input);
   int fixPosition = input->tell();
   std::vector<unsigned> dashArray;
   for (unsigned short i = 0; i < numDash; ++i)
     dashArray.push_back(readU16(input));
   if (m_version < 600)
-    input->seek(fixPosition + 20, WPX_SEEK_SET);
+    input->seek(fixPosition + 20, librevenge::RVNG_SEEK_SET);
   else
-    input->seek(fixPosition + 22, WPX_SEEK_SET);
+    input->seek(fixPosition + 22, librevenge::RVNG_SEEK_SET);
   unsigned startMarkerId = readU32(input);
   std::map<unsigned, CDRPath>::const_iterator iter = m_arrows.find(startMarkerId);
   CDRPath startMarker;
@@ -2107,7 +2107,7 @@ void libcdr::CDRParser::readOutl(WPXInputStream *input, unsigned length)
   m_lineStyles[lineId] = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker);
 }
 
-void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readLoda(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2122,16 +2122,16 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   std::vector<unsigned> argTypes(numOfArgs, 0);
   unsigned i = 0;
-  input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
+  input->seek(startPosition+startOfArgs, librevenge::RVNG_SEEK_SET);
   while (i<numOfArgs)
     argOffsets[i++] = readUnsigned(input);
-  input->seek(startPosition+startOfArgTypes, WPX_SEEK_SET);
+  input->seek(startPosition+startOfArgTypes, librevenge::RVNG_SEEK_SET);
   while (i>0)
     argTypes[--i] = readUnsigned(input);
 
   for (i=0; i < argTypes.size(); i++)
   {
-    input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
+    input->seek(startPosition+argOffsets[i], librevenge::RVNG_SEEK_SET);
     if (argTypes[i] == 0x1e) // loda coords
     {
       if ((m_version >= 400 && chunkType == 0x01) || (m_version < 400 && chunkType == 0x00)) // Rectangle
@@ -2190,10 +2190,10 @@ void libcdr::CDRParser::readLoda(WPXInputStream *input, unsigned length)
     else if (argTypes[i] == 0x4aba)
       readPageSize(input);
   }
-  input->seek(startPosition+chunkLength, WPX_SEEK_SET);
+  input->seek(startPosition+chunkLength, librevenge::RVNG_SEEK_SET);
 }
 
-void libcdr::CDRParser::readFlags(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readFlags(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2201,21 +2201,21 @@ void libcdr::CDRParser::readFlags(WPXInputStream *input, unsigned length)
   m_collector->collectFlags(flags, m_version >= 400);
 }
 
-void libcdr::CDRParser::readMcfg(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readMcfg(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   if (m_version >= 1300)
-    input->seek(12, WPX_SEEK_CUR);
+    input->seek(12, librevenge::RVNG_SEEK_CUR);
   else if (m_version >= 900)
-    input->seek(4, WPX_SEEK_CUR);
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
   else if (m_version < 700 && m_version >= 600)
-    input->seek(0x1c, WPX_SEEK_CUR);
+    input->seek(0x1c, librevenge::RVNG_SEEK_CUR);
   double width = 0.0;
   double height = 0.0;
   if (m_version < 400)
   {
-    input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
     double x0 = readCoordinate(input);
     double y0 = readCoordinate(input);
     double x1 = readCoordinate(input);
@@ -2231,12 +2231,12 @@ void libcdr::CDRParser::readMcfg(WPXInputStream *input, unsigned length)
   m_collector->collectPageSize(width, height, -width/2.0, -height/2.0);
 }
 
-void libcdr::CDRParser::readPolygonCoords(WPXInputStream *input)
+void libcdr::CDRParser::readPolygonCoords(librevenge::RVNGInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readPolygonCoords\n"));
 
   unsigned short pointNum = readU16(input);
-  input->seek(2, WPX_SEEK_CUR);
+  input->seek(2, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
   for (unsigned j=0; j<pointNum; j++)
@@ -2252,18 +2252,18 @@ void libcdr::CDRParser::readPolygonCoords(WPXInputStream *input)
   m_collector->collectPolygon();
 }
 
-void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
+void libcdr::CDRParser::readPolygonTransform(librevenge::RVNGInputStream *input)
 {
   if (m_version < 1300)
-    input->seek(4, WPX_SEEK_CUR);
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned numAngles = readU32(input);
   unsigned nextPoint = readU32(input);
   if (nextPoint <= 1)
     nextPoint = readU32(input);
   else
-    input->seek(4, WPX_SEEK_CUR);
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
   if (m_version >= 1300)
-    input->seek(4, WPX_SEEK_CUR);
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
   double rx = readDouble(input);
   double ry = readDouble(input);
   double cx = readCoordinate(input);
@@ -2271,14 +2271,14 @@ void libcdr::CDRParser::readPolygonTransform(WPXInputStream *input)
   m_collector->collectPolygonTransform(numAngles, nextPoint, rx, ry, cx, cy);
 }
 
-void libcdr::CDRParser::readPageSize(WPXInputStream *input)
+void libcdr::CDRParser::readPageSize(librevenge::RVNGInputStream *input)
 {
   double width = readCoordinate(input);
   double height = readCoordinate(input);
   m_collector->collectPageSize(width, height, -width/2.0, -height/2.0);
 }
 
-void libcdr::CDRParser::readWaldoBmp(WPXInputStream *input, unsigned length, unsigned id)
+void libcdr::CDRParser::readWaldoBmp(librevenge::RVNGInputStream *input, unsigned length, unsigned id)
 {
   if (m_version >= 400)
     return;
@@ -2286,7 +2286,7 @@ void libcdr::CDRParser::readWaldoBmp(WPXInputStream *input, unsigned length, uns
     return;
   if (readU8(input) != 0x4d)
     return;
-  input->seek(-2, WPX_SEEK_CUR);
+  input->seek(-2, librevenge::RVNG_SEEK_CUR);
   unsigned long tmpNumBytesRead = 0;
   const unsigned char *tmpBuffer = input->read(length, tmpNumBytesRead);
   if (!tmpNumBytesRead || length != tmpNumBytesRead)
@@ -2297,7 +2297,7 @@ void libcdr::CDRParser::readWaldoBmp(WPXInputStream *input, unsigned length, uns
   return;
 }
 
-void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readBmp(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2309,7 +2309,7 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
     if (readU8(input) != 0x4d)
       return;
     unsigned lngth = readU32(input);
-    input->seek(-6, WPX_SEEK_CUR);
+    input->seek(-6, librevenge::RVNG_SEEK_CUR);
     unsigned long tmpNumBytesRead = 0;
     const unsigned char *tmpBuffer = input->read(lngth, tmpNumBytesRead);
     if (!tmpNumBytesRead || lngth != tmpNumBytesRead)
@@ -2320,24 +2320,24 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
     return;
   }
   if (m_version < 600)
-    input->seek(14, WPX_SEEK_CUR);
+    input->seek(14, librevenge::RVNG_SEEK_CUR);
   else if (m_version < 700)
-    input->seek(46, WPX_SEEK_CUR);
+    input->seek(46, librevenge::RVNG_SEEK_CUR);
   else
-    input->seek(50, WPX_SEEK_CUR);
+    input->seek(50, librevenge::RVNG_SEEK_CUR);
   unsigned colorModel = readU32(input);
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned width = readU32(input);
   unsigned height = readU32(input);
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned bpp = readU32(input);
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned bmpsize = readU32(input);
-  input->seek(32, WPX_SEEK_CUR);
+  input->seek(32, librevenge::RVNG_SEEK_CUR);
   std::vector<unsigned> palette;
   if (bpp < 24 && colorModel != 5 && colorModel != 6)
   {
-    input->seek(2, WPX_SEEK_CUR);
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
     unsigned short palettesize = readU16(input);
     for (unsigned short i = 0; i <palettesize; ++i)
     {
@@ -2356,17 +2356,17 @@ void libcdr::CDRParser::readBmp(WPXInputStream *input, unsigned length)
   m_collector->collectBmp(imageId, colorModel, width, height, bpp, palette, bitmap);
 }
 
-void libcdr::CDRParser::readOpacity(WPXInputStream *input, unsigned /* length */)
+void libcdr::CDRParser::readOpacity(librevenge::RVNGInputStream *input, unsigned /* length */)
 {
   if (m_version < 1300)
-    input->seek(10, WPX_SEEK_CUR);
+    input->seek(10, librevenge::RVNG_SEEK_CUR);
   else
-    input->seek(14, WPX_SEEK_CUR);
+    input->seek(14, librevenge::RVNG_SEEK_CUR);
   double opacity = (double)readU16(input) / 1000.0;
   m_collector->collectFillOpacity(opacity);
 }
 
-void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readBmpf(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2376,13 +2376,13 @@ void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
     return;
   unsigned width = readU32(input);
   unsigned height = readU32(input);
-  input->seek(2, WPX_SEEK_CUR);
+  input->seek(2, librevenge::RVNG_SEEK_CUR);
   unsigned bpp = readU16(input);
   if (bpp != 1)
     return;
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned dataSize = readU32(input);
-  input->seek(length - dataSize - 28, WPX_SEEK_CUR);
+  input->seek(length - dataSize - 28, librevenge::RVNG_SEEK_CUR);
   std::vector<unsigned char> pattern(dataSize);
   unsigned long tmpNumBytesRead = 0;
   const unsigned char *tmpBuffer = input->read(dataSize, tmpNumBytesRead);
@@ -2392,22 +2392,22 @@ void libcdr::CDRParser::readBmpf(WPXInputStream *input, unsigned length)
   m_collector->collectBmpf(patternId, width, height, pattern);
 }
 
-void libcdr::CDRParser::readWaldoBmpf(WPXInputStream *input, unsigned id)
+void libcdr::CDRParser::readWaldoBmpf(librevenge::RVNGInputStream *input, unsigned id)
 {
   unsigned headerLength = readU32(input);
   if (headerLength != 40)
     return;
   unsigned width = readU32(input);
   unsigned height = readU32(input);
-  input->seek(2, WPX_SEEK_CUR);
+  input->seek(2, librevenge::RVNG_SEEK_CUR);
   unsigned bpp = readU16(input);
   if (bpp != 1)
     return;
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned dataSize = readU32(input);
   std::vector<unsigned char> pattern(dataSize);
   unsigned long tmpNumBytesRead = 0;
-  input->seek(24, WPX_SEEK_CUR); // TODO: is this empirical experience universal???
+  input->seek(24, librevenge::RVNG_SEEK_CUR); // TODO: is this empirical experience universal???
   const unsigned char *tmpBuffer = input->read(dataSize, tmpNumBytesRead);
   if (dataSize != tmpNumBytesRead)
     return;
@@ -2415,12 +2415,12 @@ void libcdr::CDRParser::readWaldoBmpf(WPXInputStream *input, unsigned id)
   m_collector->collectBmpf(id, width, height, pattern);
 }
 
-void libcdr::CDRParser::readPpdt(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readPpdt(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned short pointNum = readU16(input);
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned> knotVector;
   for (unsigned j=0; j<pointNum; j++)
@@ -2435,7 +2435,7 @@ void libcdr::CDRParser::readPpdt(WPXInputStream *input, unsigned length)
   m_collector->collectPpdt(points, knotVector);
 }
 
-void libcdr::CDRParser::readFtil(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readFtil(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2450,7 +2450,7 @@ void libcdr::CDRParser::readFtil(WPXInputStream *input, unsigned length)
   m_collector->collectFillTransform(fillTrafos);
 }
 
-void libcdr::CDRParser::readVersion(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readVersion(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2461,7 +2461,7 @@ void libcdr::CDRParser::readVersion(WPXInputStream *input, unsigned length)
     m_precision = libcdr::PRECISION_32BIT;
 }
 
-bool libcdr::CDRParser::_redirectX6Chunk(WPXInputStream **input, unsigned &length)
+bool libcdr::CDRParser::_redirectX6Chunk(librevenge::RVNGInputStream **input, unsigned &length)
 {
   if (m_version >= 1600 && length == 0x10)
   {
@@ -2473,8 +2473,8 @@ bool libcdr::CDRParser::_redirectX6Chunk(WPXInputStream **input, unsigned &lengt
       *input = m_externalStreams[streamNumber];
       if (*input)
       {
-        (*input)->seek(streamOffset, WPX_SEEK_SET);
-        return !(*input)->atEOS();
+        (*input)->seek(streamOffset, librevenge::RVNG_SEEK_SET);
+        return !(*input)->isEnd();
       }
       else
         return false;
@@ -2486,7 +2486,7 @@ bool libcdr::CDRParser::_redirectX6Chunk(WPXInputStream **input, unsigned &lengt
   return true;
 }
 
-void libcdr::CDRParser::readIccd(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readIccd(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2501,7 +2501,7 @@ void libcdr::CDRParser::readIccd(WPXInputStream *input, unsigned length)
   m_collector->collectColorProfile(profile);
 }
 
-void libcdr::CDRParser::readBBox(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readBBox(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2512,7 +2512,7 @@ void libcdr::CDRParser::readBBox(WPXInputStream *input, unsigned length)
   m_collector->collectBBox(x0, y0, x1, y1);
 }
 
-void libcdr::CDRParser::readSpnd(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readSpnd(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2520,7 +2520,7 @@ void libcdr::CDRParser::readSpnd(WPXInputStream *input, unsigned length)
   m_collector->collectSpnd(spnd);
 }
 
-void libcdr::CDRParser::readVpat(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readVpat(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
@@ -2529,31 +2529,31 @@ void libcdr::CDRParser::readVpat(WPXInputStream *input, unsigned length)
   const unsigned char *buffer = input->read(length-4, numBytesRead);
   if (numBytesRead)
   {
-    WPXBinaryData data(buffer, numBytesRead);
+    librevenge::RVNGBinaryData data(buffer, numBytesRead);
     m_collector->collectVectorPattern(fillId, data);
   }
 }
 
-void libcdr::CDRParser::readUidr(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readUidr(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned colorId = readU32(input);
   unsigned userId = readU32(input);
-  input->seek(36, WPX_SEEK_CUR);
+  input->seek(36, librevenge::RVNG_SEEK_CUR);
   CDRColor color = readColor(input);
   m_collector->collectPaletteEntry(colorId, userId, color);
 }
 
-void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readFont(librevenge::RVNGInputStream *input, unsigned length)
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned short fontId = readU16(input);
   unsigned short fontEncoding = readU16(input);
-  input->seek(14, WPX_SEEK_CUR);
+  input->seek(14, librevenge::RVNG_SEEK_CUR);
   std::vector<unsigned char> name;
-  WPXString fontName;
+  librevenge::RVNGString fontName;
   if (m_version >= 1200)
   {
     unsigned short character = 0;
@@ -2593,7 +2593,7 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
     m_fonts[fontId] = CDRFont(fontName, fontEncoding);
 }
 
-void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned length)
 {
 #ifndef DEBUG
   unsigned version = m_version;
@@ -2617,10 +2617,10 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     for (i=0; i<numFills; ++i)
     {
       unsigned fillId = readU32(input);
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
       fillIds[fillId] = readU32(input);
       if (m_version >= 1300)
-        input->seek(48, WPX_SEEK_CUR);
+        input->seek(48, librevenge::RVNG_SEEK_CUR);
     }
     unsigned numOutls = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numOutls 0x%x\n", numOutls));
@@ -2628,7 +2628,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     for (i=0; i<numOutls; ++i)
     {
       unsigned outlId = readU32(input);
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
       outlIds[outlId] = readU32(input);
     }
     unsigned numFonts = readU32(input);
@@ -2639,17 +2639,17 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     {
       unsigned fontStyleId = readU32(input);
       if (m_version < 1000)
-        input->seek(12, WPX_SEEK_CUR);
+        input->seek(12, librevenge::RVNG_SEEK_CUR);
       else
-        input->seek(20, WPX_SEEK_CUR);
+        input->seek(20, librevenge::RVNG_SEEK_CUR);
       fontIds[fontStyleId] = readU16(input);
       fontEncodings[fontStyleId] = readU16(input);
-      input->seek(8, WPX_SEEK_CUR);
+      input->seek(8, librevenge::RVNG_SEEK_CUR);
       fontSizes[fontStyleId] = readCoordinate(input);
       if (m_version < 1000)
-        input->seek(12, WPX_SEEK_CUR);
+        input->seek(12, librevenge::RVNG_SEEK_CUR);
       else
-        input->seek(20, WPX_SEEK_CUR);
+        input->seek(20, librevenge::RVNG_SEEK_CUR);
     }
     unsigned numAligns = readU32(input);
     std::map<unsigned,unsigned> aligns;
@@ -2657,49 +2657,49 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     for (i=0; i<numAligns; ++i)
     {
       unsigned alignId = readU32(input);
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
       aligns[alignId] = readU32(input);
     }
     unsigned numIntervals = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numIntervals 0x%x\n", numIntervals));
     for (i=0; i<numIntervals; ++i)
     {
-      input->seek(52, WPX_SEEK_CUR);
+      input->seek(52, librevenge::RVNG_SEEK_CUR);
     }
     unsigned numSet5s = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numSet5s 0x%x\n", numSet5s));
     for (i=0; i<numSet5s; ++i)
     {
-      input->seek(152, WPX_SEEK_CUR);
+      input->seek(152, librevenge::RVNG_SEEK_CUR);
     }
     unsigned numTabs = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numTabs 0x%x\n", numTabs));
     for (i=0; i<numTabs; ++i)
     {
-      input->seek(784, WPX_SEEK_CUR);
+      input->seek(784, librevenge::RVNG_SEEK_CUR);
     }
     unsigned numBullets = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numBullets 0x%x\n", numBullets));
     for (i=0; i<numBullets; ++i)
     {
-      input->seek(40, WPX_SEEK_CUR);
+      input->seek(40, librevenge::RVNG_SEEK_CUR);
       if (m_version > 1300)
-        input->seek(4, WPX_SEEK_CUR);
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
       if (m_version >= 1300)
       {
         if (readU32(input))
-          input->seek(68, WPX_SEEK_CUR);
+          input->seek(68, librevenge::RVNG_SEEK_CUR);
         else
-          input->seek(12, WPX_SEEK_CUR);
+          input->seek(12, librevenge::RVNG_SEEK_CUR);
       }
       else
       {
-        input->seek(20, WPX_SEEK_CUR);
+        input->seek(20, librevenge::RVNG_SEEK_CUR);
         if (m_version >= 1000)
-          input->seek(8, WPX_SEEK_CUR);
+          input->seek(8, librevenge::RVNG_SEEK_CUR);
         if (readU32(input))
-          input->seek(8, WPX_SEEK_CUR);
-        input->seek(8, WPX_SEEK_CUR);
+          input->seek(8, librevenge::RVNG_SEEK_CUR);
+        input->seek(8, librevenge::RVNG_SEEK_CUR);
       }
     }
     unsigned numIndents = readU32(input);
@@ -2708,7 +2708,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     for (i=0; i<numIndents; ++i)
     {
       unsigned indentId = readU32(input);
-      input->seek(12, WPX_SEEK_CUR);
+      input->seek(12, librevenge::RVNG_SEEK_CUR);
       rightIndents[indentId] = readCoordinate(input);
       firstIndents[indentId] = readCoordinate(input);
       leftIndents[indentId] = readCoordinate(input);
@@ -2717,15 +2717,15 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
     CDR_DEBUG_MSG(("CDRParser::readStlt numHypens 0x%x\n", numHypens));
     for (i=0; i<numHypens; ++i)
     {
-      input->seek(32, WPX_SEEK_CUR);
+      input->seek(32, librevenge::RVNG_SEEK_CUR);
       if (m_version >= 1300)
-        input->seek(4, WPX_SEEK_CUR);
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
     }
     unsigned numDropcaps = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numDropcaps 0x%x\n", numDropcaps));
     for (i=0; i<numDropcaps; ++i)
     {
-      input->seek(28, WPX_SEEK_CUR);
+      input->seek(28, librevenge::RVNG_SEEK_CUR);
     }
     try
     {
@@ -2737,7 +2737,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         CDR_DEBUG_MSG(("CDRParser::readStlt numSet11s 0x%x\n", numSet11s));
         for (i=0; i<numSet11s; ++i)
         {
-          input->seek(12, WPX_SEEK_CUR);
+          input->seek(12, librevenge::RVNG_SEEK_CUR);
         }
       }
       std::map<unsigned, CDRStltRecord> styles;
@@ -2749,12 +2749,12 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
         unsigned styleId = readU32(input);
         CDRStltRecord style;
         style.parentId = readU32(input);
-        input->seek(8, WPX_SEEK_CUR);
+        input->seek(8, librevenge::RVNG_SEEK_CUR);
         unsigned namelen = readU32(input);
         CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles namelen 0x%x\n", namelen));
         if (m_version >= 1200)
           namelen *= 2;
-        input->seek(namelen, WPX_SEEK_CUR);
+        input->seek(namelen, librevenge::RVNG_SEEK_CUR);
         style.fillId = readU32(input);
         style.outlId = readU32(input);
         if (num > 1)
@@ -2856,7 +2856,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
       {
         CDR_DEBUG_MSG(("Catching EndOfStreamException and trying to parse as version 801\n"));
         m_version = 801;
-        input->seek(startPosition, WPX_SEEK_SET);
+        input->seek(startPosition, librevenge::RVNG_SEEK_SET);
         readStlt(input, length);
         return;
       }
@@ -2875,7 +2875,7 @@ void libcdr::CDRParser::readStlt(WPXInputStream *input, unsigned length)
 #endif
 }
 
-void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
+void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned length)
 {
 #ifndef DEBUG
   try
@@ -2892,42 +2892,42 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     if (m_version >= 1600)
       return readTxsm16(input);
     if (m_version >= 1500)
-      input->seek(0x25, WPX_SEEK_CUR);
+      input->seek(0x25, librevenge::RVNG_SEEK_CUR);
     else
-      input->seek(0x24, WPX_SEEK_CUR);
+      input->seek(0x24, librevenge::RVNG_SEEK_CUR);
     if (readU32(input))
     {
       if (m_version < 800)
-        input->seek(32, WPX_SEEK_CUR);
+        input->seek(32, librevenge::RVNG_SEEK_CUR);
     }
     if (m_version < 800)
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
     unsigned textId = readU32(input);
-    input->seek(48, WPX_SEEK_CUR);
+    input->seek(48, librevenge::RVNG_SEEK_CUR);
     if (m_version >= 800)
     {
       if (readU32(input))
       {
-        input->seek(32, WPX_SEEK_CUR);
+        input->seek(32, librevenge::RVNG_SEEK_CUR);
         if (m_version >= 1300)
-          input->seek(8, WPX_SEEK_CUR);
+          input->seek(8, librevenge::RVNG_SEEK_CUR);
       }
     }
     if (m_version >= 1500)
-      input->seek(12, WPX_SEEK_CUR);
+      input->seek(12, librevenge::RVNG_SEEK_CUR);
     unsigned num = readU32(input);
     unsigned num4 = 1;
     if (!num)
     {
       if (m_version >= 800)
-        input->seek(4, WPX_SEEK_CUR);
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
       if (m_version > 800)
-        input->seek(2, WPX_SEEK_CUR);
+        input->seek(2, librevenge::RVNG_SEEK_CUR);
       if (m_version >= 1400)
-        input->seek(2, WPX_SEEK_CUR);
-      input->seek(24, WPX_SEEK_CUR);
+        input->seek(2, librevenge::RVNG_SEEK_CUR);
+      input->seek(24, librevenge::RVNG_SEEK_CUR);
       if (m_version < 800)
-        input->seek(8, WPX_SEEK_CUR);
+        input->seek(8, librevenge::RVNG_SEEK_CUR);
       num4 = readU32(input);
     }
 
@@ -2935,8 +2935,8 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
     {
       unsigned stlId = readU32(input);
       if (m_version >= 1300 && num)
-        input->seek(1, WPX_SEEK_CUR);
-      input->seek(1, WPX_SEEK_CUR);
+        input->seek(1, librevenge::RVNG_SEEK_CUR);
+      input->seek(1, librevenge::RVNG_SEEK_CUR);
       unsigned numRecords = readU32(input);
       std::map<unsigned, CDRCharacterStyle> charStyles;
       unsigned i = 0;
@@ -2965,15 +2965,15 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
             charStyle.m_charSet = charSet;
         }
         if (fl2&2) // Bold/Italic, etc.
-          input->seek(4, WPX_SEEK_CUR);
+          input->seek(4, librevenge::RVNG_SEEK_CUR);
         if (fl2&4) // Font Size
           charStyle.m_fontSize = readCoordinate(input);
         if (fl2&8) // assumption
-          input->seek(4, WPX_SEEK_CUR);
+          input->seek(4, librevenge::RVNG_SEEK_CUR);
         if (fl2&0x10) // Offset X
-          input->seek(4, WPX_SEEK_CUR);
+          input->seek(4, librevenge::RVNG_SEEK_CUR);
         if (fl2&0x20) // Offset Y
-          input->seek(4, WPX_SEEK_CUR);
+          input->seek(4, librevenge::RVNG_SEEK_CUR);
         if (fl2&0x40) // Font Colour
         {
           unsigned fillId = readU32(input);
@@ -2981,7 +2981,7 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
           if (iter != m_fillStyles.end())
             charStyle.m_fillStyle = iter->second;
           if (m_version >= 1500)
-            input->seek(48, WPX_SEEK_CUR);
+            input->seek(48, librevenge::RVNG_SEEK_CUR);
         }
         if (fl2&0x80) // Font Outl Colour
         {
@@ -2995,20 +2995,20 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
           if (m_version >= 1300)
           {
             unsigned tlen = readU32(input);
-            input->seek(tlen*2, WPX_SEEK_CUR);
+            input->seek(tlen*2, librevenge::RVNG_SEEK_CUR);
           }
           else
-            input->seek(4, WPX_SEEK_CUR);
+            input->seek(4, librevenge::RVNG_SEEK_CUR);
         }
         if (fl3&0x20) // Something
         {
           unsigned flag = readU8(input);
           if (flag)
-            input->seek(52, WPX_SEEK_CUR);
+            input->seek(52, librevenge::RVNG_SEEK_CUR);
         }
         if (fl0 == 0x02)
           if (m_version >= 1300)
-            input->seek(48, WPX_SEEK_CUR);
+            input->seek(48, librevenge::RVNG_SEEK_CUR);
 
         charStyles[2*i] = charStyle;
       }
@@ -3033,7 +3033,7 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
       std::vector<unsigned char> textData(numBytesRead);
       if (numBytesRead)
         memcpy(&textData[0], buffer, numBytesRead);
-      input->seek(1, WPX_SEEK_CUR); //skip the 0 ending character
+      input->seek(1, librevenge::RVNG_SEEK_CUR); //skip the 0 ending character
 
       if (!textData.empty())
         m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
@@ -3046,52 +3046,52 @@ void libcdr::CDRParser::readTxsm(WPXInputStream *input, unsigned length)
 #endif
 }
 
-void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
+void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
 {
 #ifndef DEBUG
   try
   {
 #endif
     unsigned frameFlag = readU32(input);
-    input->seek(41, WPX_SEEK_CUR);
+    input->seek(41, librevenge::RVNG_SEEK_CUR);
 
     unsigned textId = readU32(input);
 
-    input->seek(48, WPX_SEEK_CUR);
+    input->seek(48, librevenge::RVNG_SEEK_CUR);
     if (!frameFlag)
     {
-      input->seek(28, WPX_SEEK_CUR);
+      input->seek(28, librevenge::RVNG_SEEK_CUR);
       unsigned tlen = readU32(input);
-      input->seek(2*tlen + 4, WPX_SEEK_CUR);
+      input->seek(2*tlen + 4, librevenge::RVNG_SEEK_CUR);
     }
     else
     {
       unsigned textOnPath = readU32(input);
       if (textOnPath == 1)
       {
-        input->seek(4, WPX_SEEK_CUR); // var1
-        input->seek(4, WPX_SEEK_CUR); // Orientation
-        input->seek(4, WPX_SEEK_CUR); // var2
-        input->seek(4, WPX_SEEK_CUR); // var3
-        input->seek(4, WPX_SEEK_CUR); // Offset
-        input->seek(4, WPX_SEEK_CUR); // var4
-        input->seek(4, WPX_SEEK_CUR); // Distance
-        input->seek(4, WPX_SEEK_CUR); // var5
-        input->seek(4, WPX_SEEK_CUR); // Mirror Vert
-        input->seek(4, WPX_SEEK_CUR); // Mirror Hor
-        input->seek(4, WPX_SEEK_CUR); // var6
-        input->seek(4, WPX_SEEK_CUR); // var7
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var1
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // Orientation
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var2
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var3
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // Offset
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var4
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // Distance
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var5
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // Mirror Vert
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // Mirror Hor
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var6
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var7
       }
       else
-        input->seek(8, WPX_SEEK_CUR);
-      input->seek(4, WPX_SEEK_CUR);
+        input->seek(8, librevenge::RVNG_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
     }
 
     unsigned stlId = readU32(input);
 
     if (frameFlag)
-      input->seek(1, WPX_SEEK_CUR);
-    input->seek(1, WPX_SEEK_CUR);
+      input->seek(1, librevenge::RVNG_SEEK_CUR);
+    input->seek(1, librevenge::RVNG_SEEK_CUR);
 
     unsigned len2 = readU32(input);
     CDRCharacterStyle defaultStyle;
@@ -3104,14 +3104,14 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
     for (i=0; i<numRecords; ++i)
     {
       charStyles[i*2] = defaultStyle;
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
       unsigned flag = readU8(input);
-      input->seek(1, WPX_SEEK_CUR);
+      input->seek(1, librevenge::RVNG_SEEK_CUR);
       unsigned lenN = 0;
       if (flag & 0x04)
       {
         lenN = readU32(input);
-        input->seek(2*lenN, WPX_SEEK_CUR);
+        input->seek(2*lenN, librevenge::RVNG_SEEK_CUR);
       }
       lenN = readU32(input);
       _readX6StyleString(input, 2*lenN, charStyles[i*2]);
@@ -3142,15 +3142,15 @@ void libcdr::CDRParser::readTxsm16(WPXInputStream *input)
 #endif
 }
 
-void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
+void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
 {
   unsigned fflag1 = readU32(input);
-  input->seek(0x20, WPX_SEEK_CUR);
+  input->seek(0x20, librevenge::RVNG_SEEK_CUR);
   unsigned textId = readU32(input);
-  input->seek(48, WPX_SEEK_CUR);
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(48, librevenge::RVNG_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   if (!fflag1)
-    input->seek(8, WPX_SEEK_CUR);
+    input->seek(8, librevenge::RVNG_SEEK_CUR);
   unsigned stlId = readU32(input);
   unsigned numSt = readU32(input);
   unsigned i = 0;
@@ -3159,7 +3159,7 @@ void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
   {
     CDRCharacterStyle charStyle;
     unsigned char flag = readU8(input);
-    input->seek(3, WPX_SEEK_CUR);
+    input->seek(3, librevenge::RVNG_SEEK_CUR);
     if (flag&0x01)
     {
       unsigned short fontId = readU16(input);
@@ -3174,13 +3174,13 @@ void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
         charStyle.m_charSet = charSet;
     }
     else
-      input->seek(4, WPX_SEEK_CUR);
-    input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
     if (flag&0x04)
       charStyle.m_fontSize = readCoordinate(input);
     else
-      input->seek(4, WPX_SEEK_CUR);
-    input->seek(44, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
+    input->seek(44, librevenge::RVNG_SEEK_CUR);
     if (flag&0x10)
     {
       unsigned fillId = readU32(input);
@@ -3202,21 +3202,21 @@ void libcdr::CDRParser::readTxsm6(WPXInputStream *input)
   std::vector<unsigned char> charDescriptions;
   for (i=0; i<numChars; ++i)
   {
-    input->seek(4, WPX_SEEK_CUR);
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
     textData.push_back(readU8(input));
-    input->seek(5, WPX_SEEK_CUR);
+    input->seek(5, librevenge::RVNG_SEEK_CUR);
     charDescriptions.push_back(readU8(input) << 1);
-    input->seek(1, WPX_SEEK_CUR);
+    input->seek(1, librevenge::RVNG_SEEK_CUR);
   }
   if (!textData.empty())
     m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
 }
 
-void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
+void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
 {
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned textId = readU16(input);
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned stlId = readU16(input);
   unsigned numSt = readU16(input);
   unsigned i = 0;
@@ -3225,7 +3225,7 @@ void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
   {
     CDRCharacterStyle charStyle;
     unsigned char flag = readU8(input);
-    input->seek(1, WPX_SEEK_CUR);
+    input->seek(1, librevenge::RVNG_SEEK_CUR);
     if (flag&0x01)
     {
       unsigned short fontId = readU8(input);
@@ -3240,13 +3240,13 @@ void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
         charStyle.m_charSet = charSet;
     }
     else
-      input->seek(2, WPX_SEEK_CUR);
-    input->seek(6, WPX_SEEK_CUR);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
+    input->seek(6, librevenge::RVNG_SEEK_CUR);
     if (flag&0x04)
       charStyle.m_fontSize = readCoordinate(input);
     else
-      input->seek(2, WPX_SEEK_CUR);
-    input->seek(2, WPX_SEEK_CUR);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
     if (flag&0x10)
     {
       unsigned fillId = readU32(input);
@@ -3255,7 +3255,7 @@ void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
         charStyle.m_fillStyle = iter->second;
     }
     else
-      input->seek(4, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
     if (flag&0x20)
     {
       unsigned outlId = readU32(input);
@@ -3264,8 +3264,8 @@ void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
         charStyle.m_lineStyle = iter->second;
     }
     else
-      input->seek(4, WPX_SEEK_CUR);
-    input->seek(14, WPX_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
+    input->seek(14, librevenge::RVNG_SEEK_CUR);
     charStyles[2*i] = charStyle;
   }
   unsigned numChars = readU16(input);
@@ -3273,21 +3273,21 @@ void libcdr::CDRParser::readTxsm5(WPXInputStream *input)
   std::vector<unsigned char> charDescriptions;
   for (i=0; i<numChars; ++i)
   {
-    input->seek(4, WPX_SEEK_CUR);
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
     textData.push_back(readU8(input));
-    input->seek(1, WPX_SEEK_CUR);
+    input->seek(1, librevenge::RVNG_SEEK_CUR);
     charDescriptions.push_back((readU16(input) >> 3) & 0xff);
   }
   if (!textData.empty())
     m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
 }
 
-void libcdr::CDRParser::readUdta(WPXInputStream *input)
+void libcdr::CDRParser::readUdta(librevenge::RVNGInputStream *input)
 {
   CDR_DEBUG_MSG(("libcdr::CDRParser::readUdta\n"));
   if (m_version >= 1300 && m_version < 1600)
   {
-    input->seek(6, WPX_SEEK_CUR); // Not sure what these bytes are for.  Field id?
+    input->seek(6, librevenge::RVNG_SEEK_CUR); // Not sure what these bytes are for.  Field id?
     std::vector<unsigned char> name;
     unsigned short c;
     for (;;)
@@ -3296,12 +3296,12 @@ void libcdr::CDRParser::readUdta(WPXInputStream *input)
       name.push_back((unsigned char)(c & 0xff));
       name.push_back((unsigned char)(c >> 8));
     }
-    WPXString fieldName;
+    librevenge::RVNGString fieldName;
     appendCharacters(fieldName, name);
   }
 }
 
-void libcdr::CDRParser::readStyd(WPXInputStream *input)
+void libcdr::CDRParser::readStyd(librevenge::RVNGInputStream *input)
 {
   CDR_DEBUG_MSG(("libcdr::CDRParser::readStyd\n"));
   if (m_version >= 700)
@@ -3320,16 +3320,16 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   std::vector<unsigned> argTypes(numOfArgs, 0);
   unsigned i = 0;
-  input->seek(startPosition+startOfArgs, WPX_SEEK_SET);
+  input->seek(startPosition+startOfArgs, librevenge::RVNG_SEEK_SET);
   while (i<numOfArgs)
     argOffsets[i++] = readUnsigned(input);
-  input->seek(startPosition+startOfArgTypes, WPX_SEEK_SET);
+  input->seek(startPosition+startOfArgTypes, librevenge::RVNG_SEEK_SET);
   while (i>0)
     argTypes[--i] = readUnsigned(input);
 
   for (i=0; i < argTypes.size(); i++)
   {
-    input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
+    input->seek(startPosition+argOffsets[i], librevenge::RVNG_SEEK_SET);
     CDR_DEBUG_MSG(("Styd: argument type: 0x%x\n", argTypes[i]));
     switch(argTypes[i])
     {
@@ -3354,7 +3354,7 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
     case STYD_FONTS:
     {
       if (m_version >= 600)
-        input->seek(4, WPX_SEEK_CUR);
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
       unsigned short fontId = readUnsignedShort(input);
       std::map<unsigned, CDRFont>::const_iterator iterFont = m_fonts.find(fontId);
       if (iterFont != m_fonts.end())
@@ -3366,7 +3366,7 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
       if (charSet)
         charStyle.m_charSet = charSet;
       if (m_version >= 600)
-        input->seek(8, WPX_SEEK_CUR);
+        input->seek(8, librevenge::RVNG_SEEK_CUR);
       charStyle.m_fontSize = readCoordinate(input);
       break;
     }
@@ -3391,20 +3391,20 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
       break;
     }
   }
-  input->seek(startPosition+chunkLength, WPX_SEEK_SET);
+  input->seek(startPosition+chunkLength, librevenge::RVNG_SEEK_SET);
   m_collector->collectStld(styleId, charStyle);
 }
 
-void libcdr::CDRParser::readArtisticText(WPXInputStream *input)
+void libcdr::CDRParser::readArtisticText(librevenge::RVNGInputStream *input)
 {
   double x = readCoordinate(input);
   double y = readCoordinate(input);
   m_collector->collectArtisticText(x, y);
 }
 
-void libcdr::CDRParser::readParagraphText(WPXInputStream *input)
+void libcdr::CDRParser::readParagraphText(librevenge::RVNGInputStream *input)
 {
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   double width = readCoordinate(input);
   double height = readCoordinate(input);
   m_collector->collectParagraphText(0.0, 0.0, width, height);

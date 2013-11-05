@@ -33,7 +33,7 @@
 #include <map>
 #include <vector>
 #include <stack>
-#include <libwpg/libwpg.h>
+#include <librevenge/librevenge.h>
 #include <lcms2.h>
 #include "CDRTypes.h"
 #include "CDRPath.h"
@@ -78,7 +78,7 @@ public:
   void collectColorProfile(const std::vector<unsigned char> &profile);
   void collectBBox(double, double, double, double) {}
   void collectSpnd(unsigned) {}
-  void collectVectorPattern(unsigned, const WPXBinaryData &) {}
+  void collectVectorPattern(unsigned, const librevenge::RVNGBinaryData &) {}
   void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color);
   void collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
                    const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides);

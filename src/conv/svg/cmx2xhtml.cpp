@@ -32,9 +32,10 @@
 #include <sstream>
 #include <stdio.h>
 #include <string.h>
+#include <librevenge/librevenge.h>
+#include <librevenge-generators/librevenge-generators.h>
+#include <librevenge-stream/librevenge-stream.h>
 #include <libcdr/libcdr.h>
-#include <libwpd-stream/libwpd-stream.h>
-#include <libwpd/libwpd.h>
 
 namespace
 {
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
   if (!file)
     return printUsage();
 
-  WPXFileStream input(file);
+  librevenge::RVNGFileStream input(file);
 
   if (!libcdr::CMXDocument::isSupported(&input))
   {
@@ -76,13 +77,13 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  libcdr::CDRStringVector output;
-  if (!libcdr::CMXDocument::generateSVG(&input, output))
+  librevenge::RVNGStringVector output;
+  librevenge::RVNGSVGDrawingGenerator generator(output, "");
+  if (!libcdr::CMXDocument::parse(&input, &generator))
   {
     std::cerr << "ERROR: SVG Generation failed!" << std::endl;
     return 1;
   }
-
   if (output.empty())
   {
     std::cerr << "ERROR: No SVG document generated!" << std::endl;

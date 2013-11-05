@@ -30,192 +30,10 @@
 
 #include <stdio.h>
 #include <string.h>
-
+#include <librevenge/librevenge.h>
+#include <librevenge-generators/librevenge-generators.h>
+#include <librevenge-stream/librevenge-stream.h>
 #include <libcdr/libcdr.h>
-#include <libwpd-stream/libwpd-stream.h>
-#include <libwpd/libwpd.h>
-#include <libwpg/libwpg.h>
-
-class RawPainter : public libwpg::WPGPaintInterface
-{
-public:
-  RawPainter();
-
-  void startGraphics(const ::WPXPropertyList &propList);
-  void endGraphics();
-  void startLayer(const ::WPXPropertyList &propList);
-  void endLayer();
-  void startEmbeddedGraphics(const ::WPXPropertyList &propList);
-  void endEmbeddedGraphics();
-
-  void setStyle(const ::WPXPropertyList &propList, const ::WPXPropertyListVector &gradient);
-
-  void drawRectangle(const ::WPXPropertyList &propList);
-  void drawEllipse(const ::WPXPropertyList &propList);
-  void drawPolyline(const ::WPXPropertyListVector &vertices);
-  void drawPolygon(const ::WPXPropertyListVector &vertices);
-  void drawPath(const ::WPXPropertyListVector &path);
-  void drawGraphicObject(const ::WPXPropertyList &propList, const ::WPXBinaryData &binaryData);
-  void startTextObject(const ::WPXPropertyList &propList, const ::WPXPropertyListVector &path);
-  void endTextObject();
-  void startTextLine(const ::WPXPropertyList &propList);
-  void endTextLine();
-  void startTextSpan(const ::WPXPropertyList &propList);
-  void endTextSpan();
-  void insertText(const ::WPXString &str);
-};
-
-WPXString getPropString(const WPXPropertyList &propList)
-{
-  WPXString propString;
-  WPXPropertyList::Iter i(propList);
-  if (!i.last())
-  {
-    propString.append(i.key());
-    propString.append(": ");
-    propString.append(i()->getStr().cstr());
-    for (; i.next(); )
-    {
-      propString.append(", ");
-      propString.append(i.key());
-      propString.append(": ");
-      propString.append(i()->getStr().cstr());
-    }
-  }
-
-  return propString;
-}
-
-WPXString getPropString(const WPXPropertyListVector &itemList)
-{
-  WPXString propString;
-
-  propString.append("(");
-  WPXPropertyListVector::Iter i(itemList);
-
-  if (!i.last())
-  {
-    propString.append("(");
-    propString.append(getPropString(i()));
-    propString.append(")");
-
-    for (; i.next();)
-    {
-      propString.append(", (");
-      propString.append(getPropString(i()));
-      propString.append(")");
-    }
-
-  }
-  propString.append(")");
-
-  return propString;
-}
-
-RawPainter::RawPainter(): libwpg::WPGPaintInterface()
-{
-}
-
-void RawPainter::startGraphics(const ::WPXPropertyList &propList)
-{
-  printf("RawPainter::startGraphics(%s)\n", getPropString(propList).cstr());
-}
-
-void RawPainter::endGraphics()
-{
-  printf("RawPainter::endGraphics\n");
-}
-
-void RawPainter::startLayer(const ::WPXPropertyList &propList)
-{
-  printf("RawPainter::startLayer (%s)\n", getPropString(propList).cstr());
-}
-
-void RawPainter::endLayer()
-{
-  printf("RawPainter::endLayer\n");
-}
-
-void RawPainter::startEmbeddedGraphics(const ::WPXPropertyList &propList)
-{
-  printf("RawPainter::startEmbeddedGraphics (%s)\n", getPropString(propList).cstr());
-}
-
-void RawPainter::endEmbeddedGraphics()
-{
-  printf("RawPainter::endEmbeddedGraphics \n");
-}
-
-void RawPainter::setStyle(const ::WPXPropertyList &propList, const ::WPXPropertyListVector &gradient)
-{
-  printf("RawPainter::setStyle(%s, gradient: (%s))\n", getPropString(propList).cstr(), getPropString(gradient).cstr());
-}
-
-void RawPainter::drawRectangle(const ::WPXPropertyList &propList)
-{
-  printf("RawPainter::drawRectangle (%s)\n", getPropString(propList).cstr());
-}
-
-void RawPainter::drawEllipse(const ::WPXPropertyList &propList)
-{
-  printf("RawPainter::drawEllipse (%s)\n", getPropString(propList).cstr());
-}
-
-void RawPainter::drawPolyline(const ::WPXPropertyListVector &vertices)
-{
-  printf("RawPainter::drawPolyline (%s)\n", getPropString(vertices).cstr());
-}
-
-void RawPainter::drawPolygon(const ::WPXPropertyListVector &vertices)
-{
-  printf("RawPainter::drawPolygon (%s)\n", getPropString(vertices).cstr());
-}
-
-void RawPainter::drawPath(const ::WPXPropertyListVector &path)
-{
-  printf("RawPainter::drawPath (%s)\n", getPropString(path).cstr());
-}
-
-void RawPainter::drawGraphicObject(const ::WPXPropertyList &propList, const ::WPXBinaryData & /*binaryData*/)
-{
-  printf("RawPainter::drawGraphicObject (%s)\n", getPropString(propList).cstr());
-}
-
-void RawPainter::startTextObject(const ::WPXPropertyList &propList, const ::WPXPropertyListVector &path)
-{
-  printf("RawPainter::startTextObject (%s, path: (%s))\n", getPropString(propList).cstr(), getPropString(path).cstr());
-}
-
-void RawPainter::endTextObject()
-{
-  printf("RawPainter::endTextObject\n");
-}
-
-void RawPainter::startTextLine(const ::WPXPropertyList &propList)
-{
-  printf("RawPainter::startTextLine (%s)\n", getPropString(propList).cstr());
-}
-
-void RawPainter::endTextLine()
-{
-  printf("RawPainter::endTextLine\n");
-}
-
-void RawPainter::startTextSpan(const ::WPXPropertyList &propList)
-{
-  printf("RawPainter::startTextSpan (%s)\n", getPropString(propList).cstr());
-}
-
-void RawPainter::endTextSpan()
-{
-  printf("RawPainter::endTextSpan\n");
-}
-
-void RawPainter::insertText(const ::WPXString &str)
-{
-  printf("RawPainter::insertText (%s)\n", str.cstr());
-}
-
 
 namespace
 {
@@ -249,7 +67,7 @@ int main(int argc, char *argv[])
   if (!file)
     return printUsage();
 
-  WPXFileStream input(file);
+  librevenge::RVNGFileStream input(file);
 
   if (!libcdr::CMXDocument::isSupported(&input))
   {
@@ -257,7 +75,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  RawPainter painter;
+  librevenge::RVNGRawDrawingGenerator painter;
   libcdr::CMXDocument::parse(&input, &painter);
 
   return 0;

@@ -33,8 +33,6 @@
 #include "CDRCollector.h"
 #include "CDRPath.h"
 
-class WPXInputSTream;
-
 namespace libcdr
 {
 
@@ -54,12 +52,12 @@ private:
 
 
 protected:
-  double readRectCoord(WPXInputStream *input, bool bigEndian = false);
-  double readCoordinate(WPXInputStream *input, bool bigEndian = false);
-  unsigned readUnsigned(WPXInputStream *input, bool bigEndian = false);
-  unsigned short readUnsignedShort(WPXInputStream *input, bool bigEndian = false);
-  int readInteger(WPXInputStream *input, bool bigEndian = false);
-  double readAngle(WPXInputStream *input, bool bigEndian = false);
+  double readRectCoord(librevenge::RVNGInputStream *input, bool bigEndian = false);
+  double readCoordinate(librevenge::RVNGInputStream *input, bool bigEndian = false);
+  unsigned readUnsigned(librevenge::RVNGInputStream *input, bool bigEndian = false);
+  unsigned short readUnsignedShort(librevenge::RVNGInputStream *input, bool bigEndian = false);
+  int readInteger(librevenge::RVNGInputStream *input, bool bigEndian = false);
+  double readAngle(librevenge::RVNGInputStream *input, bool bigEndian = false);
 
   void processPath(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &types, CDRPath &path);
   void outputPath(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &types);

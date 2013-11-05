@@ -30,53 +30,10 @@
 
 #include <stdio.h>
 #include <string.h>
-
+#include <librevenge/librevenge.h>
+#include <librevenge-generators/librevenge-generators.h>
+#include <librevenge-stream/librevenge-stream.h>
 #include <libcdr/libcdr.h>
-#include <libwpd-stream/libwpd-stream.h>
-#include <libwpd/libwpd.h>
-
-class TextPainter : public libwpg::WPGPaintInterface
-{
-public:
-  TextPainter();
-
-  void startGraphics(const ::WPXPropertyList &) {}
-  void endGraphics() {}
-  void startLayer(const ::WPXPropertyList &) {}
-  void endLayer() {}
-  void startEmbeddedGraphics(const ::WPXPropertyList &) {}
-  void endEmbeddedGraphics() {}
-
-  void setStyle(const ::WPXPropertyList &, const ::WPXPropertyListVector &) {}
-
-  void drawRectangle(const ::WPXPropertyList &) {}
-  void drawEllipse(const ::WPXPropertyList &) {}
-  void drawPolyline(const ::WPXPropertyListVector &) {}
-  void drawPolygon(const ::WPXPropertyListVector &) {}
-  void drawPath(const ::WPXPropertyListVector &) {}
-  void drawGraphicObject(const ::WPXPropertyList &, const ::WPXBinaryData &) {}
-  void startTextObject(const ::WPXPropertyList &, const ::WPXPropertyListVector &) {}
-  void endTextObject() {}
-  void startTextLine(const ::WPXPropertyList &) {}
-  void endTextLine();
-  void startTextSpan(const ::WPXPropertyList &) {}
-  void endTextSpan() {}
-  void insertText(const ::WPXString &str);
-};
-
-TextPainter::TextPainter(): libwpg::WPGPaintInterface()
-{
-}
-
-void TextPainter::insertText(const ::WPXString &str)
-{
-  printf("%s", str.cstr());
-}
-
-void TextPainter::endTextLine()
-{
-  printf("\n");
-}
 
 namespace
 {
@@ -110,7 +67,7 @@ int main(int argc, char *argv[])
   if (!file)
     return printUsage();
 
-  WPXFileStream input(file);
+  librevenge::RVNGFileStream input(file);
 
   if (!libcdr::CDRDocument::isSupported(&input))
   {
@@ -118,7 +75,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  TextPainter painter;
+  librevenge::RVNGTextDrawingGenerator painter;
   if (!libcdr::CDRDocument::parse(&input, &painter))
   {
     fprintf(stderr, "ERROR: Parsing of document failed!\n");

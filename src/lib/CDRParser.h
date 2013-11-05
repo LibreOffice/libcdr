@@ -35,7 +35,7 @@
 #include <vector>
 #include <map>
 #include <stack>
-#include <libwpd-stream/libwpd-stream.h>
+#include <librevenge-stream/librevenge-stream.h>
 #include "CDRTypes.h"
 #include "CommonParser.h"
 
@@ -47,75 +47,75 @@ class CDRCollector;
 class CDRParser : protected CommonParser
 {
 public:
-  explicit CDRParser(const std::vector<WPXInputStream *> &externalStreams, CDRCollector *collector);
+  explicit CDRParser(const std::vector<librevenge::RVNGInputStream *> &externalStreams, CDRCollector *collector);
   virtual ~CDRParser();
-  bool parseRecords(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
-  bool parseWaldo(WPXInputStream *input);
+  bool parseRecords(librevenge::RVNGInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
+  bool parseWaldo(librevenge::RVNGInputStream *input);
 
 private:
   CDRParser();
   CDRParser(const CDRParser &);
   CDRParser &operator=(const CDRParser &);
-  bool parseWaldoStructure(WPXInputStream *input, std::stack<WaldoRecordType1> &waldoStack,
+  bool parseWaldoStructure(librevenge::RVNGInputStream *input, std::stack<WaldoRecordType1> &waldoStack,
                            const std::map<unsigned, WaldoRecordType1> &records1,
                            std::map<unsigned, WaldoRecordInfo> &records2);
-  bool gatherWaldoInformation(WPXInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
+  bool gatherWaldoInformation(librevenge::RVNGInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
                               std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
                               std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
                               std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther);
-  void readWaldoRecord(WPXInputStream *input, const WaldoRecordInfo &info);
-  bool parseRecord(WPXInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
-  void readRecord(unsigned fourCC, unsigned length, WPXInputStream *input);
-  double readRectCoord(WPXInputStream *input);
-  CDRColor readColor(WPXInputStream *input);
+  void readWaldoRecord(librevenge::RVNGInputStream *input, const WaldoRecordInfo &info);
+  bool parseRecord(librevenge::RVNGInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
+  void readRecord(unsigned fourCC, unsigned length, librevenge::RVNGInputStream *input);
+  double readRectCoord(librevenge::RVNGInputStream *input);
+  CDRColor readColor(librevenge::RVNGInputStream *input);
 
-  void readRectangle(WPXInputStream *input);
-  void readEllipse(WPXInputStream *input);
-  void readLineAndCurve(WPXInputStream *input);
-  void readBitmap(WPXInputStream *input);
-  void readPageSize(WPXInputStream *input);
-  void readWaldoBmp(WPXInputStream *input, unsigned length, unsigned id);
-  void readWaldoBmpf(WPXInputStream *input, unsigned id);
-  void readWaldoTrfd(WPXInputStream *input);
-  void readWaldoOutl(WPXInputStream *input);
-  void readWaldoFill(WPXInputStream *input);
-  void readWaldoLoda(WPXInputStream *input, unsigned length);
-  void readOpacity(WPXInputStream *input, unsigned length);
-  void readTrfd(WPXInputStream *input, unsigned length);
-  void readFild(WPXInputStream *input, unsigned length);
-  void readOutl(WPXInputStream *input, unsigned length);
-  void readLoda(WPXInputStream *input, unsigned length);
-  void readFlags(WPXInputStream *input, unsigned length);
-  void readMcfg(WPXInputStream *input, unsigned length);
-  void readPath(WPXInputStream *input);
-  void readArrw(WPXInputStream *input, unsigned length);
-  void readPolygonCoords(WPXInputStream *input);
-  void readPolygonTransform(WPXInputStream *input);
-  void readBmp(WPXInputStream *input, unsigned length);
-  void readBmpf(WPXInputStream *input, unsigned length);
-  void readPpdt(WPXInputStream *input, unsigned length);
-  void readFtil(WPXInputStream *input, unsigned length);
-  void readDisp(WPXInputStream *input, unsigned length);
-  void readVersion(WPXInputStream *input, unsigned length);
-  void readIccd(WPXInputStream *input, unsigned length);
-  void readBBox(WPXInputStream *input, unsigned length);
-  void readSpnd(WPXInputStream *input, unsigned length);
-  void readVpat(WPXInputStream *input, unsigned length);
-  void readUidr(WPXInputStream *input, unsigned length);
-  void readFont(WPXInputStream *input, unsigned length);
-  void readStlt(WPXInputStream *input, unsigned length);
-  void readStyd(WPXInputStream *input);
-  void readTxsm(WPXInputStream *input, unsigned length);
-  void readTxsm16(WPXInputStream *input);
-  void readTxsm6(WPXInputStream *input);
-  void readTxsm5(WPXInputStream *input);
-  void readUdta(WPXInputStream *input);
-  void readArtisticText(WPXInputStream *input);
-  void readParagraphText(WPXInputStream *input);
+  void readRectangle(librevenge::RVNGInputStream *input);
+  void readEllipse(librevenge::RVNGInputStream *input);
+  void readLineAndCurve(librevenge::RVNGInputStream *input);
+  void readBitmap(librevenge::RVNGInputStream *input);
+  void readPageSize(librevenge::RVNGInputStream *input);
+  void readWaldoBmp(librevenge::RVNGInputStream *input, unsigned length, unsigned id);
+  void readWaldoBmpf(librevenge::RVNGInputStream *input, unsigned id);
+  void readWaldoTrfd(librevenge::RVNGInputStream *input);
+  void readWaldoOutl(librevenge::RVNGInputStream *input);
+  void readWaldoFill(librevenge::RVNGInputStream *input);
+  void readWaldoLoda(librevenge::RVNGInputStream *input, unsigned length);
+  void readOpacity(librevenge::RVNGInputStream *input, unsigned length);
+  void readTrfd(librevenge::RVNGInputStream *input, unsigned length);
+  void readFild(librevenge::RVNGInputStream *input, unsigned length);
+  void readOutl(librevenge::RVNGInputStream *input, unsigned length);
+  void readLoda(librevenge::RVNGInputStream *input, unsigned length);
+  void readFlags(librevenge::RVNGInputStream *input, unsigned length);
+  void readMcfg(librevenge::RVNGInputStream *input, unsigned length);
+  void readPath(librevenge::RVNGInputStream *input);
+  void readArrw(librevenge::RVNGInputStream *input, unsigned length);
+  void readPolygonCoords(librevenge::RVNGInputStream *input);
+  void readPolygonTransform(librevenge::RVNGInputStream *input);
+  void readBmp(librevenge::RVNGInputStream *input, unsigned length);
+  void readBmpf(librevenge::RVNGInputStream *input, unsigned length);
+  void readPpdt(librevenge::RVNGInputStream *input, unsigned length);
+  void readFtil(librevenge::RVNGInputStream *input, unsigned length);
+  void readDisp(librevenge::RVNGInputStream *input, unsigned length);
+  void readVersion(librevenge::RVNGInputStream *input, unsigned length);
+  void readIccd(librevenge::RVNGInputStream *input, unsigned length);
+  void readBBox(librevenge::RVNGInputStream *input, unsigned length);
+  void readSpnd(librevenge::RVNGInputStream *input, unsigned length);
+  void readVpat(librevenge::RVNGInputStream *input, unsigned length);
+  void readUidr(librevenge::RVNGInputStream *input, unsigned length);
+  void readFont(librevenge::RVNGInputStream *input, unsigned length);
+  void readStlt(librevenge::RVNGInputStream *input, unsigned length);
+  void readStyd(librevenge::RVNGInputStream *input);
+  void readTxsm(librevenge::RVNGInputStream *input, unsigned length);
+  void readTxsm16(librevenge::RVNGInputStream *input);
+  void readTxsm6(librevenge::RVNGInputStream *input);
+  void readTxsm5(librevenge::RVNGInputStream *input);
+  void readUdta(librevenge::RVNGInputStream *input);
+  void readArtisticText(librevenge::RVNGInputStream *input);
+  void readParagraphText(librevenge::RVNGInputStream *input);
 
-  bool _redirectX6Chunk(WPXInputStream **input, unsigned &length);
+  bool _redirectX6Chunk(librevenge::RVNGInputStream **input, unsigned &length);
 
-  std::vector<WPXInputStream *> m_externalStreams;
+  std::vector<librevenge::RVNGInputStream *> m_externalStreams;
 
   std::map<unsigned, CDRFont> m_fonts;
   std::map<unsigned, CDRFillStyle> m_fillStyles;

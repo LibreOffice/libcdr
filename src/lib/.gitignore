@@ -6,4 +6,4 @@
 *.rc
 Makefile
 Makefile.in
-libwpg.h
+librevenge.h

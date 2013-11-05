@@ -37,7 +37,7 @@ class CDROutputElement
 public:
   CDROutputElement() {}
   virtual ~CDROutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter) = 0;
+  virtual void draw(librevenge::RVNGDrawingInterface *painter) = 0;
   virtual CDROutputElement *clone() = 0;
 };
 
@@ -45,133 +45,134 @@ public:
 class CDRStyleOutputElement : public CDROutputElement
 {
 public:
-  CDRStyleOutputElement(const WPXPropertyList &propList, const WPXPropertyListVector &propListVec);
+  CDRStyleOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
   virtual ~CDRStyleOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
     return new CDRStyleOutputElement(m_propList, m_propListVec);
   }
 private:
-  WPXPropertyList m_propList;
-  WPXPropertyListVector m_propListVec;
+  librevenge::RVNGPropertyList m_propList;
+  librevenge::RVNGPropertyListVector m_propListVec;
 };
 
 
 class CDRPathOutputElement : public CDROutputElement
 {
 public:
-  CDRPathOutputElement(const WPXPropertyListVector &propListVec);
+  CDRPathOutputElement(const librevenge::RVNGPropertyListVector &propListVec);
   virtual ~CDRPathOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
     return new CDRPathOutputElement(m_propListVec);
   }
 private:
-  WPXPropertyListVector m_propListVec;
+  librevenge::RVNGPropertyListVector m_propListVec;
 };
 
 
 class CDRGraphicObjectOutputElement : public CDROutputElement
 {
 public:
-  CDRGraphicObjectOutputElement(const WPXPropertyList &propList, const ::WPXBinaryData &binaryData);
+  CDRGraphicObjectOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGBinaryData &binaryData);
   virtual ~CDRGraphicObjectOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
     return new CDRGraphicObjectOutputElement(m_propList, m_binaryData);
   }
 private:
-  WPXPropertyList m_propList;
-  WPXBinaryData m_binaryData;
+  librevenge::RVNGPropertyList m_propList;
+  librevenge::RVNGBinaryData m_binaryData;
 };
 
 
 class CDRStartTextObjectOutputElement : public CDROutputElement
 {
 public:
-  CDRStartTextObjectOutputElement(const WPXPropertyList &propList, const WPXPropertyListVector &propListVec);
+  CDRStartTextObjectOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
   virtual ~CDRStartTextObjectOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
     return new CDRStartTextObjectOutputElement(m_propList, m_propListVec);
   }
 private:
-  WPXPropertyList m_propList;
-  WPXPropertyListVector m_propListVec;
+  librevenge::RVNGPropertyList m_propList;
+  librevenge::RVNGPropertyListVector m_propListVec;
 };
 
 
-class CDRStartTextLineOutputElement : public CDROutputElement
+class CDROpenParagraphOutputElement : public CDROutputElement
 {
 public:
-  CDRStartTextLineOutputElement(const WPXPropertyList &propList);
-  virtual ~CDRStartTextLineOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  CDROpenParagraphOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
+  virtual ~CDROpenParagraphOutputElement() {}
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
-    return new CDRStartTextLineOutputElement(m_propList);
+    return new CDROpenParagraphOutputElement(m_propList, m_propListVec);
   }
 private:
-  WPXPropertyList m_propList;
+  librevenge::RVNGPropertyList m_propList;
+  librevenge::RVNGPropertyListVector m_propListVec;
 };
 
 
-class CDRStartTextSpanOutputElement : public CDROutputElement
+class CDROpenSpanOutputElement : public CDROutputElement
 {
 public:
-  CDRStartTextSpanOutputElement(const WPXPropertyList &propList);
-  virtual ~CDRStartTextSpanOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  CDROpenSpanOutputElement(const librevenge::RVNGPropertyList &propList);
+  virtual ~CDROpenSpanOutputElement() {}
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
-    return new CDRStartTextSpanOutputElement(m_propList);
+    return new CDROpenSpanOutputElement(m_propList);
   }
 private:
-  WPXPropertyList m_propList;
+  librevenge::RVNGPropertyList m_propList;
 };
 
 
 class CDRInsertTextOutputElement : public CDROutputElement
 {
 public:
-  CDRInsertTextOutputElement(const WPXString &text);
+  CDRInsertTextOutputElement(const librevenge::RVNGString &text);
   virtual ~CDRInsertTextOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
     return new CDRInsertTextOutputElement(m_text);
   }
 private:
-  WPXString m_text;
+  librevenge::RVNGString m_text;
 };
 
 
-class CDREndTextSpanOutputElement : public CDROutputElement
+class CDRCloseSpanOutputElement : public CDROutputElement
 {
 public:
-  CDREndTextSpanOutputElement();
-  virtual ~CDREndTextSpanOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  CDRCloseSpanOutputElement();
+  virtual ~CDRCloseSpanOutputElement() {}
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
-    return new CDREndTextSpanOutputElement();
+    return new CDRCloseSpanOutputElement();
   }
 };
 
 
-class CDREndTextLineOutputElement : public CDROutputElement
+class CDRCloseParagraphOutputElement : public CDROutputElement
 {
 public:
-  CDREndTextLineOutputElement();
-  virtual ~CDREndTextLineOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  CDRCloseParagraphOutputElement();
+  virtual ~CDRCloseParagraphOutputElement() {}
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
-    return new CDREndTextLineOutputElement();
+    return new CDRCloseParagraphOutputElement();
   }
 };
 
@@ -181,7 +182,7 @@ class CDREndTextObjectOutputElement : public CDROutputElement
 public:
   CDREndTextObjectOutputElement();
   virtual ~CDREndTextObjectOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
     return new CDREndTextObjectOutputElement();
@@ -191,15 +192,15 @@ public:
 class CDRStartLayerOutputElement : public CDROutputElement
 {
 public:
-  CDRStartLayerOutputElement(const WPXPropertyList &propList);
+  CDRStartLayerOutputElement(const librevenge::RVNGPropertyList &propList);
   virtual ~CDRStartLayerOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
     return new CDRStartLayerOutputElement(m_propList);
   }
 private:
-  WPXPropertyList m_propList;
+  librevenge::RVNGPropertyList m_propList;
 };
 
 class CDREndLayerOutputElement : public CDROutputElement
@@ -207,7 +208,7 @@ class CDREndLayerOutputElement : public CDROutputElement
 public:
   CDREndLayerOutputElement();
   virtual ~CDREndLayerOutputElement() {}
-  virtual void draw(libwpg::WPGPaintInterface *painter);
+  virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
     return new CDREndLayerOutputElement();
@@ -216,95 +217,95 @@ public:
 
 } // namespace libcdr
 
-libcdr::CDRStyleOutputElement::CDRStyleOutputElement(const WPXPropertyList &propList, const WPXPropertyListVector &propListVec) :
+libcdr::CDRStyleOutputElement::CDRStyleOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec) :
   m_propList(propList), m_propListVec(propListVec) {}
 
-void libcdr::CDRStyleOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDRStyleOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->setStyle(m_propList, m_propListVec);
 }
 
 
-libcdr::CDRPathOutputElement::CDRPathOutputElement(const WPXPropertyListVector &propListVec) :
+libcdr::CDRPathOutputElement::CDRPathOutputElement(const librevenge::RVNGPropertyListVector &propListVec) :
   m_propListVec(propListVec) {}
 
-void libcdr::CDRPathOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDRPathOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->drawPath(m_propListVec);
 }
 
 
-libcdr::CDRGraphicObjectOutputElement::CDRGraphicObjectOutputElement(const WPXPropertyList &propList, const ::WPXBinaryData &binaryData) :
+libcdr::CDRGraphicObjectOutputElement::CDRGraphicObjectOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGBinaryData &binaryData) :
   m_propList(propList), m_binaryData(binaryData) {}
 
-void libcdr::CDRGraphicObjectOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDRGraphicObjectOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->drawGraphicObject(m_propList, m_binaryData);
 }
 
 
-libcdr::CDRStartTextObjectOutputElement::CDRStartTextObjectOutputElement(const WPXPropertyList &propList, const WPXPropertyListVector &propListVec) :
+libcdr::CDRStartTextObjectOutputElement::CDRStartTextObjectOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec) :
   m_propList(propList), m_propListVec(propListVec) {}
 
-void libcdr::CDRStartTextObjectOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDRStartTextObjectOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->startTextObject(m_propList, m_propListVec);
 }
 
-libcdr::CDRStartTextSpanOutputElement::CDRStartTextSpanOutputElement(const WPXPropertyList &propList) :
+libcdr::CDROpenSpanOutputElement::CDROpenSpanOutputElement(const librevenge::RVNGPropertyList &propList) :
   m_propList(propList) {}
 
-void libcdr::CDRStartTextSpanOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDROpenSpanOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
-    painter->startTextSpan(m_propList);
+    painter->openSpan(m_propList);
 }
 
 
-libcdr::CDRStartTextLineOutputElement::CDRStartTextLineOutputElement(const WPXPropertyList &propList) :
-  m_propList(propList) {}
+libcdr::CDROpenParagraphOutputElement::CDROpenParagraphOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec) :
+  m_propList(propList), m_propListVec(propListVec) {}
 
-void libcdr::CDRStartTextLineOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDROpenParagraphOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
-    painter->startTextLine(m_propList);
+    painter->openParagraph(m_propList, m_propListVec);
 }
 
 
-libcdr::CDRInsertTextOutputElement::CDRInsertTextOutputElement(const WPXString &text) :
+libcdr::CDRInsertTextOutputElement::CDRInsertTextOutputElement(const librevenge::RVNGString &text) :
   m_text(text) {}
 
-void libcdr::CDRInsertTextOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDRInsertTextOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->insertText(m_text);
 }
 
-libcdr::CDREndTextSpanOutputElement::CDREndTextSpanOutputElement() {}
+libcdr::CDRCloseSpanOutputElement::CDRCloseSpanOutputElement() {}
 
-void libcdr::CDREndTextSpanOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDRCloseSpanOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
-    painter->endTextSpan();
+    painter->closeSpan();
 }
 
 
-libcdr::CDREndTextLineOutputElement::CDREndTextLineOutputElement() {}
+libcdr::CDRCloseParagraphOutputElement::CDRCloseParagraphOutputElement() {}
 
-void libcdr::CDREndTextLineOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDRCloseParagraphOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
-    painter->endTextLine();
+    painter->closeParagraph();
 }
 
 
 libcdr::CDREndTextObjectOutputElement::CDREndTextObjectOutputElement() {}
 
-void libcdr::CDREndTextObjectOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDREndTextObjectOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->endTextObject();
@@ -313,17 +314,17 @@ void libcdr::CDREndTextObjectOutputElement::draw(libwpg::WPGPaintInterface *pain
 
 libcdr::CDREndLayerOutputElement::CDREndLayerOutputElement() {}
 
-void libcdr::CDREndLayerOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDREndLayerOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->endLayer();
 }
 
 
-libcdr::CDRStartLayerOutputElement::CDRStartLayerOutputElement(const WPXPropertyList &propList) :
+libcdr::CDRStartLayerOutputElement::CDRStartLayerOutputElement(const librevenge::RVNGPropertyList &propList) :
   m_propList(propList) {}
 
-void libcdr::CDRStartLayerOutputElement::draw(libwpg::WPGPaintInterface *painter)
+void libcdr::CDRStartLayerOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->startLayer(m_propList);
@@ -369,55 +370,55 @@ libcdr::CDROutputElementList::~CDROutputElementList()
   m_elements.clear();
 }
 
-void libcdr::CDROutputElementList::draw(libwpg::WPGPaintInterface *painter) const
+void libcdr::CDROutputElementList::draw(librevenge::RVNGDrawingInterface *painter) const
 {
   for (std::vector<CDROutputElement *>::const_iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
     (*iter)->draw(painter);
 }
 
-void libcdr::CDROutputElementList::addStyle(const WPXPropertyList &propList, const WPXPropertyListVector &propListVec)
+void libcdr::CDROutputElementList::addStyle(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec)
 {
   m_elements.push_back(new CDRStyleOutputElement(propList, propListVec));
 }
 
-void libcdr::CDROutputElementList::addPath(const WPXPropertyListVector &propListVec)
+void libcdr::CDROutputElementList::addPath(const librevenge::RVNGPropertyListVector &propListVec)
 {
   m_elements.push_back(new CDRPathOutputElement(propListVec));
 }
 
-void libcdr::CDROutputElementList::addGraphicObject(const WPXPropertyList &propList, const ::WPXBinaryData &binaryData)
+void libcdr::CDROutputElementList::addGraphicObject(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGBinaryData &binaryData)
 {
   m_elements.push_back(new CDRGraphicObjectOutputElement(propList, binaryData));
 }
 
-void libcdr::CDROutputElementList::addStartTextObject(const WPXPropertyList &propList, const WPXPropertyListVector &propListVec)
+void libcdr::CDROutputElementList::addStartTextObject(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec)
 {
   m_elements.push_back(new CDRStartTextObjectOutputElement(propList, propListVec));
 }
 
-void libcdr::CDROutputElementList::addStartTextLine(const WPXPropertyList &propList)
+void libcdr::CDROutputElementList::addOpenParagraph(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec)
 {
-  m_elements.push_back(new CDRStartTextLineOutputElement(propList));
+  m_elements.push_back(new CDROpenParagraphOutputElement(propList, propListVec));
 }
 
-void libcdr::CDROutputElementList::addStartTextSpan(const WPXPropertyList &propList)
+void libcdr::CDROutputElementList::addOpenSpan(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDRStartTextSpanOutputElement(propList));
+  m_elements.push_back(new CDROpenSpanOutputElement(propList));
 }
 
-void libcdr::CDROutputElementList::addInsertText(const WPXString &text)
+void libcdr::CDROutputElementList::addInsertText(const librevenge::RVNGString &text)
 {
   m_elements.push_back(new CDRInsertTextOutputElement(text));
 }
 
-void libcdr::CDROutputElementList::addEndTextSpan()
+void libcdr::CDROutputElementList::addCloseSpan()
 {
-  m_elements.push_back(new CDREndTextSpanOutputElement());
+  m_elements.push_back(new CDRCloseSpanOutputElement());
 }
 
-void libcdr::CDROutputElementList::addEndTextLine()
+void libcdr::CDROutputElementList::addCloseParagraph()
 {
-  m_elements.push_back(new CDREndTextLineOutputElement());
+  m_elements.push_back(new CDRCloseParagraphOutputElement());
 }
 
 void libcdr::CDROutputElementList::addEndTextObject()
@@ -425,7 +426,7 @@ void libcdr::CDROutputElementList::addEndTextObject()
   m_elements.push_back(new CDREndTextObjectOutputElement());
 }
 
-void libcdr::CDROutputElementList::addStartGroup(const WPXPropertyList &propList)
+void libcdr::CDROutputElementList::addStartGroup(const librevenge::RVNGPropertyList &propList)
 {
   m_elements.push_back(new CDRStartLayerOutputElement(propList));
 }

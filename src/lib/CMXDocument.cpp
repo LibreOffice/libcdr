@@ -32,10 +32,8 @@
 #include <libcdr/libcdr.h>
 #include "CDRDocumentStructure.h"
 #include "CMXParser.h"
-#include "CDRSVGGenerator.h"
 #include "CDRContentCollector.h"
 #include "CDRStylesCollector.h"
-#include "CDRZipStream.h"
 #include "libcdr_utils.h"
 
 /**
@@ -44,14 +42,14 @@ Analyzes the content of an input stream to see if it can be parsed
 \return A value that indicates whether the content from the input
 stream is a Corel Draw Document that libcdr is able to parse
 */
-bool libcdr::CMXDocument::isSupported(WPXInputStream *input)
+bool libcdr::CMXDocument::isSupported(librevenge::RVNGInputStream *input)
 try
 {
-  input->seek(0, WPX_SEEK_SET);
+  input->seek(0, librevenge::RVNG_SEEK_SET);
   unsigned riff = readU32(input);
   if (riff != CDR_FOURCC_RIFF && riff != CDR_FOURCC_RIFX)
     return false;
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   char signature_c = (char)readU8(input);
   if (signature_c != 'C' && signature_c != 'c')
     return false;
@@ -76,9 +74,9 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 \param painter A CDRPainterInterface implementation
 \return A value that indicates whether the parsing was successful
 */
-bool libcdr::CMXDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterface *painter)
+bool libcdr::CMXDocument::parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *painter)
 {
-  input->seek(0, WPX_SEEK_SET);
+  input->seek(0, librevenge::RVNG_SEEK_SET);
   CDRParserState ps;
   CDRStylesCollector stylesCollector(ps);
   CMXParser stylesParser(&stylesCollector);
@@ -87,26 +85,12 @@ bool libcdr::CMXDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
     retVal = false;
   if (retVal)
   {
-    input->seek(0, WPX_SEEK_SET);
+    input->seek(0, librevenge::RVNG_SEEK_SET);
     CDRContentCollector contentCollector(ps, painter);
     CMXParser contentParser(&contentCollector);
     retVal = contentParser.parseRecords(input);
   }
   return retVal;
-}
-
-/**
-Parses the input stream content and generates a valid Scalable Vector Graphics
-Provided as a convenience function for applications that support SVG internally.
-\param input The input stream
-\param output The output string whose content is the resulting SVG
-\return A value that indicates whether the SVG generation was successful.
-*/
-bool libcdr::CMXDocument::generateSVG(::WPXInputStream *input, libcdr::CDRStringVector &output)
-{
-  libcdr::CDRSVGGenerator generator(output);
-  bool result = libcdr::CMXDocument::parse(input, &generator);
-  return result;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -54,7 +54,7 @@ libcdr::CDRStylesCollector::~CDRStylesCollector()
 void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap)
 {
   libcdr::CDRInternalStream stream(bitmap);
-  WPXBinaryData image;
+  librevenge::RVNGBinaryData image;
 
   unsigned tmpPixelSize = (unsigned)(height * width);
   if (tmpPixelSize < (unsigned)height) // overflow
@@ -164,7 +164,7 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
   if (storeBMP)
   {
 #if DUMP_IMAGE
-    WPXString filename;
+    librevenge::RVNGString filename;
     filename.sprintf("bitmap%.8x.bmp", imageId);
     FILE *f = fopen(filename.cstr(), "wb");
     if (f)
@@ -182,9 +182,9 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
 
 void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, const std::vector<unsigned char> &bitmap)
 {
-  WPXBinaryData image(&bitmap[0], bitmap.size());
+  librevenge::RVNGBinaryData image(&bitmap[0], bitmap.size());
 #if DUMP_IMAGE
-  WPXString filename;
+  librevenge::RVNGString filename;
   filename.sprintf("bitmap%.8x.bmp", imageId);
   FILE *f = fopen(filename.cstr(), "wb");
   if (f)
@@ -250,7 +250,7 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
       tmpCharStyle.overrideCharacterStyle(iter->second);
     if (charDescriptions[i] != tmpCharDescription)
     {
-      WPXString text;
+      librevenge::RVNGString text;
       if (!tmpTextData.empty())
       {
         if (tmpCharDescription & 0x01)
@@ -269,7 +269,7 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   }
   if (!tmpTextData.empty())
   {
-    WPXString text;
+    librevenge::RVNGString text;
     if (tmpCharDescription & 0x01)
       appendCharacters(text, tmpTextData);
     else

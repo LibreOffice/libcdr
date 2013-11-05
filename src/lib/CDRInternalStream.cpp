@@ -38,14 +38,14 @@
 #define CHUNK 16384
 
 libcdr::CDRInternalStream::CDRInternalStream(const std::vector<unsigned char> &buffer) :
-  WPXInputStream(),
+  librevenge::RVNGInputStream(),
   m_offset(0),
   m_buffer(buffer)
 {
 }
 
-libcdr::CDRInternalStream::CDRInternalStream(WPXInputStream *input, unsigned long size, bool compressed) :
-  WPXInputStream(),
+libcdr::CDRInternalStream::CDRInternalStream(librevenge::RVNGInputStream *input, unsigned long size, bool compressed) :
+  librevenge::RVNGInputStream(),
   m_offset(0),
   m_buffer()
 {
@@ -139,11 +139,11 @@ const unsigned char *libcdr::CDRInternalStream::read(unsigned long numBytes, uns
   return &m_buffer[oldOffset];
 }
 
-int libcdr::CDRInternalStream::seek(long offset, WPX_SEEK_TYPE seekType)
+int libcdr::CDRInternalStream::seek(long offset, librevenge::RVNG_SEEK_TYPE seekType)
 {
-  if (seekType == WPX_SEEK_CUR)
+  if (seekType == librevenge::RVNG_SEEK_CUR)
     m_offset += offset;
-  else if (seekType == WPX_SEEK_SET)
+  else if (seekType == librevenge::RVNG_SEEK_SET)
     m_offset = offset;
 
   if (m_offset < 0)
@@ -165,7 +165,7 @@ long libcdr::CDRInternalStream::tell()
   return m_offset;
 }
 
-bool libcdr::CDRInternalStream::atEOS()
+bool libcdr::CDRInternalStream::isEnd()
 {
   if ((long)m_offset >= (long)m_buffer.size())
     return true;

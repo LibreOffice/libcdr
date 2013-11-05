@@ -159,7 +159,7 @@ static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLe
   }
 }
 
-static void _appendUCS4(WPXString &text, UChar32 ucs4Character)
+static void _appendUCS4(librevenge::RVNGString &text, UChar32 ucs4Character)
 {
   // Convert carriage returns to new line characters
   // Writerperfect/LibreOffice will replace them by <text:line-break>
@@ -176,9 +176,9 @@ static void _appendUCS4(WPXString &text, UChar32 ucs4Character)
 
 } // anonymous namespace
 
-uint8_t libcdr::readU8(WPXInputStream *input, bool /* bigEndian */)
+uint8_t libcdr::readU8(librevenge::RVNGInputStream *input, bool /* bigEndian */)
 {
-  if (!input || input->atEOS())
+  if (!input || input->isEnd())
   {
     CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
     throw EndOfStreamException();
@@ -192,9 +192,9 @@ uint8_t libcdr::readU8(WPXInputStream *input, bool /* bigEndian */)
   throw EndOfStreamException();
 }
 
-uint16_t libcdr::readU16(WPXInputStream *input, bool bigEndian)
+uint16_t libcdr::readU16(librevenge::RVNGInputStream *input, bool bigEndian)
 {
-  if (!input || input->atEOS())
+  if (!input || input->isEnd())
   {
     CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
     throw EndOfStreamException();
@@ -212,14 +212,14 @@ uint16_t libcdr::readU16(WPXInputStream *input, bool bigEndian)
   throw EndOfStreamException();
 }
 
-int16_t libcdr::readS16(WPXInputStream *input, bool bigEndian)
+int16_t libcdr::readS16(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   return (int16_t)readU16(input, bigEndian);
 }
 
-uint32_t libcdr::readU32(WPXInputStream *input, bool bigEndian)
+uint32_t libcdr::readU32(librevenge::RVNGInputStream *input, bool bigEndian)
 {
-  if (!input || input->atEOS())
+  if (!input || input->isEnd())
   {
     CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
     throw EndOfStreamException();
@@ -237,14 +237,14 @@ uint32_t libcdr::readU32(WPXInputStream *input, bool bigEndian)
   throw EndOfStreamException();
 }
 
-int32_t libcdr::readS32(WPXInputStream *input, bool bigEndian)
+int32_t libcdr::readS32(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   return (int32_t)readU32(input, bigEndian);
 }
 
-uint64_t libcdr::readU64(WPXInputStream *input, bool bigEndian)
+uint64_t libcdr::readU64(librevenge::RVNGInputStream *input, bool bigEndian)
 {
-  if (!input || input->atEOS())
+  if (!input || input->isEnd())
   {
     CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
     throw EndOfStreamException();
@@ -262,7 +262,7 @@ uint64_t libcdr::readU64(WPXInputStream *input, bool bigEndian)
   throw EndOfStreamException();
 }
 
-double libcdr::readDouble(WPXInputStream *input, bool bigEndian)
+double libcdr::readDouble(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   union
   {
@@ -275,7 +275,7 @@ double libcdr::readDouble(WPXInputStream *input, bool bigEndian)
   return tmpUnion.d;
 }
 
-double libcdr::readFixedPoint(WPXInputStream *input, bool bigEndian)
+double libcdr::readFixedPoint(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   unsigned fixedPointNumber = readU32(input, bigEndian);
   short fixedPointNumberIntegerPart = (short)((fixedPointNumber & 0xFFFF0000) >> 16);
@@ -288,13 +288,13 @@ int libcdr::cdr_round(double d)
   return (d>0) ? int(d+0.5) : int(d-0.5);
 }
 
-void libcdr::writeU16(WPXBinaryData &buffer, const int value)
+void libcdr::writeU16(librevenge::RVNGBinaryData &buffer, const int value)
 {
   buffer.append((unsigned char)(value & 0xFF));
   buffer.append((unsigned char)((value >> 8) & 0xFF));
 }
 
-void libcdr::writeU32(WPXBinaryData &buffer, const int value)
+void libcdr::writeU32(librevenge::RVNGBinaryData &buffer, const int value)
 {
   buffer.append((unsigned char)(value & 0xFF));
   buffer.append((unsigned char)((value >> 8) & 0xFF));
@@ -302,12 +302,12 @@ void libcdr::writeU32(WPXBinaryData &buffer, const int value)
   buffer.append((unsigned char)((value >> 24) & 0xFF));
 }
 
-void libcdr::writeU8(WPXBinaryData &buffer, const int value)
+void libcdr::writeU8(librevenge::RVNGBinaryData &buffer, const int value)
 {
   buffer.append((unsigned char)(value & 0xFF));
 }
 
-void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> characters, unsigned short charset)
+void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned char> characters, unsigned short charset)
 {
   if (characters.empty())
     return;
@@ -424,7 +424,7 @@ void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> charac
   }
 }
 
-void libcdr::appendCharacters(WPXString &text, std::vector<unsigned char> characters)
+void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned char> characters)
 {
   if (characters.empty())
     return;

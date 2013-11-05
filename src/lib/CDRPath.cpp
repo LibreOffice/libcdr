@@ -250,7 +250,7 @@ public:
     : m_x(x),
       m_y(y) {}
   ~CDRMoveToElement() {}
-  void writeOut(WPXPropertyListVector &vec) const;
+  void writeOut(librevenge::RVNGPropertyListVector &vec) const;
   void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
@@ -266,7 +266,7 @@ public:
     : m_x(x),
       m_y(y) {}
   ~CDRLineToElement() {}
-  void writeOut(WPXPropertyListVector &vec) const;
+  void writeOut(librevenge::RVNGPropertyListVector &vec) const;
   void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
@@ -286,7 +286,7 @@ public:
       m_x(x),
       m_y(y) {}
   ~CDRCubicBezierToElement() {}
-  void writeOut(WPXPropertyListVector &vec) const;
+  void writeOut(librevenge::RVNGPropertyListVector &vec) const;
   void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
@@ -308,7 +308,7 @@ public:
       m_x(x),
       m_y(y) {}
   ~CDRQuadraticBezierToElement() {}
-  void writeOut(WPXPropertyListVector &vec) const;
+  void writeOut(librevenge::RVNGPropertyListVector &vec) const;
   void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
@@ -325,7 +325,7 @@ public:
   CDRSplineToElement(const std::vector<std::pair<double, double> > &points)
     : m_points(points) {}
   ~CDRSplineToElement() {}
-  void writeOut(WPXPropertyListVector &vec) const;
+  void writeOut(librevenge::RVNGPropertyListVector &vec) const;
   void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
@@ -346,7 +346,7 @@ public:
       m_x(x),
       m_y(y) {}
   ~CDRArcToElement() {}
-  void writeOut(WPXPropertyListVector &vec) const;
+  void writeOut(librevenge::RVNGPropertyListVector &vec) const;
   void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();
@@ -363,10 +363,10 @@ private:
 } // namespace libcdr
 
 
-void libcdr::CDRMoveToElement::writeOut(WPXPropertyListVector &vec) const
+void libcdr::CDRMoveToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
-  WPXPropertyList node;
-  node.insert("libwpg:path-action", "M");
+  librevenge::RVNGPropertyList node;
+  node.insert("librevenge:path-action", "M");
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
   vec.append(node);
@@ -387,10 +387,10 @@ libcdr::CDRPathElement *libcdr::CDRMoveToElement::clone()
   return new CDRMoveToElement(m_x, m_y);
 }
 
-void libcdr::CDRLineToElement::writeOut(WPXPropertyListVector &vec) const
+void libcdr::CDRLineToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
-  WPXPropertyList node;
-  node.insert("libwpg:path-action", "L");
+  librevenge::RVNGPropertyList node;
+  node.insert("librevenge:path-action", "L");
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
   vec.append(node);
@@ -411,10 +411,10 @@ libcdr::CDRPathElement *libcdr::CDRLineToElement::clone()
   return new CDRLineToElement(m_x, m_y);
 }
 
-void libcdr::CDRCubicBezierToElement::writeOut(WPXPropertyListVector &vec) const
+void libcdr::CDRCubicBezierToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
-  WPXPropertyList node;
-  node.insert("libwpg:path-action", "C");
+  librevenge::RVNGPropertyList node;
+  node.insert("librevenge:path-action", "C");
   node.insert("svg:x1", m_x1);
   node.insert("svg:y1", m_y1);
   node.insert("svg:x2", m_x2);
@@ -443,10 +443,10 @@ libcdr::CDRPathElement *libcdr::CDRCubicBezierToElement::clone()
   return new CDRCubicBezierToElement(m_x1, m_y1, m_x2, m_y2, m_x, m_y);
 }
 
-void libcdr::CDRQuadraticBezierToElement::writeOut(WPXPropertyListVector &vec) const
+void libcdr::CDRQuadraticBezierToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
-  WPXPropertyList node;
-  node.insert("libwpg:path-action", "Q");
+  librevenge::RVNGPropertyList node;
+  node.insert("librevenge:path-action", "Q");
   node.insert("svg:x1", m_x1);
   node.insert("svg:y1", m_y1);
   node.insert("svg:x", m_x);
@@ -483,28 +483,28 @@ unsigned libcdr::CDRSplineToElement::knot(unsigned i) const
   return i - CDR_SPLINE_DEGREE;
 }
 
-void libcdr::CDRSplineToElement::writeOut(WPXPropertyListVector &vec) const
+void libcdr::CDRSplineToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
-  WPXPropertyList node;
+  librevenge::RVNGPropertyList node;
 
 #if DEBUG_SPLINES
   /* Code for visual debugging of the spline decomposition */
 
-  node.insert("libwpg:path-action", "M");
+  node.insert("librevenge:path-action", "M");
   node.insert("svg:x", m_points[0].first);
   node.insert("svg:y", m_points[0].second);
   vec.append(node);
 
   for (unsigned j = 0; j < m_points.size(); ++j)
   {
-    node.insert("libwpg:path-action", "L");
+    node.insert("librevenge:path-action", "L");
     node.insert("svg:x", m_points[j].first);
     node.insert("svg:y", m_points[j].second);
     vec.append(node);
   }
 #endif
 
-  node.insert("libwpg:path-action", "M");
+  node.insert("librevenge:path-action", "M");
   node.insert("svg:x", m_points[0].first);
   node.insert("svg:y", m_points[0].second);
   vec.append(node);
@@ -555,7 +555,7 @@ void libcdr::CDRSplineToElement::writeOut(WPXPropertyListVector &vec) const
     // Pass the segment to the path
 
     node.clear();
-    node.insert("libwpg:path-action", "C");
+    node.insert("librevenge:path-action", "C");
     node.insert("svg:x1", Qw[1].first);
     node.insert("svg:y1", Qw[1].second);
     node.insert("svg:x2", Qw[2].first);
@@ -599,15 +599,15 @@ libcdr::CDRPathElement *libcdr::CDRSplineToElement::clone()
   return new CDRSplineToElement(m_points);
 }
 
-void libcdr::CDRArcToElement::writeOut(WPXPropertyListVector &vec) const
+void libcdr::CDRArcToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
-  WPXPropertyList node;
-  node.insert("libwpg:path-action", "A");
+  librevenge::RVNGPropertyList node;
+  node.insert("librevenge:path-action", "A");
   node.insert("svg:rx", m_rx);
   node.insert("svg:ry", m_ry);
-  node.insert("libwpg:rotate", m_rotation * 180 / M_PI, WPX_GENERIC);
-  node.insert("libwpg:large-arc", m_largeArc);
-  node.insert("libwpg:sweep", m_sweep);
+  node.insert("librevenge:rotate", m_rotation * 180 / M_PI, librevenge::RVNG_GENERIC);
+  node.insert("librevenge:large-arc", m_largeArc);
+  node.insert("librevenge:sweep", m_sweep);
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
   vec.append(node);
@@ -694,20 +694,20 @@ void libcdr::CDRPath::appendPath(const CDRPath &path)
     m_elements.push_back((*iter)->clone());
 }
 
-void libcdr::CDRPath::writeOut(WPXPropertyListVector &vec) const
+void libcdr::CDRPath::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   for (std::vector<CDRPathElement *>::const_iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
     (*iter)->writeOut(vec);
 }
 
-void libcdr::CDRPath::writeOut(WPXString &path, WPXString &viewBox, double &width) const
+void libcdr::CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGString &viewBox, double &width) const
 {
-  WPXPropertyListVector vec;
+  librevenge::RVNGPropertyListVector vec;
   writeOut(vec);
   if(vec.count() == 0)
     return;
   // This must be a mistake and we do not want to crash lower
-  if(vec[0]["libwpg:path-action"]->getStr() == "Z")
+  if(vec[0]["librevenge:path-action"]->getStr() == "Z")
     return;
 
   // try to find the bounding box
@@ -738,7 +738,7 @@ void libcdr::CDRPath::writeOut(WPXString &path, WPXString &viewBox, double &widt
 
     double xmin, xmax, ymin, ymax;
 
-    if(vec[k]["libwpg:path-action"]->getStr() == "C")
+    if(vec[k]["librevenge:path-action"]->getStr() == "C")
     {
       getCubicBezierBBox(lastX, lastY, vec[k]["svg:x1"]->getDouble(), vec[k]["svg:y1"]->getDouble(),
                          vec[k]["svg:x2"]->getDouble(), vec[k]["svg:y2"]->getDouble(),
@@ -749,7 +749,7 @@ void libcdr::CDRPath::writeOut(WPXString &path, WPXString &viewBox, double &widt
       qx = (qx < xmax ? xmax : qx);
       qy = (qy < ymax ? ymax : qy);
     }
-    if(vec[k]["libwpg:path-action"]->getStr() == "Q")
+    if(vec[k]["librevenge:path-action"]->getStr() == "Q")
     {
       getQuadraticBezierBBox(lastX, lastY, vec[k]["svg:x1"]->getDouble(), vec[k]["svg:y1"]->getDouble(),
                              vec[k]["svg:x"]->getDouble(), vec[k]["svg:y"]->getDouble(), xmin, ymin, xmax, ymax);
@@ -759,12 +759,12 @@ void libcdr::CDRPath::writeOut(WPXString &path, WPXString &viewBox, double &widt
       qx = (qx < xmax ? xmax : qx);
       qy = (qy < ymax ? ymax : qy);
     }
-    if(vec[k]["libwpg:path-action"]->getStr() == "A")
+    if(vec[k]["librevenge:path-action"]->getStr() == "A")
     {
       getEllipticalArcBBox(lastX, lastY, vec[k]["svg:rx"]->getDouble(), vec[k]["svg:ry"]->getDouble(),
-                           vec[k]["libwpg:rotate"] ? vec[k]["libwpg:rotate"]->getDouble() : 0.0,
-                           vec[k]["libwpg:large-arc"] ? vec[k]["libwpg:large-arc"]->getInt() : 1,
-                           vec[k]["libwpg:sweep"] ? vec[k]["libwpg:sweep"]->getInt() : 1,
+                           vec[k]["librevenge:rotate"] ? vec[k]["librevenge:rotate"]->getDouble() : 0.0,
+                           vec[k]["librevenge:large-arc"] ? vec[k]["librevenge:large-arc"]->getInt() : 1,
+                           vec[k]["librevenge:sweep"] ? vec[k]["librevenge:sweep"]->getInt() : 1,
                            vec[k]["svg:x"]->getDouble(), vec[k]["svg:y"]->getDouble(), xmin, ymin, xmax, ymax);
 
       px = (px > xmin ? xmin : px);
@@ -782,21 +782,21 @@ void libcdr::CDRPath::writeOut(WPXString &path, WPXString &viewBox, double &widt
 
   for(unsigned i = 0; i < vec.count(); ++i)
   {
-    WPXString sElement;
-    if (vec[i]["libwpg:path-action"]->getStr() == "M")
+    librevenge::RVNGString sElement;
+    if (vec[i]["librevenge:path-action"]->getStr() == "M")
     {
       // 2540 is 2.54*1000, 2.54 in = 1 inch
       sElement.sprintf("M%i %i", (unsigned)((vec[i]["svg:x"]->getDouble()-px)*2540),
                        (unsigned)((vec[i]["svg:y"]->getDouble()-py)*2540));
       path.append(sElement);
     }
-    else if (vec[i]["libwpg:path-action"]->getStr() == "L")
+    else if (vec[i]["librevenge:path-action"]->getStr() == "L")
     {
       sElement.sprintf("L%i %i", (unsigned)((vec[i]["svg:x"]->getDouble()-px)*2540),
                        (unsigned)((vec[i]["svg:y"]->getDouble()-py)*2540));
       path.append(sElement);
     }
-    else if (vec[i]["libwpg:path-action"]->getStr() == "C")
+    else if (vec[i]["librevenge:path-action"]->getStr() == "C")
     {
       sElement.sprintf("C%i %i %i %i %i %i", (unsigned)((vec[i]["svg:x1"]->getDouble()-px)*2540),
                        (unsigned)((vec[i]["svg:y1"]->getDouble()-py)*2540), (unsigned)((vec[i]["svg:x2"]->getDouble()-px)*2540),
@@ -804,23 +804,23 @@ void libcdr::CDRPath::writeOut(WPXString &path, WPXString &viewBox, double &widt
                        (unsigned)((vec[i]["svg:y"]->getDouble()-py)*2540));
       path.append(sElement);
     }
-    else if (vec[i]["libwpg:path-action"]->getStr() == "Q")
+    else if (vec[i]["librevenge:path-action"]->getStr() == "Q")
     {
       sElement.sprintf("Q%i %i %i %i", (unsigned)((vec[i]["svg:x1"]->getDouble()-px)*2540),
                        (unsigned)((vec[i]["svg:y1"]->getDouble()-py)*2540), (unsigned)((vec[i]["svg:x"]->getDouble()-px)*2540),
                        (unsigned)((vec[i]["svg:y"]->getDouble()-py)*2540));
       path.append(sElement);
     }
-    else if (vec[i]["libwpg:path-action"]->getStr() == "A")
+    else if (vec[i]["librevenge:path-action"]->getStr() == "A")
     {
       sElement.sprintf("A%i %i %i %i %i %i %i", (unsigned)((vec[i]["svg:rx"]->getDouble())*2540),
-                       (unsigned)((vec[i]["svg:ry"]->getDouble())*2540), (vec[i]["libwpg:rotate"] ? vec[i]["libwpg:rotate"]->getInt() : 0),
-                       (vec[i]["libwpg:large-arc"] ? vec[i]["libwpg:large-arc"]->getInt() : 1),
-                       (vec[i]["libwpg:sweep"] ? vec[i]["libwpg:sweep"]->getInt() : 1),
+                       (unsigned)((vec[i]["svg:ry"]->getDouble())*2540), (vec[i]["librevenge:rotate"] ? vec[i]["librevenge:rotate"]->getInt() : 0),
+                       (vec[i]["librevenge:large-arc"] ? vec[i]["librevenge:large-arc"]->getInt() : 1),
+                       (vec[i]["librevenge:sweep"] ? vec[i]["librevenge:sweep"]->getInt() : 1),
                        (unsigned)((vec[i]["svg:x"]->getDouble()-px)*2540), (unsigned)((vec[i]["svg:y"]->getDouble()-py)*2540));
       path.append(sElement);
     }
-    else if (vec[i]["libwpg:path-action"]->getStr() == "Z")
+    else if (vec[i]["librevenge:path-action"]->getStr() == "Z")
       path.append(" Z");
   }
 }

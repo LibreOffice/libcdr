@@ -33,8 +33,8 @@
 #include <map>
 #include <vector>
 #include <stack>
-#include <libwpg/libwpg.h>
-#include <libwpd-stream/libwpd-stream.h>
+#include <librevenge/librevenge.h>
+#include <librevenge-stream/librevenge-stream.h>
 #include <lcms2.h>
 #include "CDRTypes.h"
 #include "CDRPath.h"
@@ -54,22 +54,22 @@ class CDRParserState
 public:
   CDRParserState();
   ~CDRParserState();
-  std::map<unsigned, WPXBinaryData> m_bmps;
+  std::map<unsigned, librevenge::RVNGBinaryData> m_bmps;
   std::map<unsigned, CDRPattern> m_patterns;
-  std::map<unsigned, WPXBinaryData> m_vects;
+  std::map<unsigned, librevenge::RVNGBinaryData> m_vects;
   std::vector<CDRPage> m_pages;
   std::map<unsigned, CDRColor> m_documentPalette;
   std::map<unsigned, std::vector<CDRTextLine> > m_texts;
 
   unsigned _getRGBColor(const CDRColor &color);
   unsigned getBMPColor(const CDRColor &color);
-  WPXString getRGBColorString(const CDRColor &color);
+  librevenge::RVNGString getRGBColorString(const CDRColor &color);
   cmsHTRANSFORM m_colorTransformCMYK2RGB;
   cmsHTRANSFORM m_colorTransformLab2RGB;
   cmsHTRANSFORM m_colorTransformRGB2RGB;
 
   void setColorTransform(const std::vector<unsigned char> &profile);
-  void setColorTransform(WPXInputStream *input);
+  void setColorTransform(librevenge::RVNGInputStream *input);
 
 private:
   CDRParserState(const CDRParserState &);
@@ -111,7 +111,7 @@ public:
   virtual void collectColorProfile(const std::vector<unsigned char> &profile) = 0;
   virtual void collectBBox(double x0, double y0, double x1, double y1) = 0;
   virtual void collectSpnd(unsigned spnd) = 0;
-  virtual void collectVectorPattern(unsigned id, const WPXBinaryData &data) = 0;
+  virtual void collectVectorPattern(unsigned id, const librevenge::RVNGBinaryData &data) = 0;
   virtual void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color) = 0;
   virtual void collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
                            const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides) = 0;

@@ -32,10 +32,8 @@
 #include <boost/scoped_ptr.hpp>
 #include <libcdr/libcdr.h>
 #include "CDRParser.h"
-#include "CDRSVGGenerator.h"
 #include "CDRContentCollector.h"
 #include "CDRStylesCollector.h"
-#include "CDRZipStream.h"
 #include "libcdr_utils.h"
 #include "CDRDocumentStructure.h"
 
@@ -44,14 +42,14 @@ using namespace libcdr;
 namespace
 {
 
-static unsigned getCDRVersion(WPXInputStream *input)
+static unsigned getCDRVersion(librevenge::RVNGInputStream *input)
 {
   unsigned riff = readU32(input);
   if ((riff & 0xffff) == 0x4c57) // "WL<micro>\0"
     return 200;
   if (riff != CDR_FOURCC_RIFF)
     return 0;
-  input->seek(4, WPX_SEEK_CUR);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
   char signature_c = (char)readU8(input);
   if (signature_c != 'C' && signature_c != 'c')
     return 0;
@@ -81,27 +79,24 @@ Analyzes the content of an input stream to see if it can be parsed
 \return A value that indicates whether the content from the input
 stream is a Corel Draw Document that libcdr is able to parse
 */
-bool libcdr::CDRDocument::isSupported(WPXInputStream *input)
+bool libcdr::CDRDocument::isSupported(librevenge::RVNGInputStream *input)
 {
-  WPXInputStream *tmpInput = input;
+  librevenge::RVNGInputStream *tmpInput = input;
   try
   {
-    input->seek(0, WPX_SEEK_SET);
+    input->seek(0, librevenge::RVNG_SEEK_SET);
     unsigned version = getCDRVersion(input);
     if (version)
       return true;
-    CDRZipStream zinput(input);
-    // Yes, we are kidnapping here the OLE document API and extending
-    // it to support also zip files.
-    if (zinput.isOLEStream())
+    if (input->isStructured())
     {
-      input = zinput.getDocumentOLEStream("content/riffData.cdr");
+      input = input->getSubStreamByName("content/riffData.cdr");
       if (!input)
-        input = zinput.getDocumentOLEStream("content/root.dat");
+        input = input->getSubStreamByName("content/root.dat");
     }
     if (!input)
       return false;
-    input->seek(0, WPX_SEEK_SET);
+    input->seek(0, librevenge::RVNG_SEEK_SET);
     version = getCDRVersion(input);
     if (input != tmpInput)
       delete input;
@@ -126,9 +121,9 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 \param painter A CDRPainterInterface implementation
 \return A value that indicates whether the parsing was successful
 */
-bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterface *painter)
+bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *painter)
 {
-  input->seek(0, WPX_SEEK_SET);
+  input->seek(0, librevenge::RVNG_SEEK_SET);
   bool retVal = false;
   unsigned version = 0;
   try
@@ -136,10 +131,10 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
     version = getCDRVersion(input);
     if (version)
     {
-      input->seek(0, WPX_SEEK_SET);
+      input->seek(0, librevenge::RVNG_SEEK_SET);
       CDRParserState ps;
       CDRStylesCollector stylesCollector(ps);
-      CDRParser stylesParser(std::vector<WPXInputStream *>(), &stylesCollector);
+      CDRParser stylesParser(std::vector<librevenge::RVNGInputStream *>(), &stylesCollector);
       if (version >= 300)
         retVal = stylesParser.parseRecords(input);
       else
@@ -148,9 +143,9 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
         retVal = false;
       if (retVal)
       {
-        input->seek(0, WPX_SEEK_SET);
+        input->seek(0, librevenge::RVNG_SEEK_SET);
         CDRContentCollector contentCollector(ps, painter);
-        CDRParser contentParser(std::vector<WPXInputStream *>(), &contentCollector);
+        CDRParser contentParser(std::vector<librevenge::RVNGInputStream *>(), &contentCollector);
         if (version >= 300)
           retVal = contentParser.parseRecords(input);
         else
@@ -165,26 +160,25 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
     return false;
   }
 
-  WPXInputStream *tmpInput = input;
-  std::vector<WPXInputStream *> dataStreams;
+  librevenge::RVNGInputStream *tmpInput = input;
+  std::vector<librevenge::RVNGInputStream *> dataStreams;
   try
   {
-    CDRZipStream zinput(input);
-    bool isZipDocument = zinput.isOLEStream();
+    bool isZipDocument = input->isStructured();
     std::vector<std::string> dataFiles;
     if (isZipDocument)
     {
-      input = zinput.getDocumentOLEStream("content/riffData.cdr");
+      input = input->getSubStreamByName("content/riffData.cdr");
       if (!input)
       {
-        input = zinput.getDocumentOLEStream("content/root.dat");
+        input = input->getSubStreamByName("content/root.dat");
         if (input)
         {
-          boost::scoped_ptr<WPXInputStream> tmpStream(zinput.getDocumentOLEStream("content/dataFileList.dat"));
+          boost::scoped_ptr<librevenge::RVNGInputStream> tmpStream(input->getSubStreamByName("content/dataFileList.dat"));
           if (bool(tmpStream))
           {
             std::string dataFileName;
-            while (!tmpStream->atEOS())
+            while (!tmpStream->isEnd())
             {
               unsigned char character = readU8(tmpStream.get());
               if (character == 0x0a)
@@ -207,21 +201,21 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
       std::string streamName("content/data/");
       streamName += dataFiles[i];
       CDR_DEBUG_MSG(("Extracting stream: %s\n", streamName.c_str()));
-      dataStreams.push_back(zinput.getDocumentOLEStream(streamName.c_str()));
+      dataStreams.push_back(input->getSubStreamByName(streamName.c_str()));
     }
     if (!input)
       input = tmpInput;
-    input->seek(0, WPX_SEEK_SET);
+    input->seek(0, librevenge::RVNG_SEEK_SET);
     CDRParserState ps;
-    // libcdr extension to the getDocumentOLEStream. Will extract the first stream in the
+    // libcdr extension to the getSubStreamByName. Will extract the first stream in the
     // given directory
-    WPXInputStream *cmykProfile = zinput.getDocumentOLEStream("color/profiles/cmyk/");
+    librevenge::RVNGInputStream *cmykProfile = input->getSubStreamByName("color/profiles/cmyk/");
     if (cmykProfile)
     {
       ps.setColorTransform(cmykProfile);
       delete cmykProfile;
     }
-    WPXInputStream *rgbProfile = zinput.getDocumentOLEStream("color/profiles/rgb/");
+    librevenge::RVNGInputStream *rgbProfile = input->getSubStreamByName("color/profiles/rgb/");
     if (rgbProfile)
     {
       ps.setColorTransform(rgbProfile);
@@ -234,7 +228,7 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
       retVal = false;
     if (retVal)
     {
-      input->seek(0, WPX_SEEK_SET);
+      input->seek(0, librevenge::RVNG_SEEK_SET);
       CDRContentCollector contentCollector(ps, painter);
       CDRParser contentParser(dataStreams, &contentCollector);
       retVal = contentParser.parseRecords(input);
@@ -247,23 +241,9 @@ bool libcdr::CDRDocument::parse(::WPXInputStream *input, libwpg::WPGPaintInterfa
   if (input != tmpInput)
     delete input;
   input = tmpInput;
-  for (std::vector<WPXInputStream *>::iterator iter = dataStreams.begin(); iter != dataStreams.end(); ++iter)
+  for (std::vector<librevenge::RVNGInputStream *>::iterator iter = dataStreams.begin(); iter != dataStreams.end(); ++iter)
     delete *iter;
   return retVal;
-}
-
-/**
-Parses the input stream content and generates a valid Scalable Vector Graphics
-Provided as a convenience function for applications that support SVG internally.
-\param input The input stream
-\param output The output string whose content is the resulting SVG
-\return A value that indicates whether the SVG generation was successful.
-*/
-bool libcdr::CDRDocument::generateSVG(::WPXInputStream *input, libcdr::CDRStringVector &output)
-{
-  libcdr::CDRSVGGenerator generator(output);
-  bool result = libcdr::CDRDocument::parse(input, &generator);
-  return result;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

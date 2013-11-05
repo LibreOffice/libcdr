@@ -89,7 +89,7 @@ void libcdr::CDRParserState::setColorTransform(const std::vector<unsigned char> 
   cmsCloseProfile(tmpRGBProfile);
 }
 
-void libcdr::CDRParserState::setColorTransform(WPXInputStream *input)
+void libcdr::CDRParserState::setColorTransform(librevenge::RVNGInputStream *input)
 {
   if (!input)
     return;
@@ -531,9 +531,9 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
   return (unsigned)((red << 16) | (green << 8) | blue);
 }
 
-WPXString libcdr::CDRParserState::getRGBColorString(const libcdr::CDRColor &color)
+librevenge::RVNGString libcdr::CDRParserState::getRGBColorString(const libcdr::CDRColor &color)
 {
-  WPXString tempString;
+  librevenge::RVNGString tempString;
   tempString.sprintf("#%.6x", _getRGBColor(color));
   return tempString;
 }

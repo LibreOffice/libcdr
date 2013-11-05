@@ -27,7 +27,7 @@
  * instead of those above.
  */
 
-#include <libwpd-stream/libwpd-stream.h>
+#include <librevenge-stream/librevenge-stream.h>
 #include "libcdr_utils.h"
 #include "CommonParser.h"
 
@@ -42,7 +42,7 @@ libcdr::CommonParser::~CommonParser()
 {
 }
 
-double libcdr::CommonParser::readCoordinate(WPXInputStream *input, bool bigEndian)
+double libcdr::CommonParser::readCoordinate(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   if (m_precision == PRECISION_UNKNOWN)
     throw UnknownPrecisionException();
@@ -51,7 +51,7 @@ double libcdr::CommonParser::readCoordinate(WPXInputStream *input, bool bigEndia
   return (double)readS32(input, bigEndian) / 254000.0;
 }
 
-unsigned libcdr::CommonParser::readUnsigned(WPXInputStream *input, bool bigEndian)
+unsigned libcdr::CommonParser::readUnsigned(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   if (m_precision == PRECISION_UNKNOWN)
     throw UnknownPrecisionException();
@@ -60,7 +60,7 @@ unsigned libcdr::CommonParser::readUnsigned(WPXInputStream *input, bool bigEndia
   return readU32(input, bigEndian);
 }
 
-unsigned short libcdr::CommonParser::readUnsignedShort(WPXInputStream *input, bool bigEndian)
+unsigned short libcdr::CommonParser::readUnsignedShort(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   if (m_precision == PRECISION_UNKNOWN)
     throw UnknownPrecisionException();
@@ -69,7 +69,7 @@ unsigned short libcdr::CommonParser::readUnsignedShort(WPXInputStream *input, bo
   return readU16(input, bigEndian);
 }
 
-int libcdr::CommonParser::readInteger(WPXInputStream *input, bool bigEndian)
+int libcdr::CommonParser::readInteger(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   if (m_precision == PRECISION_UNKNOWN)
     throw UnknownPrecisionException();
@@ -78,7 +78,7 @@ int libcdr::CommonParser::readInteger(WPXInputStream *input, bool bigEndian)
   return readS32(input, bigEndian);
 }
 
-double libcdr::CommonParser::readAngle(WPXInputStream *input, bool bigEndian)
+double libcdr::CommonParser::readAngle(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   if (m_precision == PRECISION_UNKNOWN)
     throw UnknownPrecisionException();

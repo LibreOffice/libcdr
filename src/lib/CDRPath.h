@@ -31,7 +31,7 @@
 #define __CDRPATH_H__
 
 #include <vector>
-#include <libwpd/libwpd.h>
+#include <librevenge/librevenge.h>
 
 namespace libcdr
 {
@@ -44,7 +44,7 @@ class CDRPathElement
 public:
   CDRPathElement() {}
   virtual ~CDRPathElement() {}
-  virtual void writeOut(WPXPropertyListVector &vec) const = 0;
+  virtual void writeOut(librevenge::RVNGPropertyListVector &vec) const = 0;
   virtual void transform(const CDRTransforms &trafos) = 0;
   virtual void transform(const CDRTransform &trafo) = 0;
   virtual CDRPathElement *clone() = 0;
@@ -69,8 +69,8 @@ public:
   void appendClosePath();
   void appendPath(const CDRPath &path);
 
-  void writeOut(WPXPropertyListVector &vec) const;
-  void writeOut(WPXString &path, WPXString &viewBox, double &width) const;
+  void writeOut(librevenge::RVNGPropertyListVector &vec) const;
+  void writeOut(librevenge::RVNGString &path, librevenge::RVNGString &viewBox, double &width) const;
   void transform(const CDRTransforms &trafos);
   void transform(const CDRTransform &trafo);
   CDRPathElement *clone();

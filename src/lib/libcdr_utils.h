@@ -35,8 +35,8 @@
 #include <string>
 #include <math.h>
 #include <vector>
-#include <libwpd-stream/libwpd-stream.h>
-#include <libwpd/libwpd.h>
+#include <librevenge-stream/librevenge-stream.h>
+#include <librevenge/librevenge.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -99,24 +99,24 @@ typedef __int64 int64_t;
 namespace libcdr
 {
 
-uint8_t readU8(WPXInputStream *input, bool bigEndian=false);
-uint16_t readU16(WPXInputStream *input, bool bigEndian=false);
-uint32_t readU32(WPXInputStream *input, bool bigEndian=false);
-uint64_t readU64(WPXInputStream *input, bool bigEndian=false);
-int32_t readS32(WPXInputStream *input, bool bigEndian=false);
-int16_t readS16(WPXInputStream *input, bool bigEndian=false);
+uint8_t readU8(librevenge::RVNGInputStream *input, bool bigEndian=false);
+uint16_t readU16(librevenge::RVNGInputStream *input, bool bigEndian=false);
+uint32_t readU32(librevenge::RVNGInputStream *input, bool bigEndian=false);
+uint64_t readU64(librevenge::RVNGInputStream *input, bool bigEndian=false);
+int32_t readS32(librevenge::RVNGInputStream *input, bool bigEndian=false);
+int16_t readS16(librevenge::RVNGInputStream *input, bool bigEndian=false);
 
-double readDouble(WPXInputStream *input, bool bigEndian=false);
+double readDouble(librevenge::RVNGInputStream *input, bool bigEndian=false);
 
-double readFixedPoint(WPXInputStream *input, bool bigEndian=false);
+double readFixedPoint(librevenge::RVNGInputStream *input, bool bigEndian=false);
 
 int cdr_round(double d);
 
-void writeU8(WPXBinaryData &buffer, const int value);
-void writeU16(WPXBinaryData &buffer, const int value);
-void writeU32(WPXBinaryData &buffer, const int value);
-void appendCharacters(WPXString &text, std::vector<unsigned char> characters, unsigned short charset);
-void appendCharacters(WPXString &text, std::vector<unsigned char> characters);
+void writeU8(librevenge::RVNGBinaryData &buffer, const int value);
+void writeU16(librevenge::RVNGBinaryData &buffer, const int value);
+void writeU32(librevenge::RVNGBinaryData &buffer, const int value);
+void appendCharacters(librevenge::RVNGString &text, std::vector<unsigned char> characters, unsigned short charset);
+void appendCharacters(librevenge::RVNGString &text, std::vector<unsigned char> characters);
 
 #ifdef DEBUG
 const char *toFourCC(unsigned value, bool bigEndian=false);

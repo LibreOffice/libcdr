@@ -327,7 +327,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\lib\CDRStringVector.cpp"
+				RelativePath="..\..\src\lib\librevenge::RVNGStringVector.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -556,7 +556,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\inc\libcdr\CDRStringVector.h"
+				RelativePath="..\..\inc\libcdr\librevenge::RVNGStringVector.h"
 				>
 			</File>
 			<File
