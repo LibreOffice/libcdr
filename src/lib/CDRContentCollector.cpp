@@ -29,7 +29,7 @@
 
 #include <math.h>
 #include <string.h>
-#include <librevenge-generators/librevenge-generators.h>
+#include <librevenge/librevenge.h>
 #include <libcdr/libcdr.h>
 #include "CDRContentCollector.h"
 #include "CDRInternalStream.h"
