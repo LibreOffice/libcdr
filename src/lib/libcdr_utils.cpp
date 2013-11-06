@@ -302,11 +302,6 @@ void libcdr::writeU32(librevenge::RVNGBinaryData &buffer, const int value)
   buffer.append((unsigned char)((value >> 24) & 0xFF));
 }
 
-void libcdr::writeU8(librevenge::RVNGBinaryData &buffer, const int value)
-{
-  buffer.append((unsigned char)(value & 0xFF));
-}
-
 void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned char> characters, unsigned short charset)
 {
   if (characters.empty())

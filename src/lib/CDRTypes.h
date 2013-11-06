@@ -306,7 +306,6 @@ struct WaldoRecordType1
 
 struct CDRCMYKColor
 {
-  CDRCMYKColor(unsigned colorValue, bool percentage = true);
   CDRCMYKColor(double cyan, double magenta, double yellow, double black)
     : c(cyan), m(magenta), y(yellow), k(black) {}
   ~CDRCMYKColor() {}
@@ -314,47 +313,36 @@ struct CDRCMYKColor
   double m;
   double y;
   double k;
-  void applyTint(double tint);
-  unsigned getColorValue() const;
 };
 
 struct CDRRGBColor
 {
-  CDRRGBColor(unsigned colorValue);
   CDRRGBColor(double red, double green, double blue)
     : r(red), g(green), b(blue) {}
   ~CDRRGBColor() {}
   double r;
   double g;
   double b;
-  void applyTint(double tint);
-  unsigned getColorValue() const;
 };
 
 struct CDRLab2Color
 {
-  CDRLab2Color(unsigned colorValue);
   CDRLab2Color(double l, double A, double B)
     : L(l), a(A), b(B) {}
   ~CDRLab2Color() {}
   double L;
   double a;
   double b;
-  void applyTint(double tint);
-  unsigned getColorValue() const;
 };
 
 struct CDRLab4Color
 {
-  CDRLab4Color(unsigned colorValue);
   CDRLab4Color(double l, double A, double B)
     : L(l), a(A), b(B) {}
   ~CDRLab4Color() {}
   double L;
   double a;
   double b;
-  void applyTint(double tint);
-  unsigned getColorValue() const;
 };
 
 struct CDRText

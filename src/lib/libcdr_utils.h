@@ -112,7 +112,6 @@ double readFixedPoint(librevenge::RVNGInputStream *input, bool bigEndian=false);
 
 int cdr_round(double d);
 
-void writeU8(librevenge::RVNGBinaryData &buffer, const int value);
 void writeU16(librevenge::RVNGBinaryData &buffer, const int value);
 void writeU32(librevenge::RVNGBinaryData &buffer, const int value);
 void appendCharacters(librevenge::RVNGString &text, std::vector<unsigned char> characters, unsigned short charset);

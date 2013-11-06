@@ -48,7 +48,6 @@ public:
   CDROutputElementList(const CDROutputElementList &elementList);
   CDROutputElementList &operator=(const CDROutputElementList &elementList);
   virtual ~CDROutputElementList();
-  void append(const CDROutputElementList &elementList);
   void draw(librevenge::RVNGDrawingInterface *painter) const;
   void addStyle(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
   void addPath(const librevenge::RVNGPropertyListVector &propListVec);

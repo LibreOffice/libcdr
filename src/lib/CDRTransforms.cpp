@@ -172,64 +172,6 @@ void libcdr::CDRTransform::applyToArc(double &rx, double &ry, double &rotation, 
   }
 }
 
-double libcdr::CDRTransform::_getScaleX() const
-{
-  double x0 = 0.0;
-  double x1 = 1.0;
-  double y0 = 0.0;
-  double y1 = 0.0;
-  applyToPoint(x0, y0);
-  applyToPoint(x1, y1);
-  return x1 - x0;
-}
-
-double libcdr::CDRTransform::getScaleX() const
-{
-  return fabs(_getScaleX());
-}
-
-bool libcdr::CDRTransform::getFlipX() const
-{
-  return (0 > _getScaleX());
-}
-
-double libcdr::CDRTransform::_getScaleY() const
-{
-  double x0 = 0.0;
-  double x1 = 0.0;
-  double y0 = 0.0;
-  double y1 = 1.0;
-  applyToPoint(x0, y0);
-  applyToPoint(x1, y1);
-  return y1 - y0;
-}
-
-double libcdr::CDRTransform::getScaleY() const
-{
-  return fabs(_getScaleY());
-}
-
-bool libcdr::CDRTransform::getFlipY() const
-{
-  return (0 > _getScaleY());
-}
-
-double libcdr::CDRTransform::getTranslateX() const
-{
-  double x = 0.0;
-  double y = 0.0;
-  applyToPoint(x, y);
-  return x;
-}
-
-double libcdr::CDRTransform::getTranslateY() const
-{
-  double x = 0.0;
-  double y = 0.0;
-  applyToPoint(x, y);
-  return y;
-}
-
 
 libcdr::CDRTransforms::CDRTransforms()
   : m_trafos()

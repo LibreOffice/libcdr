@@ -357,12 +357,6 @@ libcdr::CDROutputElementList &libcdr::CDROutputElementList::operator=(const libc
   return *this;
 }
 
-void libcdr::CDROutputElementList::append(const libcdr::CDROutputElementList &elementList)
-{
-  for (std::vector<CDROutputElement *>::const_iterator cstiter = elementList.m_elements.begin(); cstiter != elementList.m_elements.end(); ++cstiter)
-    m_elements.push_back((*cstiter)->clone());
-}
-
 libcdr::CDROutputElementList::~CDROutputElementList()
 {
   for (std::vector<CDROutputElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
