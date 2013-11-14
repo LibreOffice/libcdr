@@ -209,18 +209,18 @@ void libcdr::CMXParser::readCMXHeader(librevenge::RVNGInputStream *input)
 void libcdr::CMXParser::readDisp(librevenge::RVNGInputStream *input, unsigned length)
 {
   librevenge::RVNGBinaryData previewImage;
-  previewImage.append(0x42);
-  previewImage.append(0x4d);
+  previewImage.append((unsigned char)0x42);
+  previewImage.append((unsigned char)0x4d);
 
   previewImage.append((unsigned char)((length+8) & 0x000000ff));
   previewImage.append((unsigned char)(((length+8) & 0x0000ff00) >> 8));
   previewImage.append((unsigned char)(((length+8) & 0x00ff0000) >> 16));
   previewImage.append((unsigned char)(((length+8) & 0xff000000) >> 24));
 
-  previewImage.append(0x00);
-  previewImage.append(0x00);
-  previewImage.append(0x00);
-  previewImage.append(0x00);
+  previewImage.append((unsigned char)0x00);
+  previewImage.append((unsigned char)0x00);
+  previewImage.append((unsigned char)0x00);
+  previewImage.append((unsigned char)0x00);
 
   long startPosition = input->tell();
   input->seek(0x18, librevenge::RVNG_SEEK_CUR);

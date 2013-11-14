@@ -357,8 +357,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       propList.insert("librevenge:rotate", rotate * 180 / M_PI, librevenge::RVNG_GENERIC);
 
     propList.insert("librevenge:mime-type", "image/bmp");
-
-    outputElement.addGraphicObject(propList, m_currentImage.getImage());
+    propList.insert("office:binary-data", m_currentImage.getImage());
+    outputElement.addGraphicObject(propList);
   }
   if (m_currentText && !m_currentText->empty())
   {
