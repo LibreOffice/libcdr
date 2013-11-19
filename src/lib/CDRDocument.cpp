@@ -88,12 +88,13 @@ bool libcdr::CDRDocument::isSupported(librevenge::RVNGInputStream *input)
     unsigned version = getCDRVersion(input);
     if (version)
       return true;
-    if (input->isStructured())
+    if (tmpInput->isStructured())
     {
-      input = input->getSubStreamByName("content/riffData.cdr");
+      input = tmpInput->getSubStreamByName("content/riffData.cdr");
       if (!input)
-        input = input->getSubStreamByName("content/root.dat");
+        input = tmpInput->getSubStreamByName("content/root.dat");
     }
+    tmpInput->seek(0, librevenge::RVNG_SEEK_SET);
     if (!input)
       return false;
     input->seek(0, librevenge::RVNG_SEEK_SET);
@@ -164,17 +165,18 @@ bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input, librevenge::
   std::vector<librevenge::RVNGInputStream *> dataStreams;
   try
   {
-    bool isZipDocument = input->isStructured();
     std::vector<std::string> dataFiles;
-    if (isZipDocument)
+    if (tmpInput->isStructured())
     {
-      input = input->getSubStreamByName("content/riffData.cdr");
+      tmpInput->seek(0, librevenge::RVNG_SEEK_SET);
+      input = tmpInput->getSubStreamByName("content/riffData.cdr");
       if (!input)
       {
-        input = input->getSubStreamByName("content/root.dat");
+        tmpInput->seek(0, librevenge::RVNG_SEEK_SET);
+        input = tmpInput->getSubStreamByName("content/root.dat");
         if (input)
         {
-          boost::scoped_ptr<librevenge::RVNGInputStream> tmpStream(input->getSubStreamByName("content/dataFileList.dat"));
+          boost::scoped_ptr<librevenge::RVNGInputStream> tmpStream(tmpInput->getSubStreamByName("content/dataFileList.dat"));
           if (bool(tmpStream))
           {
             std::string dataFileName;
@@ -201,21 +203,23 @@ bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input, librevenge::
       std::string streamName("content/data/");
       streamName += dataFiles[i];
       CDR_DEBUG_MSG(("Extracting stream: %s\n", streamName.c_str()));
-      dataStreams.push_back(input->getSubStreamByName(streamName.c_str()));
+      tmpInput->seek(0, librevenge::RVNG_SEEK_SET);
+      dataStreams.push_back(tmpInput->getSubStreamByName(streamName.c_str()));
     }
     if (!input)
       input = tmpInput;
-    input->seek(0, librevenge::RVNG_SEEK_SET);
     CDRParserState ps;
     // libcdr extension to the getSubStreamByName. Will extract the first stream in the
     // given directory
-    librevenge::RVNGInputStream *cmykProfile = input->getSubStreamByName("color/profiles/cmyk/");
+    tmpInput->seek(0, librevenge::RVNG_SEEK_SET);
+    librevenge::RVNGInputStream *cmykProfile = tmpInput->getSubStreamByName("color/profiles/cmyk/");
     if (cmykProfile)
     {
       ps.setColorTransform(cmykProfile);
       delete cmykProfile;
     }
-    librevenge::RVNGInputStream *rgbProfile = input->getSubStreamByName("color/profiles/rgb/");
+    tmpInput->seek(0, librevenge::RVNG_SEEK_SET);
+    librevenge::RVNGInputStream *rgbProfile = tmpInput->getSubStreamByName("color/profiles/rgb/");
     if (rgbProfile)
     {
       ps.setColorTransform(rgbProfile);
@@ -223,6 +227,7 @@ bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input, librevenge::
     }
     CDRStylesCollector stylesCollector(ps);
     CDRParser stylesParser(dataStreams, &stylesCollector);
+    input->seek(0, librevenge::RVNG_SEEK_SET);
     retVal = stylesParser.parseRecords(input);
     if (ps.m_pages.empty())
       retVal = false;
