@@ -1489,6 +1489,8 @@ void libcdr::CDRParser::readPath(librevenge::RVNGInputStream *input)
 void libcdr::CDRParser::readArrw(librevenge::RVNGInputStream *input, unsigned length)
 {
   CDR_DEBUG_MSG(("CDRParser::readArrw\n"));
+  if (m_version < 600)
+    return;
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned arrowId = readU32(input);
