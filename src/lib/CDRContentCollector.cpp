@@ -286,8 +286,9 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       librevenge::RVNGPropertyListVector outputPath;
       for (std::vector<librevenge::RVNGPropertyList>::const_iterator iter = tmpPath.begin(); iter != tmpPath.end(); ++iter)
         outputPath.append(*iter);
-
-      outputElement.addPath(outputPath);
+      librevenge::RVNGPropertyList propList;
+      propList.insert("svg:d", outputPath);
+      outputElement.addPath(propList);
 
     }
     m_currentPath.clear();
@@ -417,7 +418,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     textFrameProps.insert("fo:padding-bottom", 0.0);
     textFrameProps.insert("fo:padding-left", 0.0);
     textFrameProps.insert("fo:padding-right", 0.0);
-    outputElement.addStartTextObject(textFrameProps, librevenge::RVNGPropertyListVector());
+    outputElement.addStartTextObject(textFrameProps);
     for (unsigned i = 0; i < m_currentText->size(); ++i)
     {
       librevenge::RVNGPropertyList paraProps;

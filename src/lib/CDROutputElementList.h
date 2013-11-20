@@ -50,9 +50,9 @@ public:
   virtual ~CDROutputElementList();
   void draw(librevenge::RVNGDrawingInterface *painter) const;
   void addStyle(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
-  void addPath(const librevenge::RVNGPropertyListVector &propListVec);
+  void addPath(const librevenge::RVNGPropertyList &propList);
   void addGraphicObject(const librevenge::RVNGPropertyList &propList);
-  void addStartTextObject(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
+  void addStartTextObject(const librevenge::RVNGPropertyList &propList);
   void addOpenParagraph(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
   void addOpenSpan(const librevenge::RVNGPropertyList &propList);
   void addInsertText(const librevenge::RVNGString &text);

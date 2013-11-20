@@ -61,15 +61,15 @@ private:
 class CDRPathOutputElement : public CDROutputElement
 {
 public:
-  CDRPathOutputElement(const librevenge::RVNGPropertyListVector &propListVec);
+  CDRPathOutputElement(const librevenge::RVNGPropertyList &propList);
   virtual ~CDRPathOutputElement() {}
   virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
-    return new CDRPathOutputElement(m_propListVec);
+    return new CDRPathOutputElement(m_propList);
   }
 private:
-  librevenge::RVNGPropertyListVector m_propListVec;
+  librevenge::RVNGPropertyList m_propList;
 };
 
 
@@ -91,16 +91,15 @@ private:
 class CDRStartTextObjectOutputElement : public CDROutputElement
 {
 public:
-  CDRStartTextObjectOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
+  CDRStartTextObjectOutputElement(const librevenge::RVNGPropertyList &propList);
   virtual ~CDRStartTextObjectOutputElement() {}
   virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
-    return new CDRStartTextObjectOutputElement(m_propList, m_propListVec);
+    return new CDRStartTextObjectOutputElement(m_propList);
   }
 private:
   librevenge::RVNGPropertyList m_propList;
-  librevenge::RVNGPropertyListVector m_propListVec;
 };
 
 
@@ -226,13 +225,13 @@ void libcdr::CDRStyleOutputElement::draw(librevenge::RVNGDrawingInterface *paint
 }
 
 
-libcdr::CDRPathOutputElement::CDRPathOutputElement(const librevenge::RVNGPropertyListVector &propListVec) :
-  m_propListVec(propListVec) {}
+libcdr::CDRPathOutputElement::CDRPathOutputElement(const librevenge::RVNGPropertyList &propList) :
+  m_propList(propList) {}
 
 void libcdr::CDRPathOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
-    painter->drawPath(m_propListVec);
+    painter->drawPath(m_propList);
 }
 
 
@@ -246,13 +245,13 @@ void libcdr::CDRGraphicObjectOutputElement::draw(librevenge::RVNGDrawingInterfac
 }
 
 
-libcdr::CDRStartTextObjectOutputElement::CDRStartTextObjectOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec) :
-  m_propList(propList), m_propListVec(propListVec) {}
+libcdr::CDRStartTextObjectOutputElement::CDRStartTextObjectOutputElement(const librevenge::RVNGPropertyList &propList) :
+  m_propList(propList) {}
 
 void libcdr::CDRStartTextObjectOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
-    painter->startTextObject(m_propList, m_propListVec);
+    painter->startTextObject(m_propList);
 }
 
 libcdr::CDROpenSpanOutputElement::CDROpenSpanOutputElement(const librevenge::RVNGPropertyList &propList) :
@@ -374,9 +373,9 @@ void libcdr::CDROutputElementList::addStyle(const librevenge::RVNGPropertyList &
   m_elements.push_back(new CDRStyleOutputElement(propList, propListVec));
 }
 
-void libcdr::CDROutputElementList::addPath(const librevenge::RVNGPropertyListVector &propListVec)
+void libcdr::CDROutputElementList::addPath(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDRPathOutputElement(propListVec));
+  m_elements.push_back(new CDRPathOutputElement(propList));
 }
 
 void libcdr::CDROutputElementList::addGraphicObject(const librevenge::RVNGPropertyList &propList)
@@ -384,9 +383,9 @@ void libcdr::CDROutputElementList::addGraphicObject(const librevenge::RVNGProper
   m_elements.push_back(new CDRGraphicObjectOutputElement(propList));
 }
 
-void libcdr::CDROutputElementList::addStartTextObject(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec)
+void libcdr::CDROutputElementList::addStartTextObject(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDRStartTextObjectOutputElement(propList, propListVec));
+  m_elements.push_back(new CDRStartTextObjectOutputElement(propList));
 }
 
 void libcdr::CDROutputElementList::addOpenParagraph(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec)
