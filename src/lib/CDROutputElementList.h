@@ -53,7 +53,7 @@ public:
   void addPath(const librevenge::RVNGPropertyList &propList);
   void addGraphicObject(const librevenge::RVNGPropertyList &propList);
   void addStartTextObject(const librevenge::RVNGPropertyList &propList);
-  void addOpenParagraph(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
+  void addOpenParagraph(const librevenge::RVNGPropertyList &propList);
   void addOpenSpan(const librevenge::RVNGPropertyList &propList);
   void addInsertText(const librevenge::RVNGString &text);
   void addCloseSpan();

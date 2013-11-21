@@ -106,16 +106,15 @@ private:
 class CDROpenParagraphOutputElement : public CDROutputElement
 {
 public:
-  CDROpenParagraphOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
+  CDROpenParagraphOutputElement(const librevenge::RVNGPropertyList &propList);
   virtual ~CDROpenParagraphOutputElement() {}
   virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
-    return new CDROpenParagraphOutputElement(m_propList, m_propListVec);
+    return new CDROpenParagraphOutputElement(m_propList);
   }
 private:
   librevenge::RVNGPropertyList m_propList;
-  librevenge::RVNGPropertyListVector m_propListVec;
 };
 
 
@@ -264,13 +263,13 @@ void libcdr::CDROpenSpanOutputElement::draw(librevenge::RVNGDrawingInterface *pa
 }
 
 
-libcdr::CDROpenParagraphOutputElement::CDROpenParagraphOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec) :
-  m_propList(propList), m_propListVec(propListVec) {}
+libcdr::CDROpenParagraphOutputElement::CDROpenParagraphOutputElement(const librevenge::RVNGPropertyList &propList) :
+  m_propList(propList) {}
 
 void libcdr::CDROpenParagraphOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
-    painter->openParagraph(m_propList, m_propListVec);
+    painter->openParagraph(m_propList);
 }
 
 
@@ -388,9 +387,9 @@ void libcdr::CDROutputElementList::addStartTextObject(const librevenge::RVNGProp
   m_elements.push_back(new CDRStartTextObjectOutputElement(propList));
 }
 
-void libcdr::CDROutputElementList::addOpenParagraph(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec)
+void libcdr::CDROutputElementList::addOpenParagraph(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDROpenParagraphOutputElement(propList, propListVec));
+  m_elements.push_back(new CDROpenParagraphOutputElement(propList));
 }
 
 void libcdr::CDROutputElementList::addOpenSpan(const librevenge::RVNGPropertyList &propList)
