@@ -95,7 +95,7 @@ private:
   void _endPage();
   void _flushCurrentPath();
 
-  void _fillProperties(librevenge::RVNGPropertyList &propList, librevenge::RVNGPropertyListVector &vec);
+  void _fillProperties(librevenge::RVNGPropertyList &propList);
   void _lineProperties(librevenge::RVNGPropertyList &propList);
   void _generateBitmapFromPattern(librevenge::RVNGBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor);
 

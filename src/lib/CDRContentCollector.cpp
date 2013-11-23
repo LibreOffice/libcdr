@@ -186,10 +186,9 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     double x = 0.0;
     double y = 0.0;
     librevenge::RVNGPropertyList style;
-    librevenge::RVNGPropertyListVector gradient;
-    _fillProperties(style, gradient);
+    _fillProperties(style);
     _lineProperties(style);
-    outputElement.addStyle(style, gradient);
+    outputElement.addStyle(style);
     m_currentPath.transform(m_currentTransforms);
     if (!m_groupTransforms.empty())
       m_currentPath.transform(m_groupTransforms.top());
@@ -602,7 +601,7 @@ void libcdr::CDRContentCollector::collectPolygonTransform(unsigned numAngles, un
   m_polygon = new CDRPolygon(numAngles, nextPoint, rx, ry, cx, cy);
 }
 
-void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &propList, librevenge::RVNGPropertyListVector &vec)
+void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &propList)
 {
   if (m_fillOpacity < 1.0)
     propList.insert("draw:opacity", m_fillOpacity, librevenge::RVNG_PERCENT);
@@ -674,6 +673,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             while (angle > 360.0)
               angle -= 360.0;
             propList.insert("draw:angle", (int)angle);
+            librevenge::RVNGPropertyListVector vec;
             for (unsigned i = 0; i < m_currentFillStyle.gradient.m_stops.size(); i++)
             {
               libcdr::CDRGradientStop &gradStop = m_currentFillStyle.gradient.m_stops[i];
@@ -683,6 +683,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
               stopElement.insert("svg:stop-opacity", m_fillOpacity, librevenge::RVNG_PERCENT);
               vec.append(stopElement);
             }
+            propList.insert("svg:linearGradient", vec);
             break;
           }
         }
@@ -697,6 +698,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
           while (angle > 360.0)
             angle -= 360.0;
           propList.insert("draw:angle", (int)angle);
+          librevenge::RVNGPropertyListVector vec;
           for (unsigned i = 0; i < m_currentFillStyle.gradient.m_stops.size(); i++)
           {
             libcdr::CDRGradientStop &gradStop = m_currentFillStyle.gradient.m_stops[i];
@@ -706,6 +708,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             stopElement.insert("svg:stop-opacity", m_fillOpacity, librevenge::RVNG_PERCENT);
             vec.append(stopElement);
           }
+          propList.insert("svg:linearGradient", vec);
         }
         break;
       case 7: // Pattern

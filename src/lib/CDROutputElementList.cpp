@@ -45,16 +45,15 @@ public:
 class CDRStyleOutputElement : public CDROutputElement
 {
 public:
-  CDRStyleOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec);
+  CDRStyleOutputElement(const librevenge::RVNGPropertyList &propList);
   virtual ~CDRStyleOutputElement() {}
   virtual void draw(librevenge::RVNGDrawingInterface *painter);
   virtual CDROutputElement *clone()
   {
-    return new CDRStyleOutputElement(m_propList, m_propListVec);
+    return new CDRStyleOutputElement(m_propList);
   }
 private:
   librevenge::RVNGPropertyList m_propList;
-  librevenge::RVNGPropertyListVector m_propListVec;
 };
 
 
@@ -214,13 +213,13 @@ public:
 
 } // namespace libcdr
 
-libcdr::CDRStyleOutputElement::CDRStyleOutputElement(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec) :
-  m_propList(propList), m_propListVec(propListVec) {}
+libcdr::CDRStyleOutputElement::CDRStyleOutputElement(const librevenge::RVNGPropertyList &propList) :
+  m_propList(propList) {}
 
 void libcdr::CDRStyleOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
-    painter->setStyle(m_propList, m_propListVec);
+    painter->setStyle(m_propList);
 }
 
 
@@ -367,9 +366,9 @@ void libcdr::CDROutputElementList::draw(librevenge::RVNGDrawingInterface *painte
     (*iter)->draw(painter);
 }
 
-void libcdr::CDROutputElementList::addStyle(const librevenge::RVNGPropertyList &propList, const librevenge::RVNGPropertyListVector &propListVec)
+void libcdr::CDROutputElementList::addStyle(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDRStyleOutputElement(propList, propListVec));
+  m_elements.push_back(new CDRStyleOutputElement(propList));
 }
 
 void libcdr::CDROutputElementList::addPath(const librevenge::RVNGPropertyList &propList)
