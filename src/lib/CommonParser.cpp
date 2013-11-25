@@ -143,7 +143,7 @@ void libcdr::CommonParser::processPath(const std::vector<std::pair<double, doubl
         path.appendClosePath();
       tmpPoints.clear();
     }
-    else if((type & 0x40) && (type & 0x80))
+    else if ((type & 0x40) && (type & 0x80))
     {
       tmpPoints.push_back(points[k]);
     }

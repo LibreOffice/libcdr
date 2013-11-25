@@ -45,7 +45,7 @@ namespace
 
 static inline double getAngle(double bx, double by)
 {
-  return fmod(2*M_PI + (by > 0.0 ? 1.0 : -1.0) * acos( bx / sqrt(bx * bx + by * by) ), 2*M_PI);
+  return fmod(2*M_PI + (by > 0.0 ? 1.0 : -1.0) * acos(bx / sqrt(bx * bx + by * by)), 2*M_PI);
 }
 
 static void getEllipticalArcBBox(double x0, double y0,
@@ -126,7 +126,7 @@ static void getEllipticalArcBBox(double x0, double y0,
   else
   {
     txmin = -atan(ry*tan(phi)/rx);
-    txmax = M_PI - atan (ry*tan(phi)/rx);
+    txmax = M_PI - atan(ry*tan(phi)/rx);
     xmin = cx + rx*cos(txmin)*cos(phi) - ry*sin(txmin)*sin(phi);
     xmax = cx + rx*cos(txmax)*cos(phi) - ry*sin(txmax)*sin(phi);
     double tmpY = cy + rx*cos(txmin)*sin(phi) + ry*sin(txmin)*cos(phi);
@@ -198,7 +198,7 @@ static void getQuadraticBezierBBox(double x0, double y0, double x1, double y1, d
   ymax = y0 > y ? y0 : y;
 
   double t = quadraticDerivative(x0, x1, x);
-  if(t>=0 && t<=1)
+  if (t>=0 && t<=1)
   {
     double tmpx = quadraticExtreme(t, x0, x1, x);
     xmin = tmpx < xmin ? tmpx : xmin;
@@ -206,7 +206,7 @@ static void getQuadraticBezierBBox(double x0, double y0, double x1, double y1, d
   }
 
   t = quadraticDerivative(y0, y1, y);
-  if(t>=0 && t<=1)
+  if (t>=0 && t<=1)
   {
     double tmpy = quadraticExtreme(t, y0, y1, y);
     ymin = tmpy < ymin ? tmpy : ymin;
@@ -704,10 +704,10 @@ void libcdr::CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGStr
 {
   librevenge::RVNGPropertyListVector vec;
   writeOut(vec);
-  if(vec.count() == 0)
+  if (vec.count() == 0)
     return;
   // This must be a mistake and we do not want to crash lower
-  if(vec[0]["librevenge:path-action"]->getStr() == "Z")
+  if (vec[0]["librevenge:path-action"]->getStr() == "Z")
     return;
 
   // try to find the bounding box
@@ -717,7 +717,7 @@ void libcdr::CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGStr
   double lastX = 0.0;
   double lastY = 0.0;
 
-  for(unsigned k = 0; k < vec.count(); ++k)
+  for (unsigned k = 0; k < vec.count(); ++k)
   {
     if (!vec[k]["svg:x"] || !vec[k]["svg:y"])
       continue;
@@ -738,7 +738,7 @@ void libcdr::CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGStr
 
     double xmin, xmax, ymin, ymax;
 
-    if(vec[k]["librevenge:path-action"]->getStr() == "C")
+    if (vec[k]["librevenge:path-action"]->getStr() == "C")
     {
       getCubicBezierBBox(lastX, lastY, vec[k]["svg:x1"]->getDouble(), vec[k]["svg:y1"]->getDouble(),
                          vec[k]["svg:x2"]->getDouble(), vec[k]["svg:y2"]->getDouble(),
@@ -749,7 +749,7 @@ void libcdr::CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGStr
       qx = (qx < xmax ? xmax : qx);
       qy = (qy < ymax ? ymax : qy);
     }
-    if(vec[k]["librevenge:path-action"]->getStr() == "Q")
+    if (vec[k]["librevenge:path-action"]->getStr() == "Q")
     {
       getQuadraticBezierBBox(lastX, lastY, vec[k]["svg:x1"]->getDouble(), vec[k]["svg:y1"]->getDouble(),
                              vec[k]["svg:x"]->getDouble(), vec[k]["svg:y"]->getDouble(), xmin, ymin, xmax, ymax);
@@ -759,7 +759,7 @@ void libcdr::CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGStr
       qx = (qx < xmax ? xmax : qx);
       qy = (qy < ymax ? ymax : qy);
     }
-    if(vec[k]["librevenge:path-action"]->getStr() == "A")
+    if (vec[k]["librevenge:path-action"]->getStr() == "A")
     {
       getEllipticalArcBBox(lastX, lastY, vec[k]["svg:rx"]->getDouble(), vec[k]["svg:ry"]->getDouble(),
                            vec[k]["librevenge:rotate"] ? vec[k]["librevenge:rotate"]->getDouble() : 0.0,
@@ -780,7 +780,7 @@ void libcdr::CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGStr
   width = qy - py;
   viewBox.sprintf("%i %i %i %i", 0, 0, (unsigned)(2540*(qx - px)), (unsigned)(2540*(qy - py)));
 
-  for(unsigned i = 0; i < vec.count(); ++i)
+  for (unsigned i = 0; i < vec.count(); ++i)
   {
     librevenge::RVNGString sElement;
     if (vec[i]["librevenge:path-action"]->getStr() == "M")

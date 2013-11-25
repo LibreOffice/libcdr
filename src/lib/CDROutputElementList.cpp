@@ -343,7 +343,7 @@ libcdr::CDROutputElementList::CDROutputElementList(const libcdr::CDROutputElemen
 libcdr::CDROutputElementList &libcdr::CDROutputElementList::operator=(const libcdr::CDROutputElementList &elementList)
 {
   for (std::vector<CDROutputElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
-    delete (*iter);
+    delete(*iter);
 
   m_elements.clear();
 
@@ -356,7 +356,7 @@ libcdr::CDROutputElementList &libcdr::CDROutputElementList::operator=(const libc
 libcdr::CDROutputElementList::~CDROutputElementList()
 {
   for (std::vector<CDROutputElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
-    delete (*iter);
+    delete(*iter);
   m_elements.clear();
 }
 

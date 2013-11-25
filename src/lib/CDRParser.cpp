@@ -158,7 +158,7 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
                  space_p).full;
   }
 
-  if( !bRes )
+  if (!bRes)
     return -1;
 
   if (colourModel == "CMYK")
@@ -1099,7 +1099,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(librevenge::RVNGInputStream *input
         colorModel = 0x05; // RGB
         unsigned red = (unsigned)tint * (unsigned)r + 255 * (100 - tint);
         unsigned green = (unsigned)tint * (unsigned)g + 255 * (100 - tint);
-        unsigned blue = (unsigned )tint * (unsigned)b + 255 * (100 - tint);
+        unsigned blue = (unsigned)tint * (unsigned)b + 255 * (100 - tint);
         red /= 100;
         green /= 100;
         blue /= 100;
@@ -2575,7 +2575,7 @@ void libcdr::CDRParser::readFont(librevenge::RVNGInputStream *input, unsigned le
   else
   {
     unsigned char character = 0;
-    while(true)
+    while (true)
     {
       character = readU8(input);
       if (character)
@@ -3333,7 +3333,7 @@ void libcdr::CDRParser::readStyd(librevenge::RVNGInputStream *input)
   {
     input->seek(startPosition+argOffsets[i], librevenge::RVNG_SEEK_SET);
     CDR_DEBUG_MSG(("Styd: argument type: 0x%x\n", argTypes[i]));
-    switch(argTypes[i])
+    switch (argTypes[i])
     {
     case STYD_NAME:
       break;
