@@ -43,6 +43,7 @@ int printUsage()
   printf("Usage: cmx2raw [OPTION] <Corel Binary Metafile>\n");
   printf("\n");
   printf("Options:\n");
+  printf("--callgraph           Display the call graph nesting level\n");
   printf("--help                Shows this help message\n");
   return -1;
 }
@@ -51,14 +52,17 @@ int printUsage()
 
 int main(int argc, char *argv[])
 {
+  bool printIndentLevel = false;
+  char *file = 0;
+
   if (argc < 2)
     return printUsage();
 
-  char *file = 0;
-
   for (int i = 1; i < argc; i++)
   {
-    if (!file && strncmp(argv[i], "--", 2))
+    if (!strcmp(argv[i], "--callgraph"))
+      printIndentLevel = true;
+    else if (!file && strncmp(argv[i], "--", 2))
       file = argv[i];
     else
       return printUsage();
@@ -75,7 +79,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  librevenge::RVNGRawDrawingGenerator painter;
+  librevenge::RVNGRawDrawingGenerator painter(printIndentLevel);
   libcdr::CMXDocument::parse(&input, &painter);
 
   return 0;
