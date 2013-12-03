@@ -91,6 +91,8 @@ private:
   CDRContentCollector &operator=(const CDRContentCollector &);
 
   // helper functions
+  void _startDocument();
+  void _endDocument();
   void _startPage(double width, double height);
   void _endPage();
   void _flushCurrentPath();
@@ -101,6 +103,7 @@ private:
 
   librevenge::RVNGDrawingInterface *m_painter;
 
+  bool m_isDocumentStarted;
   bool m_isPageProperties;
   bool m_isPageStarted;
   bool m_ignorePage;

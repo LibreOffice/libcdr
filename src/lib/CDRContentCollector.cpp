@@ -48,7 +48,7 @@
 #endif
 
 libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, librevenge::RVNGDrawingInterface *painter) :
-  m_painter(painter),
+  m_painter(painter), m_isDocumentStarted(false),
   m_isPageProperties(false), m_isPageStarted(false), m_ignorePage(false),
   m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFillStyle(), m_currentLineStyle(), m_spnd(0),
   m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
@@ -64,20 +64,43 @@ libcdr::CDRContentCollector::~CDRContentCollector()
 {
   if (m_isPageStarted)
     _endPage();
+  if (m_isDocumentStarted)
+    _endDocument();
+}
+
+void libcdr::CDRContentCollector::_startDocument()
+{
+  if (m_isDocumentStarted)
+    return;
+  librevenge::RVNGPropertyList propList;
+  if (m_painter)
+    m_painter->startDocument(propList);
+  m_isDocumentStarted = true;
+}
+
+void libcdr::CDRContentCollector::_endDocument()
+{
+  if (!m_isDocumentStarted)
+    return;
+  if (m_isPageStarted)
+    _endPage();
+  if (m_painter)
+    m_painter->endDocument();
+  m_isDocumentStarted = false;
 }
 
 void libcdr::CDRContentCollector::_startPage(double width, double height)
 {
   if (m_ignorePage)
     return;
+  if (!m_isDocumentStarted)
+    _startDocument();
   librevenge::RVNGPropertyList propList;
   propList.insert("svg:width", width);
   propList.insert("svg:height", height);
   if (m_painter)
-  {
     m_painter->startPage(propList);
-    m_isPageStarted = true;
-  }
+  m_isPageStarted = true;
 }
 
 void libcdr::CDRContentCollector::_endPage()
