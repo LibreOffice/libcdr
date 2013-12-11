@@ -229,7 +229,7 @@ void libcdr::CDRStylesCollector::collectPaletteEntry(unsigned colorId, unsigned 
 }
 
 void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
-    const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides)
+                                             const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides)
 {
   if (data.empty() || charDescriptions.empty())
     return;

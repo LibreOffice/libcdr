@@ -384,9 +384,9 @@ bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
 }
 
 bool libcdr::CDRParser::gatherWaldoInformation(librevenge::RVNGInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
-    std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
-    std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
-    std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther)
+                                               std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
+                                               std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
+                                               std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther)
 {
   try
   {
@@ -435,7 +435,7 @@ bool libcdr::CDRParser::gatherWaldoInformation(librevenge::RVNGInputStream *inpu
 
 
 bool libcdr::CDRParser::parseWaldoStructure(librevenge::RVNGInputStream *input, std::stack<WaldoRecordType1> &waldoStack,
-    const std::map<unsigned, WaldoRecordType1> &records1, std::map<unsigned, WaldoRecordInfo> &records2)
+                                            const std::map<unsigned, WaldoRecordType1> &records1, std::map<unsigned, WaldoRecordInfo> &records2)
 {
   while (!waldoStack.empty())
   {
