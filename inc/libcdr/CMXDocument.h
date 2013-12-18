@@ -30,6 +30,7 @@
 #define __CMXDOCUMENT_H__
 
 #include <librevenge/librevenge.h>
+#include "libcdr_api.h"
 
 namespace libcdr
 {
@@ -37,9 +38,9 @@ class CMXDocument
 {
 public:
 
-  static bool isSupported(librevenge::RVNGInputStream *input);
+  static CDRAPI bool isSupported(librevenge::RVNGInputStream *input);
 
-  static bool parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *painter);
+  static CDRAPI bool parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *painter);
 };
 
 } // namespace libcdr

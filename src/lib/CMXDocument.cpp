@@ -42,7 +42,7 @@ Analyzes the content of an input stream to see if it can be parsed
 \return A value that indicates whether the content from the input
 stream is a Corel Draw Document that libcdr is able to parse
 */
-bool libcdr::CMXDocument::isSupported(librevenge::RVNGInputStream *input)
+CDRAPI bool libcdr::CMXDocument::isSupported(librevenge::RVNGInputStream *input)
 try
 {
   input->seek(0, librevenge::RVNG_SEEK_SET);
@@ -74,7 +74,7 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 \param painter A CDRPainterInterface implementation
 \return A value that indicates whether the parsing was successful
 */
-bool libcdr::CMXDocument::parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *painter)
+CDRAPI bool libcdr::CMXDocument::parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *painter)
 {
   input->seek(0, librevenge::RVNG_SEEK_SET);
   CDRParserState ps;

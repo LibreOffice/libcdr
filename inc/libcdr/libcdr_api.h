@@ -28,24 +28,18 @@
  * instead of those above.
  */
 
-#ifndef __CDRDOCUMENT_H__
-#define __CDRDOCUMENT_H__
+#ifndef __LIBCDR_API_H__
+#define __LIBCDR_API_H__
 
-#include <librevenge/librevenge.h>
-#include "libcdr_api.h"
+#ifdef DLL_EXPORT
+#ifdef LIBCDR_BUILD
+#define CDRAPI __declspec(dllexport)
+#else
+#define CDRAPI __declspec(dllimport)
+#endif
+#else
+#define CDRAPI
+#endif
 
-namespace libcdr
-{
-class CDRDocument
-{
-public:
-
-  static CDRAPI bool isSupported(librevenge::RVNGInputStream *input);
-
-  static CDRAPI bool parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *painter);
-};
-
-} // namespace libcdr
-
-#endif //  __CDRDOCUMENT_H__
+#endif
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
