@@ -46,23 +46,27 @@ public:
   CDRInternalStream(const std::vector<unsigned char> &buffer);
   ~CDRInternalStream() {}
 
-  virtual bool isStructured()
+  bool isStructured()
   {
     return false;
   }
-  virtual unsigned subStreamCount()
+  unsigned subStreamCount()
   {
     return 0;
   }
-  virtual const char *subStreamName(unsigned)
+  const char *subStreamName(unsigned)
   {
     return 0;
   }
-  virtual librevenge::RVNGInputStream *getSubStreamByName(const char *)
+  bool existsSubStream(const char *)
+  {
+    return false;
+  }
+  librevenge::RVNGInputStream *getSubStreamByName(const char *)
   {
     return 0;
   }
-  virtual librevenge::RVNGInputStream *getSubStreamById(unsigned)
+  librevenge::RVNGInputStream *getSubStreamById(unsigned)
   {
     return 0;
   }
