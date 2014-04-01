@@ -114,6 +114,7 @@ private:
   void readParagraphText(WPXInputStream *input);
 
   bool _redirectX6Chunk(WPXInputStream **input, unsigned &length);
+  void _readX6StyleString(WPXInputStream *input, unsigned length, CDRCharacterStyle &style);
 
   std::vector<WPXInputStream *> m_externalStreams;
 
