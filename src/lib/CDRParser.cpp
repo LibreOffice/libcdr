@@ -151,85 +151,6 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   return 1;
 }
 
-static void _readX6StyleString(librevenge::RVNGInputStream *input, unsigned length, libcdr::CDRCharacterStyle &style)
-{
-  std::vector<unsigned char> styleBuffer(length);
-  unsigned long numBytesRead = 0;
-  const unsigned char *tmpBuffer = input->read(length, numBytesRead);
-  if (numBytesRead)
-    memcpy(&styleBuffer[0], tmpBuffer, numBytesRead);
-  librevenge::RVNGString styleString;
-  libcdr::appendCharacters(styleString, styleBuffer);
-  CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
-
-  boost::property_tree::ptree pt;
-  try
-  {
-    std::stringstream ss;
-    ss << styleString.cstr();
-    boost::property_tree::read_json(ss, pt);
-  }
-  catch (...)
-  {
-    return;
-  }
-
-  if (pt.count("character"))
-  {
-    boost::optional<std::string> fontName = pt.get_optional<std::string>("character.latin.font");
-    if (!!fontName)
-      style.m_fontName = fontName.get().c_str();
-    unsigned short encoding = pt.get("character.latin.charset", 0);
-    if (encoding || style.m_charSet == (unsigned short)-1)
-      style.m_charSet = encoding;
-    processNameForEncoding(style.m_fontName, style.m_charSet);
-    boost::optional<unsigned> fontSize = pt.get_optional<unsigned>("character.latin.size");
-    if (!!fontSize)
-      style.m_fontSize = (double)fontSize.get() / 254000.0;
-
-    if (pt.count("character.outline"))
-    {
-      style.m_lineStyle.lineType = 0;
-      boost::optional<unsigned> lineWidth = pt.get_optional<unsigned>("character.outline.width");
-      if (!!lineWidth)
-        style.m_lineStyle.lineWidth = (double)lineWidth.get() / 254000.0;
-      boost::optional<std::string> color = pt.get_optional<std::string>("character.outline.color");
-      if (!!color)
-      {
-        double opacity = 1.0;
-        parseColourString(color.get().c_str(), style.m_lineStyle.color, opacity);
-      }
-    }
-
-    if (pt.count("character.fill"))
-    {
-      boost::optional<unsigned short> type = pt.get_optional<unsigned short>("character.fill.type");
-      if (!!type)
-        style.m_fillStyle.fillType = type.get();
-      boost::optional<std::string> color1 = pt.get_optional<std::string>("character.fill.primaryColor");
-      if (!!color1)
-      {
-        double opacity = 1.0;
-        parseColourString(color1.get().c_str(), style.m_fillStyle.color1, opacity);
-      }
-      boost::optional<std::string> color2 = pt.get_optional<std::string>("character.fill.primaryColor");
-      if (!!color2)
-      {
-        double opacity = 1.0;
-        parseColourString(color2.get().c_str(), style.m_fillStyle.color2, opacity);
-      }
-    }
-  }
-
-  if (pt.count("paragraph"))
-  {
-    boost::optional<unsigned> align = pt.get_optional<unsigned>("paragraph.justify");
-    if (!!align)
-      style.m_align = align.get();
-  }
-}
-
-
 } // anonymous namespace
 
 libcdr::CDRParser::CDRParser(const std::vector<librevenge::RVNGInputStream *> &externalStreams, libcdr::CDRCollector *collector)
@@ -3044,7 +2965,9 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
     {
       input->seek(28, librevenge::RVNG_SEEK_CUR);
       unsigned tlen = readU32(input);
-      input->seek(2*tlen + 4, librevenge::RVNG_SEEK_CUR);
+      if (m_version < 1700)
+        tlen *= 2;
+      input->seek(tlen + 4, librevenge::RVNG_SEEK_CUR);
     }
     else
     {
@@ -3076,8 +2999,10 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
     input->seek(1, librevenge::RVNG_SEEK_CUR);
 
     unsigned len2 = readU32(input);
+    if (m_version < 1700)
+      len2 *= 2;
     CDRCharacterStyle defaultStyle;
-    _readX6StyleString(input, 2*len2, defaultStyle);
+    _readX6StyleString(input, len2, defaultStyle);
 
     unsigned numRecords = readU32(input);
 
@@ -3093,10 +3018,13 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
       if (flag & 0x04)
       {
         lenN = readU32(input);
-        input->seek(2*lenN, librevenge::RVNG_SEEK_CUR);
+        lenN *= 2;
+        input->seek(lenN, librevenge::RVNG_SEEK_CUR);
       }
       lenN = readU32(input);
-      _readX6StyleString(input, 2*lenN, charStyles[i*2]);
+      if (m_version < 1700)
+        lenN *= 2;
+      _readX6StyleString(input, lenN, charStyles[i*2]);
     }
 
     unsigned numChars = readU32(input);
@@ -3391,5 +3319,87 @@ void libcdr::CDRParser::readParagraphText(librevenge::RVNGInputStream *input)
   double height = readCoordinate(input);
   m_collector->collectParagraphText(0.0, 0.0, width, height);
 }
+
+void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, unsigned length, libcdr::CDRCharacterStyle &style)
+{
+  std::vector<unsigned char> styleBuffer(length);
+  unsigned long numBytesRead = 0;
+  const unsigned char *tmpBuffer = input->read(length, numBytesRead);
+  if (numBytesRead)
+    memcpy(&styleBuffer[0], tmpBuffer, numBytesRead);
+  librevenge::RVNGString styleString;
+  if (m_version >= 1700)
+    libcdr::appendCharacters(styleString, styleBuffer, 0);
+  else
+    libcdr::appendCharacters(styleString, styleBuffer);
+  CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
+
+  boost::property_tree::ptree pt;
+  try
+  {
+    std::stringstream ss;
+    ss << styleString.cstr();
+    boost::property_tree::read_json(ss, pt);
+  }
+  catch (...)
+  {
+    return;
+  }
+
+  if (pt.count("character"))
+  {
+    boost::optional<std::string> fontName = pt.get_optional<std::string>("character.latin.font");
+    if (!!fontName)
+      style.m_fontName = fontName.get().c_str();
+    unsigned short encoding = pt.get("character.latin.charset", 0);
+    if (encoding || style.m_charSet == (unsigned short)-1)
+      style.m_charSet = encoding;
+    processNameForEncoding(style.m_fontName, style.m_charSet);
+    boost::optional<unsigned> fontSize = pt.get_optional<unsigned>("character.latin.size");
+    if (!!fontSize)
+      style.m_fontSize = (double)fontSize.get() / 254000.0;
+
+    if (pt.count("character.outline"))
+    {
+      style.m_lineStyle.lineType = 0;
+      boost::optional<unsigned> lineWidth = pt.get_optional<unsigned>("character.outline.width");
+      if (!!lineWidth)
+        style.m_lineStyle.lineWidth = (double)lineWidth.get() / 254000.0;
+      boost::optional<std::string> color = pt.get_optional<std::string>("character.outline.color");
+      if (!!color)
+      {
+        double opacity = 1.0;
+        parseColourString(color.get().c_str(), style.m_lineStyle.color, opacity);
+      }
+    }
+
+    if (pt.count("character.fill"))
+    {
+      boost::optional<unsigned short> type = pt.get_optional<unsigned short>("character.fill.type");
+      if (!!type)
+        style.m_fillStyle.fillType = type.get();
+      boost::optional<std::string> color1 = pt.get_optional<std::string>("character.fill.primaryColor");
+      if (!!color1)
+      {
+        double opacity = 1.0;
+        parseColourString(color1.get().c_str(), style.m_fillStyle.color1, opacity);
+      }
+      boost::optional<std::string> color2 = pt.get_optional<std::string>("character.fill.primaryColor");
+      if (!!color2)
+      {
+        double opacity = 1.0;
+        parseColourString(color2.get().c_str(), style.m_fillStyle.color2, opacity);
+      }
+    }
+  }
+
+  if (pt.count("paragraph"))
+  {
+    boost::optional<unsigned> align = pt.get_optional<unsigned>("paragraph.justify");
+    if (!!align)
+      style.m_align = align.get();
+  }
+}
+
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
