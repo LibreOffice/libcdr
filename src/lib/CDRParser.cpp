@@ -723,6 +723,19 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
       unsigned short tint = readU16(input);
       switch (paletteID)
       {
+      case 0x03:
+        if (ix > 0
+            && ix <= sizeof(palette_19_03_C)/sizeof(palette_19_03_C[0])
+            && ix <= sizeof(palette_19_03_M)/sizeof(palette_19_03_M[0])
+            && ix <= sizeof(palette_19_03_Y)/sizeof(palette_19_03_Y[0])
+            && ix <= sizeof(palette_19_03_K)/sizeof(palette_19_03_K[0]))
+        {
+          c = palette_19_03_C[ix-1];
+          m = palette_19_03_M[ix-1];
+          y = palette_19_03_Y[ix-1];
+          k = palette_19_03_K[ix-1];
+        }
+        break;
       case 0x08:
         if (ix > 0
             && ix <= sizeof(palette_19_08_C)/sizeof(palette_19_08_C[0])
@@ -982,6 +995,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
 
       switch (paletteID)
       {
+      case 0x03:
       case 0x08:
       case 0x0a:
       case 0x0b:
