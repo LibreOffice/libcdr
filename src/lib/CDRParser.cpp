@@ -688,7 +688,9 @@ libcdr::CDRColor libcdr::CDRParser::readColor(librevenge::RVNGInputStream *input
   if (m_version >= 500)
   {
     colorModel = readU16(input);
-    if (colorModel == 0x19)
+    if (colorModel == 0x01 && m_version >= 1300)
+      colorModel = 0x19;
+    if (colorModel == 0x19 || colorModel == 0x1e)
     {
       unsigned char r = 0;
       unsigned char g = 0;
@@ -697,8 +699,19 @@ libcdr::CDRColor libcdr::CDRParser::readColor(librevenge::RVNGInputStream *input
       unsigned char m = 0;
       unsigned char y = 0;
       unsigned char k = 100;
-      unsigned short paletteID = readU16(input);
-      input->seek(4, librevenge::RVNG_SEEK_CUR);
+      unsigned short paletteID = 0;
+      /* A bug in CorelDraw x7 creates a corrupted file. If we meet colorModel of 0x1e,
+       * it is actually colorModel 0x19 and paletteId 0x1e */
+      if (colorModel == 0x1e)
+      {
+        colorModel = 0x19;
+        paletteID = 0x1e;
+      }
+      else
+      {
+        paletteID = readU16(input);
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
+      }
       unsigned short ix = readU16(input);
       unsigned short tint = readU16(input);
       switch (paletteID)
@@ -1018,11 +1031,11 @@ libcdr::CDRColor libcdr::CDRParser::readColor(librevenge::RVNGInputStream *input
         red /= 100;
         green /= 100;
         blue /= 100;
-        colorValue = (blue & 0xff);
+        colorValue = (red & 0xff);
         colorValue <<= 8;
         colorValue |= (green & 0xff);
         colorValue <<= 8;
-        colorValue |= (red & 0xff);
+        colorValue |= (blue & 0xff);
         break;
       }
       case 0x09:

@@ -477,6 +477,16 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     blue = col0;
     break;
   }
+  // YIQ
+  case 0x0a:
+  {
+    break;
+  }
+  // YIQ255
+  case 0x0b:
+  {
+    break;
+  }
   // Lab
   case 0x0c:
   {
