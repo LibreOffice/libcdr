@@ -121,6 +121,8 @@ void libcdr::CommonParser::processPath(const std::vector<std::pair<double, doubl
     }
     if (!(type & 0x40) && !(type & 0x80))
     {
+      if (isClosedPath)
+        path.appendClosePath();
       tmpPoints.clear();
       path.appendMoveTo(points[k].first, points[k].second);
     }

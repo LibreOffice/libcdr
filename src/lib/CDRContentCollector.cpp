@@ -241,9 +241,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
                 }
               }
               else
-              {
                 tmpPath.pop_back();
-              }
             }
           }
 
@@ -266,6 +264,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         }
 
       }
+      else
+        tmpPath.push_back(i());
     }
     if (!tmpPath.empty())
     {

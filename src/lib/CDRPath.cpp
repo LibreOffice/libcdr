@@ -360,6 +360,17 @@ private:
   double m_y;
 };
 
+class CDRClosePathElement : public CDRPathElement
+{
+public:
+  CDRClosePathElement() {}
+  ~CDRClosePathElement() {}
+  void writeOut(WPXPropertyListVector &vec) const;
+  void transform(const CDRTransforms &trafos);
+  void transform(const CDRTransform &trafo);
+  CDRPathElement *clone();
+};
+
 } // namespace libcdr
 
 
@@ -628,6 +639,26 @@ libcdr::CDRPathElement *libcdr::CDRArcToElement::clone()
   return new CDRArcToElement(m_rx, m_ry, m_rotation, m_largeArc, m_sweep, m_x, m_y);
 }
 
+void libcdr::CDRClosePathElement::transform(const CDRTransforms &)
+{
+}
+
+void libcdr::CDRClosePathElement::transform(const CDRTransform &)
+{
+}
+
+libcdr::CDRPathElement *libcdr::CDRClosePathElement::clone()
+{
+  return new CDRClosePathElement();
+}
+
+void libcdr::CDRClosePathElement::writeOut(WPXPropertyListVector &vec) const
+{
+  WPXPropertyList node;
+  node.insert("librevenge:path-action", "Z");
+  vec.append(node);
+}
+
 void libcdr::CDRPath::appendMoveTo(double x, double y)
 {
   m_elements.push_back(new libcdr::CDRMoveToElement(x, y));
@@ -660,6 +691,7 @@ void libcdr::CDRPath::appendSplineTo(std::vector<std::pair<double, double> > &po
 
 void libcdr::CDRPath::appendClosePath()
 {
+  m_elements.push_back(new libcdr::CDRClosePathElement());
   m_isClosed = true;
 }
 
@@ -696,8 +728,23 @@ void libcdr::CDRPath::appendPath(const CDRPath &path)
 
 void libcdr::CDRPath::writeOut(WPXPropertyListVector &vec) const
 {
+  bool wasZ = true;
   for (std::vector<CDRPathElement *>::const_iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
-    (*iter)->writeOut(vec);
+  {
+    if (dynamic_cast<CDRClosePathElement *>(*iter))
+    {
+      if (!wasZ)
+      {
+        (*iter)->writeOut(vec);
+        wasZ = true;
+      }
+    }
+    else
+    {
+      (*iter)->writeOut(vec);
+      wasZ = false;
+    }
+  }
 }
 
 void libcdr::CDRPath::writeOut(WPXString &path, WPXString &viewBox, double &width) const
@@ -821,7 +868,9 @@ void libcdr::CDRPath::writeOut(WPXString &path, WPXString &viewBox, double &widt
       path.append(sElement);
     }
     else if (vec[i]["libwpg:path-action"]->getStr() == "Z")
+    {
       path.append(" Z");
+    }
   }
 }
 
