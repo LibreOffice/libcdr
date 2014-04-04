@@ -264,8 +264,11 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         }
 
       }
-      else
-        tmpPath.push_back(i());
+      else if (i()["libwpg:path-action"]->getStr() == "Z")
+      {
+        if (tmpPath.back()["libwpg:path-action"] && tmpPath.back()["libwpg:path-action"]->getStr() != "Z")
+          tmpPath.push_back(i());
+      }
     }
     if (!tmpPath.empty())
     {
@@ -273,9 +276,12 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       {
         if ((CDR_ALMOST_ZERO(initialX - previousX) && CDR_ALMOST_ZERO(initialY - previousY)) || isPathClosed)
         {
-          WPXPropertyList closedPath;
-          closedPath.insert("libwpg:path-action", "Z");
-          tmpPath.push_back(closedPath);
+          if (tmpPath.back()["libwpg:path-action"] && tmpPath.back()["libwpg:path-action"]->getStr() != "Z")
+          {
+            WPXPropertyList closedPath;
+            closedPath.insert("libwpg:path-action", "Z");
+            tmpPath.push_back(closedPath);
+          }
         }
       }
       else
