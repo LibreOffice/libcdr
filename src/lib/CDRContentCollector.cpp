@@ -266,8 +266,11 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         }
 
       }
-      else
-        tmpPath.push_back(i());
+      else if (i()["librevenge:path-action"]->getStr() == "Z")
+      {
+        if (tmpPath.back()["librevenge:path-action"] && tmpPath.back()["librevenge:path-action"]->getStr() != "Z")
+          tmpPath.push_back(i());
+      }
     }
     if (!tmpPath.empty())
     {
@@ -275,9 +278,12 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       {
         if ((CDR_ALMOST_ZERO(initialX - previousX) && CDR_ALMOST_ZERO(initialY - previousY)) || isPathClosed)
         {
-          librevenge::RVNGPropertyList closedPath;
-          closedPath.insert("librevenge:path-action", "Z");
-          tmpPath.push_back(closedPath);
+          if (tmpPath.back()["librevenge:path-action"] && tmpPath.back()["librevenge:path-action"]->getStr() != "Z")
+          {
+            librevenge::RVNGPropertyList closedPath;
+            closedPath.insert("librevenge:path-action", "Z");
+            tmpPath.push_back(closedPath);
+          }
         }
       }
       else
