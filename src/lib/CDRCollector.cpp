@@ -497,30 +497,35 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     blue = col0;
     break;
   }
-  // YIQ
-  case 0x0a:
   // YIQ255
   case 0x0b:
   {
     double y = (double)col0;
     double i = (double)col1;
     double q = (double)col2;
-    if (colorModel == 0x0a)
-    {
+
+    y -= 100.0;
+    if (y < 0.0)
       y /= 100.0;
-      i /= 100.0;
-      q /= 100.0;
-    }
     else
-    {
-      y /= 255.0;
-      i /= 255.0;
-      q /= 255.0;
-    }
-    i /= 2.0*0.5957;
-    i -= 0.5957;
-    q /= 2.0*0.5226;
-    q -= 0.5226;
+      y /= 155.0;
+    y *= 0.5;
+    y += 0.5;
+
+    i -= 100.0;
+    if (i <= 0.0)
+      i /= 100.0;
+    else
+      i /= 155;
+    i *= 0.5957;
+
+    q -= 100.0;
+    if (q <= 0)
+      q /= 100.0;
+    else
+      q /= 155;
+    q *= 0.5226;
+
     double RR = y + 0.9563*i + 0.6210*q;
     double GG = y - 0.2127*i - 0.6474*q;
     double BB = y - 1.1070*i + 1.7046*q;
