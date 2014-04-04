@@ -638,7 +638,7 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, WPXInputStr
     readFild(input, length);
     break;
   case CDR_FOURCC_arrw:
-    readArrw(input, length);
+    // readArrw(input, length);
     break;
   case CDR_FOURCC_flgs:
     readFlags(input, length);
