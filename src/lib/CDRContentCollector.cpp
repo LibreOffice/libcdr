@@ -574,8 +574,8 @@ void libcdr::CDRContentCollector::collectFillStyle(unsigned short fillType, cons
 }
 
 void libcdr::CDRContentCollector::collectLineStyle(unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
-    double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
-    const CDRPath &startMarker, const CDRPath &endMarker)
+                                                   double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
+                                                   const CDRPath &startMarker, const CDRPath &endMarker)
 {
   m_currentLineStyle = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker);
 }

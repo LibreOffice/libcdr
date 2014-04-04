@@ -158,7 +158,7 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
                  space_p).full;
   }
 
-  if( !bRes )
+  if (!bRes)
     return -1;
 
   if (colourModel == "CMYK")
@@ -305,9 +305,9 @@ bool libcdr::CDRParser::parseWaldo(WPXInputStream *input)
 }
 
 bool libcdr::CDRParser::gatherWaldoInformation(WPXInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
-    std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
-    std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
-    std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther)
+                                               std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
+                                               std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
+                                               std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther)
 {
   try
   {
@@ -356,7 +356,7 @@ bool libcdr::CDRParser::gatherWaldoInformation(WPXInputStream *input, std::vecto
 
 
 bool libcdr::CDRParser::parseWaldoStructure(WPXInputStream *input, std::stack<WaldoRecordType1> &waldoStack,
-    const std::map<unsigned, WaldoRecordType1> &records1, std::map<unsigned, WaldoRecordInfo> &records2)
+                                            const std::map<unsigned, WaldoRecordType1> &records1, std::map<unsigned, WaldoRecordInfo> &records2)
 {
   while (!waldoStack.empty())
   {
@@ -1047,7 +1047,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(WPXInputStream *input)
         colorModel = 0x05; // RGB
         unsigned red = (unsigned)tint * (unsigned)r + 255 * (100 - tint);
         unsigned green = (unsigned)tint * (unsigned)g + 255 * (100 - tint);
-        unsigned blue = (unsigned )tint * (unsigned)b + 255 * (100 - tint);
+        unsigned blue = (unsigned)tint * (unsigned)b + 255 * (100 - tint);
         red /= 100;
         green /= 100;
         blue /= 100;
@@ -2521,7 +2521,7 @@ void libcdr::CDRParser::readFont(WPXInputStream *input, unsigned length)
   else
   {
     unsigned char character = 0;
-    while(true)
+    while (true)
     {
       character = readU8(input);
       if (character)
@@ -3286,7 +3286,7 @@ void libcdr::CDRParser::readStyd(WPXInputStream *input)
   {
     input->seek(startPosition+argOffsets[i], WPX_SEEK_SET);
     CDR_DEBUG_MSG(("Styd: argument type: 0x%x\n", argTypes[i]));
-    switch(argTypes[i])
+    switch (argTypes[i])
     {
     case STYD_NAME:
       break;

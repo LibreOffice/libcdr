@@ -92,7 +92,7 @@ void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const 
   m_style = propList;
 
   m_gradient = gradient;
-  if(m_style["draw:shadow"] && m_style["draw:shadow"]->getStr() == "visible")
+  if (m_style["draw:shadow"] && m_style["draw:shadow"]->getStr() == "visible")
   {
     double shadowRed = 0.0;
     double shadowGreen = 0.0;
@@ -113,20 +113,20 @@ void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const 
     m_outputSink << "0 0 0 0 " << doubleToString(shadowRed) ;
     m_outputSink << " 0 0 0 0 " << doubleToString(shadowGreen);
     m_outputSink << " 0 0 0 0 " << doubleToString(shadowBlue);
-    if(m_style["draw:opacity"] && m_style["draw:opacity"]->getDouble() < 1)
+    if (m_style["draw:opacity"] && m_style["draw:opacity"]->getDouble() < 1)
       m_outputSink << " 0 0 0 "   << doubleToString(m_style["draw:shadow-opacity"]->getDouble()/m_style["draw:opacity"]->getDouble()) << " 0\"/>";
     else
       m_outputSink << " 0 0 0 "   << doubleToString(m_style["draw:shadow-opacity"]->getDouble()) << " 0\"/>";
     m_outputSink << "<svg:feMerge><svg:feMergeNode in=\"offset-color\" /><svg:feMergeNode in=\"SourceGraphic\" /></svg:feMerge></svg:filter></svg:defs>";
   }
 
-  if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "gradient")
+  if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "gradient")
   {
     double angle = (m_style["draw:angle"] ? m_style["draw:angle"]->getDouble() : 0.0);
     angle *= -1.0;
-    while(angle < 0)
+    while (angle < 0)
       angle += 360;
-    while(angle > 360)
+    while (angle > 360)
       angle -= 360;
 
     if (!m_gradient.count())
@@ -183,7 +183,7 @@ void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const 
         m_outputSink << "  </svg:linearGradient>\n";
 
         // not a simple horizontal gradient
-        if(angle != 270)
+        if (angle != 270)
         {
           m_outputSink << "  <svg:linearGradient xlink:href=\"#grad" << m_gradientIndex-1 << "\"";
           m_outputSink << " id=\"grad" << m_gradientIndex++ << "\" ";
@@ -217,7 +217,7 @@ void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const 
         m_outputSink << "  </svg:linearGradient>\n";
 
         // not a simple horizontal gradient
-        if(angle != 270)
+        if (angle != 270)
         {
           m_outputSink << "  <svg:linearGradient xlink:href=\"#grad" << m_gradientIndex-1 << "\"";
           m_outputSink << " id=\"grad" << m_gradientIndex++ << "\" ";
@@ -236,7 +236,7 @@ void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const 
       {
         m_outputSink << "<svg:defs>\n";
         m_outputSink << "  <svg:radialGradient id=\"grad" << m_gradientIndex++ << "\" cx=\"" << m_style["svg:cx"]->getStr().cstr() << "\" cy=\"" << m_style["svg:cy"]->getStr().cstr() << "\" r=\"" << m_style["svg:r"]->getStr().cstr() << "\" >\n";
-        for(unsigned c = 0; c < m_gradient.count(); c++)
+        for (unsigned c = 0; c < m_gradient.count(); c++)
         {
           m_outputSink << "    <svg:stop offset=\"" << m_gradient[c]["svg:offset"]->getStr().cstr() << "\"";
 
@@ -251,7 +251,7 @@ void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const 
       {
         m_outputSink << "<svg:defs>\n";
         m_outputSink << "  <svg:linearGradient id=\"grad" << m_gradientIndex++ << "\" >\n";
-        for(unsigned c = 0; c < m_gradient.count(); c++)
+        for (unsigned c = 0; c < m_gradient.count(); c++)
         {
           m_outputSink << "    <svg:stop offset=\"" << m_gradient[c]["svg:offset"]->getStr().cstr() << "\"";
 
@@ -262,7 +262,7 @@ void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const 
         m_outputSink << "  </svg:linearGradient>\n";
 
         // not a simple horizontal gradient
-        if(angle != 270)
+        if (angle != 270)
         {
           m_outputSink << "  <svg:linearGradient xlink:href=\"#grad" << m_gradientIndex-1 << "\"";
           m_outputSink << " id=\"grad" << m_gradientIndex++ << "\" ";
@@ -276,7 +276,7 @@ void libcdr::CDRSVGGenerator::setStyle(const ::WPXPropertyList &propList, const 
       }
     }
   }
-  else if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap")
+  else if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap")
   {
     if (m_style["draw:fill-image"] && m_style["libwpg:mime-type"])
     {
@@ -342,7 +342,7 @@ void libcdr::CDRSVGGenerator::drawRectangle(const ::WPXPropertyList &propList)
   m_outputSink << "<svg:rect ";
   m_outputSink << "x=\"" << doubleToString(72*propList["svg:x"]->getDouble()) << "\" y=\"" << doubleToString(72*propList["svg:y"]->getDouble()) << "\" ";
   m_outputSink << "width=\"" << doubleToString(72*propList["svg:width"]->getDouble()) << "\" height=\"" << doubleToString(72*propList["svg:height"]->getDouble()) << "\" ";
-  if((propList["svg:rx"] && propList["svg:rx"]->getInt() !=0) || (propList["svg:ry"] && propList["svg:ry"]->getInt() !=0))
+  if ((propList["svg:rx"] && propList["svg:rx"]->getInt() !=0) || (propList["svg:ry"] && propList["svg:ry"]->getInt() !=0))
     m_outputSink << "rx=\"" << doubleToString(72*propList["svg:rx"]->getDouble()) << "\" ry=\"" << doubleToString(72*propList["svg:ry"]->getDouble()) << "\" ";
   writeStyle();
   m_outputSink << "/>\n";
@@ -374,10 +374,10 @@ void libcdr::CDRSVGGenerator::drawPolygon(const ::WPXPropertyListVector &vertice
 
 void libcdr::CDRSVGGenerator::drawPolySomething(const ::WPXPropertyListVector &vertices, bool isClosed)
 {
-  if(vertices.count() < 2)
+  if (vertices.count() < 2)
     return;
 
-  if(vertices.count() == 2)
+  if (vertices.count() == 2)
   {
     m_outputSink << "<svg:line ";
     m_outputSink << "x1=\"" << doubleToString(72*(vertices[0]["svg:x"]->getDouble())) << "\"  y1=\"" << doubleToString(72*(vertices[0]["svg:y"]->getDouble())) << "\" ";
@@ -393,7 +393,7 @@ void libcdr::CDRSVGGenerator::drawPolySomething(const ::WPXPropertyListVector &v
       m_outputSink << "<svg:polyline ";
 
     m_outputSink << "points=\"";
-    for(unsigned i = 0; i < vertices.count(); i++)
+    for (unsigned i = 0; i < vertices.count(); i++)
     {
       m_outputSink << doubleToString(72*(vertices[i]["svg:x"]->getDouble())) << " " << doubleToString(72*(vertices[i]["svg:y"]->getDouble()));
       if (i < vertices.count()-1)
@@ -410,7 +410,7 @@ void libcdr::CDRSVGGenerator::drawPath(const ::WPXPropertyListVector &path)
   m_outputSink << "<svg:path d=\" ";
   bool isClosed = false;
   unsigned i=0;
-  for(i=0; i < path.count(); i++)
+  for (i=0; i < path.count(); i++)
   {
     WPXPropertyList propList = path[i];
     if (propList["libwpg:path-action"] && propList["libwpg:path-action"]->getStr() == "M")
@@ -477,7 +477,7 @@ void libcdr::CDRSVGGenerator::drawGraphicObject(const ::WPXPropertyList &propLis
     m_outputSink << "x=\"" << doubleToString(72*x) << "\" y=\"" << doubleToString(72*y) << "\" ";
     m_outputSink << "width=\"" << doubleToString(72*width) << "\" height=\"" << doubleToString(72*height) << "\" ";
     m_outputSink << "transform=\"";
-    m_outputSink << " translate(" << doubleToString(72*xmiddle) << ", " << doubleToString (72*ymiddle) << ") ";
+    m_outputSink << " translate(" << doubleToString(72*xmiddle) << ", " << doubleToString(72*ymiddle) << ") ";
     m_outputSink << " scale(" << (flipX ? "-1" : "1") << ", " << (flipY ? "-1" : "1") << ") ";
     // rotation is around the center of the object's bounding box
     if (propList["libwpg:rotate"])
@@ -489,7 +489,7 @@ void libcdr::CDRSVGGenerator::drawGraphicObject(const ::WPXPropertyList &propLis
         angle += 360.0;
       m_outputSink << " rotate(" << doubleToString(angle) << ") ";
     }
-    m_outputSink << " translate(" << doubleToString(-72*xmiddle) << ", " << doubleToString (-72*ymiddle) << ") ";
+    m_outputSink << " translate(" << doubleToString(-72*xmiddle) << ", " << doubleToString(-72*ymiddle) << ") ";
     m_outputSink << "\" ";
   }
   m_outputSink << "xlink:href=\"data:" << propList["libwpg:mime-type"]->getStr().cstr() << ";base64,";
@@ -613,7 +613,7 @@ void libcdr::CDRSVGGenerator::writeStyle(bool /* isClosed */)
   {
     if (m_style["svg:stroke-color"])
       m_outputSink << "stroke: " << m_style["svg:stroke-color"]->getStr().cstr()  << "; ";
-    if(m_style["svg:stroke-opacity"] &&  m_style["svg:stroke-opacity"]->getInt()!= 1)
+    if (m_style["svg:stroke-opacity"] &&  m_style["svg:stroke-opacity"]->getInt()!= 1)
       m_outputSink << "stroke-opacity: " << doubleToString(m_style["svg:stroke-opacity"]->getDouble()) << "; ";
   }
 
@@ -651,24 +651,24 @@ void libcdr::CDRSVGGenerator::writeStyle(bool /* isClosed */)
   if (m_style["svg:stroke-linejoin"])
     m_outputSink << "stroke-linejoin: " << m_style["svg:stroke-linejoin"]->getStr().cstr() << "; ";
 
-  if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "none")
+  if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "none")
     m_outputSink << "fill: none; ";
-  else if(m_style["svg:fill-rule"])
+  else if (m_style["svg:fill-rule"])
     m_outputSink << "fill-rule: " << m_style["svg:fill-rule"]->getStr().cstr() << "; ";
 
-  if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "gradient")
+  if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "gradient")
     m_outputSink << "fill: url(#grad" << m_gradientIndex-1 << "); ";
 
-  if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap")
+  if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap")
     m_outputSink << "fill: url(#img" << m_patternIndex-1 << "); ";
 
-  if(m_style["draw:shadow"] && m_style["draw:shadow"]->getStr() == "visible")
+  if (m_style["draw:shadow"] && m_style["draw:shadow"]->getStr() == "visible")
     m_outputSink << "filter:url(#shadow" << m_shadowIndex-1 << "); ";
 
-  if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "solid")
+  if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "solid")
     if (m_style["draw:fill-color"])
       m_outputSink << "fill: " << m_style["draw:fill-color"]->getStr().cstr() << "; ";
-  if(m_style["draw:opacity"] && m_style["draw:opacity"]->getDouble() < 1)
+  if (m_style["draw:opacity"] && m_style["draw:opacity"]->getDouble() < 1)
     m_outputSink << "fill-opacity: " << doubleToString(m_style["draw:opacity"]->getDouble()) << "; ";
   m_outputSink << "\""; // style
 }

@@ -454,7 +454,7 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
 
     if (hue < 120)
     {
-      satRed =  (double)(120 - hue) / 60.0;
+      satRed = (double)(120 - hue) / 60.0;
       satGreen = (double)hue/60.0;
       satBlue = 0.0;
     }
