@@ -1,25 +1,13 @@
 libcdr is a library and a set of tools for reading and converting binary files
 produced by Corel DRAW.
 
-libcdr currently supports just CDR files from V7 to X3 and the following
-features:
-
-- pages and page sizes
-- shapes, lines, Bezier curves, bitmaps
-- flat color fills, both RGB, CMYK, HLS and HSB
-- different kinds of strokes including dashed strokes
-
-Above that libcdr provides a public API for rendering preview of pages for
-applications that have no notion of pages themselves.
-
 libcdr requires boost, icu, lcms2, libwpd, libwpg and zlib to build.
 Most up to date code is available from Git repository at libreoffice.org
 (https://gerrit.libreoffice.org/gitweb?p=libcdr.git), which is mirrored at
 freedesktop.org (http://cgit.freedesktop.org/libreoffice/libcdr/). See
 http://www.freedesktop.org/wiki/Software/libcdr for more information.
 
-For convenience of use in third-party projects the library is available under
-three licenses: GNU GPL 2.1+, GNU Lesser GPL 2.1+ and MPL 1.1+.
+The library is available under  MPL 2.0.
 
 Corel DRAW is a trademark by Corel. The developers of libcdr are in no way
 affiliated with the company.
