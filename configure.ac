@@ -39,7 +39,7 @@ PKG_PROG_PKG_CONFIG([0.20])
 # Find librevenge
 # ===============
 PKG_CHECK_MODULES([REVENGE],[
-	librevenge-0.0
+	librevenge-0.0 >= 0.0.1
 ])
 AC_SUBST([REVENGE_CFLAGS])
 AC_SUBST([REVENGE_LIBS])
