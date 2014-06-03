@@ -1186,6 +1186,9 @@ void libcdr::CDRContentCollector::collectSpnd(unsigned spnd)
 void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const librevenge::RVNGBinaryData &data)
 {
   librevenge::RVNGInputStream *input = data.getDataStream();
+  if (!input)
+    return;
+
   input->seek(0, librevenge::RVNG_SEEK_SET);
   if (!libcdr::CMXDocument::isSupported(input))
     return;
