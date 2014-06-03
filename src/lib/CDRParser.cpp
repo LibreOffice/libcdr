@@ -483,7 +483,7 @@ void libcdr::CDRParser::readWaldoLoda(librevenge::RVNGInputStream *input, unsign
   input->seek(startPosition + length, librevenge::RVNG_SEEK_SET);
 }
 
-bool libcdr::CDRParser::parseRecords(librevenge::RVNGInputStream *input, unsigned *blockLengths, unsigned level)
+bool libcdr::CDRParser::parseRecords(librevenge::RVNGInputStream *input, const std::vector<unsigned> &blockLengths, unsigned level)
 {
   if (!input)
   {
@@ -498,7 +498,7 @@ bool libcdr::CDRParser::parseRecords(librevenge::RVNGInputStream *input, unsigne
   return true;
 }
 
-bool libcdr::CDRParser::parseRecord(librevenge::RVNGInputStream *input, unsigned *blockLengths, unsigned level)
+bool libcdr::CDRParser::parseRecord(librevenge::RVNGInputStream *input, const std::vector<unsigned> &blockLengths, unsigned level)
 {
   if (!input)
   {
@@ -516,7 +516,7 @@ bool libcdr::CDRParser::parseRecord(librevenge::RVNGInputStream *input, unsigned
       return true;
     unsigned fourCC = readU32(input);
     unsigned length = readU32(input);
-    if (blockLengths)
+    if (blockLengths.size() > length)
       length=blockLengths[length];
     unsigned long position = input->tell();
     unsigned listType(0);
@@ -576,7 +576,7 @@ bool libcdr::CDRParser::parseRecord(librevenge::RVNGInputStream *input, unsigned
         CDRInternalStream tmpBlocksStream(input, blocksLength, compressed);
         while (!tmpBlocksStream.isEnd())
           tmpBlockLengths.push_back(readU32(&tmpBlocksStream));
-        if (!parseRecords(&tmpStream, tmpBlockLengths.size() ? &tmpBlockLengths[0] : 0, level+1))
+        if (!parseRecords(&tmpStream, tmpBlockLengths, level+1))
           return false;
       }
     }

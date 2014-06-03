@@ -29,7 +29,7 @@ class CDRParser : protected CommonParser
 public:
   explicit CDRParser(const std::vector<librevenge::RVNGInputStream *> &externalStreams, CDRCollector *collector);
   virtual ~CDRParser();
-  bool parseRecords(librevenge::RVNGInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
+  bool parseRecords(librevenge::RVNGInputStream *input, const std::vector<unsigned> &blockLengths = std::vector<unsigned>(), unsigned level = 0);
   bool parseWaldo(librevenge::RVNGInputStream *input);
 
 private:
@@ -44,7 +44,7 @@ private:
                               std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
                               std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther);
   void readWaldoRecord(librevenge::RVNGInputStream *input, const WaldoRecordInfo &info);
-  bool parseRecord(librevenge::RVNGInputStream *input, unsigned *blockLengths = 0, unsigned level = 0);
+  bool parseRecord(librevenge::RVNGInputStream *input, const std::vector<unsigned> &blockLengths = std::vector<unsigned>(), unsigned level = 0);
   void readRecord(unsigned fourCC, unsigned length, librevenge::RVNGInputStream *input);
   double readRectCoord(librevenge::RVNGInputStream *input);
   CDRColor readColor(librevenge::RVNGInputStream *input);
