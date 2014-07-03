@@ -225,7 +225,6 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input, libre
   }
   if (input != tmpInput)
     delete input;
-  input = tmpInput;
   for (std::vector<librevenge::RVNGInputStream *>::iterator iter = dataStreams.begin(); iter != dataStreams.end(); ++iter)
     delete *iter;
   return retVal;
