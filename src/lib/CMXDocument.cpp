@@ -25,6 +25,9 @@ stream is a Corel Draw Document that libcdr is able to parse
 CDRAPI bool libcdr::CMXDocument::isSupported(librevenge::RVNGInputStream *input)
 try
 {
+  if (!input)
+    return false;
+
   input->seek(0, librevenge::RVNG_SEEK_SET);
   unsigned riff = readU32(input);
   if (riff != CDR_FOURCC_RIFF && riff != CDR_FOURCC_RIFX)
@@ -56,6 +59,9 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 */
 CDRAPI bool libcdr::CMXDocument::parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *painter)
 {
+  if (!input || !painter)
+    return false;
+
   input->seek(0, librevenge::RVNG_SEEK_SET);
   CDRParserState ps;
   CDRStylesCollector stylesCollector(ps);

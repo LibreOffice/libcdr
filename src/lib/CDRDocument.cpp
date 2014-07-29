@@ -61,6 +61,9 @@ stream is a Corel Draw Document that libcdr is able to parse
 */
 CDRAPI bool libcdr::CDRDocument::isSupported(librevenge::RVNGInputStream *input)
 {
+  if (!input)
+    return false;
+
   librevenge::RVNGInputStream *tmpInput = input;
   try
   {
@@ -104,6 +107,9 @@ CDRPaintInterface class implementation when needed. This is often commonly calle
 */
 CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *painter)
 {
+  if (!input || !painter)
+    return false;
+
   input->seek(0, librevenge::RVNG_SEEK_SET);
   bool retVal = false;
   unsigned version = 0;
