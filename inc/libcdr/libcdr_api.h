@@ -16,8 +16,12 @@
 #else
 #define CDRAPI __declspec(dllimport)
 #endif
+#else // !DLL_EXPORT
+#ifdef LIBCDR_VISIBILITY
+#define CDRAPI __attribute__((visibility("default")))
 #else
 #define CDRAPI
+#endif
 #endif
 
 #endif
