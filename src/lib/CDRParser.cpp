@@ -2596,22 +2596,13 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
     }
     unsigned numIntervals = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numIntervals 0x%x\n", numIntervals));
-    for (i=0; i<numIntervals; ++i)
-    {
-      input->seek(52, librevenge::RVNG_SEEK_CUR);
-    }
+    input->seek(52 * static_cast<long>(numIntervals), librevenge::RVNG_SEEK_CUR);
     unsigned numSet5s = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numSet5s 0x%x\n", numSet5s));
-    for (i=0; i<numSet5s; ++i)
-    {
-      input->seek(152, librevenge::RVNG_SEEK_CUR);
-    }
+    input->seek(152 * static_cast<long>(numSet5s), librevenge::RVNG_SEEK_CUR);
     unsigned numTabs = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numTabs 0x%x\n", numTabs));
-    for (i=0; i<numTabs; ++i)
-    {
-      input->seek(784, librevenge::RVNG_SEEK_CUR);
-    }
+    input->seek(784 * static_cast<long>(numTabs), librevenge::RVNG_SEEK_CUR);
     unsigned numBullets = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numBullets 0x%x\n", numBullets));
     for (i=0; i<numBullets; ++i)
@@ -2649,18 +2640,13 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
     }
     unsigned numHypens = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numHypens 0x%x\n", numHypens));
-    for (i=0; i<numHypens; ++i)
-    {
-      input->seek(32, librevenge::RVNG_SEEK_CUR);
-      if (m_version >= 1300)
-        input->seek(4, librevenge::RVNG_SEEK_CUR);
-    }
+    long hypensLen = 32;
+    if (m_version >= 1300)
+      hypensLen += 4;
+    input->seek(hypensLen * static_cast<long>(numHypens), librevenge::RVNG_SEEK_CUR);
     unsigned numDropcaps = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numDropcaps 0x%x\n", numDropcaps));
-    for (i=0; i<numDropcaps; ++i)
-    {
-      input->seek(28, librevenge::RVNG_SEEK_CUR);
-    }
+    input->seek(28 * static_cast<long>(numDropcaps), librevenge::RVNG_SEEK_CUR);
     try
     {
       bool set11Flag(false);
@@ -2669,10 +2655,7 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
         set11Flag = true;
         unsigned numSet11s = readU32(input);
         CDR_DEBUG_MSG(("CDRParser::readStlt numSet11s 0x%x\n", numSet11s));
-        for (i=0; i<numSet11s; ++i)
-        {
-          input->seek(12, librevenge::RVNG_SEEK_CUR);
-        }
+        input->seek(12 * static_cast<long>(numSet11s), librevenge::RVNG_SEEK_CUR);
       }
       std::map<unsigned, CDRStltRecord> styles;
       for (i=0; i<numRecords; ++i)
