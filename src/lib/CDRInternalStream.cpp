@@ -61,7 +61,10 @@ libcdr::CDRInternalStream::CDRInternalStream(librevenge::RVNGInputStream *input,
     const unsigned char *tmpBuffer = input->read(size, tmpNumBytesRead);
 
     if (size != tmpNumBytesRead)
+    {
+      (void)inflateEnd(&strm);
       return;
+    }
 
     strm.avail_in = (uInt)tmpNumBytesRead;
     strm.next_in = (Bytef *)tmpBuffer;
