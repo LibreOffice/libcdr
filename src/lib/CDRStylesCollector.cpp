@@ -244,7 +244,7 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
 
     }
     tmpTextData.push_back(data[j++]);
-    if (tmpCharDescription & 0x01)
+    if ((tmpCharDescription & 0x01) && (j < data.size()))
       tmpTextData.push_back(data[j++]);
   }
   if (!tmpTextData.empty())
