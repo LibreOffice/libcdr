@@ -113,6 +113,8 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
       while (i < lineWidth && i < width)
       {
         unsigned char c = bitmap[j*lineWidth+i];
+        if (c >= palette.size())
+          c = palette.size() - 1;
         i++;
         writeU32(image, m_ps.getBMPColor(libcdr::CDRColor(colorModel, palette[c])));
       }
