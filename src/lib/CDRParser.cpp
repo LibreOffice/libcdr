@@ -2277,6 +2277,8 @@ void libcdr::CDRParser::readBmp(librevenge::RVNGInputStream *input, unsigned len
       palette.push_back(b | (g << 8) | (r << 16));
     }
   }
+  if (bmpsize == 0)
+    return;
   std::vector<unsigned char> bitmap(bmpsize);
   unsigned long tmpNumBytesRead = 0;
   const unsigned char *tmpBuffer = input->read(bmpsize, tmpNumBytesRead);
