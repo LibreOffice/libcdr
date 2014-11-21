@@ -1637,6 +1637,8 @@ void libcdr::CDRParser::readTrfd(librevenge::RVNGInputStream *input, unsigned le
   long startPosition = input->tell();
   unsigned chunkLength = readUnsigned(input);
   unsigned numOfArgs = readUnsigned(input);
+  if (numOfArgs > length / 4) // avoid extra big allocation in case of a broken file
+    numOfArgs = length / 4;
   unsigned startOfArgs = readUnsigned(input);
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   unsigned i = 0;
