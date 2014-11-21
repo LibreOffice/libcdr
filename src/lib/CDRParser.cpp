@@ -3239,6 +3239,8 @@ void libcdr::CDRParser::readStyd(librevenge::RVNGInputStream *input)
   long startPosition = input->tell();
   unsigned chunkLength = readUnsigned(input);
   unsigned numOfArgs = readUnsigned(input);
+  if (numOfArgs > chunkLength / 4) // avoid extra big allocation in case of a broken file
+    numOfArgs = chunkLength / 4;
   unsigned startOfArgs = readUnsigned(input);
   unsigned startOfArgTypes = readUnsigned(input);
   CDRCharacterStyle charStyle;
