@@ -1,3 +1,11 @@
+libcdr 0.1.1
+
+* Fix several problems found by Coverity.
+* Fix crash when NULL is passed as input stream.
+* Fix various crashes and hangs when reading broken files found with the
+  help of american-fuzzy-lop.
+* Only export public symbols on Linux.
+
 libcdr 0.1.0
 
 * switch to librevenge
