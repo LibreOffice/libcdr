@@ -9,6 +9,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <lcms2.h>
 #include "CDRCollector.h"
 #include "libcdr_utils.h"
 

@@ -740,7 +740,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             fclose(f);
           }
 #endif
-          propList.insert("draw:fill-image", image.getBase64Data());
+          propList.insert("draw:fill-image", image);
           propList.insert("librevenge:mime-type", "image/bmp");
           propList.insert("style:repeat", "repeat");
           if (m_currentFillStyle.imageFill.isRelative)
@@ -807,7 +807,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
         {
           propList.insert("librevenge:mime-type", "image/bmp");
           propList.insert("draw:fill", "bitmap");
-          propList.insert("draw:fill-image", iterBmp->second.getBase64Data());
+          propList.insert("draw:fill-image", iterBmp->second);
           propList.insert("style:repeat", "repeat");
           if (m_currentFillStyle.imageFill.isRelative)
           {
@@ -867,7 +867,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
         {
           propList.insert("draw:fill", "bitmap");
           propList.insert("librevenge:mime-type", "image/svg+xml");
-          propList.insert("draw:fill-image", iterVect->second.getBase64Data());
+          propList.insert("draw:fill-image", iterVect->second);
           propList.insert("style:repeat", "repeat");
           if (m_currentFillStyle.imageFill.isRelative)
           {
