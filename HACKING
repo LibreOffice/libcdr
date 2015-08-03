@@ -3,6 +3,6 @@
 This project uses mostly the same file naming and coding style like
 libwpd and the rest of Fridrich's libraries. Please run
 
-    astyle --options=astyle.options \*.cpp \*.h
+    make astyle
 
 before committing.
