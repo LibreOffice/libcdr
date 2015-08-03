@@ -338,7 +338,8 @@ bool libcdr::CDRParser::gatherWaldoInformation(librevenge::RVNGInputStream *inpu
 bool libcdr::CDRParser::parseWaldoStructure(librevenge::RVNGInputStream *input, std::stack<WaldoRecordType1> &waldoStack,
                                             const std::map<unsigned, WaldoRecordType1> &records1, std::map<unsigned, WaldoRecordInfo> &records2)
 {
-  while (!waldoStack.empty())
+  std::set<unsigned> visited;
+  while (!waldoStack.empty() && visited.insert(waldoStack.top().m_id).second)
   {
     m_collector->collectBBox(waldoStack.top().m_x0, waldoStack.top().m_y0, waldoStack.top().m_x1, waldoStack.top().m_y1);
     std::map<unsigned, WaldoRecordType1>::const_iterator iter1;
@@ -377,7 +378,7 @@ bool libcdr::CDRParser::parseWaldoStructure(librevenge::RVNGInputStream *input, 
       waldoStack.top() = iter1->second;
     }
   }
-  return true;
+  return waldoStack.empty();
 }
 
 void libcdr::CDRParser::readWaldoRecord(librevenge::RVNGInputStream *input, const WaldoRecordInfo &info)
