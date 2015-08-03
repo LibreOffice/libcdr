@@ -15,7 +15,7 @@ void libcdr::CDRPolygon::create(libcdr::CDRPath &path) const
 {
   libcdr::CDRPath tmpPath(path);
   double step = 2*M_PI / (double)m_numAngles;
-  if (m_numAngles % m_nextPoint)
+  if (m_nextPoint && m_numAngles % m_nextPoint)
   {
     libcdr::CDRTransform tmpTrafo(cos(m_nextPoint*step), sin(m_nextPoint*step), 0.0, -sin(m_nextPoint*step), cos(m_nextPoint*step), 0.0);
     for (unsigned i = 1; i < m_numAngles; ++i)
