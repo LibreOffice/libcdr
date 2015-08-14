@@ -1129,7 +1129,10 @@ void libcdr::CDRContentCollector::_generateBitmapFromPattern(librevenge::RVNGBin
     while (i <lineWidth && k < width)
     {
       unsigned l = 0;
-      unsigned char c = pattern.pattern[(j-1)*lineWidth+i];
+      unsigned char c = 0;
+      const unsigned index = (j-1)*lineWidth+i;
+      if (index < pattern.pattern.size())
+        c = pattern.pattern[index];
       i++;
       while (k < width && l < 8)
       {
