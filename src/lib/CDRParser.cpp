@@ -2319,6 +2319,8 @@ void libcdr::CDRParser::readBmpf(librevenge::RVNGInputStream *input, unsigned le
     return;
   input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned dataSize = readU32(input);
+  if (dataSize == 0)
+    return;
   input->seek(length - dataSize - 28, librevenge::RVNG_SEEK_CUR);
   std::vector<unsigned char> pattern(dataSize);
   unsigned long tmpNumBytesRead = 0;
