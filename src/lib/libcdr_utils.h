@@ -90,6 +90,7 @@ double readDouble(librevenge::RVNGInputStream *input, bool bigEndian=false);
 double readFixedPoint(librevenge::RVNGInputStream *input, bool bigEndian=false);
 
 unsigned long getLength(librevenge::RVNGInputStream *input);
+unsigned long getRemainingLength(librevenge::RVNGInputStream *input);
 
 int cdr_round(double d);
 

@@ -3368,6 +3368,13 @@ void libcdr::CDRParser::readParagraphText(librevenge::RVNGInputStream *input)
 
 void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, unsigned length, libcdr::CDRCharacterStyle &style)
 {
+  if (length > getRemainingLength(input))
+  {
+    length = getRemainingLength(input);
+    if ((m_version < 1700) && (length & 1))
+      --length; // the length must be even
+  }
+
   std::vector<unsigned char> styleBuffer(length);
   unsigned long numBytesRead = 0;
   const unsigned char *tmpBuffer = input->read(length, numBytesRead);

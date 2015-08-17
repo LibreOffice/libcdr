@@ -295,6 +295,11 @@ unsigned long libcdr::getLength(librevenge::RVNGInputStream *const input)
   return static_cast<unsigned long>(end);
 }
 
+unsigned long libcdr::getRemainingLength(librevenge::RVNGInputStream *const input)
+{
+  return getLength(input) - static_cast<unsigned long>(input->tell());
+}
+
 int libcdr::cdr_round(double d)
 {
   return (d>0) ? int(d+0.5) : int(d-0.5);
