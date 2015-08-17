@@ -2300,11 +2300,11 @@ void libcdr::CDRParser::readBmp(librevenge::RVNGInputStream *input, unsigned len
   }
   if (bmpsize == 0)
     return;
-  std::vector<unsigned char> bitmap(bmpsize);
   unsigned long tmpNumBytesRead = 0;
   const unsigned char *tmpBuffer = input->read(bmpsize, tmpNumBytesRead);
   if (bmpsize != tmpNumBytesRead)
     return;
+  std::vector<unsigned char> bitmap(bmpsize);
   memcpy(&bitmap[0], tmpBuffer, bmpsize);
   m_collector->collectBmp(imageId, colorModel, width, height, bpp, palette, bitmap);
 }
