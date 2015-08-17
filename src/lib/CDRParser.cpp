@@ -2338,11 +2338,11 @@ void libcdr::CDRParser::readBmpf(librevenge::RVNGInputStream *input, unsigned le
   if (dataSize == 0)
     return;
   input->seek(length - dataSize - 28, librevenge::RVNG_SEEK_CUR);
-  std::vector<unsigned char> pattern(dataSize);
   unsigned long tmpNumBytesRead = 0;
   const unsigned char *tmpBuffer = input->read(dataSize, tmpNumBytesRead);
   if (dataSize != tmpNumBytesRead)
     return;
+  std::vector<unsigned char> pattern(dataSize);
   memcpy(&pattern[0], tmpBuffer, dataSize);
   m_collector->collectBmpf(patternId, width, height, pattern);
 }
