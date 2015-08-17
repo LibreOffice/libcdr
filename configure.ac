@@ -294,6 +294,21 @@ AS_IF([test "x$enable_debug" = "xyes"], [
 ])
 AC_SUBST(DEBUG_CXXFLAGS)
 
+# ==========
+# Unit tests
+# ==========
+AC_ARG_ENABLE([tests],
+    [AS_HELP_STRING([--enable-tests], [Build and run unit tests])],
+    [enable_tests="$enableval"],
+    [enable_tests=yes]
+)
+AS_IF([test "x$enable_tests" = "xyes"], [
+    PKG_CHECK_MODULES([CPPUNIT], [cppunit])
+], [])
+AC_SUBST([CPPUNIT_CFLAGS])
+AC_SUBST([CPPUNIT_LIBS])
+AM_CONDITIONAL([BUILD_TESTS], [test "x$enable_tests" = "xyes"])
+
 # =============
 # Documentation
 # =============
@@ -332,6 +347,7 @@ src/conv/text/cdr2text.rc
 src/conv/text/cmx2text.rc
 src/lib/Makefile
 src/lib/libcdr.rc
+src/test/Makefile
 build/Makefile
 build/win32/Makefile
 docs/Makefile
@@ -350,6 +366,7 @@ AC_MSG_NOTICE([
 Build configuration:
 	debug:           ${enable_debug}
 	docs:            ${build_docs}
+	tests:           ${enable_tests}
 	tools:           ${enable_tools}
 	werror:          ${enable_werror}
 ==============================================================================
