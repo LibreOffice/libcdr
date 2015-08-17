@@ -3256,12 +3256,21 @@ void libcdr::CDRParser::readStyd(librevenge::RVNGInputStream *input)
   }
   unsigned styleId = readU16(input);
   long startPosition = input->tell();
+  const unsigned long maxLength = getLength(input);
+  if (startPosition >= long(maxLength))
+    return;
   unsigned chunkLength = readUnsigned(input);
+  if ((chunkLength > maxLength) || (long(maxLength - chunkLength) < startPosition))
+    chunkLength = unsigned(maxLength - static_cast<unsigned long>(startPosition)); // sanitize length
   unsigned numOfArgs = readUnsigned(input);
-  if (numOfArgs > chunkLength / 4) // avoid extra big allocation in case of a broken file
-    numOfArgs = chunkLength / 4;
   unsigned startOfArgs = readUnsigned(input);
+  if (startOfArgs >= chunkLength)
+    return;
   unsigned startOfArgTypes = readUnsigned(input);
+  if (startOfArgTypes >= chunkLength)
+    return;
+  if (numOfArgs > (chunkLength - startOfArgs) / 4) // avoid extra big allocation in case of a broken file
+    numOfArgs = (chunkLength - startOfArgs) / 4;
   CDRCharacterStyle charStyle;
   charStyle.m_parentId =  readUnsigned(input);
   std::vector<unsigned> argOffsets(numOfArgs, 0);
