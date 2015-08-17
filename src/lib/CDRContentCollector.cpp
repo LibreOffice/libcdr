@@ -27,6 +27,35 @@
 #define DUMP_VECT 0
 #endif
 
+namespace libcdr
+{
+namespace
+{
+
+/// Move the number into [0;1] range.
+void normalize(double &d)
+{
+  if (d < 0.0)
+  {
+    const double n = d + static_cast<unsigned long>(-d) + 1.0;
+    if ((n < 0.0) || (n > 1.0))
+      d = 0.0; // The number was too big, thus rounded. Just pick a value.
+    else
+      d = n;
+  }
+  if (d > 1.0)
+  {
+    const double n = d - static_cast<unsigned long>(d);
+    if ((n < 0.0) || (n > 1.0))
+      d = 0.0; // The number was too big, thus rounded. Just pick a value.
+    else
+      d = n;
+  }
+}
+
+}
+}
+
 libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, librevenge::RVNGDrawingInterface *painter) :
   m_painter(painter), m_isDocumentStarted(false),
   m_isPageProperties(false), m_isPageStarted(false), m_ignorePage(false),
@@ -773,19 +802,13 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             if (m_fillTransforms.getTranslateX() != 0.0)
             {
               double xOffset = m_fillTransforms.getTranslateX() / m_currentFillStyle.imageFill.width;
-              while (xOffset < 0.0)
-                xOffset += 1.0;
-              while (xOffset > 1.0)
-                xOffset -= 1.0;
+              normalize(xOffset);
               propList.insert("draw:fill-image-ref-point-x", xOffset, librevenge::RVNG_PERCENT);
             }
             if (m_fillTransforms.getTranslateY() != 0.0)
             {
               double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.width;
-              while (yOffset < 0.0)
-                yOffset += 1.0;
-              while (yOffset > 1.0)
-                yOffset -= 1.0;
+              normalize(yOffset);
               propList.insert("draw:fill-image-ref-point-y", 1.0 - yOffset, librevenge::RVNG_PERCENT);
             }
           }
