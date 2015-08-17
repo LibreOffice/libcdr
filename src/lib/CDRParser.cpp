@@ -2052,12 +2052,21 @@ void libcdr::CDRParser::readLoda(librevenge::RVNGInputStream *input, unsigned le
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   long startPosition = input->tell();
+  const unsigned long maxLength = getLength(input);
+  if (startPosition >= long(maxLength))
+    return;
+  if ((length > maxLength) || (long(maxLength - length) < startPosition))
+    length = unsigned(maxLength - static_cast<unsigned long>(startPosition)); // sanitize length
   unsigned chunkLength = readUnsigned(input);
   unsigned numOfArgs = readUnsigned(input);
-  if (numOfArgs > length / 4) // avoid extra big allocation in case of a broken file
-    numOfArgs = length / 4;
   unsigned startOfArgs = readUnsigned(input);
+  if (startOfArgs >= length)
+    return;
   unsigned startOfArgTypes = readUnsigned(input);
+  if (startOfArgTypes >= length)
+    return;
+  if (numOfArgs > (length - startOfArgs) / 4) // avoid extra big allocation in case of a broken file
+    numOfArgs = (length - startOfArgs) / 4;
   unsigned chunkType = readUnsigned(input);
   if (chunkType == 0x26)
     m_collector->collectSpline();
