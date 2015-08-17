@@ -89,6 +89,8 @@ double readDouble(librevenge::RVNGInputStream *input, bool bigEndian=false);
 
 double readFixedPoint(librevenge::RVNGInputStream *input, bool bigEndian=false);
 
+unsigned long getLength(librevenge::RVNGInputStream *input);
+
 int cdr_round(double d);
 
 void writeU16(librevenge::RVNGBinaryData &buffer, const int value);

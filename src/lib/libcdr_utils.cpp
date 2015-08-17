@@ -7,6 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <cassert>
 #include <string.h>
 
 #include "libcdr_utils.h"
@@ -261,6 +262,37 @@ double libcdr::readFixedPoint(librevenge::RVNGInputStream *input, bool bigEndian
   short fixedPointNumberIntegerPart = (short)((fixedPointNumber & 0xFFFF0000) >> 16);
   double fixedPointNumberFractionalPart = (double)((double)(fixedPointNumber & 0x0000FFFF)/(double)0xFFFF);
   return ((double)fixedPointNumberIntegerPart + fixedPointNumberFractionalPart);
+}
+
+unsigned long libcdr::getLength(librevenge::RVNGInputStream *const input)
+{
+  if (!input)
+    throw EndOfStreamException();
+
+  const long orig = input->tell();
+  long end = 0;
+
+  if (input->seek(0, librevenge::RVNG_SEEK_END) == 0)
+  {
+    end = input->tell();
+  }
+  else
+  {
+    // RVNG_SEEK_END does not work. Use the harder way.
+    if (input->seek(0, librevenge::RVNG_SEEK_SET) != 0)
+      throw EndOfStreamException();
+    while (!input->isEnd())
+    {
+      readU8(input);
+      ++end;
+    }
+  }
+  assert(end >= 0);
+
+  if (input->seek(orig, librevenge::RVNG_SEEK_SET) != 0)
+    throw EndOfStreamException();
+
+  return static_cast<unsigned long>(end);
 }
 
 int libcdr::cdr_round(double d)
