@@ -2187,6 +2187,9 @@ void libcdr::CDRParser::readPolygonCoords(librevenge::RVNGInputStream *input)
   CDR_DEBUG_MSG(("CDRParser::readPolygonCoords\n"));
 
   unsigned short pointNum = readU16(input);
+  const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
+  if (pointNum > getRemainingLength(input) / pointSize)
+    pointNum = getRemainingLength(input) / pointSize;
   input->seek(2, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
