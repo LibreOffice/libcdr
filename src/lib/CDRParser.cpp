@@ -2914,7 +2914,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
       num4 = readU32(input);
     }
 
-    for (unsigned j = 0; j < num4; ++j)
+    for (unsigned j = 0; j < num4 && getRemainingLength(input) >= 14; ++j)
     {
       unsigned stlId = readU32(input);
       if (m_version >= 1300 && num)
