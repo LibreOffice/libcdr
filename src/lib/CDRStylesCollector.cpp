@@ -213,7 +213,7 @@ void libcdr::CDRStylesCollector::collectPaletteEntry(unsigned colorId, unsigned 
 void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
                                              const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides)
 {
-  if (data.empty() || charDescriptions.empty())
+  if (data.empty() && styleOverrides.empty())
     return;
 
   unsigned char tmpCharDescription = 0;
@@ -249,16 +249,16 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
     if ((tmpCharDescription & 0x01) && (j < data.size()))
       tmpTextData.push_back(data[j++]);
   }
+  librevenge::RVNGString text;
   if (!tmpTextData.empty())
   {
-    librevenge::RVNGString text;
     if (tmpCharDescription & 0x01)
       appendCharacters(text, tmpTextData);
     else
       appendCharacters(text, tmpTextData, tmpCharStyle.m_charSet);
-    line.append(CDRText(text, tmpCharStyle));
-    CDR_DEBUG_MSG(("CDRStylesCollector::collectText - Text: %s\n", text.cstr()));
   }
+  line.append(CDRText(text, tmpCharStyle));
+  CDR_DEBUG_MSG(("CDRStylesCollector::collectText - Text: %s\n", text.cstr()));
 
   std::vector<CDRTextLine> &paragraphVector = m_ps.m_texts[textId];
   paragraphVector.push_back(line);

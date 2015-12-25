@@ -493,16 +493,19 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       outputElement.addOpenParagraph(paraProps);
       for (unsigned j = 0; j < (*m_currentText)[i].m_line.size(); ++j)
       {
-        librevenge::RVNGPropertyList spanProps;
-        double fontSize = (double)cdr_round(144.0*(*m_currentText)[i].m_line[j].m_charStyle.m_fontSize) / 2.0;
-        spanProps.insert("fo:font-size", fontSize, librevenge::RVNG_POINT);
-        if ((*m_currentText)[i].m_line[j].m_charStyle.m_fontName.len())
-          spanProps.insert("style:font-name", (*m_currentText)[i].m_line[j].m_charStyle.m_fontName);
-        if ((*m_currentText)[i].m_line[j].m_charStyle.m_fillStyle.fillType != (unsigned short)-1)
-          spanProps.insert("fo:color", m_ps.getRGBColorString((*m_currentText)[i].m_line[j].m_charStyle.m_fillStyle.color1));
-        outputElement.addOpenSpan(spanProps);
-        outputElement.addInsertText((*m_currentText)[i].m_line[j].m_text);
-        outputElement.addCloseSpan();
+        if (!(*m_currentText)[i].m_line[j].m_text.empty())
+        {
+          librevenge::RVNGPropertyList spanProps;
+          double fontSize = (double)cdr_round(144.0*(*m_currentText)[i].m_line[j].m_charStyle.m_fontSize) / 2.0;
+          spanProps.insert("fo:font-size", fontSize, librevenge::RVNG_POINT);
+          if ((*m_currentText)[i].m_line[j].m_charStyle.m_fontName.len())
+            spanProps.insert("style:font-name", (*m_currentText)[i].m_line[j].m_charStyle.m_fontName);
+          if ((*m_currentText)[i].m_line[j].m_charStyle.m_fillStyle.fillType != (unsigned short)-1)
+            spanProps.insert("fo:color", m_ps.getRGBColorString((*m_currentText)[i].m_line[j].m_charStyle.m_fillStyle.color1));
+          outputElement.addOpenSpan(spanProps);
+          outputElement.addInsertText((*m_currentText)[i].m_line[j].m_text);
+          outputElement.addCloseSpan();
+        }
       }
       outputElement.addCloseParagraph();
     }

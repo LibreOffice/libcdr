@@ -3021,7 +3021,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
         memcpy(&textData[0], buffer, numBytesRead);
       input->seek(1, librevenge::RVNG_SEEK_CUR); //skip the 0 ending character
 
-      if (!textData.empty())
+      if (!textData.empty() || !charStyles.empty())
         m_collector->collectText(textId, stlId, textData, charDescriptions, charStyles);
     }
 #ifndef DEBUG
