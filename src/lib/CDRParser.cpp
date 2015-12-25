@@ -3049,7 +3049,7 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
 
     unsigned i = 0;
     std::map<unsigned, CDRCharacterStyle> charStyles;
-    for (i=0; i<numRecords; ++i)
+    for (i=0; i<numRecords && getRemainingLength(input) >= 17; ++i)
     {
       charStyles[i*2] = defaultStyle;
       input->seek(4, librevenge::RVNG_SEEK_CUR);
