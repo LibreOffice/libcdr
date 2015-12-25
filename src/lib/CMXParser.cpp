@@ -75,6 +75,9 @@ bool libcdr::CMXParser::parseRecord(librevenge::RVNGInputStream *input, unsigned
       return true;
     unsigned fourCC = readU32(input);
     unsigned length = readU32(input);
+    const unsigned long maxLength = getRemainingLength(input);
+    if (length > maxLength)
+      length = maxLength;
     long endPosition = input->tell() + length;
 
     CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%u)\n", level, toFourCC(fourCC), length, length));
