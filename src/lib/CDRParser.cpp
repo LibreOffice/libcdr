@@ -3151,6 +3151,8 @@ void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
     charStyles[2*i] = charStyle;
   }
   unsigned numChars = readU32(input);
+  if (numChars > getRemainingLength(input) / 12)
+    numChars = getRemainingLength(input) / 12;
   std::vector<unsigned char> textData;
   std::vector<unsigned char> charDescriptions;
   for (i=0; i<numChars; ++i)
