@@ -2691,6 +2691,9 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
       }
     }
     unsigned numIndents = readU32(input);
+    const unsigned indentSize = 4 + 3 * (m_precision == PRECISION_16BIT ? 2 : 4);
+    if (numIndents > getRemainingLength(input) / indentSize)
+      numIndents = getRemainingLength(input) / indentSize;
     std::map<unsigned, double> rightIndents, firstIndents, leftIndents;
     CDR_DEBUG_MSG(("CDRParser::readStlt numIndents 0x%x\n", numIndents));
     for (i=0; i<numIndents; ++i)
