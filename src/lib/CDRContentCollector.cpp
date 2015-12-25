@@ -458,9 +458,10 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     outputElement.addStartTextObject(textFrameProps);
     for (unsigned i = 0; i < m_currentText->size(); ++i)
     {
+      const std::vector<CDRText> &currentLine = (*m_currentText)[i].m_line;
       librevenge::RVNGPropertyList paraProps;
       bool rtl = false;
-      switch ((*m_currentText)[i].m_line[0].m_charStyle.m_align)
+      switch (currentLine[0].m_charStyle.m_align)
       {
       case 1:  // Left
         if (!rtl)
@@ -488,19 +489,19 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         break;
       }
       outputElement.addOpenParagraph(paraProps);
-      for (unsigned j = 0; j < (*m_currentText)[i].m_line.size(); ++j)
+      for (unsigned j = 0; j < currentLine.size(); ++j)
       {
-        if (!(*m_currentText)[i].m_line[j].m_text.empty())
+        if (!currentLine[j].m_text.empty())
         {
           librevenge::RVNGPropertyList spanProps;
-          double fontSize = (double)cdr_round(144.0*(*m_currentText)[i].m_line[j].m_charStyle.m_fontSize) / 2.0;
+          double fontSize = (double)cdr_round(144.0*currentLine[j].m_charStyle.m_fontSize) / 2.0;
           spanProps.insert("fo:font-size", fontSize, librevenge::RVNG_POINT);
-          if ((*m_currentText)[i].m_line[j].m_charStyle.m_fontName.len())
-            spanProps.insert("style:font-name", (*m_currentText)[i].m_line[j].m_charStyle.m_fontName);
-          if ((*m_currentText)[i].m_line[j].m_charStyle.m_fillStyle.fillType != (unsigned short)-1)
-            spanProps.insert("fo:color", m_ps.getRGBColorString((*m_currentText)[i].m_line[j].m_charStyle.m_fillStyle.color1));
+          if (currentLine[j].m_charStyle.m_fontName.len())
+            spanProps.insert("style:font-name", currentLine[j].m_charStyle.m_fontName);
+          if (currentLine[j].m_charStyle.m_fillStyle.fillType != (unsigned short)-1)
+            spanProps.insert("fo:color", m_ps.getRGBColorString(currentLine[j].m_charStyle.m_fillStyle.color1));
           outputElement.addOpenSpan(spanProps);
-          outputElement.addInsertText((*m_currentText)[i].m_line[j].m_text);
+          outputElement.addInsertText(currentLine[j].m_text);
           outputElement.addCloseSpan();
         }
       }
