@@ -1,3 +1,13 @@
+libcdr 0.1.2
+
+* Fix various crashes and hangs when reading broken files found with the
+  help of american-fuzzy-lop.
+* Fix build with boost 1.59. (rhbz#1258127)
+* Fix various problems detected by Coverity.
+* Do not drop empty text lines. (tdf#67873)
+* Make --help output of all command line tools more help2man-friendly.
+* Several other small improvements.
+
 libcdr 0.1.1
 
 * Fix several problems found by Coverity.
