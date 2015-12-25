@@ -2608,6 +2608,9 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
     if (!numRecords)
       return;
     unsigned numFills = readU32(input);
+    const unsigned fillSize = 3 * 4 + (m_version >= 1300 ? 48 : 0);
+    if (numFills > getRemainingLength(input) / fillSize)
+      numFills = getRemainingLength(input) / fillSize;
     CDR_DEBUG_MSG(("CDRParser::readStlt numFills 0x%x\n", numFills));
     unsigned i = 0;
     std::map<unsigned, unsigned> fillIds;
@@ -2620,6 +2623,8 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
         input->seek(48, librevenge::RVNG_SEEK_CUR);
     }
     unsigned numOutls = readU32(input);
+    if (numOutls > getRemainingLength(input) / 12)
+      numOutls = getRemainingLength(input) / 12;
     CDR_DEBUG_MSG(("CDRParser::readStlt numOutls 0x%x\n", numOutls));
     std::map<unsigned, unsigned> outlIds;
     for (i=0; i<numOutls; ++i)
@@ -2629,6 +2634,9 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
       outlIds[outlId] = readU32(input);
     }
     unsigned numFonts = readU32(input);
+    const unsigned fontsSize = 4 + 2 * 2 + 8 + (m_precision == PRECISION_16BIT ? 2 : 4) + 2 * (m_version < 1000 ? 12 : 20);
+    if (numFonts > getRemainingLength(input) / fontsSize)
+      numFonts = getRemainingLength(input) / fontsSize;
     CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%x\n", numFonts));
     std::map<unsigned,unsigned short> fontIds, fontEncodings;
     std::map<unsigned,double> fontSizes;
@@ -2649,6 +2657,8 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
         input->seek(20, librevenge::RVNG_SEEK_CUR);
     }
     unsigned numAligns = readU32(input);
+    if (numAligns > getRemainingLength(input) / 12)
+      numAligns = getRemainingLength(input) / 12;
     std::map<unsigned,unsigned> aligns;
     CDR_DEBUG_MSG(("CDRParser::readStlt numAligns 0x%x\n", numAligns));
     for (i=0; i<numAligns; ++i)
