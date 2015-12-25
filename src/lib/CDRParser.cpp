@@ -1441,10 +1441,12 @@ void libcdr::CDRParser::readArrw(librevenge::RVNGInputStream *input, unsigned le
     pointNum = (maxLength - 5) / pointSize;
   input->seek(4, librevenge::RVNG_SEEK_CUR);
   std::vector<unsigned char> pointTypes;
+  pointTypes.reserve(pointSize);
   for (unsigned k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
   input->seek(1, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
+  points.reserve(pointSize);
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
