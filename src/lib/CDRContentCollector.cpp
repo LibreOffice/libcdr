@@ -459,6 +459,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     for (unsigned i = 0; i < m_currentText->size(); ++i)
     {
       const std::vector<CDRText> &currentLine = (*m_currentText)[i].m_line;
+      if (currentLine.empty())
+        continue;
       librevenge::RVNGPropertyList paraProps;
       bool rtl = false;
       switch (currentLine[0].m_charStyle.m_align)
