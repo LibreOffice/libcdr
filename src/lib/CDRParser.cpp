@@ -3220,7 +3220,7 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
   unsigned numSt = readU16(input);
   unsigned i = 0;
   std::map<unsigned, CDRCharacterStyle> charStyles;
-  for (; i<numSt; ++i)
+  for (; i<numSt && getRemainingLength(input) >= 34; ++i)
   {
     CDRCharacterStyle charStyle;
     unsigned char flag = readU8(input);
