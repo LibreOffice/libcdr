@@ -2316,6 +2316,7 @@ void libcdr::CDRParser::readBmp(librevenge::RVNGInputStream *input, unsigned len
     unsigned short palettesize = readU16(input);
     if (palettesize > getRemainingLength(input) / 3)
       palettesize = getRemainingLength(input) / 3;
+    palette.reserve(palettesize);
     for (unsigned short i = 0; i <palettesize; ++i)
     {
       unsigned b = readU8(input);
