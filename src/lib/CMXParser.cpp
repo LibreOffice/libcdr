@@ -363,6 +363,8 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
         pointNum = readU16(input);
         if (pointNum > getRemainingLength(input) / (2 * 4 + 1))
           pointNum = getRemainingLength(input) / (2 * 4 + 1);
+        points.reserve(pointNum);
+        pointTypes.reserve(pointNum);
         for (unsigned i = 0; i < pointNum; ++i)
         {
           std::pair<double, double> point;
