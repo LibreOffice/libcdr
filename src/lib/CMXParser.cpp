@@ -370,6 +370,7 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
         }
         for (unsigned j = 0; j < pointNum; ++j)
           pointTypes.push_back(readU8(input, m_bigEndian));
+        break;
       default:
         break;
       }
