@@ -1511,6 +1511,9 @@ void libcdr::CDRParser::readBitmap(librevenge::RVNGInputStream *input)
 
     unsigned short pointNum = readU16(input);
     input->seek(2, librevenge::RVNG_SEEK_CUR);
+    const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
+    if (pointNum > getRemainingLength(input) / pointSize)
+      pointNum = getRemainingLength(input) / pointSize;
     std::vector<std::pair<double, double> > points;
     std::vector<unsigned char> pointTypes;
     for (unsigned j=0; j<pointNum; j++)
