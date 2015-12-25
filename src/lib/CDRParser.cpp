@@ -2734,7 +2734,7 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
         input->seek(12 * static_cast<long>(numSet11s), librevenge::RVNG_SEEK_CUR);
       }
       std::map<unsigned, CDRStltRecord> styles;
-      for (i=0; i<numRecords; ++i)
+      for (i=0; i<numRecords && getRemainingLength(input) >= 32; ++i)
       {
         CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
         unsigned num = readU32(input);
