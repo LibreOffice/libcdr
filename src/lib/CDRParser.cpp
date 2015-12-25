@@ -2668,7 +2668,7 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
     input->seek(784 * static_cast<long>(numTabs), librevenge::RVNG_SEEK_CUR);
     unsigned numBullets = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numBullets 0x%x\n", numBullets));
-    for (i=0; i<numBullets; ++i)
+    for (i=0; i<numBullets && getRemainingLength(input) >= 16; ++i)
     {
       input->seek(40, librevenge::RVNG_SEEK_CUR);
       if (m_version > 1300)
