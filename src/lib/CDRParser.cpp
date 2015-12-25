@@ -2881,7 +2881,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
       unsigned numRecords = readU32(input);
       std::map<unsigned, CDRCharacterStyle> charStyles;
       unsigned i = 0;
-      for (i=0; i<numRecords; ++i)
+      for (i=0; i<numRecords && getRemainingLength(input) >= 3; ++i)
       {
         unsigned char fl0 = readU8(input);
         readU8(input);
