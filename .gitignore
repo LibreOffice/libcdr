@@ -23,6 +23,7 @@ missing
 mkinstalldirs
 stamp-h1
 tags
+test-driver
 *.pc
 *.rc
 *~
