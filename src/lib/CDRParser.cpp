@@ -2034,6 +2034,8 @@ void libcdr::CDRParser::readOutl(librevenge::RVNGInputStream *input, unsigned le
   else
     input->seek(16, librevenge::RVNG_SEEK_CUR);
   unsigned short numDash = readU16(input);
+  if (numDash > getRemainingLength(input) / 2)
+    numDash = getRemainingLength(input) / 2;
   int fixPosition = input->tell();
   std::vector<unsigned> dashArray;
   for (unsigned short i = 0; i < numDash; ++i)
