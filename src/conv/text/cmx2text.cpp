@@ -19,10 +19,14 @@ namespace
 
 int printUsage()
 {
-  printf("Usage: cmx2text [OPTION] <Corel Binary Metafile>\n");
+  printf("`cmx2text' converts Corel Binary Metafiles to plain text.\n");
+  printf("\n");
+  printf("Usage: cmx2text [OPTION] FILE\n");
   printf("\n");
   printf("Options:\n");
-  printf("--help                Shows this help message\n");
+  printf("\t--help                show this help message\n");
+  printf("\n");
+  printf("Report bugs to <https://bugs.documentfoundation.org/>.\n");
   return -1;
 }
 

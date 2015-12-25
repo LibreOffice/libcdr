@@ -20,10 +20,14 @@ namespace
 
 int printUsage()
 {
-  printf("Usage: cdr2text [OPTION] <Corel Draw Document>\n");
+  printf("`cdr2text' converts CorelDRAW documents to plain text.\n");
+  printf("\n");
+  printf("Usage: cdr2text [OPTION] FILE\n");
   printf("\n");
   printf("Options:\n");
-  printf("--help                Shows this help message\n");
+  printf("\t--help                show this help message\n");
+  printf("\n");
+  printf("Report bugs to <https://bugs.documentfoundation.org/>.\n");
   return -1;
 }
 

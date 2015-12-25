@@ -19,11 +19,15 @@ namespace
 
 int printUsage()
 {
-  printf("Usage: cmx2raw [OPTION] <Corel Binary Metafile>\n");
+  printf("`cmx2raw' is used to test import of Corel Binary Metafiles in libcdr.\n");
+  printf("\n");
+  printf("Usage: cmx2raw [OPTION] FILE\n");
   printf("\n");
   printf("Options:\n");
-  printf("--callgraph           Display the call graph nesting level\n");
-  printf("--help                Shows this help message\n");
+  printf("\t--callgraph           display the call graph nesting level\n");
+  printf("\t--help                show this help message\n");
+  printf("\n");
+  printf("Report bugs to <https://bugs.documentfoundation.org/>.\n");
   return -1;
 }
 

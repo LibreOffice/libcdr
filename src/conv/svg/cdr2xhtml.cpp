@@ -21,10 +21,14 @@ namespace
 
 int printUsage()
 {
-  printf("Usage: cdr2xhtml [OPTION] <Corel Draw Document>\n");
+  printf("`cdr2xhtml' converts CorelDRAW documents to SVG.\n");
+  printf("\n");
+  printf("Usage: cdr2xhtml [OPTION] FILE\n");
   printf("\n");
   printf("Options:\n");
-  printf("--help                Shows this help message\n");
+  printf("\t--help                show this help message\n");
+  printf("\n");
+  printf("Report bugs to <https://bugs.documentfoundation.org/>.\n");
   return -1;
 }
 

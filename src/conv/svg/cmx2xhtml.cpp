@@ -21,10 +21,14 @@ namespace
 
 int printUsage()
 {
-  printf("Usage: cmx2xhtml [OPTION] <Corel Binary Metafile>\n");
+  printf("`cmx2xhtml' converts Corel Binary Metafiles to SVG.\n");
+  printf("\n");
+  printf("Usage: cmx2xhtml [OPTION] FILE\n");
   printf("\n");
   printf("Options:\n");
-  printf("--help                Shows this help message\n");
+  printf("\t--help                show this help message\n");
+  printf("\n");
+  printf("Report bugs to <https://bugs.documentfoundation.org/>.\n");
   return -1;
 }
 
