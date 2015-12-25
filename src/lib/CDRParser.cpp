@@ -3155,6 +3155,8 @@ void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
     numChars = getRemainingLength(input) / 12;
   std::vector<unsigned char> textData;
   std::vector<unsigned char> charDescriptions;
+  textData.reserve(numChars);
+  charDescriptions.reserve(numChars);
   for (i=0; i<numChars; ++i)
   {
     input->seek(4, librevenge::RVNG_SEEK_CUR);
