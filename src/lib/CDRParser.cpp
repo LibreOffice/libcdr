@@ -1379,7 +1379,10 @@ void libcdr::CDRParser::readLineAndCurve(librevenge::RVNGInputStream *input)
   CDR_DEBUG_MSG(("CDRParser::readLineAndCurve\n"));
 
   unsigned short pointNum = readU16(input);
+  const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
   input->seek(2, librevenge::RVNG_SEEK_CUR);
+  if (pointNum > getRemainingLength(input) / pointSize)
+    pointNum = getRemainingLength(input) / pointSize;
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
   for (unsigned j=0; j<pointNum; j++)
