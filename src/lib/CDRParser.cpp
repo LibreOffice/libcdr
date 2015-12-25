@@ -2038,6 +2038,7 @@ void libcdr::CDRParser::readOutl(librevenge::RVNGInputStream *input, unsigned le
     numDash = getRemainingLength(input) / 2;
   int fixPosition = input->tell();
   std::vector<unsigned> dashArray;
+  dashArray.reserve(numDash);
   for (unsigned short i = 0; i < numDash; ++i)
     dashArray.push_back(readU16(input));
   if (m_version < 600)
