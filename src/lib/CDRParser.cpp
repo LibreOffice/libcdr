@@ -2314,6 +2314,8 @@ void libcdr::CDRParser::readBmp(librevenge::RVNGInputStream *input, unsigned len
   {
     input->seek(2, librevenge::RVNG_SEEK_CUR);
     unsigned short palettesize = readU16(input);
+    if (palettesize > getRemainingLength(input) / 3)
+      palettesize = getRemainingLength(input) / 3;
     for (unsigned short i = 0; i <palettesize; ++i)
     {
       unsigned b = readU8(input);
