@@ -1400,6 +1400,12 @@ void libcdr::CDRParser::readPath(librevenge::RVNGInputStream *input)
 
   input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned short pointNum = readU16(input)+readU16(input);
+  const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
+  const unsigned long maxLength = getRemainingLength(input);
+  if (maxLength < 16)
+    pointNum = 0;
+  else if (pointNum > (maxLength - 16) / pointSize)
+    pointNum = (maxLength - 16) / pointSize;
   input->seek(16, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
