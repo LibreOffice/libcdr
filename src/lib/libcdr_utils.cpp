@@ -8,6 +8,8 @@
  */
 
 #include <cassert>
+#include <cstdarg>
+#include <cstdio>
 #include <string.h>
 
 #include "libcdr_utils.h"
@@ -23,6 +25,7 @@
 
 namespace
 {
+
 static unsigned short getEncodingFromICUName(const char *name)
 {
   // ANSI
@@ -460,6 +463,15 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned
 }
 
 #ifdef DEBUG
+
+void libcdr::debugPrint(const char *const format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  std::vfprintf(stderr, format, args);
+  va_end(args);
+}
+
 const char *libcdr::toFourCC(unsigned value, bool bigEndian)
 {
   static char sValue[5] = { 0, 0, 0, 0, 0 };

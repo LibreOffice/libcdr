@@ -24,6 +24,12 @@
 #define CDR_EPSILON 1E-6
 #define CDR_ALMOST_ZERO(m) (fabs(m) <= CDR_EPSILON)
 
+#if defined(__clang__) || defined(__GNUC__)
+#  define CDR_ATTRIBUTE_PRINTF(fmt, arg) __attribute__((__format__(__printf__, fmt, arg)))
+#else
+#  define CDR_ATTRIBUTE_PRINTF(fmt, arg)
+#endif
+
 #ifdef _MSC_VER
 
 typedef unsigned char uint8_t;
@@ -63,11 +69,15 @@ typedef __int64 int64_t;
 
 // do nothing with debug messages in a release compile
 #ifdef DEBUG
+namespace libcdr
+{
+void debugPrint(const char *format, ...) CDR_ATTRIBUTE_PRINTF(1, 2);
+}
 #ifdef VERBOSE_DEBUG
-#define CDR_DEBUG_MSG(M) printf("%15s:%5d: ", __FILE__, __LINE__); printf M
+#define CDR_DEBUG_MSG(M) libcdr::debugPrint("%15s:%5d: ", __FILE__, __LINE__); libcdr::debugPrint M
 #define CDR_DEBUG(M) M
 #else
-#define CDR_DEBUG_MSG(M) printf M
+#define CDR_DEBUG_MSG(M) libcdr::debugPrint M
 #define CDR_DEBUG(M) M
 #endif
 #else
