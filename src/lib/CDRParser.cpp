@@ -2389,6 +2389,9 @@ void libcdr::CDRParser::readPpdt(librevenge::RVNGInputStream *input, unsigned le
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned short pointNum = readU16(input);
+  const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 4;
+  if (pointNum > getRemainingLength(input) / pointSize)
+    pointNum = getRemainingLength(input) / pointSize;
   input->seek(4, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned> knotVector;
