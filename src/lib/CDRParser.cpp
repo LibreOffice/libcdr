@@ -2395,6 +2395,8 @@ void libcdr::CDRParser::readPpdt(librevenge::RVNGInputStream *input, unsigned le
   input->seek(4, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned> knotVector;
+  points.reserve(pointNum);
+  knotVector.reserve(pointNum);
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
