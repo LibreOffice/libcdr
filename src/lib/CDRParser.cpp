@@ -1433,6 +1433,12 @@ void libcdr::CDRParser::readArrw(librevenge::RVNGInputStream *input, unsigned le
   unsigned arrowId = readU32(input);
   input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned short pointNum = readU16(input);
+  const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
+  const unsigned long maxLength = getRemainingLength(input);
+  if (maxLength < 5)
+    pointNum = 0;
+  else if (pointNum > (maxLength - 5) / pointSize)
+    pointNum = (maxLength - 5) / pointSize;
   input->seek(4, librevenge::RVNG_SEEK_CUR);
   std::vector<unsigned char> pointTypes;
   for (unsigned k=0; k<pointNum; k++)
