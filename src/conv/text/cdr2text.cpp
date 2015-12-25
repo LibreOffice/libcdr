@@ -7,6 +7,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -14,6 +18,10 @@
 #include <librevenge-generators/librevenge-generators.h>
 #include <librevenge-stream/librevenge-stream.h>
 #include <libcdr/libcdr.h>
+
+#ifndef VERSION
+#define VERSION "UNKNOWN VERSION"
+#endif
 
 namespace
 {
@@ -26,9 +34,16 @@ int printUsage()
   printf("\n");
   printf("Options:\n");
   printf("\t--help                show this help message\n");
+  printf("\t--version             show version information and exit\n");
   printf("\n");
   printf("Report bugs to <https://bugs.documentfoundation.org/>.\n");
   return -1;
+}
+
+int printVersion()
+{
+  printf("cdr2text " VERSION "\n");
+  return 0;
 }
 
 } // anonymous namespace
@@ -42,7 +57,9 @@ int main(int argc, char *argv[])
 
   for (int i = 1; i < argc; i++)
   {
-    if (!file && strncmp(argv[i], "--", 2))
+    if (!strcmp(argv[i], "--version"))
+      return printVersion();
+    else if (!file && strncmp(argv[i], "--", 2))
       file = argv[i];
     else
       return printUsage();
