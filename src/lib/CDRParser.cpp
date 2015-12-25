@@ -2204,6 +2204,8 @@ void libcdr::CDRParser::readPolygonCoords(librevenge::RVNGInputStream *input)
   input->seek(2, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
+  points.reserve(pointNum);
+  pointTypes.reserve(pointNum);
   for (unsigned j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
