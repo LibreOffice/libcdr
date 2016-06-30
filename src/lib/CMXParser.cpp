@@ -651,6 +651,7 @@ void libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
         if (tagId == CMX_Tag_EndTag)
         {
           CDR_DEBUG_MSG(("    Solid fill - tagId %i\n", tagId));
+          break;
         }
         tagLength = readU16(input, m_bigEndian);
         CDR_DEBUG_MSG(("    Solid fill - tagId %i, tagLength %u\n", tagId, tagLength));
