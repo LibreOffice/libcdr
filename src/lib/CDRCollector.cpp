@@ -470,6 +470,14 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     }
     break;
   }
+  // BW
+  case 0x08:
+  {
+    red = col0 ? 0 : 0xff;
+    green = col0 ? 0 : 0xff;
+    blue = col0 ? 0 : 0xff;
+    break;
+  }
   // Grayscale
   case 0x09:
   {

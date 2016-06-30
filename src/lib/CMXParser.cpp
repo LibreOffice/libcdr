@@ -28,12 +28,12 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector)
+libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, std::map<unsigned, libcdr::CDRColor> &colorPalette)
   : CommonParser(collector),
     m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
     m_indexSectionOffset(0), m_infoSectionOffset(0), m_thumbnailOffset(0),
-    m_fillIndex(0), m_nextInstructionOffset(0) {}
+    m_fillIndex(0), m_nextInstructionOffset(0), m_colorPalette(colorPalette) {}
 
 libcdr::CMXParser::~CMXParser()
 {
@@ -123,6 +123,9 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge
     break;
   case CDR_FOURCC_ccmm:
     readCcmm(input, recordEnd);
+    break;
+  case CDR_FOURCC_rclr:
+    readRclr(input, length);
     break;
   default:
     break;
@@ -336,6 +339,7 @@ void libcdr::CMXParser::readBeginGroup(librevenge::RVNGInputStream * /* input */
 
 void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
 {
+  m_collector->collectObject(1);
   unsigned pointNum = 0;
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
@@ -402,13 +406,13 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
   else
     return;
 
-  m_collector->collectObject(1);
   outputPath(points, pointTypes);
   m_collector->collectLevel(1);
 }
 
 void libcdr::CMXParser::readEllipse(librevenge::RVNGInputStream *input)
 {
+  m_collector->collectObject(1);
   double angle1 = 0.0;
   double angle2 = 0.0;
   double rotation = 0.0;
@@ -469,7 +473,6 @@ void libcdr::CMXParser::readEllipse(librevenge::RVNGInputStream *input)
   else
     return;
 
-  m_collector->collectObject(1);
   CDRPath path;
   if (angle1 != angle2)
   {
@@ -511,6 +514,7 @@ void libcdr::CMXParser::readEllipse(librevenge::RVNGInputStream *input)
 
 void libcdr::CMXParser::readRectangle(librevenge::RVNGInputStream *input)
 {
+  m_collector->collectObject(1);
   double cx = 0.0;
   double cy = 0.0;
   double width = 0.0;
@@ -565,7 +569,6 @@ void libcdr::CMXParser::readRectangle(librevenge::RVNGInputStream *input)
   else
     return;
 
-  m_collector->collectObject(1);
   double x0 = cx - width / 2.0;
   double y0 = cy - height / 2.0;
   double x1 = cx + width / 2.0;
@@ -629,10 +632,14 @@ libcdr::CDRBox libcdr::CMXParser::readBBox(librevenge::RVNGInputStream *input)
 
 void libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
 {
+  libcdr::CDRColor color1;
+  libcdr::CDRColor color2;
+  libcdr::CDRImageFill imageFill;
+  libcdr::CDRGradient gradient;
   unsigned fillIdentifier = readU16(input, m_bigEndian);
   switch (fillIdentifier)
   {
-  case 1:
+  case 1: // Uniform
     if (m_precision == libcdr::PRECISION_32BIT)
     {
       unsigned char tagId = 0;
@@ -650,20 +657,24 @@ void libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
         switch (tagId)
         {
         case CMX_Tag_RenderAttr_FillSpec_Uniform:
-          readU32(input, m_bigEndian);
-          readU32(input, m_bigEndian);
+        {
+          unsigned colorRef = readU16(input, m_bigEndian);
+          color1 = getPaletteColor(colorRef);
+          readU16(input, m_bigEndian);
           break;
+        }
         default:
           break;
         }
         input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
       }
       while (tagId != CMX_Tag_EndTag);
+      m_collector->collectFillStyle(fillIdentifier, color1, color2, gradient, imageFill);
     }
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
-      readU32(input, m_bigEndian);
-      readU32(input, m_bigEndian);
+      readU16(input, m_bigEndian);
+      readU16(input, m_bigEndian);
     }
     break;
   case 2:
@@ -707,7 +718,9 @@ void libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
         CDR_DEBUG_MSG(("  Fill specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
-
+        case CMX_Tag_RenderAttr_FillSpec:
+          readFill(input);
+          break;
         default:
           break;
         }
@@ -854,6 +867,160 @@ void libcdr::CMXParser::readJumpAbsolute(librevenge::RVNGInputStream *input)
     m_nextInstructionOffset = readU32(input, m_bigEndian);
   else
     return;
+}
+
+void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input, unsigned /* length */)
+{
+  unsigned numRecords = readU16(input, m_bigEndian);
+  if (m_precision == libcdr::PRECISION_32BIT)
+  {
+    for (unsigned j = 1; j < numRecords+1; ++j)
+    {
+      unsigned char colorModel = 0;
+      unsigned char tagId = 0;
+      CDRColor color;
+      do
+      {
+        long offset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+          break;
+        unsigned short tagLength = readU16(input, m_bigEndian);
+        switch (tagId)
+        {
+        case CMX_Tag_DescrSection_Color_Base:
+          colorModel = readU8(input, m_bigEndian);
+          readU8(input, m_bigEndian);
+          break;
+        case CMX_Tag_DescrSection_Color_ColorDescr:
+        {
+          switch (colorModel)
+          {
+          case 0: // Invalid
+            break;
+          case 1: // Pantone
+          {
+            unsigned short pantoneId = readU16(input, m_bigEndian);
+            unsigned short pantoneDensity = readU16(input, m_bigEndian);
+            CDR_DEBUG_MSG(("Pantone color: id 0x%x, density 0x%x\n", pantoneId, pantoneDensity));
+            color.m_colorValue = ((unsigned)pantoneId & 0xff) | ((unsigned)pantoneId & 0xff00) | ((unsigned)pantoneDensity & 0xff) << 16 | ((unsigned)pantoneDensity & 0xff00) << 16;
+            color.m_colorModel = 0;
+            m_colorPalette[j] = color;
+            break;
+          }
+          case 2: // CMYK
+          case 3: // CMYK255
+          {
+            unsigned char c = readU8(input, m_bigEndian);
+            unsigned char m = readU8(input, m_bigEndian);
+            unsigned char y = readU8(input, m_bigEndian);
+            unsigned char k = readU8(input, m_bigEndian);
+            CDR_DEBUG_MSG(("CMYK%s color: c 0x%x, m 0x%x, y 0x%x, k 0x%x\n", colorModel == 2 ? "" : "255", c, m, y, k));
+            color.m_colorValue = c | (unsigned)m << 8 | (unsigned)y << 16 | (unsigned)k << 24;
+            color.m_colorModel = colorModel;
+            m_colorPalette[j] = color;
+            break;
+          }
+          case 4: // CMY
+          {
+            unsigned char c = readU8(input, m_bigEndian);
+            unsigned char m = readU8(input, m_bigEndian);
+            unsigned char y = readU8(input, m_bigEndian);
+            CDR_DEBUG_MSG(("CMY color: c 0x%x, m 0x%x, y 0x%x\n", c, m, y));
+            color.m_colorValue = c | (unsigned)m << 8 | (unsigned)y << 16;
+            color.m_colorModel = colorModel;
+            m_colorPalette[j] = color;
+            break;
+          }
+          case 5: // RGB
+          {
+            unsigned char r = readU8(input, m_bigEndian);
+            unsigned char g = readU8(input, m_bigEndian);
+            unsigned char b = readU8(input, m_bigEndian);
+            CDR_DEBUG_MSG(("RGB color: r 0x%x, g 0x%x, b 0x%x\n", r, g, b));
+            color.m_colorValue = b | (unsigned)g << 8 | (unsigned)r << 16;
+            color.m_colorModel = colorModel;
+            m_colorPalette[j] = color;
+            break;
+          }
+          case 6: // HSB
+          {
+            unsigned short h = readU16(input, m_bigEndian);
+            unsigned char s = readU8(input, m_bigEndian);
+            unsigned char b = readU8(input, m_bigEndian);
+            CDR_DEBUG_MSG(("HSB color: h 0x%x, s 0x%x, b 0x%x\n", h, s, b));
+            color.m_colorValue = (h & 0xff) | ((unsigned)(h & 0xff00) >> 8) << 8 | (unsigned)s << 16 | (unsigned)b << 24;
+            color.m_colorModel = colorModel;
+            m_colorPalette[j] = color;
+            break;
+          }
+          case 7: // HLS
+          {
+            unsigned short h = readU16(input, m_bigEndian);
+            unsigned char l = readU8(input, m_bigEndian);
+            unsigned char s = readU8(input, m_bigEndian);
+            CDR_DEBUG_MSG(("HLS color: h 0x%x, l 0x%x, s 0x%x\n", h, l, s));
+            color.m_colorValue = (h & 0xff) | ((unsigned)(h & 0xff00) >> 8) << 8 | (unsigned)l << 16 | (unsigned)s << 24;
+            color.m_colorModel = colorModel;
+            m_colorPalette[j] = color;
+            break;
+          }
+          case 8: // BW
+          case 9: // Gray
+          {
+            unsigned value = readU8(input, m_bigEndian);
+            CDR_DEBUG_MSG(("%s color: %s 0x%x\n", colorModel == 8 ? "BW" : "Gray", colorModel == 8 ? "black" : "gray", value));
+            color.m_colorValue = value;
+            color.m_colorModel = colorModel;
+            m_colorPalette[j] = color;
+            break;
+          }
+          case 10: // YIQ255
+          {
+            unsigned char y = readU8(input, m_bigEndian);
+            unsigned char i = readU8(input, m_bigEndian);
+            unsigned char q = readU8(input, m_bigEndian);
+            CDR_DEBUG_MSG(("YIQ255 color: y 0x%x, i 0x%x, q 0x%x\n", y, i, q));
+            color.m_colorValue = (unsigned)y << 8 | (unsigned)i << 16 | (unsigned)q << 24 ;
+            color.m_colorModel = colorModel+1;
+            m_colorPalette[j] = color;
+            break;
+          }
+          case 11: // LAB
+          {
+            unsigned char l = readU8(input, m_bigEndian);
+            unsigned char a = readU8(input, m_bigEndian);
+            unsigned char b = readU8(input, m_bigEndian);
+            CDR_DEBUG_MSG(("LAB color: L 0x%x, green2magenta 0x%x, blue2yellow 0x%x\n", l, a, b));
+            color.m_colorValue =l | (unsigned)a << 8 | (unsigned)b << 16;
+            color.m_colorModel = colorModel;
+            m_colorPalette[j] = color;
+            break;
+          }
+          default:
+            break;
+          }
+        }
+        default:
+          break;
+        }
+        input->seek(offset+tagLength, librevenge::RVNG_SEEK_SET);
+      }
+      while (tagId != CMX_Tag_EndTag);
+    }
+  }
+  else if (m_precision == libcdr::PRECISION_16BIT)
+    ;
+  else
+    return;
+}
+
+libcdr::CDRColor libcdr::CMXParser::getPaletteColor(unsigned id)
+{
+  const std::map<unsigned, libcdr::CDRColor>::const_iterator iter = m_colorPalette.find(id);
+  if (iter != m_colorPalette.end())
+    return iter->second;
+  return libcdr::CDRColor();
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

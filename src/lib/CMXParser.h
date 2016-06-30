@@ -26,7 +26,7 @@ class CDRCollector;
 class CMXParser : protected CommonParser
 {
 public:
-  explicit CMXParser(CDRCollector *collector);
+  explicit CMXParser(CDRCollector *collector, std::map<unsigned, CDRColor> &colorPalette);
   virtual ~CMXParser();
   bool parseRecords(librevenge::RVNGInputStream *input, long size = -1, unsigned level = 0);
 
@@ -41,6 +41,7 @@ private:
   void readDisp(librevenge::RVNGInputStream *input, unsigned length);
   void readCcmm(librevenge::RVNGInputStream *input, long &recordEnd);
   void readPage(librevenge::RVNGInputStream *input, unsigned length);
+  void readRclr(librevenge::RVNGInputStream *input, unsigned length);
 
   // Command readers
   void readBeginPage(librevenge::RVNGInputStream *input);
@@ -59,6 +60,9 @@ private:
   // Complex types readers
   void readRenderingAttributes(librevenge::RVNGInputStream *input);
 
+  // Helper Functions
+  CDRColor getPaletteColor(unsigned id);
+
   bool m_bigEndian;
   unsigned short m_unit;
   double m_scale;
@@ -68,6 +72,7 @@ private:
   unsigned m_thumbnailOffset;
   unsigned m_fillIndex;
   unsigned m_nextInstructionOffset;
+  std::map<unsigned, CDRColor> &m_colorPalette;
 };
 
 } // namespace libcdr

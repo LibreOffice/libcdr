@@ -92,6 +92,7 @@
 
 #define CDR_FOURCC_RIFF 0x46464952
 #define CDR_FOURCC_RIFX 0x58464952
+#define CDR_FOURCC_rclr 0x726c6372
 #define CDR_FOURCC_rvsn 0x6e737672
 
 #define CDR_FOURCC_spnd 0x646e7073
