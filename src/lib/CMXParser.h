@@ -62,6 +62,7 @@ private:
 
   // Helper Functions
   CDRColor getPaletteColor(unsigned id);
+  CDRColor readColor(librevenge::RVNGInputStream *input, unsigned char colorModel);
 
   bool m_bigEndian;
   unsigned short m_unit;

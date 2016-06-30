@@ -32,7 +32,6 @@ private:
 
 
 protected:
-  double readRectCoord(librevenge::RVNGInputStream *input, bool bigEndian = false);
   double readCoordinate(librevenge::RVNGInputStream *input, bool bigEndian = false);
   unsigned readUnsigned(librevenge::RVNGInputStream *input, bool bigEndian = false);
   unsigned short readUnsignedShort(librevenge::RVNGInputStream *input, bool bigEndian = false);
