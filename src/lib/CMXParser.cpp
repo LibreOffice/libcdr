@@ -686,30 +686,83 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       color1 = getPaletteColor(colorRef);
       readU16(input, m_bigEndian);
     }
-    m_collector->collectFillStyle(fillIdentifier, color1, color2, gradient, imageFill);
     break;
   case 2:  // Fountain
     if (m_precision == libcdr::PRECISION_32BIT)
     {
+      unsigned char tagId = 0;
+      unsigned short tagLength = 0;
+      do
+      {
+        long startOffset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+        {
+          CDR_DEBUG_MSG(("    Fountain fill - tagId %i\n", tagId));
+          break;
+        }
+        tagLength = readU16(input, m_bigEndian);
+        CDR_DEBUG_MSG(("    Fountain fill - tagId %i, tagLength %u\n", tagId, tagLength));
+        switch (tagId)
+        {
+        case CMX_Tag_RenderAttr_FillSpec_Fountain_Base:
+        {
+          gradient.m_type = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
+          /* unsigned short screen = */ readU16(input, m_bigEndian);
+          gradient.m_edgeOffset = readU16(input, m_bigEndian);
+          gradient.m_angle = readAngle(input, m_bigEndian);
+          gradient.m_centerXOffset = readS32(input, m_bigEndian);
+          gradient.m_centerYOffset = readS32(input, m_bigEndian);
+          /* unsigned short steps = */ readU16(input, m_bigEndian);
+          gradient.m_mode = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
+          /* unsigned short rateMethod = */ readU16(input, m_bigEndian);
+          /* unsigned short rateValue = */ readU16(input, m_bigEndian);
+          break;
+        }
+        case CMX_Tag_RenderAttr_FillSpec_Fountain_Color:
+        {
+          unsigned short colorCount = readU16(input, m_bigEndian);
+          for (unsigned short i = 0; i < colorCount; ++i)
+          {
+            unsigned short colorRef = readU16(input, m_bigEndian);
+            unsigned short offset = readU16(input, m_bigEndian);
+            fprintf(stderr, "Fridrich   index %2i: color 0x%x, position 0x%x\n", i, colorRef, offset);
+            libcdr::CDRGradientStop stop;
+            stop.m_color = getPaletteColor(colorRef);
+            stop.m_offset = (double)offset / 100.0;
+            gradient.m_stops.push_back(stop);
+          }
+          break;
+        }
+        default:
+          break;
+        }
+        input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
+      }
+      while (tagId != CMX_Tag_EndTag);
     }
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("    Fountain fill\n"));
-      if (m_precision == libcdr::PRECISION_16BIT)
-        ret = false;
-      /* unsigned short fountain = */ readU16(input, m_bigEndian);
+      gradient.m_type = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
       /* unsigned short screen = */ readU16(input, m_bigEndian);
-      /* unsigned short padding = */ readU16(input, m_bigEndian);
-      /* int angle = */ readS32(input, m_bigEndian);
-      /* int xoff = */ readS32(input, m_bigEndian);
-      /* int yoff = */ readS32(input, m_bigEndian);
+      gradient.m_edgeOffset = readU16(input, m_bigEndian);
+      gradient.m_angle = readAngle(input, m_bigEndian);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
+      gradient.m_centerXOffset = readS16(input, m_bigEndian);
+      gradient.m_centerYOffset = readS16(input, m_bigEndian);
       /* unsigned short steps = */ readU16(input, m_bigEndian);
-      /* unsigned short mode = */ readU16(input, m_bigEndian);
+      gradient.m_mode = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
       unsigned short colorCount = readU16(input, m_bigEndian);
       for (unsigned short i = 0; i < colorCount; ++i)
       {
-        /* unsigned short color = */ readU16(input, m_bigEndian);
-        /* unsigned short position = */ readU16(input, m_bigEndian);
+        unsigned short colorRef = readU16(input, m_bigEndian);
+        unsigned short offset = readU16(input, m_bigEndian);
+        fprintf(stderr, "Fridrich   index %2i: color 0x%x, position 0x%x\n", i, colorRef, offset);
+        libcdr::CDRGradientStop stop;
+        stop.m_color = getPaletteColor(colorRef);
+        stop.m_offset = (double)offset / 100.0;
+        gradient.m_stops.push_back(stop);
       }
     }
     break;
@@ -748,6 +801,8 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       ret = false;
     break;
   }
+  if (ret)
+    m_collector->collectFillStyle(fillIdentifier, color1, color2, gradient, imageFill);
   return ret;
 }
 
