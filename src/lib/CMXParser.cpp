@@ -389,7 +389,8 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
   else if (m_precision == libcdr::PRECISION_16BIT)
   {
     CDR_DEBUG_MSG(("  CMXParser::readPolyCurve\n"));
-    readRenderingAttributes(input);
+    if (!readRenderingAttributes(input))
+      return;
     pointNum = readU16(input);
     const unsigned long maxPoints = getRemainingLength(input) / (2 * 2 + 1);
     if (pointNum > maxPoints)
@@ -462,6 +463,9 @@ void libcdr::CMXParser::readEllipse(librevenge::RVNGInputStream *input)
   }
   else if (m_precision == libcdr::PRECISION_16BIT)
   {
+    CDR_DEBUG_MSG(("  CMXParser::readEllipse\n"));
+    if (!readRenderingAttributes(input))
+      return;
     cx = readCoordinate(input, m_bigEndian);
     cy = readCoordinate(input, m_bigEndian);
     rx = readCoordinate(input, m_bigEndian) / 2.0;
@@ -559,7 +563,9 @@ void libcdr::CMXParser::readRectangle(librevenge::RVNGInputStream *input)
   }
   else if (m_precision == libcdr::PRECISION_16BIT)
   {
-    input->seek(3, librevenge::RVNG_SEEK_CUR);
+    CDR_DEBUG_MSG(("  CMXParser::readRectangle\n"));
+    if (!readRenderingAttributes(input))
+      return;
     cx = readCoordinate(input, m_bigEndian);
     cy = readCoordinate(input, m_bigEndian);
     width = readCoordinate(input, m_bigEndian);
@@ -631,8 +637,9 @@ libcdr::CDRBox libcdr::CMXParser::readBBox(librevenge::RVNGInputStream *input)
   return box;
 }
 
-void libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
+bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
 {
+  bool ret(true);
   libcdr::CDRColor color1;
   libcdr::CDRColor color2;
   libcdr::CDRImageFill imageFill;
@@ -685,9 +692,11 @@ void libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     if (m_precision == libcdr::PRECISION_32BIT)
     {
     }
-    else
+    else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("    Fountain fill\n"));
+      if (m_precision == libcdr::PRECISION_16BIT)
+        ret = false;
       /* unsigned short fountain = */ readU16(input, m_bigEndian);
       /* unsigned short screen = */ readU16(input, m_bigEndian);
       /* unsigned short padding = */ readU16(input, m_bigEndian);
@@ -706,29 +715,45 @@ void libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     break;
   case 6:
     CDR_DEBUG_MSG(("    Postscript fill\n"));
+    if (m_precision == libcdr::PRECISION_16BIT)
+      ret = false;
     break;
   case 7:
     CDR_DEBUG_MSG(("    Two-Color Pattern fill\n"));
+    if (m_precision == libcdr::PRECISION_16BIT)
+      ret = false;
     break;
   case 8:
     CDR_DEBUG_MSG(("    Monochrome with transparent bitmap fill\n"));
+    if (m_precision == libcdr::PRECISION_16BIT)
+      ret = false;
     break;
   case 9:
     CDR_DEBUG_MSG(("    Imported Bitmap fill\n"));
+    if (m_precision == libcdr::PRECISION_16BIT)
+      ret = false;
     break;
   case 10:
     CDR_DEBUG_MSG(("    Full-Color Pattern fill\n"));
+    if (m_precision == libcdr::PRECISION_16BIT)
+      ret = false;
     break;
   case 11:
     CDR_DEBUG_MSG(("    Texture fill\n"));
+    if (m_precision == libcdr::PRECISION_16BIT)
+      ret = false;
     break;
   default:
+    if (m_precision == libcdr::PRECISION_16BIT)
+      ret = false;
     break;
   }
+  return ret;
 }
 
-void libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *input)
+bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *input)
 {
+  bool ret(true);
   unsigned char tagId = 0;
   unsigned short tagLength = 0;
   unsigned char bitMask = readU8(input, m_bigEndian);
@@ -750,7 +775,7 @@ void libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
         switch (tagId)
         {
         case CMX_Tag_RenderAttr_FillSpec:
-          readFill(input);
+          ret = readFill(input);
           break;
         default:
           break;
@@ -762,7 +787,7 @@ void libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("  Fill specification\n"));
-      readFill(input);
+      ret = readFill(input);
     }
   }
   if (bitMask & 0x02) // outline
@@ -824,6 +849,7 @@ void libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("  Lens specification\n"));
+      ret = false;
     }
   }
   if (bitMask & 0x08) // canvas
@@ -853,6 +879,7 @@ void libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("  Canvas specification\n"));
+      ret = false;
     }
   }
   if (bitMask & 0x10) // container
@@ -882,8 +909,10 @@ void libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("  Container specification\n"));
+      ret = false;
     }
   }
+  return ret;
 }
 
 void libcdr::CMXParser::readJumpAbsolute(librevenge::RVNGInputStream *input)
@@ -923,8 +952,10 @@ void libcdr::CMXParser::readJumpAbsolute(librevenge::RVNGInputStream *input)
 void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input, unsigned /* length */)
 {
   unsigned numRecords = readU16(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMXParser::readRclr - numRecords %i\n", numRecords));
   for (unsigned j = 1; j < numRecords+1; ++j)
   {
+    CDR_DEBUG_MSG(("Color index %i\n", j));
     unsigned char colorModel = 0;
     if (m_precision == libcdr::PRECISION_32BIT)
     {
@@ -977,6 +1008,7 @@ libcdr::CDRColor libcdr::CMXParser::readColor(librevenge::RVNGInputStream *input
   switch (colorModel)
   {
   case 0: // Invalid
+    CDR_DEBUG_MSG(("Invalid color model\n"));
     break;
   case 1: // Pantone
   {
@@ -988,13 +1020,23 @@ libcdr::CDRColor libcdr::CMXParser::readColor(librevenge::RVNGInputStream *input
     break;
   }
   case 2: // CMYK
+  {
+    unsigned char c = readU8(input, m_bigEndian);
+    unsigned char m = readU8(input, m_bigEndian);
+    unsigned char y = readU8(input, m_bigEndian);
+    unsigned char k = readU8(input, m_bigEndian);
+    CDR_DEBUG_MSG(("CMYK color: c 0x%x, m 0x%x, y 0x%x, k 0x%x\n", c, m, y, k));
+    color.m_colorValue = c | (unsigned)m << 8 | (unsigned)y << 16 | (unsigned)k << 24;
+    color.m_colorModel = colorModel;
+    break;
+  }
   case 3: // CMYK255
   {
     unsigned char c = readU8(input, m_bigEndian);
     unsigned char m = readU8(input, m_bigEndian);
     unsigned char y = readU8(input, m_bigEndian);
     unsigned char k = readU8(input, m_bigEndian);
-    CDR_DEBUG_MSG(("CMYK%s color: c 0x%x, m 0x%x, y 0x%x, k 0x%x\n", colorModel == 2 ? "" : "255", c, m, y, k));
+    CDR_DEBUG_MSG(("CMYK255 color: c 0x%x, m 0x%x, y 0x%x, k 0x%x\n", c, m, y, k));
     color.m_colorValue = c | (unsigned)m << 8 | (unsigned)y << 16 | (unsigned)k << 24;
     color.m_colorModel = colorModel;
     break;
@@ -1068,7 +1110,11 @@ libcdr::CDRColor libcdr::CMXParser::readColor(librevenge::RVNGInputStream *input
     color.m_colorModel = colorModel;
     break;
   }
+  case 0xff: // something funny here
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
+    break;
   default:
+    CDR_DEBUG_MSG(("Unknown color model %i\n", colorModel));
     break;
   }
   return color;

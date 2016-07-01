@@ -55,10 +55,10 @@ private:
   // Types readers
   CDRTransform readMatrix(librevenge::RVNGInputStream *input);
   CDRBox readBBox(librevenge::RVNGInputStream *input);
-  void readFill(librevenge::RVNGInputStream *input);
+  bool readFill(librevenge::RVNGInputStream *input);
 
   // Complex types readers
-  void readRenderingAttributes(librevenge::RVNGInputStream *input);
+  bool readRenderingAttributes(librevenge::RVNGInputStream *input);
 
   // Helper Functions
   CDRColor getPaletteColor(unsigned id);
