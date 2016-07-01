@@ -28,12 +28,12 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, std::map<unsigned, libcdr::CDRColor> &colorPalette)
+libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, CMXParserState &parserState)
   : CommonParser(collector),
     m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
     m_indexSectionOffset(0), m_infoSectionOffset(0), m_thumbnailOffset(0),
-    m_fillIndex(0), m_nextInstructionOffset(0), m_colorPalette(colorPalette) {}
+    m_fillIndex(0), m_nextInstructionOffset(0), m_parserState(parserState) {}
 
 libcdr::CMXParser::~CMXParser()
 {
@@ -1029,7 +1029,7 @@ void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input, unsigned /*
           readU8(input, m_bigEndian);
           break;
         case CMX_Tag_DescrSection_Color_ColorDescr:
-          m_colorPalette[j] = readColor(input, colorModel);
+          m_parserState.m_colorPalette[j] = readColor(input, colorModel);
           break;
         default:
           break;
@@ -1042,7 +1042,7 @@ void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input, unsigned /*
     {
       colorModel = readU8(input, m_bigEndian);
       readU8(input, m_bigEndian);
-      m_colorPalette[j] = readColor(input, colorModel);
+      m_parserState.m_colorPalette[j] = readColor(input, colorModel);
     }
     else
       return;
@@ -1051,8 +1051,8 @@ void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input, unsigned /*
 
 libcdr::CDRColor libcdr::CMXParser::getPaletteColor(unsigned id)
 {
-  const std::map<unsigned, libcdr::CDRColor>::const_iterator iter = m_colorPalette.find(id);
-  if (iter != m_colorPalette.end())
+  const std::map<unsigned, libcdr::CDRColor>::const_iterator iter = m_parserState.m_colorPalette.find(id);
+  if (iter != m_parserState.m_colorPalette.end())
     return iter->second;
   return libcdr::CDRColor();
 }

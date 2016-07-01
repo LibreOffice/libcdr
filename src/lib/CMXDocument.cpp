@@ -66,8 +66,8 @@ CDRAPI bool libcdr::CMXDocument::parse(librevenge::RVNGInputStream *input, libre
   input->seek(0, librevenge::RVNG_SEEK_SET);
   CDRParserState ps;
   CDRStylesCollector stylesCollector(ps);
-  std::map<unsigned, libcdr::CDRColor> colorPalette;
-  CMXParser stylesParser(&stylesCollector, colorPalette);
+  CMXParserState parserState;
+  CMXParser stylesParser(&stylesCollector, parserState);
   bool retVal = stylesParser.parseRecords(input);
   if (ps.m_pages.empty())
     retVal = false;
@@ -75,7 +75,7 @@ CDRAPI bool libcdr::CMXDocument::parse(librevenge::RVNGInputStream *input, libre
   {
     input->seek(0, librevenge::RVNG_SEEK_SET);
     CDRContentCollector contentCollector(ps, painter);
-    CMXParser contentParser(&contentCollector, colorPalette);
+    CMXParser contentParser(&contentCollector, parserState);
     retVal = contentParser.parseRecords(input);
   }
   return retVal;

@@ -23,10 +23,16 @@ namespace libcdr
 
 class CDRCollector;
 
+struct CMXParserState
+{
+  CMXParserState() : m_colorPalette() {}
+  std::map<unsigned, CDRColor> m_colorPalette;
+};
+
 class CMXParser : protected CommonParser
 {
 public:
-  explicit CMXParser(CDRCollector *collector, std::map<unsigned, CDRColor> &colorPalette);
+  explicit CMXParser(CDRCollector *collector, CMXParserState &parserState);
   virtual ~CMXParser();
   bool parseRecords(librevenge::RVNGInputStream *input, long size = -1, unsigned level = 0);
 
@@ -73,7 +79,7 @@ private:
   unsigned m_thumbnailOffset;
   unsigned m_fillIndex;
   unsigned m_nextInstructionOffset;
-  std::map<unsigned, CDRColor> &m_colorPalette;
+  CMXParserState &m_parserState;
 };
 
 } // namespace libcdr
