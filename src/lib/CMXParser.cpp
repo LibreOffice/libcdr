@@ -133,6 +133,9 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge
   case CDR_FOURCC_rott:
     readRott(input);
     break;
+  case CDR_FOURCC_rpen:
+    readRpen(input);
+    break;
   default:
     break;
   }
@@ -616,9 +619,7 @@ libcdr::CDRTransform libcdr::CMXParser::readMatrix(librevenge::RVNGInputStream *
 {
   CDRTransform matrix;
   unsigned short type = readU16(input, m_bigEndian);
-  switch (type)
-  {
-  case 2: // general matrix
+  if (type > 1)
   {
     double v0 = readDouble(input, m_bigEndian);
     double v3 = readDouble(input, m_bigEndian);
@@ -628,9 +629,8 @@ libcdr::CDRTransform libcdr::CMXParser::readMatrix(librevenge::RVNGInputStream *
     double y0 = readDouble(input, m_bigEndian);
     return libcdr::CDRTransform(v0, v1, x0, v3, v4, y0);
   }
-  default: // identity matrix for the while
+  else
     return matrix;
-  }
 }
 
 libcdr::CDRBox libcdr::CMXParser::readBBox(librevenge::RVNGInputStream *input)
@@ -1234,6 +1234,53 @@ void libcdr::CMXParser::readRott(librevenge::RVNGInputStream *input)
     else
       return;
     m_parserState.m_lineStyles[j] = lineStyle;
+  }
+}
+
+void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
+{
+  unsigned numRecords = readU16(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMXParser::readRpen - numRecords %i\n", numRecords));
+  for (unsigned j = 1; j < numRecords+1; ++j)
+  {
+    CMXPen pen;
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+      unsigned char tagId = 0;
+      do
+      {
+        long offset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+          break;
+        unsigned short tagLength = readU16(input, m_bigEndian);
+        switch (tagId)
+        {
+        case CMX_Tag_DescrSection_Pen:
+        {
+          pen.m_width = readCoordinate(input);
+          pen.m_aspect = readU16(input, m_bigEndian);
+          pen.m_angle = readAngle(input);
+          pen.m_matrix = readMatrix(input);
+          break;
+        }
+        default:
+          break;
+        }
+        input->seek(offset+tagLength, librevenge::RVNG_SEEK_SET);
+      }
+      while (tagId != CMX_Tag_EndTag);
+    }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+    {
+      pen.m_width = readCoordinate(input);
+      pen.m_aspect = readU16(input, m_bigEndian);
+      pen.m_angle = readAngle(input);
+      pen.m_matrix = readMatrix(input);
+    }
+    else
+      return;
+    m_parserState.m_pens[j] = pen;
   }
 }
 

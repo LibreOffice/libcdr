@@ -23,9 +23,32 @@ namespace libcdr
 
 class CDRCollector;
 
+struct CMXOutline
+{
+  CMXOutline()
+    : m_lineStyle(0), m_screen(0), m_color(0),
+      m_arrowHeads(0), m_pen(0), m_dotDash(0) {}
+  unsigned short m_lineStyle;
+  unsigned short m_screen;
+  unsigned short m_color;
+  unsigned short m_arrowHeads;
+  unsigned short m_pen;
+  unsigned short m_dotDash;
+};
+
+struct CMXPen
+{
+  CMXPen()
+    : m_width(0.0), m_aspect(100), m_angle(0.0), m_matrix() {}
+  double m_width;
+  unsigned short m_aspect;
+  double m_angle;
+  CDRTransform m_matrix;
+};
+
 struct CMXLineStyle
 {
-  CMXLineStyle() : m_spec(0), M_capAndJoin(0) {}
+  CMXLineStyle() : m_spec(0), m_capAndJoin(0) {}
   unsigned char m_spec;
   unsigned char m_capAndJoin;
 };
@@ -33,10 +56,13 @@ struct CMXLineStyle
 struct CMXParserState
 {
   CMXParserState()
-    : m_colorPalette(), m_dashArrays(), m_lineStyles() {}
+    : m_colorPalette(), m_dashArrays(), m_lineStyles(),
+      m_pens(), m_outlines() {}
   std::map<unsigned, CDRColor> m_colorPalette;
   std::map<unsigned, std::vector<unsigned> > m_dashArrays;
   std::map<unsigned, CMXLineStyle> m_lineStyles;
+  std::map<unsigned, CMXPen> m_pens;
+  std::map<unsigned, CMXOutline> m_outlines;
 };
 
 class CMXParser : protected CommonParser
@@ -60,6 +86,7 @@ private:
   void readRclr(librevenge::RVNGInputStream *input);
   void readRott(librevenge::RVNGInputStream *input);
   void readRdot(librevenge::RVNGInputStream *input);
+  void readRpen(librevenge::RVNGInputStream *input);
 
   // Command readers
   void readBeginPage(librevenge::RVNGInputStream *input);
