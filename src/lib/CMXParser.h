@@ -23,11 +23,20 @@ namespace libcdr
 
 class CDRCollector;
 
+struct CMXLineStyle
+{
+  CMXLineStyle() : m_spec(0), M_capAndJoin(0) {}
+  unsigned char m_spec;
+  unsigned char m_capAndJoin;
+};
+
 struct CMXParserState
 {
-  CMXParserState() : m_colorPalette(), m_dashArrays() {}
+  CMXParserState()
+    : m_colorPalette(), m_dashArrays(), m_lineStyles() {}
   std::map<unsigned, CDRColor> m_colorPalette;
   std::map<unsigned, std::vector<unsigned> > m_dashArrays;
+  std::map<unsigned, CMXLineStyle> m_lineStyles;
 };
 
 class CMXParser : protected CommonParser
@@ -49,6 +58,7 @@ private:
   void readCcmm(librevenge::RVNGInputStream *input, long &recordEnd);
   void readPage(librevenge::RVNGInputStream *input, unsigned length);
   void readRclr(librevenge::RVNGInputStream *input);
+  void readRott(librevenge::RVNGInputStream *input);
   void readRdot(librevenge::RVNGInputStream *input);
 
   // Command readers
