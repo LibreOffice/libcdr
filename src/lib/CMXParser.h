@@ -84,6 +84,7 @@ private:
   void readCcmm(librevenge::RVNGInputStream *input, long &recordEnd);
   void readPage(librevenge::RVNGInputStream *input, unsigned length);
   void readRclr(librevenge::RVNGInputStream *input);
+  void readRotl(librevenge::RVNGInputStream *input);
   void readRott(librevenge::RVNGInputStream *input);
   void readRdot(librevenge::RVNGInputStream *input);
   void readRpen(librevenge::RVNGInputStream *input);

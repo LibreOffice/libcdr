@@ -133,6 +133,9 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge
   case CDR_FOURCC_rott:
     readRott(input);
     break;
+  case CDR_FOURCC_rotl:
+    readRotl(input);
+    break;
   case CDR_FOURCC_rpen:
     readRpen(input);
     break;
@@ -1234,6 +1237,58 @@ void libcdr::CMXParser::readRott(librevenge::RVNGInputStream *input)
     else
       return;
     m_parserState.m_lineStyles[j] = lineStyle;
+  }
+}
+
+void libcdr::CMXParser::readRotl(librevenge::RVNGInputStream *input)
+{
+  unsigned numRecords = readU16(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMXParser::readRotl - numRecords %i\n", numRecords));
+  for (unsigned j = 1; j < numRecords+1; ++j)
+  {
+    CMXOutline outline;
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+      unsigned char tagId = 0;
+      do
+      {
+        long offset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+          break;
+        unsigned short tagLength = readU16(input, m_bigEndian);
+        switch (tagId)
+        {
+        case CMX_Tag_DescrSection_Outline:
+        {
+          outline.m_lineStyle = readU16(input, m_bigEndian);
+          outline.m_screen = readU16(input, m_bigEndian);
+          outline.m_color = readU16(input, m_bigEndian);
+          outline.m_arrowHeads = readU16(input, m_bigEndian);
+          outline.m_pen = readU16(input, m_bigEndian);
+          outline.m_dotDash = readU16(input, m_bigEndian);
+          break;
+        }
+        default:
+          break;
+        }
+        input->seek(offset+tagLength, librevenge::RVNG_SEEK_SET);
+      }
+      while (tagId != CMX_Tag_EndTag);
+    }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+    {
+      outline.m_lineStyle = readU16(input, m_bigEndian);
+      outline.m_screen = readU16(input, m_bigEndian);
+      outline.m_color = readU16(input, m_bigEndian);
+      outline.m_arrowHeads = readU16(input, m_bigEndian);
+      outline.m_pen = readU16(input, m_bigEndian);
+      outline.m_dotDash = readU16(input, m_bigEndian);
+      break;
+    }
+    else
+      return;
+    m_parserState.m_outlines[j] = outline;
   }
 }
 
