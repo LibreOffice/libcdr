@@ -25,8 +25,9 @@ class CDRCollector;
 
 struct CMXParserState
 {
-  CMXParserState() : m_colorPalette() {}
+  CMXParserState() : m_colorPalette(), m_dashArrays() {}
   std::map<unsigned, CDRColor> m_colorPalette;
+  std::map<unsigned, std::vector<unsigned> > m_dashArrays;
 };
 
 class CMXParser : protected CommonParser
@@ -47,7 +48,8 @@ private:
   void readDisp(librevenge::RVNGInputStream *input, unsigned length);
   void readCcmm(librevenge::RVNGInputStream *input, long &recordEnd);
   void readPage(librevenge::RVNGInputStream *input, unsigned length);
-  void readRclr(librevenge::RVNGInputStream *input, unsigned length);
+  void readRclr(librevenge::RVNGInputStream *input);
+  void readRdot(librevenge::RVNGInputStream *input);
 
   // Command readers
   void readBeginPage(librevenge::RVNGInputStream *input);

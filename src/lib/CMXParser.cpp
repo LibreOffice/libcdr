@@ -125,7 +125,10 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge
     readCcmm(input, recordEnd);
     break;
   case CDR_FOURCC_rclr:
-    readRclr(input, length);
+    readRclr(input);
+    break;
+  case CDR_FOURCC_rdot:
+    readRdot(input);
     break;
   default:
     break;
@@ -1098,7 +1101,7 @@ void libcdr::CMXParser::readJumpAbsolute(librevenge::RVNGInputStream *input)
     return;
 }
 
-void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input, unsigned /* length */)
+void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input)
 {
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRclr - numRecords %i\n", numRecords));
@@ -1140,6 +1143,51 @@ void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input, unsigned /*
     }
     else
       return;
+  }
+}
+
+void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
+{
+  unsigned numRecords = readU16(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMXParser::readRdot - numRecords %i\n", numRecords));
+  for (unsigned j = 1; j < numRecords+1; ++j)
+  {
+    std::vector<unsigned> dots;
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+      unsigned char tagId = 0;
+      do
+      {
+        long offset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+          break;
+        unsigned short tagLength = readU16(input, m_bigEndian);
+        switch (tagId)
+        {
+        case CMX_Tag_DescrSection_Dash:
+        {
+          unsigned short dotCount = readU16(input, m_bigEndian);
+          for (unsigned short i = 0; i < dotCount; ++i)
+            dots.push_back(readU16(input, m_bigEndian));
+          break;
+        }
+        default:
+          break;
+        }
+        input->seek(offset+tagLength, librevenge::RVNG_SEEK_SET);
+      }
+      while (tagId != CMX_Tag_EndTag);
+    }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+    {
+      unsigned short dotCount = readU16(input, m_bigEndian);
+      for (unsigned short i = 0; i < dotCount; ++i)
+        dots.push_back(readU16(input, m_bigEndian));
+    }
+    else
+      return;
+    m_parserState.m_dashArrays[j] = dots;
   }
 }
 
