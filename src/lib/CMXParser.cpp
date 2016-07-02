@@ -637,6 +637,15 @@ libcdr::CDRBox libcdr::CMXParser::readBBox(librevenge::RVNGInputStream *input)
   return box;
 }
 
+librevenge::RVNGString libcdr::CMXParser::readString(librevenge::RVNGInputStream *input)
+{
+  unsigned short count = readU16(input, m_bigEndian);
+  librevenge::RVNGString tmpString;
+  for (unsigned short i = 0; i < count; ++i)
+    tmpString.append((char)readU8(input, m_bigEndian));
+  return tmpString;
+}
+
 bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
 {
   bool ret(true);
@@ -726,7 +735,6 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
           {
             unsigned short colorRef = readU16(input, m_bigEndian);
             unsigned short offset = readU16(input, m_bigEndian);
-            fprintf(stderr, "Fridrich   index %2i: color 0x%x, position 0x%x\n", i, colorRef, offset);
             libcdr::CDRGradientStop stop;
             stop.m_color = getPaletteColor(colorRef);
             stop.m_offset = (double)offset / 100.0;
@@ -758,7 +766,6 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       {
         unsigned short colorRef = readU16(input, m_bigEndian);
         unsigned short offset = readU16(input, m_bigEndian);
-        fprintf(stderr, "Fridrich   index %2i: color 0x%x, position 0x%x\n", i, colorRef, offset);
         libcdr::CDRGradientStop stop;
         stop.m_color = getPaletteColor(colorRef);
         stop.m_offset = (double)offset / 100.0;
@@ -768,33 +775,120 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     break;
   case 6:
     CDR_DEBUG_MSG(("    Postscript fill\n"));
-    if (m_precision == libcdr::PRECISION_16BIT)
-      ret = false;
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+    }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+    {
+      /* unsigned short atom = */ readU16(input, m_bigEndian);
+      unsigned short count = readU16(input, m_bigEndian);
+      for (unsigned short i = 0; i < count; ++i)
+        readU16(input, m_bigEndian);
+      readString(input);
+    }
     break;
   case 7:
     CDR_DEBUG_MSG(("    Two-Color Pattern fill\n"));
-    if (m_precision == libcdr::PRECISION_16BIT)
-      ret = false;
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+    }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+    {
+      /* unsigned short bitmap = */ readU16(input, m_bigEndian);
+      /* unsigned short width = */ readU16(input, m_bigEndian);
+      /* unsigned short height = */ readU16(input, m_bigEndian);
+      /* unsigned short xoff = */ readU16(input, m_bigEndian);
+      /* unsigned short yoff = */ readU16(input, m_bigEndian);
+      /* unsigned short inter = */ readU16(input, m_bigEndian);
+      /* unsigned short flags = */ readU16(input, m_bigEndian);
+      /* unsigned short foreground = */ readU16(input, m_bigEndian);
+      /* unsigned short background = */ readU16(input, m_bigEndian);
+      /* unsigned short screen = */ readU16(input, m_bigEndian);
+    }
     break;
   case 8:
     CDR_DEBUG_MSG(("    Monochrome with transparent bitmap fill\n"));
-    if (m_precision == libcdr::PRECISION_16BIT)
-      ret = false;
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+    }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+    {
+      /* unsigned short bitmap = */ readU16(input, m_bigEndian);
+      /* unsigned short width = */ readU16(input, m_bigEndian);
+      /* unsigned short height = */ readU16(input, m_bigEndian);
+      /* unsigned short xoff = */ readU16(input, m_bigEndian);
+      /* unsigned short yoff = */ readU16(input, m_bigEndian);
+      /* unsigned short inter = */ readU16(input, m_bigEndian);
+      /* unsigned short flags = */ readU16(input, m_bigEndian);
+      /* unsigned short foreground = */ readU16(input, m_bigEndian);
+      /* unsigned short background = */ readU16(input, m_bigEndian);
+      /* unsigned short screen = */ readU16(input, m_bigEndian);
+    }
     break;
   case 9:
     CDR_DEBUG_MSG(("    Imported Bitmap fill\n"));
-    if (m_precision == libcdr::PRECISION_16BIT)
-      ret = false;
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+    }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+    {
+      /* unsigned short bitmap = */ readU16(input, m_bigEndian);
+      /* unsigned short width = */ readU16(input, m_bigEndian);
+      /* unsigned short height = */ readU16(input, m_bigEndian);
+      /* unsigned short xoff = */ readU16(input, m_bigEndian);
+      /* unsigned short yoff = */ readU16(input, m_bigEndian);
+      /* unsigned short inter = */ readU16(input, m_bigEndian);
+      /* unsigned short flags = */ readU16(input, m_bigEndian);
+      /* libcdr::CDRBox box = */ readBBox(input);
+    }
     break;
   case 10:
     CDR_DEBUG_MSG(("    Full-Color Pattern fill\n"));
-    if (m_precision == libcdr::PRECISION_16BIT)
-      ret = false;
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+    }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+    {
+      /* unsigned short pattern = */ readU16(input, m_bigEndian);
+      /* unsigned short width = */ readU16(input, m_bigEndian);
+      /* unsigned short height = */ readU16(input, m_bigEndian);
+      /* unsigned short xoff = */ readU16(input, m_bigEndian);
+      /* unsigned short yoff = */ readU16(input, m_bigEndian);
+      /* unsigned short inter = */ readU16(input, m_bigEndian);
+      /* unsigned short flags = */ readU16(input, m_bigEndian);
+      /* libcdr::CDRBox box = */ readBBox(input);
+    }
     break;
   case 11:
     CDR_DEBUG_MSG(("    Texture fill\n"));
-    if (m_precision == libcdr::PRECISION_16BIT)
-      ret = false;
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+    }
+    else if (m_precision == libcdr::PRECISION_16BIT)
+    {
+      /* unsigned short function = */ readU16(input, m_bigEndian);
+      /* unsigned short width = */ readU16(input, m_bigEndian);
+      /* unsigned short height = */ readU16(input, m_bigEndian);
+      /* unsigned short xoff = */ readU16(input, m_bigEndian);
+      /* unsigned short yoff = */ readU16(input, m_bigEndian);
+      /* unsigned short inter = */ readU16(input, m_bigEndian);
+      /* unsigned short flags = */ readU16(input, m_bigEndian);
+      /* libcdr::CDRBox box = */ readBBox(input);
+      /* unsigned char reserved = */ readU8(input, m_bigEndian);
+      /* unsigned res = */ readU32(input, m_bigEndian);
+      /* unsigned short maxEdge = */ readU16(input, m_bigEndian);
+      /* librevenge::RVNGString lib = */ readString(input);
+      /* librevenge::RVNGString name = */ readString(input);
+      /* librevenge::RVNGString stl = */ readString(input);
+      unsigned short count = readU16(input, m_bigEndian);
+      for (unsigned short i = 0; i < count; ++i)
+      {
+        readU16(input, m_bigEndian);
+        readU16(input, m_bigEndian);
+        readU16(input, m_bigEndian);
+        readU16(input, m_bigEndian);
+      }
+    }
     break;
   default:
     if (m_precision == libcdr::PRECISION_16BIT)

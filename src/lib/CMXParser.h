@@ -61,6 +61,7 @@ private:
   // Types readers
   CDRTransform readMatrix(librevenge::RVNGInputStream *input);
   CDRBox readBBox(librevenge::RVNGInputStream *input);
+  librevenge::RVNGString readString(librevenge::RVNGInputStream *input);
   bool readFill(librevenge::RVNGInputStream *input);
 
   // Complex types readers
