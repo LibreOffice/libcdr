@@ -950,6 +950,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
   }
   if (bitMask & 0x02) // outline
   {
+    CDRLineStyle lineStyle;
     if (m_precision == libcdr::PRECISION_32BIT)
     {
       do
@@ -966,6 +967,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
         switch (tagId)
         {
         case CMX_Tag_RenderAttr_OutlineSpec:
+          lineStyle = getLineStyle(readU16(input, m_bigEndian));
           break;
         default:
           break;
@@ -977,8 +979,12 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("  Outline specification\n"));
-      readU16(input, m_bigEndian);
+      lineStyle = getLineStyle(readU16(input, m_bigEndian));
     }
+    m_collector->collectLineStyle(lineStyle.lineType, lineStyle.capsType, lineStyle.joinType,
+                                  lineStyle.lineWidth, lineStyle.stretch, lineStyle.angle,
+                                  lineStyle.color, lineStyle.dashArray,
+                                  lineStyle.startMarker, lineStyle.endMarker);
   }
   if (bitMask & 0x04) // lens
   {
@@ -1266,7 +1272,7 @@ void libcdr::CMXParser::readRotl(librevenge::RVNGInputStream *input)
           outline.m_color = readU16(input, m_bigEndian);
           outline.m_arrowHeads = readU16(input, m_bigEndian);
           outline.m_pen = readU16(input, m_bigEndian);
-          outline.m_dotDash = readU16(input, m_bigEndian);
+          outline.m_dashArray = readU16(input, m_bigEndian);
           break;
         }
         default:
@@ -1283,8 +1289,7 @@ void libcdr::CMXParser::readRotl(librevenge::RVNGInputStream *input)
       outline.m_color = readU16(input, m_bigEndian);
       outline.m_arrowHeads = readU16(input, m_bigEndian);
       outline.m_pen = readU16(input, m_bigEndian);
-      outline.m_dotDash = readU16(input, m_bigEndian);
-      break;
+      outline.m_dashArray = readU16(input, m_bigEndian);
     }
     else
       return;
@@ -1314,7 +1319,7 @@ void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
         case CMX_Tag_DescrSection_Pen:
         {
           pen.m_width = readCoordinate(input);
-          pen.m_aspect = readU16(input, m_bigEndian);
+          pen.m_aspect = (double)readU16(input, m_bigEndian) / 100.0;
           pen.m_angle = readAngle(input);
           pen.m_matrix = readMatrix(input);
           break;
@@ -1329,8 +1334,9 @@ void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       pen.m_width = readCoordinate(input);
-      pen.m_aspect = readU16(input, m_bigEndian);
+      pen.m_aspect = (double)readU16(input, m_bigEndian) / 100.0;
       pen.m_angle = readAngle(input);
+      input->seek(2, librevenge::RVNG_SEEK_CUR);
       pen.m_matrix = readMatrix(input);
     }
     else
@@ -1463,6 +1469,39 @@ libcdr::CDRColor libcdr::CMXParser::readColor(librevenge::RVNGInputStream *input
     break;
   }
   return color;
+}
+
+libcdr::CDRLineStyle libcdr::CMXParser::getLineStyle(unsigned id)
+{
+  libcdr::CDRLineStyle tmpLineStyle;
+  std::map<unsigned, CMXOutline>::const_iterator iterOutline = m_parserState.m_outlines.find(id);
+  if (iterOutline == m_parserState.m_outlines.end())
+    return tmpLineStyle;
+  unsigned lineStyleId = iterOutline->second.m_lineStyle;
+  unsigned colorId = iterOutline->second.m_color;
+  unsigned penId = iterOutline->second.m_pen;
+  unsigned dashArrayId = iterOutline->second.m_dashArray;
+  tmpLineStyle.color = getPaletteColor(colorId);
+  std::map<unsigned, CMXLineStyle>::const_iterator iterLineStyle = m_parserState.m_lineStyles.find(lineStyleId);
+  if (iterLineStyle != m_parserState.m_lineStyles.end())
+  {
+    tmpLineStyle.lineType = iterLineStyle->second.m_spec;
+    tmpLineStyle.capsType = (unsigned short)((iterLineStyle->second.m_capAndJoin) & 0xf);
+    tmpLineStyle.joinType = (unsigned short)(((iterLineStyle->second.m_capAndJoin) & 0xf0) >> 4);
+  }
+  std::map<unsigned, CMXPen>::const_iterator iterPen = m_parserState.m_pens.find(penId);
+  if (iterPen != m_parserState.m_pens.end())
+  {
+    tmpLineStyle.lineWidth = iterPen->second.m_width;
+    tmpLineStyle.stretch = iterPen->second.m_aspect;
+    tmpLineStyle.angle = iterPen->second.m_angle;
+  }
+  std::map<unsigned, std::vector<unsigned> >::const_iterator iterDash = m_parserState.m_dashArrays.find(dashArrayId);
+  if (iterDash != m_parserState.m_dashArrays.end())
+  {
+    tmpLineStyle.dashArray = iterDash->second;
+  }
+  return tmpLineStyle;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

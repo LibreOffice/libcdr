@@ -27,21 +27,21 @@ struct CMXOutline
 {
   CMXOutline()
     : m_lineStyle(0), m_screen(0), m_color(0),
-      m_arrowHeads(0), m_pen(0), m_dotDash(0) {}
+      m_arrowHeads(0), m_pen(0), m_dashArray(0) {}
   unsigned short m_lineStyle;
   unsigned short m_screen;
   unsigned short m_color;
   unsigned short m_arrowHeads;
   unsigned short m_pen;
-  unsigned short m_dotDash;
+  unsigned short m_dashArray;
 };
 
 struct CMXPen
 {
   CMXPen()
-    : m_width(0.0), m_aspect(100), m_angle(0.0), m_matrix() {}
+    : m_width(0.0), m_aspect(1.0), m_angle(0.0), m_matrix() {}
   double m_width;
-  unsigned short m_aspect;
+  double m_aspect;
   double m_angle;
   CDRTransform m_matrix;
 };
@@ -110,6 +110,7 @@ private:
   // Helper Functions
   CDRColor getPaletteColor(unsigned id);
   CDRColor readColor(librevenge::RVNGInputStream *input, unsigned char colorModel);
+  CDRLineStyle getLineStyle(unsigned id);
 
   bool m_bigEndian;
   unsigned short m_unit;
