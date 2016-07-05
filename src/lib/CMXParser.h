@@ -57,12 +57,17 @@ struct CMXParserState
 {
   CMXParserState()
     : m_colorPalette(), m_dashArrays(), m_lineStyles(),
-      m_pens(), m_outlines() {}
+      m_pens(), m_outlines(), m_bitmapOffsets(), m_arrowOffsets(),
+      m_embeddedOffsets(), m_embeddedOffsetTypes() {}
   std::map<unsigned, CDRColor> m_colorPalette;
   std::map<unsigned, std::vector<unsigned> > m_dashArrays;
   std::map<unsigned, CMXLineStyle> m_lineStyles;
   std::map<unsigned, CMXPen> m_pens;
   std::map<unsigned, CMXOutline> m_outlines;
+  std::map<unsigned, unsigned> m_bitmapOffsets;
+  std::map<unsigned, unsigned> m_arrowOffsets;
+  std::map<unsigned, unsigned> m_embeddedOffsets;
+  std::map<unsigned, unsigned> m_embeddedOffsetTypes;
 };
 
 class CMXParser : protected CommonParser
@@ -88,6 +93,8 @@ private:
   void readRott(librevenge::RVNGInputStream *input);
   void readRdot(librevenge::RVNGInputStream *input);
   void readRpen(librevenge::RVNGInputStream *input);
+  void readIxtl(librevenge::RVNGInputStream *input);
+  void readIxef(librevenge::RVNGInputStream *input);
 
   // Command readers
   void readBeginPage(librevenge::RVNGInputStream *input);

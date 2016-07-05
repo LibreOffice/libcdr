@@ -139,6 +139,12 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge
   case CDR_FOURCC_rpen:
     readRpen(input);
     break;
+  case CDR_FOURCC_ixtl:
+    readIxtl(input);
+    break;
+  case CDR_FOURCC_ixef:
+    readIxef(input);
+    break;
   default:
     break;
   }
@@ -1342,6 +1348,56 @@ void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
     else
       return;
     m_parserState.m_pens[j] = pen;
+  }
+}
+
+void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
+{
+  unsigned numRecords = readU16(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMXParser::readIxtl - numRecords %i\n", numRecords));
+  int sizeInFile(0);
+  if (m_precision == libcdr::PRECISION_32BIT)
+  {
+    sizeInFile = readU16(input, m_bigEndian);
+    if (sizeInFile < 4)
+      return;
+  }
+  unsigned type = readU16(input, m_bigEndian);
+  for (unsigned j = 1; j < numRecords+1; ++j)
+  {
+    switch (type)
+    {
+    case 5:
+      m_parserState.m_bitmapOffsets[j] = readU32(input, m_bigEndian);
+      break;
+    case 6:
+      m_parserState.m_arrowOffsets[j] = readU32(input, m_bigEndian);
+      break;
+    default:
+      break;
+    if (sizeInFile)
+      input->seek(sizeInFile-4, librevenge::RVNG_SEEK_CUR);
+    }
+  }
+}
+
+void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
+{
+  unsigned numRecords = readU16(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMXParser::readIxef - numRecords %i\n", numRecords));
+  for (unsigned j = 1; j < numRecords+1; ++j)
+  {
+    int sizeInFile(0);
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+      sizeInFile = readU16(input, m_bigEndian);
+      if (sizeInFile < 6)
+        return;
+    }
+    m_parserState.m_embeddedOffsets[j] = readU32(input, m_bigEndian);
+    m_parserState.m_embeddedOffsetTypes[j] = readU16(input, m_bigEndian);
+    if (sizeInFile)
+      input->seek(sizeInFile-6, librevenge::RVNG_SEEK_CUR);
   }
 }
 
