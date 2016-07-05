@@ -83,6 +83,7 @@ private:
   CMXParser &operator=(const CMXParser &);
   bool parseRecord(librevenge::RVNGInputStream *input, unsigned level = 0);
   void readRecord(unsigned fourCC, unsigned &length, librevenge::RVNGInputStream *input);
+  void parseImage(librevenge::RVNGInputStream *input);
 
   void readCMXHeader(librevenge::RVNGInputStream *input);
   void readDisp(librevenge::RVNGInputStream *input, unsigned length);

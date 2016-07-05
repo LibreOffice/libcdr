@@ -107,6 +107,46 @@ bool libcdr::CMXParser::parseRecord(librevenge::RVNGInputStream *input, unsigned
   }
 }
 
+void libcdr::CMXParser::parseImage(librevenge::RVNGInputStream *input)
+{
+  if (!input)
+  {
+    return;
+  }
+  try
+  {
+    while (!input->isEnd() && readU8(input) == 0)
+    {
+    }
+    if (!input->isEnd())
+      input->seek(-1, librevenge::RVNG_SEEK_CUR);
+    else
+      return;
+    unsigned fourCC = readU32(input);
+    unsigned length = readU32(input);
+    const unsigned long maxLength = getRemainingLength(input);
+    if (length > maxLength)
+      length = maxLength;
+    long endPosition = input->tell() + length;
+
+    if (fourCC != CDR_FOURCC_LIST)
+      return;
+    unsigned listType = readU32(input);
+    CDR_DEBUG_MSG(("CMX listType: %s\n", toFourCC(listType)));
+    if (listType != CDR_FOURCC_imag)
+      return;
+    unsigned dataSize = length-4;
+    if (!parseRecords(input, dataSize, (unsigned)-1))
+      return;
+
+    if (input->tell() < endPosition)
+      input->seek(endPosition, librevenge::RVNG_SEEK_SET);
+  }
+  catch (...)
+  {
+  }
+}
+
 void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge::RVNGInputStream *input)
 {
   long recordEnd = input->tell() + length;
@@ -1368,16 +1408,23 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
     switch (type)
     {
     case 5:
-      m_parserState.m_bitmapOffsets[j] = readU32(input, m_bigEndian);
+    {
+      unsigned offset = readU32(input, m_bigEndian);
+      m_parserState.m_bitmapOffsets[j] = offset;
+      long oldOffset = input->tell();
+      input->seek(offset, librevenge::RVNG_SEEK_SET);
+      parseImage(input);
+      input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
       break;
+    }
     case 6:
       m_parserState.m_arrowOffsets[j] = readU32(input, m_bigEndian);
       break;
     default:
       break;
+    }
     if (sizeInFile)
       input->seek(sizeInFile-4, librevenge::RVNG_SEEK_CUR);
-    }
   }
 }
 
@@ -1394,8 +1441,14 @@ void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
       if (sizeInFile < 6)
         return;
     }
-    m_parserState.m_embeddedOffsets[j] = readU32(input, m_bigEndian);
-    m_parserState.m_embeddedOffsetTypes[j] = readU16(input, m_bigEndian);
+    unsigned offset = readU32(input, m_bigEndian);
+    m_parserState.m_embeddedOffsets[j] = offset;
+    unsigned type = readU16(input, m_bigEndian);
+    m_parserState.m_embeddedOffsetTypes[j] = type;
+    long oldOffset = input->tell();
+    input->seek(offset, librevenge::RVNG_SEEK_SET);
+    parseImage(input);
+    input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
     if (sizeInFile)
       input->seek(sizeInFile-6, librevenge::RVNG_SEEK_CUR);
   }
