@@ -24,6 +24,10 @@
 #define DUMP_PREVIEW_IMAGE 0
 #endif
 
+#ifndef DUMP_IMAGE
+#define DUMP_IMAGE 0
+#endif
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -33,7 +37,8 @@ libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, CMXParserState &pa
     m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
     m_indexSectionOffset(0), m_infoSectionOffset(0), m_thumbnailOffset(0),
-    m_fillIndex(0), m_nextInstructionOffset(0), m_parserState(parserState) {}
+    m_fillIndex(0), m_nextInstructionOffset(0), m_parserState(parserState),
+    m_currentImageInfo(), m_currentImageData() {}
 
 libcdr::CMXParser::~CMXParser()
 {
@@ -184,6 +189,12 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge
     break;
   case CDR_FOURCC_ixef:
     readIxef(input);
+    break;
+  case CDR_FOURCC_info:
+    readInfo(input);
+    break;
+  case CDR_FOURCC_data:
+    readData(input, length);
     break;
   default:
     break;
@@ -1425,6 +1436,32 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
     }
     if (sizeInFile)
       input->seek(sizeInFile-4, librevenge::RVNG_SEEK_CUR);
+#if DUMP_IMAGE
+    librevenge::RVNGString name;
+    switch (m_currentImageInfo.m_type)
+    {
+    case 0x8:
+      name.sprintf("Image%04i.%s", j, "bmp");
+      break;
+    case 0x10:
+      name.sprintf("Image%04i.%s", j, "rimg");
+      break;
+    case 0x20:
+      name.sprintf("Image%04i.%s", j, "rimg");
+      break;
+    default:
+      break;
+    }
+
+    FILE *f = fopen(name.cstr(), "wb");
+    if (f)
+    {
+      const unsigned char *tmpBuffer = m_currentImageData.getDataBuffer();
+      for (unsigned long k = 0; k < m_currentImageData.size(); k++)
+        fprintf(f, "%c",tmpBuffer[k]);
+      fclose(f);
+    }
+#endif
   }
 }
 
@@ -1451,7 +1488,114 @@ void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
     input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
     if (sizeInFile)
       input->seek(sizeInFile-6, librevenge::RVNG_SEEK_CUR);
+#if DUMP_IMAGE
+    librevenge::RVNGString name;
+    switch (m_currentImageInfo.m_type)
+    {
+    case 0x8:
+      name.sprintf("File%04i.%s", j, "bmp");
+      break;
+    case 0x10:
+      name.sprintf("File%04i.%s", j, "rimg");
+      break;
+    case 0x20:
+      name.sprintf("File%04i.%s", j, "rimg");
+      break;
+    default:
+      break;
+    }
+
+    FILE *f = fopen(name.cstr(), "wb");
+    if (f)
+    {
+      const unsigned char *tmpBuffer = m_currentImageData.getDataBuffer();
+      for (unsigned long k = 0; k < m_currentImageData.size(); k++)
+        fprintf(f, "%c",tmpBuffer[k]);
+      fclose(f);
+    }
+#endif
   }
+}
+
+void libcdr::CMXParser::readInfo(librevenge::RVNGInputStream *input)
+{
+  m_currentImageInfo = libcdr::CMXImageInfo();
+  CDR_DEBUG_MSG(("CMXParser::readInfo\n"));
+  if (m_precision == libcdr::PRECISION_32BIT)
+  {
+    unsigned char tagId = 0;
+    do
+    {
+      long offset = input->tell();
+      tagId = readU8(input, m_bigEndian);
+      if (tagId == CMX_Tag_EndTag)
+        break;
+      unsigned short tagLength = readU16(input, m_bigEndian);
+      switch (tagId)
+      {
+      case CMX_Tag_DescrSection_Image_ImageInfo:
+      {
+        m_currentImageInfo.m_type = readU16(input, m_bigEndian);
+        m_currentImageInfo.m_compression = readU16(input, m_bigEndian);
+        m_currentImageInfo.m_size = readU32(input, m_bigEndian);
+        m_currentImageInfo.m_compressedSize = readU32(input, m_bigEndian);
+      }
+      default:
+        break;
+      }
+      input->seek(offset+tagLength, librevenge::RVNG_SEEK_SET);
+    }
+    while (tagId != CMX_Tag_EndTag);
+  }
+  else if (m_precision == libcdr::PRECISION_16BIT)
+  {
+    m_currentImageInfo.m_type = readU16(input, m_bigEndian);
+    m_currentImageInfo.m_compression = readU16(input, m_bigEndian);
+    m_currentImageInfo.m_size = readU32(input, m_bigEndian);
+    m_currentImageInfo.m_compressedSize = readU32(input, m_bigEndian);
+  }
+  else
+    return;
+}
+
+void libcdr::CMXParser::readData(librevenge::RVNGInputStream *input, unsigned length)
+{
+  CDR_DEBUG_MSG(("CMXParser::readData\n"));
+  m_currentImageData.clear();
+  if (m_precision == libcdr::PRECISION_32BIT && m_currentImageInfo.m_type == 0x10)
+  {
+    unsigned char tagId = 0;
+    do
+    {
+      long offset = input->tell();
+      tagId = readU8(input, m_bigEndian);
+      if (tagId == CMX_Tag_EndTag)
+        break;
+      unsigned tagLength = readU32(input, m_bigEndian);
+      switch (tagId)
+      {
+      case CMX_Tag_DescrSection_Image_ImageData:
+      {
+        unsigned long numBytesRead = 0;
+        const unsigned char *buffer = input->read(tagLength - 5, numBytesRead);
+        m_currentImageData.append(buffer, numBytesRead);
+        break;
+      }
+      default:
+        break;
+      }
+      input->seek(offset+tagLength, librevenge::RVNG_SEEK_SET);
+    }
+    while (tagId != CMX_Tag_EndTag);
+  }
+  else if (m_precision == libcdr::PRECISION_16BIT || m_currentImageInfo.m_type != 0x10)
+  {
+    unsigned long numBytesRead = 0;
+    const unsigned char *buffer = input->read(length, numBytesRead);
+    m_currentImageData.append(buffer, numBytesRead);
+  }
+  else
+    return;
 }
 
 libcdr::CDRColor libcdr::CMXParser::getPaletteColor(unsigned id)
@@ -1557,17 +1701,18 @@ libcdr::CDRColor libcdr::CMXParser::readColor(librevenge::RVNGInputStream *input
     unsigned char q = readU8(input, m_bigEndian);
     CDR_DEBUG_MSG(("YIQ255 color: y 0x%x, i 0x%x, q 0x%x\n", y, i, q));
     color.m_colorValue = (unsigned)y << 8 | (unsigned)i << 16 | (unsigned)q << 24 ;
-    color.m_colorModel = colorModel+1;
+    color.m_colorModel = 11;
     break;
   }
   case 11: // LAB
+  case 12: // LAB ???
   {
     unsigned char l = readU8(input, m_bigEndian);
     unsigned char a = readU8(input, m_bigEndian);
     unsigned char b = readU8(input, m_bigEndian);
     CDR_DEBUG_MSG(("LAB color: L 0x%x, green2magenta 0x%x, blue2yellow 0x%x\n", l, a, b));
     color.m_colorValue =l | (unsigned)a << 8 | (unsigned)b << 16;
-    color.m_colorModel = colorModel;
+    color.m_colorModel = 12;
     break;
   }
   case 0xff: // something funny here

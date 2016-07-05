@@ -53,6 +53,16 @@ struct CMXLineStyle
   unsigned char m_capAndJoin;
 };
 
+struct CMXImageInfo
+{
+  CMXImageInfo()
+    : m_type(0), m_compression(0), m_size(0), m_compressedSize(0) {}
+  unsigned short m_type;
+  unsigned short m_compression;
+  unsigned m_size;
+  unsigned m_compressedSize;
+};
+
 struct CMXParserState
 {
   CMXParserState()
@@ -96,6 +106,8 @@ private:
   void readRpen(librevenge::RVNGInputStream *input);
   void readIxtl(librevenge::RVNGInputStream *input);
   void readIxef(librevenge::RVNGInputStream *input);
+  void readInfo(librevenge::RVNGInputStream *input);
+  void readData(librevenge::RVNGInputStream *input, unsigned length);
 
   // Command readers
   void readBeginPage(librevenge::RVNGInputStream *input);
@@ -130,6 +142,8 @@ private:
   unsigned m_fillIndex;
   unsigned m_nextInstructionOffset;
   CMXParserState &m_parserState;
+  CMXImageInfo m_currentImageInfo;
+  librevenge::RVNGBinaryData m_currentImageData;
 };
 
 } // namespace libcdr
