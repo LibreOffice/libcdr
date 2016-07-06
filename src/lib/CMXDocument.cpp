@@ -74,7 +74,7 @@ CDRAPI bool libcdr::CMXDocument::parse(librevenge::RVNGInputStream *input, libre
   if (retVal)
   {
     input->seek(0, librevenge::RVNG_SEEK_SET);
-    CDRContentCollector contentCollector(ps, painter);
+    CDRContentCollector contentCollector(ps, painter, false);
     CMXParser contentParser(&contentCollector, parserState);
     retVal = contentParser.parseRecords(input);
   }

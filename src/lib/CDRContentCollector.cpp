@@ -56,17 +56,20 @@ void normalize(double &d)
 }
 }
 
-libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, librevenge::RVNGDrawingInterface *painter) :
-  m_painter(painter), m_isDocumentStarted(false),
-  m_isPageProperties(false), m_isPageStarted(false), m_ignorePage(false),
-  m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFillStyle(), m_currentLineStyle(), m_spnd(0),
-  m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
-  m_currentImage(), m_currentText(0), m_currentBBox(), m_currentTextBox(), m_currentPath(),
-  m_currentTransforms(), m_fillTransforms(), m_polygon(0), m_isInPolygon(false), m_isInSpline(false),
-  m_outputElements(0), m_contentOutputElements(), m_fillOutputElements(),
-  m_groupLevels(), m_groupTransforms(), m_splineData(), m_fillOpacity(1.0), m_ps(ps)
+libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, librevenge::RVNGDrawingInterface *painter,
+                                                 bool reverseOrder)
+  : m_painter(painter), m_isDocumentStarted(false), m_isPageProperties(false), m_isPageStarted(false),
+    m_ignorePage(false), m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFillStyle(), m_currentLineStyle(),
+    m_spnd(0), m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
+    m_currentImage(), m_currentText(0), m_currentBBox(), m_currentTextBox(), m_currentPath(),
+    m_currentTransforms(), m_fillTransforms(), m_polygon(0), m_isInPolygon(false), m_isInSpline(false),
+    m_outputElementsStack(0), m_contentOutputElementsStack(), m_fillOutputElementsStack(),
+    m_outputElementsQueue(0), m_contentOutputElementsQueue(), m_fillOutputElementsQueue(),
+    m_groupLevels(), m_groupTransforms(), m_splineData(), m_fillOpacity(1.0), m_reverseOrder(reverseOrder),
+    m_ps(ps)
 {
-  m_outputElements = &m_contentOutputElements;
+  m_outputElementsStack = &m_contentOutputElementsStack;
+  m_outputElementsQueue = &m_contentOutputElementsQueue;
 }
 
 libcdr::CDRContentCollector::~CDRContentCollector()
@@ -116,10 +119,15 @@ void libcdr::CDRContentCollector::_endPage()
 {
   if (!m_isPageStarted)
     return;
-  while (!m_contentOutputElements.empty())
+  while (!m_contentOutputElementsStack.empty())
   {
-    m_contentOutputElements.top().draw(m_painter);
-    m_contentOutputElements.pop();
+    m_contentOutputElementsStack.top().draw(m_painter);
+    m_contentOutputElementsStack.pop();
+  }
+  while (!m_contentOutputElementsQueue.empty())
+  {
+    m_contentOutputElementsQueue.front().draw(m_painter);
+    m_contentOutputElementsQueue.pop();
   }
   if (m_painter)
     m_painter->endPage();
@@ -149,11 +157,19 @@ void libcdr::CDRContentCollector::collectGroup(unsigned level)
 {
   if (!m_isPageStarted && !m_currentVectLevel && !m_ignorePage)
     _startPage(m_page.width, m_page.height);
-  librevenge::RVNGPropertyList propList;
   CDROutputElementList outputElement;
-  // Since the CDR objects are drawn in reverse order, reverse the logic of groups too
-  outputElement.addEndGroup();
-  m_outputElements->push(outputElement);
+  if (m_reverseOrder)
+  {
+    // Since the CDR objects are drawn in reverse order, reverse the logic of groups too
+    outputElement.addEndGroup();
+    m_outputElementsStack->push(outputElement);
+  }
+  else
+  {
+    librevenge::RVNGPropertyList propList;
+    outputElement.addStartGroup(propList);
+    m_outputElementsQueue->push(outputElement);
+  }
   m_groupLevels.push(level);
   m_groupTransforms.push(CDRTransforms());
 }
@@ -161,7 +177,8 @@ void libcdr::CDRContentCollector::collectGroup(unsigned level)
 void libcdr::CDRContentCollector::collectVect(unsigned level)
 {
   m_currentVectLevel = level;
-  m_outputElements = &m_fillOutputElements;
+  m_outputElementsStack = &m_fillOutputElementsStack;
+  m_outputElementsQueue = &m_fillOutputElementsQueue;
   m_page.width = 0.0;
   m_page.height = 0.0;
   m_page.offsetX = 0.0;
@@ -513,7 +530,12 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   }
   m_currentImage = libcdr::CDRImage();
   if (!outputElement.empty())
-    m_outputElements->push(outputElement);
+  {
+    if (m_reverseOrder)
+      m_outputElementsStack->push(outputElement);
+    else
+      m_outputElementsQueue->push(outputElement);
+  }
   m_currentTransforms.clear();
   m_fillTransforms = libcdr::CDRTransforms();
   m_fillOpacity = 1.0;
@@ -542,15 +564,23 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
   }
   while (!m_groupLevels.empty() && level <= m_groupLevels.top())
   {
-    librevenge::RVNGPropertyList propList;
     CDROutputElementList outputElement;
     // since the CDR objects are drawn in reverse order, reverse group marks too
-    outputElement.addStartGroup(propList);
-    m_outputElements->push(outputElement);
+    if (m_reverseOrder)
+    {
+      librevenge::RVNGPropertyList propList;
+      outputElement.addStartGroup(propList);
+      m_outputElementsStack->push(outputElement);
+    }
+    else
+    {
+      outputElement.addEndGroup();
+      m_outputElementsQueue->push(outputElement);
+    }
     m_groupLevels.pop();
     m_groupTransforms.pop();
   }
-  if (m_currentVectLevel && m_spnd && m_groupLevels.empty() && !m_fillOutputElements.empty())
+  if (m_currentVectLevel && m_spnd && m_groupLevels.empty() && ((m_reverseOrder && !m_fillOutputElementsStack.empty()) || (!m_reverseOrder && !m_fillOutputElementsQueue.empty())))
   {
     librevenge::RVNGStringVector svgOutput;
     librevenge::RVNGSVGDrawingGenerator generator(svgOutput, "");
@@ -558,11 +588,17 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
     propList.insert("svg:width", m_page.width);
     propList.insert("svg:height", m_page.height);
     generator.startPage(propList);
-    while (!m_fillOutputElements.empty())
+    while (!m_fillOutputElementsStack.empty())
     {
-      m_fillOutputElements.top().draw(&generator);
-      m_fillOutputElements.pop();
+      m_fillOutputElementsStack.top().draw(&generator);
+      m_fillOutputElementsStack.pop();
     }
+    while (!m_fillOutputElementsQueue.empty())
+    {
+      m_fillOutputElementsQueue.front().draw(&generator);
+      m_fillOutputElementsQueue.pop();
+    }
+
     generator.endPage();
     if (!svgOutput.empty())
     {
@@ -593,7 +629,8 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
   if (level <= m_currentVectLevel)
   {
     m_currentVectLevel = 0;
-    m_outputElements = &m_contentOutputElements;
+    m_outputElementsStack = &m_contentOutputElementsStack;
+    m_outputElementsQueue = &m_contentOutputElementsQueue;
     m_page = m_ps.m_pages[m_pageIndex ? m_pageIndex-1 : 0];
   }
   if (level <= m_currentPageLevel)
@@ -1236,8 +1273,17 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const librev
   }
 #if DUMP_VECT
   librevenge::RVNGString filename;
-  filename.sprintf("vect%.8x.svg", id);
+  filename.sprintf("vect%.8x.cmx", id);
   FILE *f = fopen(filename.cstr(), "wb");
+  if (f)
+  {
+    const unsigned char *tmpBuffer = data.getDataBuffer();
+    for (unsigned long k = 0; k < data.size(); k++)
+      fprintf(f, "%c",tmpBuffer[k]);
+    fclose(f);
+  }
+  filename.sprintf("vect%.8x.svg", id);
+  f = fopen(filename.cstr(), "wb");
   if (f)
   {
     const unsigned char *tmpBuffer = m_ps.m_vects[id].getDataBuffer();

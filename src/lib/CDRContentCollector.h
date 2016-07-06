@@ -13,6 +13,7 @@
 #include <map>
 #include <vector>
 #include <stack>
+#include <queue>
 #include <librevenge/librevenge.h>
 #include <lcms2.h>
 #include "CDRTypes.h"
@@ -26,7 +27,7 @@ namespace libcdr
 class CDRContentCollector : public CDRCollector
 {
 public:
-  CDRContentCollector(CDRParserState &ps, ::librevenge::RVNGDrawingInterface *painter);
+  CDRContentCollector(CDRParserState &ps, ::librevenge::RVNGDrawingInterface *painter, bool reverseOrder = true);
   virtual ~CDRContentCollector();
 
   // collector functions
@@ -105,13 +106,17 @@ private:
   CDRPolygon *m_polygon;
   bool m_isInPolygon;
   bool m_isInSpline;
-  std::stack<CDROutputElementList> *m_outputElements;
-  std::stack<CDROutputElementList> m_contentOutputElements;
-  std::stack<CDROutputElementList> m_fillOutputElements;
+  std::stack<CDROutputElementList> *m_outputElementsStack;
+  std::stack<CDROutputElementList> m_contentOutputElementsStack;
+  std::stack<CDROutputElementList> m_fillOutputElementsStack;
+  std::queue<CDROutputElementList> *m_outputElementsQueue;
+  std::queue<CDROutputElementList> m_contentOutputElementsQueue;
+  std::queue<CDROutputElementList> m_fillOutputElementsQueue;
   std::stack<unsigned> m_groupLevels;
   std::stack<CDRTransforms> m_groupTransforms;
   CDRSplineData m_splineData;
   double m_fillOpacity;
+  bool m_reverseOrder;
 
   CDRParserState &m_ps;
 };
