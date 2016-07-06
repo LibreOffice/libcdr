@@ -580,7 +580,7 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
     m_groupLevels.pop();
     m_groupTransforms.pop();
   }
-  if (m_currentVectLevel && m_spnd && m_groupLevels.empty() && ((m_reverseOrder && !m_fillOutputElementsStack.empty()) || (!m_reverseOrder && !m_fillOutputElementsQueue.empty())))
+  if (m_currentVectLevel && m_spnd && m_groupLevels.empty() && (!m_fillOutputElementsStack.empty() || !m_fillOutputElementsQueue.empty()))
   {
     librevenge::RVNGStringVector svgOutput;
     librevenge::RVNGSVGDrawingGenerator generator(svgOutput, "");
