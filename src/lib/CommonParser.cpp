@@ -7,6 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <string.h>
 #include <librevenge-stream/librevenge-stream.h>
 #include "libcdr_utils.h"
 #include "CommonParser.h"
@@ -130,6 +131,46 @@ void libcdr::CommonParser::processPath(const std::vector<std::pair<double, doubl
       tmpPoints.push_back(points[k]);
     }
   }
+}
+
+void libcdr::CommonParser::readRImage(unsigned &colorModel, unsigned &width, unsigned &height, unsigned &bpp,
+                                      std::vector<unsigned> &palette, std::vector<unsigned char> &bitmap,
+                                      librevenge::RVNGInputStream *input, bool bigEndian)
+{
+  colorModel = readU32(input, bigEndian);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
+  width = readU32(input, bigEndian);
+  height = readU32(input, bigEndian);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
+  bpp = readU32(input, bigEndian);
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
+  unsigned bmpsize = readU32(input, bigEndian);
+  input->seek(32, librevenge::RVNG_SEEK_CUR);
+  if (bpp < 24 && colorModel != 5 && colorModel != 6)
+  {
+    palette.clear();
+    input->seek(2, librevenge::RVNG_SEEK_CUR);
+    unsigned short palettesize = readU16(input);
+    if (palettesize > getRemainingLength(input) / 3)
+      palettesize = getRemainingLength(input) / 3;
+    palette.reserve(palettesize);
+    for (unsigned short i = 0; i <palettesize; ++i)
+    {
+      unsigned b = readU8(input);
+      unsigned g = readU8(input);
+      unsigned r = readU8(input);
+      palette.push_back(b | (g << 8) | (r << 16));
+    }
+  }
+  if (bmpsize == 0)
+    return;
+  unsigned long tmpNumBytesRead = 0;
+  const unsigned char *tmpBuffer = input->read(bmpsize, tmpNumBytesRead);
+  if (bmpsize != tmpNumBytesRead)
+    return;
+  bitmap.clear();
+  bitmap.resize(bmpsize);
+  memcpy(&bitmap[0], tmpBuffer, bmpsize);
 }
 
 

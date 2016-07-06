@@ -37,6 +37,9 @@ protected:
   unsigned short readUnsignedShort(librevenge::RVNGInputStream *input, bool bigEndian = false);
   int readInteger(librevenge::RVNGInputStream *input, bool bigEndian = false);
   double readAngle(librevenge::RVNGInputStream *input, bool bigEndian = false);
+  void readRImage(unsigned &colorModel, unsigned &width, unsigned &height, unsigned &bpp,
+                  std::vector<unsigned> &palette, std::vector<unsigned char> &bitmap,
+                  librevenge::RVNGInputStream *input, bool bigEndian = false);
 
   void processPath(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &types, CDRPath &path);
   void outputPath(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &types);

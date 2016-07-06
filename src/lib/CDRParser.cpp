@@ -2287,6 +2287,7 @@ void libcdr::CDRParser::readBmp(librevenge::RVNGInputStream *input, unsigned len
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned imageId = readUnsigned(input);
+  std::vector<unsigned char> bitmap;
   if (m_version < 500)
   {
     if (readU8(input) != 0x42)
@@ -2299,7 +2300,7 @@ void libcdr::CDRParser::readBmp(librevenge::RVNGInputStream *input, unsigned len
     const unsigned char *tmpBuffer = input->read(lngth, tmpNumBytesRead);
     if (!tmpNumBytesRead || lngth != tmpNumBytesRead)
       return;
-    std::vector<unsigned char> bitmap(tmpNumBytesRead);
+    bitmap.resize(tmpNumBytesRead);
     memcpy(&bitmap[0], tmpBuffer, tmpNumBytesRead);
     m_collector->collectBmp(imageId, bitmap);
     return;
@@ -2310,39 +2311,9 @@ void libcdr::CDRParser::readBmp(librevenge::RVNGInputStream *input, unsigned len
     input->seek(46, librevenge::RVNG_SEEK_CUR);
   else
     input->seek(50, librevenge::RVNG_SEEK_CUR);
-  unsigned colorModel = readU32(input);
-  input->seek(4, librevenge::RVNG_SEEK_CUR);
-  unsigned width = readU32(input);
-  unsigned height = readU32(input);
-  input->seek(4, librevenge::RVNG_SEEK_CUR);
-  unsigned bpp = readU32(input);
-  input->seek(4, librevenge::RVNG_SEEK_CUR);
-  unsigned bmpsize = readU32(input);
-  input->seek(32, librevenge::RVNG_SEEK_CUR);
+  unsigned colorModel, width, height, bpp;
   std::vector<unsigned> palette;
-  if (bpp < 24 && colorModel != 5 && colorModel != 6)
-  {
-    input->seek(2, librevenge::RVNG_SEEK_CUR);
-    unsigned short palettesize = readU16(input);
-    if (palettesize > getRemainingLength(input) / 3)
-      palettesize = getRemainingLength(input) / 3;
-    palette.reserve(palettesize);
-    for (unsigned short i = 0; i <palettesize; ++i)
-    {
-      unsigned b = readU8(input);
-      unsigned g = readU8(input);
-      unsigned r = readU8(input);
-      palette.push_back(b | (g << 8) | (r << 16));
-    }
-  }
-  if (bmpsize == 0)
-    return;
-  unsigned long tmpNumBytesRead = 0;
-  const unsigned char *tmpBuffer = input->read(bmpsize, tmpNumBytesRead);
-  if (bmpsize != tmpNumBytesRead)
-    return;
-  std::vector<unsigned char> bitmap(bmpsize);
-  memcpy(&bitmap[0], tmpBuffer, bmpsize);
+  readRImage(colorModel, width, height, bpp, palette, bitmap, input);
   m_collector->collectBmp(imageId, colorModel, width, height, bpp, palette, bitmap);
 }
 
