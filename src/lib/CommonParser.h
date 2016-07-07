@@ -40,6 +40,8 @@ protected:
   void readRImage(unsigned &colorModel, unsigned &width, unsigned &height, unsigned &bpp,
                   std::vector<unsigned> &palette, std::vector<unsigned char> &bitmap,
                   librevenge::RVNGInputStream *input, bool bigEndian = false);
+  void readBmpPattern(unsigned &width, unsigned &height, std::vector<unsigned char> &pattern,
+                      unsigned length, librevenge::RVNGInputStream *input, bool bigEndian = false);
 
   void processPath(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &types, CDRPath &path);
   void outputPath(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned char> &types);

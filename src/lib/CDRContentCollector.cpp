@@ -790,6 +790,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
         }
         break;
       case 7: // Pattern
+      case 8: // Pattern
       {
         std::map<unsigned, CDRPattern>::iterator iterPattern = m_ps.m_patterns.find(m_currentFillStyle.imageFill.id);
         if (iterPattern != m_ps.m_patterns.end())

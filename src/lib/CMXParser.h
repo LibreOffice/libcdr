@@ -67,14 +67,15 @@ struct CMXParserState
 {
   CMXParserState()
     : m_colorPalette(), m_dashArrays(), m_lineStyles(),
-      m_pens(), m_outlines(), m_bitmapOffsets(), m_arrowOffsets(),
-      m_embeddedOffsets(), m_embeddedOffsetTypes() {}
+      m_pens(), m_outlines(), m_bitmapOffsets(), m_patternOffsets(),
+      m_arrowOffsets(), m_embeddedOffsets(), m_embeddedOffsetTypes() {}
   std::map<unsigned, CDRColor> m_colorPalette;
   std::map<unsigned, std::vector<unsigned> > m_dashArrays;
   std::map<unsigned, CMXLineStyle> m_lineStyles;
   std::map<unsigned, CMXPen> m_pens;
   std::map<unsigned, CMXOutline> m_outlines;
   std::map<unsigned, unsigned> m_bitmapOffsets;
+  std::map<unsigned, unsigned> m_patternOffsets;
   std::map<unsigned, unsigned> m_arrowOffsets;
   std::map<unsigned, unsigned> m_embeddedOffsets;
   std::map<unsigned, unsigned> m_embeddedOffsetTypes;
@@ -107,7 +108,7 @@ private:
   void readIxtl(librevenge::RVNGInputStream *input);
   void readIxef(librevenge::RVNGInputStream *input);
   void readInfo(librevenge::RVNGInputStream *input);
-  void readData(librevenge::RVNGInputStream *input, unsigned length);
+  void readData(librevenge::RVNGInputStream *input);
 
   // Command readers
   void readBeginPage(librevenge::RVNGInputStream *input);
@@ -143,7 +144,8 @@ private:
   unsigned m_nextInstructionOffset;
   CMXParserState &m_parserState;
   CMXImageInfo m_currentImageInfo;
-  librevenge::RVNGBinaryData m_currentImageData;
+  CDRPattern *m_currentPattern;
+  CDRBitmap *m_currentBitmap;
 };
 
 } // namespace libcdr

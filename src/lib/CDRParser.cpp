@@ -2332,26 +2332,9 @@ void libcdr::CDRParser::readBmpf(librevenge::RVNGInputStream *input, unsigned le
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned patternId = readU32(input);
-  unsigned headerLength = readU32(input);
-  if (headerLength != 40)
-    return;
-  unsigned width = readU32(input);
-  unsigned height = readU32(input);
-  input->seek(2, librevenge::RVNG_SEEK_CUR);
-  unsigned bpp = readU16(input);
-  if (bpp != 1)
-    return;
-  input->seek(4, librevenge::RVNG_SEEK_CUR);
-  unsigned dataSize = readU32(input);
-  if (dataSize == 0)
-    return;
-  input->seek(length - dataSize - 28, librevenge::RVNG_SEEK_CUR);
-  unsigned long tmpNumBytesRead = 0;
-  const unsigned char *tmpBuffer = input->read(dataSize, tmpNumBytesRead);
-  if (dataSize != tmpNumBytesRead)
-    return;
-  std::vector<unsigned char> pattern(dataSize);
-  memcpy(&pattern[0], tmpBuffer, dataSize);
+  unsigned width, height;
+  std::vector<unsigned char> pattern;
+  readBmpPattern(width, height, pattern, length-4, input);
   m_collector->collectBmpf(patternId, width, height, pattern);
 }
 

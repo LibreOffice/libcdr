@@ -38,10 +38,14 @@ libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, CMXParserState &pa
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
     m_indexSectionOffset(0), m_infoSectionOffset(0), m_thumbnailOffset(0),
     m_fillIndex(0), m_nextInstructionOffset(0), m_parserState(parserState),
-    m_currentImageInfo(), m_currentImageData() {}
+    m_currentImageInfo(), m_currentPattern(0), m_currentBitmap(0) {}
 
 libcdr::CMXParser::~CMXParser()
 {
+  if (m_currentPattern)
+    delete m_currentPattern;
+  if (m_currentBitmap)
+    delete m_currentBitmap;
 }
 
 bool libcdr::CMXParser::parseRecords(librevenge::RVNGInputStream *input, long size, unsigned level)
@@ -194,7 +198,7 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge
     readInfo(input);
     break;
   case CDR_FOURCC_data:
-    readData(input, length);
+    readData(input);
     break;
   default:
     break;
@@ -839,7 +843,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       }
     }
     break;
-  case 6:
+  case 6: // Postscript
     CDR_DEBUG_MSG(("    Postscript fill\n"));
     if (m_precision == libcdr::PRECISION_32BIT)
     {
@@ -853,59 +857,153 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       readString(input);
     }
     break;
-  case 7:
-    CDR_DEBUG_MSG(("    Two-Color Pattern fill\n"));
+  case 7: // Two-Color Pattern
+  case 8: // Monochrome with transparent bitmap
     if (m_precision == libcdr::PRECISION_32BIT)
     {
+      unsigned char tagId = 0;
+      unsigned short tagLength = 0;
+      do
+      {
+        long startOffset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+        {
+          CDR_DEBUG_MSG(("    %s fill - tagId %i\n", fillIdentifier == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap", tagId));
+          break;
+        }
+        tagLength = readU16(input, m_bigEndian);
+        CDR_DEBUG_MSG(("    %s fill - tagId %i, tagLength %u\n", fillIdentifier == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap", tagId, tagLength));
+        switch (tagId)
+        {
+        case CMX_Tag_RenderAttr_FillSpec_MonoBM:
+        {
+          unsigned short patternId = readU16(input, m_bigEndian);
+          input->seek(3, librevenge::RVNG_SEEK_CUR); // CMX_Tag_Tiling
+          int tmpWidth = readS32(input, m_bigEndian);
+          int tmpHeight = readS32(input, m_bigEndian);
+          double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
+          double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
+          double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
+          unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+          input->seek(1, librevenge::RVNG_SEEK_CUR); // CMX_Tag_EndTag
+          double patternWidth = (double)tmpWidth / 254000.0;
+          double patternHeight = (double)tmpHeight / 254000.0;
+          bool isRelative = false;
+          if (flags & 0x04)
+          {
+            isRelative = true;
+            patternWidth = (double)tmpWidth / 100.0;
+            patternHeight = (double)tmpHeight / 100.0;
+          }
+          color1 = getPaletteColor(readU16(input, m_bigEndian));
+          color2 = getPaletteColor(readU16(input, m_bigEndian));
+          /* unsigned short screen = */ readU16(input, m_bigEndian);
+          imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
+          break;
+        }
+        default:
+          break;
+        }
+        input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
+      }
+      while (tagId != CMX_Tag_EndTag);
     }
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
-      /* unsigned short bitmap = */ readU16(input, m_bigEndian);
-      /* unsigned short width = */ readU16(input, m_bigEndian);
-      /* unsigned short height = */ readU16(input, m_bigEndian);
-      /* unsigned short xoff = */ readU16(input, m_bigEndian);
-      /* unsigned short yoff = */ readU16(input, m_bigEndian);
-      /* unsigned short inter = */ readU16(input, m_bigEndian);
-      /* unsigned short flags = */ readU16(input, m_bigEndian);
-      /* unsigned short foreground = */ readU16(input, m_bigEndian);
-      /* unsigned short background = */ readU16(input, m_bigEndian);
+      CDR_DEBUG_MSG(("    %s fill\n", fillIdentifier == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap"));
+      unsigned short patternId = readU16(input, m_bigEndian);
+      int tmpWidth = readU16(input, m_bigEndian);
+      int tmpHeight = readU16(input, m_bigEndian);
+      double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
+      double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
+      double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
+      unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+      double patternWidth = (double)tmpWidth / 1000.0;
+      double patternHeight = (double)tmpHeight / 1000.0;
+      bool isRelative = false;
+      if (flags & 0x04)
+      {
+        isRelative = true;
+        patternWidth = (double)tmpWidth / 100.0;
+        patternHeight = (double)tmpHeight / 100.0;
+      }
+      color1 = getPaletteColor(readU16(input, m_bigEndian));
+      color2 = getPaletteColor(readU16(input, m_bigEndian));
       /* unsigned short screen = */ readU16(input, m_bigEndian);
+      imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
     }
     break;
-  case 8:
-    CDR_DEBUG_MSG(("    Monochrome with transparent bitmap fill\n"));
+  case 9: // Imported Bitmap
     if (m_precision == libcdr::PRECISION_32BIT)
     {
+      unsigned char tagId = 0;
+      unsigned short tagLength = 0;
+      do
+      {
+        long startOffset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+        {
+          CDR_DEBUG_MSG(("    Imported Bitmap fill - tagId %i\n", tagId));
+          break;
+        }
+        tagLength = readU16(input, m_bigEndian);
+        CDR_DEBUG_MSG(("    Imported Bitmap fill - tagId %i, tagLength %u\n", tagId, tagLength));
+        switch (tagId)
+        {
+        case CMX_Tag_RenderAttr_FillSpec_ColorBM:
+        {
+          unsigned short patternId = readU16(input, m_bigEndian);
+          input->seek(3, librevenge::RVNG_SEEK_CUR); // CMX_Tag_Tiling
+          int tmpWidth = readS32(input, m_bigEndian);
+          int tmpHeight = readS32(input, m_bigEndian);
+          double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
+          double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
+          double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
+          unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+          input->seek(1, librevenge::RVNG_SEEK_CUR); // CMX_Tag_EndTag
+          double patternWidth = (double)tmpWidth / 254000.0;
+          double patternHeight = (double)tmpHeight / 254000.0;
+          bool isRelative = false;
+          if (flags & 0x04)
+          {
+            isRelative = true;
+            patternWidth = (double)tmpWidth / 100.0;
+            patternHeight = (double)tmpHeight / 100.0;
+          }
+          /* libcdr::CDRBox box = */ readBBox(input);
+          imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
+          break;
+        }
+        default:
+          break;
+        }
+        input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
+      }
+      while (tagId != CMX_Tag_EndTag);
     }
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
-      /* unsigned short bitmap = */ readU16(input, m_bigEndian);
-      /* unsigned short width = */ readU16(input, m_bigEndian);
-      /* unsigned short height = */ readU16(input, m_bigEndian);
-      /* unsigned short xoff = */ readU16(input, m_bigEndian);
-      /* unsigned short yoff = */ readU16(input, m_bigEndian);
-      /* unsigned short inter = */ readU16(input, m_bigEndian);
-      /* unsigned short flags = */ readU16(input, m_bigEndian);
-      /* unsigned short foreground = */ readU16(input, m_bigEndian);
-      /* unsigned short background = */ readU16(input, m_bigEndian);
-      /* unsigned short screen = */ readU16(input, m_bigEndian);
-    }
-    break;
-  case 9:
-    CDR_DEBUG_MSG(("    Imported Bitmap fill\n"));
-    if (m_precision == libcdr::PRECISION_32BIT)
-    {
-    }
-    else if (m_precision == libcdr::PRECISION_16BIT)
-    {
-      /* unsigned short bitmap = */ readU16(input, m_bigEndian);
-      /* unsigned short width = */ readU16(input, m_bigEndian);
-      /* unsigned short height = */ readU16(input, m_bigEndian);
-      /* unsigned short xoff = */ readU16(input, m_bigEndian);
-      /* unsigned short yoff = */ readU16(input, m_bigEndian);
-      /* unsigned short inter = */ readU16(input, m_bigEndian);
-      /* unsigned short flags = */ readU16(input, m_bigEndian);
+      CDR_DEBUG_MSG(("    Imported Bitmap fill\n"));
+      unsigned short patternId = readU16(input, m_bigEndian);
+      int tmpWidth = readU16(input, m_bigEndian);
+      int tmpHeight = readU16(input, m_bigEndian);
+      double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
+      double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
+      double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
+      unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+      double patternWidth = (double)tmpWidth / 1000.0;
+      double patternHeight = (double)tmpHeight / 1000.0;
+      bool isRelative = false;
+      if (flags & 0x04)
+      {
+        isRelative = true;
+        patternWidth = (double)tmpWidth / 100.0;
+        patternHeight = (double)tmpHeight / 100.0;
+      }
       /* libcdr::CDRBox box = */ readBBox(input);
+      imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
     }
     break;
   case 10:
@@ -929,16 +1027,90 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     CDR_DEBUG_MSG(("    Texture fill\n"));
     if (m_precision == libcdr::PRECISION_32BIT)
     {
+      unsigned char tagId = 0;
+      unsigned short tagLength = 0;
+      do
+      {
+        long startOffset = input->tell();
+        tagId = readU8(input, m_bigEndian);
+        if (tagId == CMX_Tag_EndTag)
+        {
+          CDR_DEBUG_MSG(("    Imported Bitmap fill - tagId %i\n", tagId));
+          break;
+        }
+        tagLength = readU16(input, m_bigEndian);
+        CDR_DEBUG_MSG(("    Imported Bitmap fill - tagId %i, tagLength %u\n", tagId, tagLength));
+        switch (tagId)
+        {
+        case CMX_Tag_RenderAttr_FillSpec_Texture:
+        {
+          long subStartOffset = input->tell();
+          unsigned char subTagId = 0;
+          unsigned short subTagLength = 0;
+          do
+          {
+            subTagId = readU8(input, m_bigEndian);
+            if (subTagId == CMX_Tag_EndTag)
+              break;
+            subTagLength = readU16(input, m_bigEndian);
+            switch (subTagId)
+            {
+            case CMX_Tag_RenderAttr_FillSpec_ColorBM:
+            {
+              unsigned short patternId = readU16(input, m_bigEndian);
+              input->seek(3, librevenge::RVNG_SEEK_CUR); // CMX_Tag_Tiling
+              int tmpWidth = readS32(input, m_bigEndian);
+              int tmpHeight = readS32(input, m_bigEndian);
+              double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
+              double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
+              double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
+              unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+              input->seek(1, librevenge::RVNG_SEEK_CUR); // CMX_Tag_EndTag
+              double patternWidth = (double)tmpWidth / 254000.0;
+              double patternHeight = (double)tmpHeight / 254000.0;
+              bool isRelative = false;
+              if (flags & 0x04)
+              {
+                isRelative = true;
+                patternWidth = (double)tmpWidth / 100.0;
+                patternHeight = (double)tmpHeight / 100.0;
+              }
+              /* libcdr::CDRBox box = */ readBBox(input);
+              imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
+              break;
+            }
+            default:
+              break;
+            }
+            input->seek(subStartOffset + subTagLength, librevenge::RVNG_SEEK_SET);
+          }
+          while (subTagId != CMX_Tag_EndTag);
+        }
+        default:
+          break;
+        }
+        input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
+      }
+      while (tagId != CMX_Tag_EndTag);
     }
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
-      /* unsigned short function = */ readU16(input, m_bigEndian);
-      /* unsigned short width = */ readU16(input, m_bigEndian);
-      /* unsigned short height = */ readU16(input, m_bigEndian);
-      /* unsigned short xoff = */ readU16(input, m_bigEndian);
-      /* unsigned short yoff = */ readU16(input, m_bigEndian);
-      /* unsigned short inter = */ readU16(input, m_bigEndian);
-      /* unsigned short flags = */ readU16(input, m_bigEndian);
+      unsigned short patternId = readU16(input, m_bigEndian);
+      int tmpWidth = readU16(input, m_bigEndian);
+      int tmpHeight = readU16(input, m_bigEndian);
+      double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
+      double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
+      double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
+      unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+      double patternWidth = (double)tmpWidth / 1000.0;
+      double patternHeight = (double)tmpHeight / 1000.0;
+      bool isRelative = false;
+      if (flags & 0x04)
+      {
+        isRelative = true;
+        patternWidth = (double)tmpWidth / 100.0;
+        patternHeight = (double)tmpHeight / 100.0;
+      }
       /* libcdr::CDRBox box = */ readBBox(input);
       /* unsigned char reserved = */ readU8(input, m_bigEndian);
       /* unsigned res = */ readU32(input, m_bigEndian);
@@ -954,6 +1126,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
         readU16(input, m_bigEndian);
         readU16(input, m_bigEndian);
       }
+      imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
     }
     break;
   default:
@@ -1418,14 +1591,18 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
   {
     switch (type)
     {
-    case 5:
+    case 5: // BMP
     {
       unsigned offset = readU32(input, m_bigEndian);
-      m_parserState.m_bitmapOffsets[j] = offset;
       long oldOffset = input->tell();
       input->seek(offset, librevenge::RVNG_SEEK_SET);
       parseImage(input);
       input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
+      if (m_currentPattern && !m_currentPattern->pattern.empty())
+        m_collector->collectBmpf(j, m_currentPattern->width, m_currentPattern->height, m_currentPattern->pattern);
+      if (m_currentPattern)
+        delete m_currentPattern;
+      m_currentPattern = 0;
       break;
     }
     case 6:
@@ -1436,32 +1613,6 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
     }
     if (sizeInFile)
       input->seek(sizeInFile-4, librevenge::RVNG_SEEK_CUR);
-#if DUMP_IMAGE
-    librevenge::RVNGString name;
-    switch (m_currentImageInfo.m_type)
-    {
-    case 0x8:
-      name.sprintf("Image%04i.%s", j, "bmp");
-      break;
-    case 0x10:
-      name.sprintf("Image%04i.%s", j, "rimg");
-      break;
-    case 0x20:
-      name.sprintf("Image%04i.%s", j, "rimg");
-      break;
-    default:
-      break;
-    }
-
-    FILE *f = fopen(name.cstr(), "wb");
-    if (f)
-    {
-      const unsigned char *tmpBuffer = m_currentImageData.getDataBuffer();
-      for (unsigned long k = 0; k < m_currentImageData.size(); k++)
-        fprintf(f, "%c",tmpBuffer[k]);
-      fclose(f);
-    }
-#endif
   }
 }
 
@@ -1479,41 +1630,22 @@ void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
         return;
     }
     unsigned offset = readU32(input, m_bigEndian);
-    m_parserState.m_embeddedOffsets[j] = offset;
     unsigned type = readU16(input, m_bigEndian);
-    m_parserState.m_embeddedOffsetTypes[j] = type;
     long oldOffset = input->tell();
-    input->seek(offset, librevenge::RVNG_SEEK_SET);
-    parseImage(input);
-    input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
+    if (type == 0x11)
+    {
+      input->seek(offset, librevenge::RVNG_SEEK_SET);
+      parseImage(input);
+      input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
+      if (m_currentBitmap && !(m_currentBitmap->bitmap.empty()))
+        m_collector->collectBmp(j, m_currentBitmap->colorModel, m_currentBitmap->width, m_currentBitmap->height,
+                                m_currentBitmap->bpp, m_currentBitmap->palette, m_currentBitmap->bitmap);
+      if (m_currentBitmap)
+        delete m_currentBitmap;
+      m_currentBitmap = 0;
+    }
     if (sizeInFile)
       input->seek(sizeInFile-6, librevenge::RVNG_SEEK_CUR);
-#if DUMP_IMAGE
-    librevenge::RVNGString name;
-    switch (m_currentImageInfo.m_type)
-    {
-    case 0x8:
-      name.sprintf("File%04i.%s", j, "bmp");
-      break;
-    case 0x10:
-      name.sprintf("File%04i.%s", j, "rimg");
-      break;
-    case 0x20:
-      name.sprintf("File%04i.%s", j, "rimg");
-      break;
-    default:
-      break;
-    }
-
-    FILE *f = fopen(name.cstr(), "wb");
-    if (f)
-    {
-      const unsigned char *tmpBuffer = m_currentImageData.getDataBuffer();
-      for (unsigned long k = 0; k < m_currentImageData.size(); k++)
-        fprintf(f, "%c",tmpBuffer[k]);
-      fclose(f);
-    }
-#endif
   }
 }
 
@@ -1558,10 +1690,9 @@ void libcdr::CMXParser::readInfo(librevenge::RVNGInputStream *input)
     return;
 }
 
-void libcdr::CMXParser::readData(librevenge::RVNGInputStream *input, unsigned length)
+void libcdr::CMXParser::readData(librevenge::RVNGInputStream *input)
 {
   CDR_DEBUG_MSG(("CMXParser::readData\n"));
-  m_currentImageData.clear();
   if (m_precision == libcdr::PRECISION_32BIT && m_currentImageInfo.m_type == 0x10)
   {
     unsigned char tagId = 0;
@@ -1576,9 +1707,28 @@ void libcdr::CMXParser::readData(librevenge::RVNGInputStream *input, unsigned le
       {
       case CMX_Tag_DescrSection_Image_ImageData:
       {
-        unsigned long numBytesRead = 0;
-        const unsigned char *buffer = input->read(tagLength - 5, numBytesRead);
-        m_currentImageData.append(buffer, numBytesRead);
+        unsigned char first = readU8(input, m_bigEndian);
+        unsigned char second = readU8(input, m_bigEndian);
+        if (0x42 == first && 0x4d == second) // BM
+        {
+          unsigned fileSize = readU32(input, m_bigEndian);
+          input->seek(8, librevenge::RVNG_SEEK_CUR);
+          if (m_currentPattern)
+            delete m_currentPattern;
+          m_currentPattern = new libcdr::CDRPattern();
+          readBmpPattern(m_currentPattern->width, m_currentPattern->height, m_currentPattern->pattern,
+                         fileSize - 14, input, m_bigEndian);
+        }
+        else if (0x52 == first && 0x49 == second) // RI
+        {
+          input->seek(12, librevenge::RVNG_SEEK_CUR);
+          if (m_currentBitmap)
+            delete m_currentBitmap;
+          m_currentBitmap = new libcdr::CDRBitmap();
+          readRImage(m_currentBitmap->colorModel, m_currentBitmap->width, m_currentBitmap->height,
+                     m_currentBitmap->bpp, m_currentBitmap->palette, m_currentBitmap->bitmap,
+                     input, m_bigEndian);
+        }
         break;
       }
       default:
@@ -1590,9 +1740,27 @@ void libcdr::CMXParser::readData(librevenge::RVNGInputStream *input, unsigned le
   }
   else if (m_precision == libcdr::PRECISION_16BIT || m_currentImageInfo.m_type != 0x10)
   {
-    unsigned long numBytesRead = 0;
-    const unsigned char *buffer = input->read(length, numBytesRead);
-    m_currentImageData.append(buffer, numBytesRead);
+    unsigned char first = readU8(input, m_bigEndian);
+    unsigned char second = readU8(input, m_bigEndian);
+    if (0x42 == first && 0x4d == second) // RI
+    {
+      unsigned fileSize = readU32(input, m_bigEndian);
+      input->seek(8, librevenge::RVNG_SEEK_CUR);
+      if (m_currentPattern)
+        delete m_currentPattern;
+      m_currentPattern = new libcdr::CDRPattern();
+      readBmpPattern(m_currentPattern->width, m_currentPattern->height, m_currentPattern->pattern, fileSize - 14, input);
+    }
+    else if (0x52 == first && 0x49 == second)
+    {
+      input->seek(12, librevenge::RVNG_SEEK_CUR); // RI
+      if (m_currentBitmap)
+        delete m_currentBitmap;
+      m_currentBitmap = new libcdr::CDRBitmap();
+      readRImage(m_currentBitmap->colorModel, m_currentBitmap->width, m_currentBitmap->height,
+                 m_currentBitmap->bpp, m_currentBitmap->palette, m_currentBitmap->bitmap,
+                 input, m_bigEndian);
+    }
   }
   else
     return;

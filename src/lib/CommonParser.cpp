@@ -173,5 +173,32 @@ void libcdr::CommonParser::readRImage(unsigned &colorModel, unsigned &width, uns
   memcpy(&bitmap[0], tmpBuffer, bmpsize);
 }
 
+void libcdr::CommonParser::readBmpPattern(unsigned &width, unsigned &height, std::vector<unsigned char> &pattern,
+                                          unsigned length, librevenge::RVNGInputStream *input, bool bigEndian)
+{
+  unsigned headerLength = readU32(input);
+  if (headerLength != 40)
+    return;
+  width = readU32(input, bigEndian);
+  height = readU32(input, bigEndian);
+  input->seek(2, librevenge::RVNG_SEEK_CUR);
+  unsigned bpp = readU16(input);
+  if (bpp != 1)
+    return;
+  input->seek(4, librevenge::RVNG_SEEK_CUR); // compression
+  unsigned dataSize = readU32(input, bigEndian);
+  if (dataSize == 0)
+    return;
+  CDR_DEBUG_MSG(("CommonParser::readBmpPattern - offset of pixel data %i\n", length - dataSize - 24));
+  input->seek(length - dataSize - 24, librevenge::RVNG_SEEK_CUR);
+  unsigned long tmpNumBytesRead = 0;
+  const unsigned char *tmpBuffer = input->read(dataSize, tmpNumBytesRead);
+  if (dataSize != tmpNumBytesRead)
+    return;
+  pattern.clear();
+  pattern.resize(dataSize);
+  memcpy(&pattern[0], tmpBuffer, dataSize);
+}
+
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -222,6 +222,19 @@ struct CDRPattern
     : width(w), height(h), pattern(p) {}
 };
 
+struct CDRBitmap
+{
+  unsigned colorModel;
+  unsigned width;
+  unsigned height;
+  unsigned bpp;
+  std::vector<unsigned> palette;
+  std::vector<unsigned char> bitmap;
+  CDRBitmap() : colorModel(0), width(0), height(0), bpp(0), palette(), bitmap() {}
+  CDRBitmap(unsigned cm, unsigned w, unsigned h, unsigned b, const std::vector<unsigned> &p, const std::vector<unsigned char> &bmp)
+    : colorModel(cm), width(w), height(h), bpp(b), palette(p), bitmap(bmp) {}
+};
+
 struct CDRPage
 {
   double width;
