@@ -1035,11 +1035,11 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
         tagId = readU8(input, m_bigEndian);
         if (tagId == CMX_Tag_EndTag)
         {
-          CDR_DEBUG_MSG(("    Imported Bitmap fill - tagId %i\n", tagId));
+          CDR_DEBUG_MSG(("    Texture fill - tagId %i\n", tagId));
           break;
         }
         tagLength = readU16(input, m_bigEndian);
-        CDR_DEBUG_MSG(("    Imported Bitmap fill - tagId %i, tagLength %u\n", tagId, tagLength));
+        CDR_DEBUG_MSG(("    Texture fill - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
         case CMX_Tag_RenderAttr_FillSpec_Texture:
@@ -1095,6 +1095,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     }
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
+      CDR_DEBUG_MSG(("    Texture fill\n"));
       unsigned short patternId = readU16(input, m_bigEndian);
       int tmpWidth = readU16(input, m_bigEndian);
       int tmpHeight = readU16(input, m_bigEndian);
