@@ -347,6 +347,9 @@ void libcdr::CMXParser::readPage(librevenge::RVNGInputStream *input, unsigned le
     case CMX_Command_JumpAbsolute:
       readJumpAbsolute(input);
       break;
+    case CMX_Command_DrawImage:
+      readDrawImage(input);
+      break;
     default:
       break;
     }
@@ -590,6 +593,67 @@ void libcdr::CMXParser::readEllipse(librevenge::RVNGInputStream *input)
   m_collector->collectLevel(1);
 }
 
+void libcdr::CMXParser::readDrawImage(librevenge::RVNGInputStream *input)
+{
+  m_collector->collectObject(1);
+  CDRBox bBox;
+  CDRTransforms trafos;
+  unsigned short imageRef;
+  if (m_precision == libcdr::PRECISION_32BIT)
+  {
+    unsigned char tagId = 0;
+    unsigned short tagLength = 0;
+    do
+    {
+      long startOffset = input->tell();
+      tagId = readU8(input, m_bigEndian);
+      if (tagId == CMX_Tag_EndTag)
+      {
+        CDR_DEBUG_MSG(("  CMXParser::readDrawImage - tagId %i\n", tagId));
+        break;
+      }
+      tagLength = readU16(input, m_bigEndian);
+      CDR_DEBUG_MSG(("  CMXParser::readDrawImage - tagId %i, tagLength %u\n", tagId, tagLength));
+      switch (tagId)
+      {
+      case CMX_Tag_DrawImage_RenderingAttr:
+        readRenderingAttributes(input);
+        break;
+      case CMX_Tag_DrawImage_DrawImageSpecification:
+      {
+        bBox = readBBox(input);
+        readBBox(input);
+        trafos.append(readMatrix(input));
+        /* unsigned short imageType = */ readU16(input, m_bigEndian);
+        imageRef = readU16(input, m_bigEndian);
+        break;
+      }
+      default:
+        break;
+      }
+      input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
+    }
+    while (tagId != CMX_Tag_EndTag);
+  }
+  else if (m_precision == libcdr::PRECISION_16BIT)
+  {
+    CDR_DEBUG_MSG(("  CMXParser::readDrawImage\n"));
+    if (!readRenderingAttributes(input))
+      return;
+    bBox = readBBox(input);
+    readBBox(input);
+    trafos.append(readMatrix(input));
+    /* unsigned short imageType = */ readU16(input, m_bigEndian);
+    imageRef = readU16(input, m_bigEndian);
+  }
+  else
+    return;
+
+  m_collector->collectTransform(trafos, false);
+  m_collector->collectBitmap(imageRef, bBox.m_x, bBox.m_x + bBox.m_w, bBox.m_y, bBox.m_y + bBox.m_h);
+  m_collector->collectLevel(1);
+}
+
 void libcdr::CMXParser::readRectangle(librevenge::RVNGInputStream *input)
 {
   m_collector->collectObject(1);
@@ -689,8 +753,20 @@ libcdr::CDRTransform libcdr::CMXParser::readMatrix(librevenge::RVNGInputStream *
     double v3 = readDouble(input, m_bigEndian);
     double v1 = readDouble(input, m_bigEndian);
     double v4 = readDouble(input, m_bigEndian);
-    double x0 = readDouble(input, m_bigEndian);
+    double x0 = readDouble(input, m_bigEndian) ;
     double y0 = readDouble(input, m_bigEndian);
+    if (m_precision == PRECISION_32BIT)
+    {
+      x0 /= 254000.0;
+      y0 /= 254000.0;
+    }
+    else if (m_precision == PRECISION_16BIT)
+    {
+      x0 /= 1000.0;
+      y0 /= 1000.0;
+    }
+    else
+      return CDRTransform();
     return libcdr::CDRTransform(v0, v1, x0, v3, v4, y0);
   }
   else
@@ -1024,7 +1100,6 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     }
     break;
   case 11:
-    CDR_DEBUG_MSG(("    Texture fill\n"));
     if (m_precision == libcdr::PRECISION_32BIT)
     {
       unsigned char tagId = 0;

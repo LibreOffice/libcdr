@@ -118,6 +118,7 @@ private:
   void readEllipse(librevenge::RVNGInputStream *input);
   void readRectangle(librevenge::RVNGInputStream *input);
   void readJumpAbsolute(librevenge::RVNGInputStream *input);
+  void readDrawImage(librevenge::RVNGInputStream *input);
 
   // Types readers
   CDRTransform readMatrix(librevenge::RVNGInputStream *input);
