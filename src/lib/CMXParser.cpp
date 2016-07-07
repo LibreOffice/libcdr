@@ -598,7 +598,7 @@ void libcdr::CMXParser::readDrawImage(librevenge::RVNGInputStream *input)
   m_collector->collectObject(1);
   CDRBox bBox;
   CDRTransforms trafos;
-  unsigned short imageRef;
+  unsigned short imageRef = 0;
   if (m_precision == libcdr::PRECISION_32BIT)
   {
     unsigned char tagId = 0;
@@ -926,7 +926,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     }
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
-      /* unsigned short atom = */ readU16(input, m_bigEndian);
+      /* unsigned atom = */ readU32(input, m_bigEndian);
       unsigned short count = readU16(input, m_bigEndian);
       for (unsigned short i = 0; i < count; ++i)
         readU16(input, m_bigEndian);
