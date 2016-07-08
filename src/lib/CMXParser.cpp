@@ -2061,8 +2061,8 @@ libcdr::CDRLineStyle libcdr::CMXParser::getLineStyle(unsigned id)
   std::map<unsigned, CMXPen>::const_iterator iterPen = m_parserState.m_pens.find(penId);
   if (iterPen != m_parserState.m_pens.end())
   {
-    tmpLineStyle.lineWidth = iterPen->second.m_width;
-    tmpLineStyle.stretch = iterPen->second.m_aspect;
+    tmpLineStyle.lineWidth = iterPen->second.m_width * (iterPen->second.m_matrix.getScaleX()+iterPen->second.m_matrix.getScaleY())/ 2.0;
+    tmpLineStyle.stretch = iterPen->second.m_aspect * (iterPen->second.m_matrix.getScaleX()/iterPen->second.m_matrix.getScaleY());
     tmpLineStyle.angle = iterPen->second.m_angle;
   }
   std::map<unsigned, std::vector<unsigned> >::const_iterator iterDash = m_parserState.m_dashArrays.find(dashArrayId);

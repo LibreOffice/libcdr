@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <math.h>
+#include <librevenge/librevenge.h>
 
 namespace libcdr
 {
@@ -26,8 +27,18 @@ public:
 
   void applyToPoint(double &x, double &y) const;
   void applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &endx, double &endy) const;
+  double getScaleX() const;
+  double getScaleY() const;
+  double getTranslateX() const;
+  double getTranslateY() const;
+  bool getFlipX() const;
+  bool getFlipY() const;
+
+  librevenge::RVNGString toString() const;
 
 private:
+  double _getScaleX() const;
+  double _getScaleY() const;
   double m_v0;
   double m_v1;
   double m_x0;
