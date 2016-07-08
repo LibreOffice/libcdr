@@ -119,6 +119,7 @@ private:
   void readRectangle(librevenge::RVNGInputStream *input);
   void readJumpAbsolute(librevenge::RVNGInputStream *input);
   void readDrawImage(librevenge::RVNGInputStream *input);
+  void readBeginProcedure(librevenge::RVNGInputStream *input);
 
   // Types readers
   CDRTransform readMatrix(librevenge::RVNGInputStream *input);
@@ -133,6 +134,8 @@ private:
   CDRColor getPaletteColor(unsigned id);
   CDRColor readColor(librevenge::RVNGInputStream *input, unsigned char colorModel);
   CDRLineStyle getLineStyle(unsigned id);
+
+  void _tryToSkipEmbedded(librevenge::RVNGInputStream *input);
 
   bool m_bigEndian;
   unsigned short m_unit;

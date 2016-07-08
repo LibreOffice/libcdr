@@ -104,7 +104,11 @@ bool libcdr::CMXParser::parseRecord(librevenge::RVNGInputStream *input, unsigned
         return false;
     }
     else
+    {
       readRecord(fourCC, length, input);
+      if (!input->isEnd())
+        _tryToSkipEmbedded(input);
+    }
 
     if (input->tell() < endPosition)
       input->seek(endPosition, librevenge::RVNG_SEEK_SET);
@@ -114,6 +118,35 @@ bool libcdr::CMXParser::parseRecord(librevenge::RVNGInputStream *input, unsigned
   {
     return false;
   }
+}
+
+void libcdr::CMXParser::_tryToSkipEmbedded(librevenge::RVNGInputStream *input)
+{
+  unsigned long offset = input->tell();
+  unsigned size = readU16(input, m_bigEndian);
+  if (input->isEnd())
+  {
+    input->seek(offset, librevenge::RVNG_SEEK_SET);
+    return;
+  }
+  unsigned code = readU16(input, m_bigEndian);
+  if (input->isEnd())
+  {
+    input->seek(offset, librevenge::RVNG_SEEK_SET);
+    return;
+  }
+  if (22 == code || 23 == code)
+  {
+    if (!input->seek(offset + size, librevenge::RVNG_SEEK_SET))
+    {
+      CDR_DEBUG_MSG(("CMXParser::_tryToSkipEmbedded - skipped\n"));
+      return;
+    }
+    else
+      input->seek(offset, librevenge::RVNG_SEEK_SET);
+  }
+  else
+    input->seek(offset, librevenge::RVNG_SEEK_SET);
 }
 
 void libcdr::CMXParser::parseImage(librevenge::RVNGInputStream *input)
@@ -741,6 +774,53 @@ void libcdr::CMXParser::readRectangle(librevenge::RVNGInputStream *input)
   m_collector->collectPath(path);
   m_collector->collectRotate(angle, cx, cy);
   m_collector->collectLevel(1);
+}
+
+void libcdr::CMXParser::readBeginProcedure(librevenge::RVNGInputStream *input)
+{
+  if (m_precision == libcdr::PRECISION_32BIT)
+  {
+    unsigned char tagId = 0;
+    unsigned short tagLength = 0;
+    do
+    {
+      long startOffset = input->tell();
+      tagId = readU8(input, m_bigEndian);
+      if (tagId == CMX_Tag_EndTag)
+      {
+        CDR_DEBUG_MSG(("  CMXParser::readBeginProcedure - tagId %i\n", tagId));
+        break;
+      }
+      tagLength = readU16(input, m_bigEndian);
+      CDR_DEBUG_MSG(("  CMXParser::readBeginProcedure - tagId %i, tagLength %u\n", tagId, tagLength));
+      switch (tagId)
+      {
+      case CMX_Tag_BeginProcedure_ProcedureSpecification:
+        /* unsigned flags = */
+        readU32(input, m_bigEndian);
+        /* CDRBox bBox = */ readBBox(input);
+        /* unsigned endOffset = */ readU32(input, m_bigEndian);
+        /* unsigned short groupCount = */ readU16(input, m_bigEndian);
+        /* unsigned tally = */ readU32(input, m_bigEndian);
+        break;
+      default:
+        break;
+      }
+      input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
+    }
+    while (tagId != CMX_Tag_EndTag);
+  }
+  else if (m_precision == libcdr::PRECISION_16BIT)
+  {
+    CDR_DEBUG_MSG(("  CMXParser::readBeginProcedure\n"));
+    /* unsigned flags = */ readU32(input, m_bigEndian);
+    /* CDRBox bBox = */ readBBox(input);
+    /* unsigned endOffset = */ readU32(input, m_bigEndian);
+    /* unsigned short groupCount = */ readU16(input, m_bigEndian);
+    /* unsigned tally = */ readU32(input, m_bigEndian);
+  }
+  else
+    return;
 }
 
 libcdr::CDRTransform libcdr::CMXParser::readMatrix(librevenge::RVNGInputStream *input)
