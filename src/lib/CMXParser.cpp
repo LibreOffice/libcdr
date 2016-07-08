@@ -139,7 +139,7 @@ void libcdr::CMXParser::_tryToSkipEmbedded(librevenge::RVNGInputStream *input)
   {
     if (!input->seek(offset + size, librevenge::RVNG_SEEK_SET))
     {
-      CDR_DEBUG_MSG(("CMXParser::_tryToSkipEmbedded - skipped\n"));
+      CDR_DEBUG_MSG(("CMXParser::_tryToSkipEmbedded - skipped %s\n", code == 22 ? "BeginEmbedded" : "EndEmbedded"));
       return;
     }
     else
@@ -202,9 +202,6 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge
     break;
   case CDR_FOURCC_page:
     readPage(input, length);
-    break;
-  case CDR_FOURCC_ccmm:
-    readCcmm(input, recordEnd);
     break;
   case CDR_FOURCC_rclr:
     readRclr(input);
@@ -337,12 +334,6 @@ void libcdr::CMXParser::readDisp(librevenge::RVNGInputStream *input, unsigned le
     fclose(f);
   }
 #endif
-}
-
-void libcdr::CMXParser::readCcmm(librevenge::RVNGInputStream * /* input */, long &recordEnd)
-{
-  if (m_thumbnailOffset == (unsigned)-1)
-    recordEnd += 0x10;
 }
 
 void libcdr::CMXParser::readPage(librevenge::RVNGInputStream *input, unsigned length)

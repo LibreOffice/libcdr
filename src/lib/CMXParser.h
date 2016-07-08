@@ -98,7 +98,6 @@ private:
 
   void readCMXHeader(librevenge::RVNGInputStream *input);
   void readDisp(librevenge::RVNGInputStream *input, unsigned length);
-  void readCcmm(librevenge::RVNGInputStream *input, long &recordEnd);
   void readPage(librevenge::RVNGInputStream *input, unsigned length);
   void readRclr(librevenge::RVNGInputStream *input);
   void readRotl(librevenge::RVNGInputStream *input);
