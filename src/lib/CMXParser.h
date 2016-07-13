@@ -117,7 +117,7 @@ private:
 
   void readCMXHeader(librevenge::RVNGInputStream *input);
   void readDisp(librevenge::RVNGInputStream *input);
-  void readPage(librevenge::RVNGInputStream *input, unsigned length);
+  void readPage(librevenge::RVNGInputStream *input);
   void readRclr(librevenge::RVNGInputStream *input);
   void readRotl(librevenge::RVNGInputStream *input);
   void readRott(librevenge::RVNGInputStream *input);
@@ -126,6 +126,7 @@ private:
   void readIxtl(librevenge::RVNGInputStream *input);
   void readIxef(librevenge::RVNGInputStream *input);
   void readIxmr(librevenge::RVNGInputStream *input);
+  void readIxpg(librevenge::RVNGInputStream *input);
   void readInfo(librevenge::RVNGInputStream *input);
   void readData(librevenge::RVNGInputStream *input);
 
@@ -154,8 +155,6 @@ private:
   CDRColor readColor(librevenge::RVNGInputStream *input, unsigned char colorModel);
   CDRLineStyle getLineStyle(unsigned id);
   const unsigned *_getOffsetByType(unsigned short type, const std::map<unsigned short, unsigned> &offsets);
-
-  void _tryToSkipEmbedded(librevenge::RVNGInputStream *input);
 
   bool m_bigEndian;
   unsigned short m_unit;
