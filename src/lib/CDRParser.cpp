@@ -2158,6 +2158,10 @@ void libcdr::CDRParser::readLoda(librevenge::RVNGInputStream *input, unsigned le
                                         iter->second.startMarker, iter->second.endMarker);
       }
     }
+    else if (argTypes[i] == 0xc8)
+    {
+      // TODO: Handle styles
+    }
     else if (argTypes[i] == 0x2af8)
       readPolygonTransform(input);
     else if (argTypes[i] == 0x1f40)
