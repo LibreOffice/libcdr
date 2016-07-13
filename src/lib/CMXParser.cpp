@@ -386,7 +386,6 @@ void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
     unsigned offset = readU32(input, m_bigEndian);
     offsets[indexRecordId] = offset;
   }
-
 }
 
 void libcdr::CMXParser::readPage(librevenge::RVNGInputStream *input, unsigned length)
