@@ -907,9 +907,52 @@ librevenge::RVNGString libcdr::CMXParser::readString(librevenge::RVNGInputStream
   return tmpString;
 }
 
+bool libcdr::CMXParser::readLens(librevenge::RVNGInputStream *input)
+{
+  unsigned char lensType = readU8(input, m_bigEndian);
+  switch (lensType)
+  {
+  case 1: // Glass
+  {
+    unsigned char tintMethod = readU8(input, m_bigEndian);
+    unsigned short uniformRate = readU16(input, m_bigEndian);
+    /* unsigned short colorRef = */ readU16(input, m_bigEndian);
+    /* unsigned short rangeProcRef = */ readU16(input, m_bigEndian);
+    if (tintMethod == 0)
+      m_collector->collectFillOpacity((double)uniformRate / 1000.0);
+    break;
+  }
+  case 2: // Magnifying
+  {
+    /* unsigned short uniformRate = */ readU16(input, m_bigEndian);
+    /* unsigned short rangeProcRef = */ readU16(input, m_bigEndian);
+    break;
+  }
+  case 3: // Fisheye
+  {
+    /* unsigned short uniformRate = */ readU16(input, m_bigEndian);
+    /* unsigned short rangeProcRef = */ readU16(input, m_bigEndian);
+    break;
+  }
+  case 4: // Wireframe
+  {
+    /* unsigned char outlineMethod = */ readU8(input, m_bigEndian);
+    /* unsigned short outlineColorRef = */ readU16(input, m_bigEndian);
+    /* unsigned char fillMethod = */ readU8(input, m_bigEndian);
+    /* unsigned short fillColorRef = */ readU16(input, m_bigEndian);
+    /* unsigned short rangeProcRef = */ readU16(input, m_bigEndian);
+    break;
+  }
+  default:
+    if (m_precision == libcdr::PRECISION_16BIT)
+      return false;
+    break;
+  }
+  return true;
+}
+
 bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
 {
-  bool ret(true);
   libcdr::CDRColor color1;
   libcdr::CDRColor color2;
   libcdr::CDRImageFill imageFill;
@@ -1322,17 +1365,15 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     break;
   default:
     if (m_precision == libcdr::PRECISION_16BIT)
-      ret = false;
+      return false;
     break;
   }
-  if (ret)
-    m_collector->collectFillStyle(fillIdentifier, color1, color2, gradient, imageFill);
-  return ret;
+  m_collector->collectFillStyle(fillIdentifier, color1, color2, gradient, imageFill);
+  return true;
 }
 
 bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *input)
 {
-  bool ret(true);
   unsigned char tagId = 0;
   unsigned short tagLength = 0;
   unsigned char bitMask = readU8(input, m_bigEndian);
@@ -1354,7 +1395,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
         switch (tagId)
         {
         case CMX_Tag_RenderAttr_FillSpec:
-          ret = readFill(input);
+          readFill(input);
           break;
         default:
           break;
@@ -1366,7 +1407,8 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("  Fill specification\n"));
-      ret = readFill(input);
+      if (!readFill(input))
+        return false;
     }
   }
   if (bitMask & 0x02) // outline
@@ -1424,6 +1466,9 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
         CDR_DEBUG_MSG(("  Lens specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
+        case CMX_Tag_RenderAttr_LensSpec_Base:
+          readLens(input);
+          break;
         default:
           break;
         }
@@ -1434,7 +1479,8 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("  Lens specification\n"));
-      ret = false;
+      if (!readLens(input))
+        return false;
     }
   }
   if (bitMask & 0x08) // canvas
@@ -1464,7 +1510,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("  Canvas specification\n"));
-      ret = false;
+      return false;
     }
   }
   if (bitMask & 0x10) // container
@@ -1494,10 +1540,10 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("  Container specification\n"));
-      ret = false;
+      return false;
     }
   }
-  return ret;
+  return true;
 }
 
 void libcdr::CMXParser::readJumpAbsolute(librevenge::RVNGInputStream *input)

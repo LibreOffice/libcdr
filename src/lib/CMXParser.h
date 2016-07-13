@@ -146,6 +146,7 @@ private:
   CDRBox readBBox(librevenge::RVNGInputStream *input);
   librevenge::RVNGString readString(librevenge::RVNGInputStream *input);
   bool readFill(librevenge::RVNGInputStream *input);
+  bool readLens(librevenge::RVNGInputStream *input);
 
   // Complex types readers
   bool readRenderingAttributes(librevenge::RVNGInputStream *input);
