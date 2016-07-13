@@ -199,27 +199,6 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge
   case CDR_FOURCC_page:
     readPage(input, length);
     break;
-  case CDR_FOURCC_rclr:
-    readRclr(input);
-    break;
-  case CDR_FOURCC_rdot:
-    readRdot(input);
-    break;
-  case CDR_FOURCC_rott:
-    readRott(input);
-    break;
-  case CDR_FOURCC_rotl:
-    readRotl(input);
-    break;
-  case CDR_FOURCC_rpen:
-    readRpen(input);
-    break;
-  case CDR_FOURCC_ixtl:
-    readIxtl(input);
-    break;
-  case CDR_FOURCC_ixef:
-    readIxef(input);
-    break;
   case CDR_FOURCC_info:
     readInfo(input);
     break;
@@ -386,6 +365,44 @@ void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
     unsigned offset = readU32(input, m_bigEndian);
     offsets[indexRecordId] = offset;
   }
+  long oldOffset = input->tell();
+  const unsigned *address = 0;
+  if ((address = _getOffsetByType(CMX_COLOR_DESCRIPTION_SECTION, offsets)))
+  {
+    input->seek(*address, librevenge::RVNG_SEEK_SET);
+    readRclr(input);
+  }
+  if ((address = _getOffsetByType(CMX_DOT_DASH_DESCRIPTION_SECTION, offsets)))
+  {
+    input->seek(*address, librevenge::RVNG_SEEK_SET);
+    readRdot(input);
+  }
+  if ((address = _getOffsetByType(CMX_PEN_DESCRIPTION_SECTION, offsets)))
+  {
+    input->seek(*address, librevenge::RVNG_SEEK_SET);
+    readRpen(input);
+  }
+  if ((address = _getOffsetByType(CMX_LINE_STYLE_DESCRIPTION_SECTION, offsets)))
+  {
+    input->seek(*address, librevenge::RVNG_SEEK_SET);
+    readRott(input);
+  }
+  if ((address = _getOffsetByType(CMX_OUTLINE_DESCRIPTION_SECTION, offsets)))
+  {
+    input->seek(*address, librevenge::RVNG_SEEK_SET);
+    readRotl(input);
+  }
+  if ((address = _getOffsetByType(CMX_BITMAP_INDEX_TABLE, offsets)))
+  {
+    input->seek(*address, librevenge::RVNG_SEEK_SET);
+    readIxtl(input);
+  }
+  if ((address = _getOffsetByType(CMX_EMBEDDED_FILE_INDEX_TABLE, offsets)))
+  {
+    input->seek(*address, librevenge::RVNG_SEEK_SET);
+    readIxef(input);
+  }
+  input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
 }
 
 void libcdr::CMXParser::readPage(librevenge::RVNGInputStream *input, unsigned length)
@@ -1544,6 +1561,11 @@ void libcdr::CMXParser::readJumpAbsolute(librevenge::RVNGInputStream *input)
 
 void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input)
 {
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_rclr != fourCC)
+    return;
+  /* unsigned length = */ readU32(input, m_bigEndian);
+
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRclr - numRecords %i\n", numRecords));
   for (unsigned j = 1; j < numRecords+1; ++j)
@@ -1589,6 +1611,11 @@ void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input)
 
 void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
 {
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_rdot != fourCC)
+    return;
+  /* unsigned length = */ readU32(input, m_bigEndian);
+
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRdot - numRecords %i\n", numRecords));
   for (unsigned j = 1; j < numRecords+1; ++j)
@@ -1634,6 +1661,11 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
 
 void libcdr::CMXParser::readRott(librevenge::RVNGInputStream *input)
 {
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_rott != fourCC)
+    return;
+  /* unsigned length = */ readU32(input, m_bigEndian);
+
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRott - numRecords %i\n", numRecords));
   for (unsigned j = 1; j < numRecords+1; ++j)
@@ -1677,6 +1709,11 @@ void libcdr::CMXParser::readRott(librevenge::RVNGInputStream *input)
 
 void libcdr::CMXParser::readRotl(librevenge::RVNGInputStream *input)
 {
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_rotl != fourCC)
+    return;
+  /* unsigned length = */ readU32(input, m_bigEndian);
+
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRotl - numRecords %i\n", numRecords));
   for (unsigned j = 1; j < numRecords+1; ++j)
@@ -1728,6 +1765,11 @@ void libcdr::CMXParser::readRotl(librevenge::RVNGInputStream *input)
 
 void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
 {
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_rpen != fourCC)
+    return;
+  /* unsigned length = */ readU32(input, m_bigEndian);
+
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRpen - numRecords %i\n", numRecords));
   for (unsigned j = 1; j < numRecords+1; ++j)
@@ -1776,6 +1818,11 @@ void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
 
 void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
 {
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_ixtl != fourCC)
+    return;
+  /* unsigned length = */ readU32(input, m_bigEndian);
+
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readIxtl - numRecords %i\n", numRecords));
   int sizeInFile(0);
@@ -1817,6 +1864,11 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
 
 void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
 {
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_ixef != fourCC)
+    return;
+  /* unsigned length = */ readU32(input, m_bigEndian);
+
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readIxef - numRecords %i\n", numRecords));
   for (unsigned j = 1; j < numRecords+1; ++j)
@@ -2084,7 +2136,7 @@ libcdr::CDRColor libcdr::CMXParser::readColor(librevenge::RVNGInputStream *input
   }
   case 0xff: // something funny here
     input->seek(4, librevenge::RVNG_SEEK_CUR);
-    break;
+  // Fallthrough intended
   default:
     CDR_DEBUG_MSG(("Unknown color model %i\n", colorModel));
     break;
