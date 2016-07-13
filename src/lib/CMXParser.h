@@ -97,7 +97,7 @@ private:
   void parseImage(librevenge::RVNGInputStream *input);
 
   void readCMXHeader(librevenge::RVNGInputStream *input);
-  void readDisp(librevenge::RVNGInputStream *input, unsigned length);
+  void readDisp(librevenge::RVNGInputStream *input);
   void readPage(librevenge::RVNGInputStream *input, unsigned length);
   void readRclr(librevenge::RVNGInputStream *input);
   void readRotl(librevenge::RVNGInputStream *input);
@@ -106,6 +106,7 @@ private:
   void readRpen(librevenge::RVNGInputStream *input);
   void readIxtl(librevenge::RVNGInputStream *input);
   void readIxef(librevenge::RVNGInputStream *input);
+  void readIxmr(librevenge::RVNGInputStream *input);
   void readInfo(librevenge::RVNGInputStream *input);
   void readData(librevenge::RVNGInputStream *input);
 
@@ -133,6 +134,7 @@ private:
   CDRColor getPaletteColor(unsigned id);
   CDRColor readColor(librevenge::RVNGInputStream *input, unsigned char colorModel);
   CDRLineStyle getLineStyle(unsigned id);
+  const unsigned *_getOffsetByType(unsigned short type, const std::map<unsigned short, unsigned> &offsets);
 
   void _tryToSkipEmbedded(librevenge::RVNGInputStream *input);
 
@@ -140,9 +142,6 @@ private:
   unsigned short m_unit;
   double m_scale;
   double m_xmin, m_xmax, m_ymin, m_ymax;
-  unsigned m_indexSectionOffset;
-  unsigned m_infoSectionOffset;
-  unsigned m_thumbnailOffset;
   unsigned m_fillIndex;
   unsigned m_nextInstructionOffset;
   CMXParserState &m_parserState;

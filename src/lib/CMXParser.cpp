@@ -36,7 +36,6 @@ libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, CMXParserState &pa
   : CommonParser(collector),
     m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
-    m_indexSectionOffset(0), m_infoSectionOffset(0), m_thumbnailOffset(0),
     m_fillIndex(0), m_nextInstructionOffset(0), m_parserState(parserState),
     m_currentImageInfo(), m_currentPattern(0), m_currentBitmap(0) {}
 
@@ -197,9 +196,6 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge
   case CDR_FOURCC_cont:
     readCMXHeader(input);
     break;
-  case CDR_FOURCC_DISP:
-    readDisp(input, length);
-    break;
   case CDR_FOURCC_page:
     readPage(input, length);
     break;
@@ -284,19 +280,45 @@ void libcdr::CMXParser::readCMXHeader(librevenge::RVNGInputStream *input)
   m_scale = readDouble(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMX Units Scale: %.9f\n", m_scale));
   input->seek(12, librevenge::RVNG_SEEK_CUR);
-  m_indexSectionOffset = readU32(input, m_bigEndian);
-  m_infoSectionOffset = readU32(input, m_bigEndian);
-  m_thumbnailOffset = readU32(input, m_bigEndian);
+  unsigned indexSectionOffset = readU32(input, m_bigEndian);
+#ifdef DEBUG
+  unsigned infoSectionOffset = readU32(input, m_bigEndian);
+#else
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
+#endif
+  unsigned thumbnailOffset = readU32(input, m_bigEndian);
 #ifdef DEBUG
   CDRBox box = readBBox(input);
 #endif
   CDR_DEBUG_MSG(("CMX Offsets: index section 0x%.8x, info section: 0x%.8x, thumbnail: 0x%.8x\n",
-                 m_indexSectionOffset, m_infoSectionOffset, m_thumbnailOffset));
+                 indexSectionOffset, infoSectionOffset, thumbnailOffset));
   CDR_DEBUG_MSG(("CMX Bounding Box: x: %f, y: %f, w: %f, h: %f\n", box.m_x, box.m_y, box.m_w, box.m_h));
+  if (thumbnailOffset != (unsigned)-1)
+  {
+    long oldOffset = input->tell();
+    input->seek(thumbnailOffset, librevenge::RVNG_SEEK_SET);
+    readDisp(input);
+    input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
+  }
+  if (indexSectionOffset != (unsigned)-1)
+  {
+    long oldOffset = input->tell();
+    input->seek(indexSectionOffset, librevenge::RVNG_SEEK_SET);
+    readIxmr(input);
+    input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
+  }
 }
 
-void libcdr::CMXParser::readDisp(librevenge::RVNGInputStream *input, unsigned length)
+void libcdr::CMXParser::readDisp(librevenge::RVNGInputStream *input)
 {
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_DISP != fourCC)
+    return;
+  unsigned length = readU32(input, m_bigEndian);
+  const unsigned long maxLength = getRemainingLength(input);
+  if (length > maxLength)
+    length = maxLength;
+
   librevenge::RVNGBinaryData previewImage;
   previewImage.append((unsigned char)0x42);
   previewImage.append((unsigned char)0x4d);
@@ -334,6 +356,37 @@ void libcdr::CMXParser::readDisp(librevenge::RVNGInputStream *input, unsigned le
     fclose(f);
   }
 #endif
+}
+
+const unsigned *libcdr::CMXParser::_getOffsetByType(unsigned short type, const std::map<unsigned short, unsigned> &offsets)
+{
+  std::map<unsigned short, unsigned>::const_iterator iter = offsets.find(type);
+  if (iter != offsets.end())
+    return &(iter->second);
+  return 0;
+}
+
+void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
+{
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_ixmr != fourCC)
+    return;
+  unsigned length = readU32(input, m_bigEndian);
+  const unsigned long maxLength = getRemainingLength(input);
+  if (length > maxLength)
+    length = maxLength;
+
+  readU16(input, m_bigEndian); // Master ID
+  readU16(input, m_bigEndian); // Size
+  unsigned short recordCount = readU16(input, m_bigEndian);
+  std::map<unsigned short, unsigned> offsets;
+  for (unsigned short i = 1; i <= recordCount; ++i)
+  {
+    unsigned short indexRecordId = readU16(input, m_bigEndian);
+    unsigned offset = readU32(input, m_bigEndian);
+    offsets[indexRecordId] = offset;
+  }
+
 }
 
 void libcdr::CMXParser::readPage(librevenge::RVNGInputStream *input, unsigned length)
