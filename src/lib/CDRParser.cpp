@@ -2555,7 +2555,6 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
   try
   {
 #endif
-    std::map<unsigned, CDRCharacterStyle> charStyles;
     if (m_version < 700)
       return;
     if (!_redirectX6Chunk(&input, length))
@@ -2798,7 +2797,6 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
         if (parentId)
           tmpCharStyle.m_parentId = parentId;
         m_collector->collectStld(iter->first, tmpCharStyle);
-        charStyles[iter->first] = tmpCharStyle;
       }
     }
     catch (libcdr::EndOfStreamException &)
