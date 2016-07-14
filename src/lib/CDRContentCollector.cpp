@@ -996,7 +996,9 @@ void libcdr::CDRContentCollector::_lineProperties(librevenge::RVNGPropertyList &
 {
   if (m_currentLineStyle.lineType == (unsigned short)-1)
   {
-    propList.insert("draw:stroke", "none");
+    propList.insert("draw:stroke", "solid");
+    propList.insert("svg:stroke-width", 0.0);
+    propList.insert("svg:stroke-color", "#000000");
   }
   else
   {

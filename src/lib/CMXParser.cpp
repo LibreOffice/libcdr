@@ -1411,9 +1411,9 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
         return false;
     }
   }
+  CDRLineStyle lineStyle;
   if (bitMask & 0x02) // outline
   {
-    CDRLineStyle lineStyle;
     if (m_precision == libcdr::PRECISION_32BIT)
     {
       do
@@ -1444,11 +1444,13 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
       CDR_DEBUG_MSG(("  Outline specification\n"));
       lineStyle = getLineStyle(readU16(input, m_bigEndian));
     }
-    m_collector->collectLineStyle(lineStyle.lineType, lineStyle.capsType, lineStyle.joinType,
-                                  lineStyle.lineWidth, lineStyle.stretch, lineStyle.angle,
-                                  lineStyle.color, lineStyle.dashArray,
-                                  lineStyle.startMarker, lineStyle.endMarker);
   }
+  else
+    lineStyle.lineType = 1;
+  m_collector->collectLineStyle(lineStyle.lineType, lineStyle.capsType, lineStyle.joinType,
+                                lineStyle.lineWidth, lineStyle.stretch, lineStyle.angle,
+                                lineStyle.color, lineStyle.dashArray,
+                                lineStyle.startMarker, lineStyle.endMarker);
   if (bitMask & 0x04) // lens
   {
     if (m_precision == libcdr::PRECISION_32BIT)
