@@ -23,7 +23,7 @@
 
 
 libcdr::CDRStylesCollector::CDRStylesCollector(libcdr::CDRParserState &ps) :
-  m_ps(ps), m_page(8.5, 11.0, -4.25, -5.5), m_charStyles()
+  m_ps(ps), m_page(8.5, 11.0, -4.25, -5.5), m_styles()
 {
 }
 
@@ -211,7 +211,7 @@ void libcdr::CDRStylesCollector::collectPaletteEntry(unsigned colorId, unsigned 
 }
 
 void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
-                                             const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides)
+                                             const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRStyle> &styleOverrides)
 {
   if (data.empty() && styleOverrides.empty())
     return;
@@ -220,16 +220,16 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   unsigned i = 0;
   unsigned j = 0;
   std::vector<unsigned char> tmpTextData;
-  CDRCharacterStyle defaultCharStyle, tmpCharStyle;
+  CDRStyle defaultCharStyle, tmpCharStyle;
   getRecursedStyle(defaultCharStyle, styleId);
 
   CDRTextLine line;
   for (i=0, j=0; i<charDescriptions.size() && j<data.size(); ++i)
   {
     tmpCharStyle = defaultCharStyle;
-    std::map<unsigned, CDRCharacterStyle>::const_iterator iter = styleOverrides.find(tmpCharDescription & 0xfe);
+    std::map<unsigned, CDRStyle>::const_iterator iter = styleOverrides.find(tmpCharDescription & 0xfe);
     if (iter != styleOverrides.end())
-      tmpCharStyle.overrideCharacterStyle(iter->second);
+      tmpCharStyle.overrideStyle(iter->second);
     if (charDescriptions[i] != tmpCharDescription)
     {
       librevenge::RVNGString text;
@@ -264,34 +264,34 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   paragraphVector.push_back(line);
 }
 
-void libcdr::CDRStylesCollector::collectStld(unsigned id, const CDRCharacterStyle &charStyle)
+void libcdr::CDRStylesCollector::collectStld(unsigned id, const CDRStyle &style)
 {
-  m_charStyles[id] = charStyle;
+  m_styles[id] = style;
 }
 
-void libcdr::CDRStylesCollector::getRecursedStyle(CDRCharacterStyle &charStyle, unsigned styleId)
+void libcdr::CDRStylesCollector::getRecursedStyle(CDRStyle &style, unsigned styleId)
 {
-  std::map<unsigned, CDRCharacterStyle>::const_iterator iter = m_charStyles.find(styleId);
-  if (iter == m_charStyles.end())
+  std::map<unsigned, CDRStyle>::const_iterator iter = m_styles.find(styleId);
+  if (iter == m_styles.end())
     return;
 
-  std::stack<CDRCharacterStyle> styleStack;
+  std::stack<CDRStyle> styleStack;
   styleStack.push(iter->second);
   if (iter->second.m_parentId)
   {
-    std::map<unsigned, CDRCharacterStyle>::const_iterator iter2 = m_charStyles.find(iter->second.m_parentId);
-    while (iter2 != m_charStyles.end())
+    std::map<unsigned, CDRStyle>::const_iterator iter2 = m_styles.find(iter->second.m_parentId);
+    while (iter2 != m_styles.end())
     {
       styleStack.push(iter2->second);
       if (iter2->second.m_parentId)
-        iter2 = m_charStyles.find(iter2->second.m_parentId);
+        iter2 = m_styles.find(iter2->second.m_parentId);
       else
-        iter2 = m_charStyles.end();
+        iter2 = m_styles.end();
     }
   }
   while (!styleStack.empty())
   {
-    charStyle.overrideCharacterStyle(styleStack.top());
+    style.overrideStyle(styleStack.top());
     styleStack.pop();
   }
 }

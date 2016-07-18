@@ -133,7 +133,7 @@ struct CDRLineStyle
       startMarker(sm), endMarker(em) {}
 };
 
-struct CDRCharacterStyle
+struct CDRStyle
 {
   unsigned short m_charSet;
   librevenge::RVNGString m_fontName;
@@ -143,14 +143,14 @@ struct CDRCharacterStyle
   CDRLineStyle m_lineStyle;
   CDRFillStyle m_fillStyle;
   unsigned m_parentId;
-  CDRCharacterStyle()
+  CDRStyle()
     : m_charSet((unsigned short)-1), m_fontName(),
       m_fontSize(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
       m_rightIndent(0.0), m_lineStyle(), m_fillStyle(), m_parentId(0)
   {
     m_fontName.clear();
   }
-  void overrideCharacterStyle(const CDRCharacterStyle &override)
+  void overrideStyle(const CDRStyle &override)
   {
     if (override.m_charSet != (unsigned short)-1 || override.m_fontName.len())
     {
@@ -341,11 +341,11 @@ struct CDRLab4Color
 
 struct CDRText
 {
-  CDRText() : m_text(), m_charStyle() {}
-  CDRText(const librevenge::RVNGString &text, const CDRCharacterStyle &charStyle)
-    : m_text(text), m_charStyle(charStyle) {}
+  CDRText() : m_text(), m_style() {}
+  CDRText(const librevenge::RVNGString &text, const CDRStyle &style)
+    : m_text(text), m_style(style) {}
   librevenge::RVNGString m_text;
-  CDRCharacterStyle m_charStyle;
+  CDRStyle m_style;
 };
 
 struct CDRTextLine

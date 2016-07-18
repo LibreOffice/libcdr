@@ -94,7 +94,7 @@ private:
   void readParagraphText(librevenge::RVNGInputStream *input);
 
   bool _redirectX6Chunk(librevenge::RVNGInputStream **input, unsigned &length);
-  void _readX6StyleString(librevenge::RVNGInputStream *input, unsigned length, CDRCharacterStyle &style);
+  void _readX6StyleString(librevenge::RVNGInputStream *input, unsigned length, CDRStyle &style);
 
   std::vector<librevenge::RVNGInputStream *> m_externalStreams;
 

@@ -435,12 +435,12 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     {
       y1 = m_currentBBox.getMinY();
       y2 = m_currentBBox.getMinY() + m_currentBBox.getHeight();
-      if ((*m_currentText)[0].m_line[0].m_charStyle.m_align == 2) // Center
+      if ((*m_currentText)[0].m_line[0].m_style.m_align == 2) // Center
       {
         x1 = m_currentBBox.getMinX() - m_currentBBox.getWidth() / 4.0;
         x2 = m_currentBBox.getMinX() + (3.0 * m_currentBBox.getWidth() / 4.0);
       }
-      else if ((*m_currentText)[0].m_line[0].m_charStyle.m_align == 3) // Right
+      else if ((*m_currentText)[0].m_line[0].m_style.m_align == 3) // Right
       {
         x1 = m_currentBBox.getMinX() - m_currentBBox.getWidth() / 2.0;
         x2 = m_currentBBox.getMinX() + m_currentBBox.getWidth() / 2.0;
@@ -480,7 +480,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         continue;
       librevenge::RVNGPropertyList paraProps;
       bool rtl = false;
-      switch (currentLine[0].m_charStyle.m_align)
+      switch (currentLine[0].m_style.m_align)
       {
       case 1:  // Left
         if (!rtl)
@@ -513,12 +513,12 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         if (!currentLine[j].m_text.empty())
         {
           librevenge::RVNGPropertyList spanProps;
-          double fontSize = (double)cdr_round(144.0*currentLine[j].m_charStyle.m_fontSize) / 2.0;
+          double fontSize = (double)cdr_round(144.0*currentLine[j].m_style.m_fontSize) / 2.0;
           spanProps.insert("fo:font-size", fontSize, librevenge::RVNG_POINT);
-          if (currentLine[j].m_charStyle.m_fontName.len())
-            spanProps.insert("style:font-name", currentLine[j].m_charStyle.m_fontName);
-          if (currentLine[j].m_charStyle.m_fillStyle.fillType != (unsigned short)-1)
-            spanProps.insert("fo:color", m_ps.getRGBColorString(currentLine[j].m_charStyle.m_fillStyle.color1));
+          if (currentLine[j].m_style.m_fontName.len())
+            spanProps.insert("style:font-name", currentLine[j].m_style.m_fontName);
+          if (currentLine[j].m_style.m_fillStyle.fillType != (unsigned short)-1)
+            spanProps.insert("fo:color", m_ps.getRGBColorString(currentLine[j].m_style.m_fillStyle.color1));
           outputElement.addOpenSpan(spanProps);
           outputElement.addInsertText(currentLine[j].m_text);
           outputElement.addCloseSpan();

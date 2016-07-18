@@ -62,10 +62,10 @@ public:
   void collectVectorPattern(unsigned id, const librevenge::RVNGBinaryData &data);
   void collectPaletteEntry(unsigned, unsigned, const CDRColor &) {}
   void collectText(unsigned, unsigned, const std::vector<unsigned char> &,
-                   const std::vector<unsigned char> &, const std::map<unsigned, CDRCharacterStyle> &) {}
+                   const std::vector<unsigned char> &, const std::map<unsigned, CDRStyle> &) {}
   void collectArtisticText(double x, double y);
   void collectParagraphText(double x, double y, double width, double height);
-  void collectStld(unsigned, const CDRCharacterStyle &) {}
+  void collectStld(unsigned, const CDRStyle &) {}
 
 private:
   CDRContentCollector(const CDRContentCollector &);

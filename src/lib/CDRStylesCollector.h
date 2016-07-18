@@ -61,20 +61,20 @@ public:
   void collectVectorPattern(unsigned, const librevenge::RVNGBinaryData &) {}
   void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color);
   void collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
-                   const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRCharacterStyle> &styleOverrides);
+                   const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRStyle> &styleOverrides);
   void collectArtisticText(double, double) {}
   void collectParagraphText(double, double, double, double) {}
-  void collectStld(unsigned id, const CDRCharacterStyle &charStyle);
+  void collectStld(unsigned id, const CDRStyle &style);
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);
   CDRStylesCollector &operator=(const CDRStylesCollector &);
 
-  void getRecursedStyle(CDRCharacterStyle &charStyle, unsigned styleId);
+  void getRecursedStyle(CDRStyle &style, unsigned styleId);
 
   CDRParserState &m_ps;
   CDRPage m_page;
-  std::map<unsigned, CDRCharacterStyle> m_charStyles;
+  std::map<unsigned, CDRStyle> m_styles;
 };
 
 } // namespace libcdr
