@@ -70,11 +70,8 @@ private:
   CDRStylesCollector(const CDRStylesCollector &);
   CDRStylesCollector &operator=(const CDRStylesCollector &);
 
-  void getRecursedStyle(CDRStyle &style, unsigned styleId);
-
   CDRParserState &m_ps;
   CDRPage m_page;
-  std::map<unsigned, CDRStyle> m_styles;
 };
 
 } // namespace libcdr

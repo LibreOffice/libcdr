@@ -14,7 +14,7 @@
 #include "libcdr_utils.h"
 
 libcdr::CDRParserState::CDRParserState()
-  : m_bmps(), m_patterns(), m_vects(), m_pages(), m_documentPalette(), m_texts(),
+  : m_bmps(), m_patterns(), m_vects(), m_pages(), m_documentPalette(), m_texts(), m_styles(),
     m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0), m_colorTransformRGB2RGB(0)
 {
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
@@ -574,6 +574,33 @@ librevenge::RVNGString libcdr::CDRParserState::getRGBColorString(const libcdr::C
   librevenge::RVNGString tempString;
   tempString.sprintf("#%.6x", _getRGBColor(color));
   return tempString;
+}
+
+void libcdr::CDRParserState::getRecursedStyle(CDRStyle &style, unsigned styleId)
+{
+  std::map<unsigned, CDRStyle>::const_iterator iter = m_styles.find(styleId);
+  if (iter == m_styles.end())
+    return;
+
+  std::stack<CDRStyle> styleStack;
+  styleStack.push(iter->second);
+  if (iter->second.m_parentId)
+  {
+    std::map<unsigned, CDRStyle>::const_iterator iter2 = m_styles.find(iter->second.m_parentId);
+    while (iter2 != m_styles.end())
+    {
+      styleStack.push(iter2->second);
+      if (iter2->second.m_parentId)
+        iter2 = m_styles.find(iter2->second.m_parentId);
+      else
+        iter2 = m_styles.end();
+    }
+  }
+  while (!styleStack.empty())
+  {
+    style.overrideStyle(styleStack.top());
+    styleStack.pop();
+  }
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

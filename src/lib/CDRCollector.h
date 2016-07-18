@@ -40,6 +40,7 @@ public:
   std::vector<CDRPage> m_pages;
   std::map<unsigned, CDRColor> m_documentPalette;
   std::map<unsigned, std::vector<CDRTextLine> > m_texts;
+  std::map<unsigned, CDRStyle> m_styles;
 
   unsigned _getRGBColor(const CDRColor &color);
   unsigned getBMPColor(const CDRColor &color);
@@ -50,6 +51,7 @@ public:
 
   void setColorTransform(const std::vector<unsigned char> &profile);
   void setColorTransform(librevenge::RVNGInputStream *input);
+  void getRecursedStyle(CDRStyle &style, unsigned styleId);
 
 private:
   CDRParserState(const CDRParserState &);

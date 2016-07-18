@@ -23,7 +23,7 @@
 
 
 libcdr::CDRStylesCollector::CDRStylesCollector(libcdr::CDRParserState &ps) :
-  m_ps(ps), m_page(8.5, 11.0, -4.25, -5.5), m_styles()
+  m_ps(ps), m_page(8.5, 11.0, -4.25, -5.5)
 {
 }
 
@@ -221,7 +221,7 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   unsigned j = 0;
   std::vector<unsigned char> tmpTextData;
   CDRStyle defaultCharStyle, tmpCharStyle;
-  getRecursedStyle(defaultCharStyle, styleId);
+  m_ps.getRecursedStyle(defaultCharStyle, styleId);
 
   CDRTextLine line;
   for (i=0, j=0; i<charDescriptions.size() && j<data.size(); ++i)
@@ -266,34 +266,7 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
 
 void libcdr::CDRStylesCollector::collectStld(unsigned id, const CDRStyle &style)
 {
-  m_styles[id] = style;
-}
-
-void libcdr::CDRStylesCollector::getRecursedStyle(CDRStyle &style, unsigned styleId)
-{
-  std::map<unsigned, CDRStyle>::const_iterator iter = m_styles.find(styleId);
-  if (iter == m_styles.end())
-    return;
-
-  std::stack<CDRStyle> styleStack;
-  styleStack.push(iter->second);
-  if (iter->second.m_parentId)
-  {
-    std::map<unsigned, CDRStyle>::const_iterator iter2 = m_styles.find(iter->second.m_parentId);
-    while (iter2 != m_styles.end())
-    {
-      styleStack.push(iter2->second);
-      if (iter2->second.m_parentId)
-        iter2 = m_styles.find(iter2->second.m_parentId);
-      else
-        iter2 = m_styles.end();
-    }
-  }
-  while (!styleStack.empty())
-  {
-    style.overrideStyle(styleStack.top());
-    styleStack.pop();
-  }
+  m_ps.m_styles[id] = style;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
