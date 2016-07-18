@@ -269,4 +269,14 @@ void libcdr::CDRStylesCollector::collectStld(unsigned id, const CDRStyle &style)
   m_ps.m_styles[id] = style;
 }
 
+void libcdr::CDRStylesCollector::collectFillStyle(unsigned id, const CDRFillStyle &fillStyle)
+{
+  m_ps.m_fillStyles[id] = fillStyle;
+}
+
+void libcdr::CDRStylesCollector::collectLineStyle(unsigned id, const CDRLineStyle &lineStyle)
+{
+  m_ps.m_lineStyles[id] = lineStyle;
+}
+
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

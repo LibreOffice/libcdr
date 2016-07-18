@@ -155,7 +155,7 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
 
 libcdr::CDRParser::CDRParser(const std::vector<librevenge::RVNGInputStream *> &externalStreams, libcdr::CDRCollector *collector)
   : CommonParser(collector), m_externalStreams(externalStreams),
-    m_fonts(), m_fillStyles(), m_lineStyles(), m_arrows(), m_version(0) {}
+    m_fonts(), m_fillStyles(), m_lineStyles(), m_arrows(), m_version(0), m_waldoOutlId(0), m_waldoFillId(0) {}
 
 libcdr::CDRParser::~CDRParser()
 {
@@ -1561,7 +1561,8 @@ void libcdr::CDRParser::readWaldoOutl(librevenge::RVNGInputStream *input)
   CDRPath endMarker;
   if (iter != m_arrows.end())
     endMarker = iter->second;
-  m_collector->collectLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker);
+  m_collector->collectLineStyle(++m_waldoOutlId, CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker));
+  m_collector->collectLineStyleId(m_waldoOutlId);
 }
 
 void libcdr::CDRParser::readWaldoFill(librevenge::RVNGInputStream *input)
@@ -1654,7 +1655,8 @@ void libcdr::CDRParser::readWaldoFill(librevenge::RVNGInputStream *input)
   default:
     break;
   }
-  m_collector->collectFillStyle(fillType, color1, color2, gradient, imageFill);
+  m_collector->collectFillStyle(++m_waldoFillId, CDRFillStyle(fillType, color1, color2, gradient, imageFill));
+  m_collector->collectFillStyleId(m_waldoFillId);
 }
 
 void libcdr::CDRParser::readTrfd(librevenge::RVNGInputStream *input, unsigned length)
@@ -2014,6 +2016,7 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
     break;
   }
   m_fillStyles[fillId] = CDRFillStyle(fillType, color1, color2, gradient, imageFill);
+  m_collector->collectFillStyle(fillId, CDRFillStyle(fillType, color1, color2, gradient, imageFill));
 }
 
 void libcdr::CDRParser::readOutl(librevenge::RVNGInputStream *input, unsigned length)
@@ -2074,6 +2077,7 @@ void libcdr::CDRParser::readOutl(librevenge::RVNGInputStream *input, unsigned le
   if (iter != m_arrows.end())
     endMarker = iter->second;
   m_lineStyles[lineId] = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker);
+  m_collector->collectLineStyle(lineId, CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker));
 }
 
 void libcdr::CDRParser::readLoda(librevenge::RVNGInputStream *input, unsigned length)
@@ -2138,10 +2142,8 @@ void libcdr::CDRParser::readLoda(librevenge::RVNGInputStream *input, unsigned le
       else
       {
         unsigned fillId = readU32(input);
-        std::map<unsigned, CDRFillStyle>::const_iterator iter = m_fillStyles.find(fillId);
-        if (iter != m_fillStyles.end())
-          m_collector->collectFillStyle(iter->second.fillType, iter->second.color1, iter->second.color2,
-                                        iter->second.gradient, iter->second.imageFill);
+        if (fillId)
+          m_collector->collectFillStyleId(fillId);
       }
     }
     else if (argTypes[i] == 0x0a)
@@ -2151,11 +2153,8 @@ void libcdr::CDRParser::readLoda(librevenge::RVNGInputStream *input, unsigned le
       else
       {
         unsigned outlId = readU32(input);
-        std::map<unsigned, CDRLineStyle>::const_iterator iter = m_lineStyles.find(outlId);
-        if (iter != m_lineStyles.end())
-          m_collector->collectLineStyle(iter->second.lineType, iter->second.capsType, iter->second.joinType, iter->second.lineWidth,
-                                        iter->second.stretch, iter->second.angle, iter->second.color, iter->second.dashArray,
-                                        iter->second.startMarker, iter->second.endMarker);
+        if (outlId)
+          m_collector->collectLineStyleId(outlId);
       }
     }
     else if (argTypes[i] == 0xc8)

@@ -641,16 +641,18 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
   }
 }
 
-void libcdr::CDRContentCollector::collectFillStyle(unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill)
+void libcdr::CDRContentCollector::collectFillStyleId(unsigned id)
 {
-  m_currentFillStyle = CDRFillStyle(fillType, color1, color2, gradient, imageFill);
+  std::map<unsigned, CDRFillStyle>::const_iterator iter = m_ps.m_fillStyles.find(id);
+  if (iter != m_ps.m_fillStyles.end())
+    m_currentFillStyle = iter->second;
 }
 
-void libcdr::CDRContentCollector::collectLineStyle(unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
-                                                   double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
-                                                   const CDRPath &startMarker, const CDRPath &endMarker)
+void libcdr::CDRContentCollector::collectLineStyleId(unsigned id)
 {
-  m_currentLineStyle = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker);
+  std::map<unsigned, CDRLineStyle>::const_iterator iter = m_ps.m_lineStyles.find(id);
+  if (iter != m_ps.m_lineStyles.end())
+    m_currentLineStyle = iter->second;
 }
 
 void libcdr::CDRContentCollector::collectRotate(double angle, double cx, double cy)

@@ -14,7 +14,8 @@
 #include "libcdr_utils.h"
 
 libcdr::CDRParserState::CDRParserState()
-  : m_bmps(), m_patterns(), m_vects(), m_pages(), m_documentPalette(), m_texts(), m_styles(),
+  : m_bmps(), m_patterns(), m_vects(), m_pages(), m_documentPalette(), m_texts(),
+    m_styles(), m_fillStyles(), m_lineStyles(),
     m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0), m_colorTransformRGB2RGB(0)
 {
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();

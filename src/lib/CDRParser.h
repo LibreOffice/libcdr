@@ -104,6 +104,8 @@ private:
   std::map<unsigned, CDRPath> m_arrows;
 
   unsigned m_version;
+  unsigned m_waldoOutlId;
+  unsigned m_waldoFillId;
 
 };
 

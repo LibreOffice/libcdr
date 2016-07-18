@@ -957,8 +957,9 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
   libcdr::CDRColor color2;
   libcdr::CDRImageFill imageFill;
   libcdr::CDRGradient gradient;
-  unsigned fillIdentifier = readU16(input, m_bigEndian);
-  switch (fillIdentifier)
+  unsigned fillId = (unsigned)input->tell();
+  unsigned fillType = readU16(input, m_bigEndian);
+  switch (fillType)
   {
   case 1: // Uniform
     if (m_precision == libcdr::PRECISION_32BIT)
@@ -1103,11 +1104,11 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
         tagId = readU8(input, m_bigEndian);
         if (tagId == CMX_Tag_EndTag)
         {
-          CDR_DEBUG_MSG(("    %s fill - tagId %i\n", fillIdentifier == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap", tagId));
+          CDR_DEBUG_MSG(("    %s fill - tagId %i\n", fillType == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap", tagId));
           break;
         }
         tagLength = readU16(input, m_bigEndian);
-        CDR_DEBUG_MSG(("    %s fill - tagId %i, tagLength %u\n", fillIdentifier == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap", tagId, tagLength));
+        CDR_DEBUG_MSG(("    %s fill - tagId %i, tagLength %u\n", fillType == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap", tagId, tagLength));
         switch (tagId)
         {
         case CMX_Tag_RenderAttr_FillSpec_MonoBM:
@@ -1145,7 +1146,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     }
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
-      CDR_DEBUG_MSG(("    %s fill\n", fillIdentifier == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap"));
+      CDR_DEBUG_MSG(("    %s fill\n", fillType == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap"));
       unsigned short patternId = readU16(input, m_bigEndian);
       int tmpWidth = readU16(input, m_bigEndian);
       int tmpHeight = readU16(input, m_bigEndian);
@@ -1368,7 +1369,8 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       return false;
     break;
   }
-  m_collector->collectFillStyle(fillIdentifier, color1, color2, gradient, imageFill);
+  m_collector->collectFillStyle(fillId, CDRFillStyle(fillType, color1, color2, gradient, imageFill));
+  m_collector->collectFillStyleId(fillId);
   return true;
 }
 
@@ -1414,6 +1416,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
   if (bitMask & 0x02) // outline
   {
     CDRLineStyle lineStyle;
+    unsigned lineStyleId = (unsigned)input->tell();
     if (m_precision == libcdr::PRECISION_32BIT)
     {
       do
@@ -1444,10 +1447,8 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
       CDR_DEBUG_MSG(("  Outline specification\n"));
       lineStyle = getLineStyle(readU16(input, m_bigEndian));
     }
-    m_collector->collectLineStyle(lineStyle.lineType, lineStyle.capsType, lineStyle.joinType,
-                                  lineStyle.lineWidth, lineStyle.stretch, lineStyle.angle,
-                                  lineStyle.color, lineStyle.dashArray,
-                                  lineStyle.startMarker, lineStyle.endMarker);
+    m_collector->collectLineStyle(lineStyleId, lineStyle);
+    m_collector->collectLineStyleId(lineStyleId);
   }
   if (bitMask & 0x04) // lens
   {

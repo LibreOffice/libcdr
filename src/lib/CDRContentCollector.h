@@ -39,10 +39,10 @@ public:
   void collectPath(const CDRPath &path);
   void collectLevel(unsigned level);
   void collectTransform(const CDRTransforms &transforms, bool considerGroupTransform);
-  void collectFillStyle(unsigned short fillType, const CDRColor &color1, const CDRColor &color2, const CDRGradient &gradient, const CDRImageFill &imageFill);
-  void collectLineStyle(unsigned short lineType, unsigned short capsType, unsigned short joinType, double lineWidth,
-                        double stretch, double angle, const CDRColor &color, const std::vector<unsigned> &dashArray,
-                        const CDRPath &startMarker, const CDRPath &endMarker);
+  void collectFillStyle(unsigned,const CDRFillStyle &) {}
+  void collectFillStyleId(unsigned id);
+  void collectLineStyle(unsigned,const CDRLineStyle &) {}
+  void collectLineStyleId(unsigned id);
   void collectRotate(double angle, double cx, double cy);
   void collectFlags(unsigned flags, bool considerFlags);
   void collectPageSize(double, double, double, double) {}
