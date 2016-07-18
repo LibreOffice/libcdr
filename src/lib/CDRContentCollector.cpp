@@ -61,7 +61,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   : m_painter(painter), m_isDocumentStarted(false), m_isPageProperties(false), m_isPageStarted(false),
     m_ignorePage(false), m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFillStyle(), m_currentLineStyle(),
     m_spnd(0), m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
-    m_currentImage(), m_currentText(0), m_currentBBox(), m_currentTextBox(), m_currentPath(),
+    m_currentStyleId(0), m_currentImage(), m_currentText(0), m_currentBBox(), m_currentTextBox(), m_currentPath(),
     m_currentTransforms(), m_fillTransforms(), m_polygon(0), m_isInPolygon(false), m_isInSpline(false),
     m_outputElementsStack(0), m_contentOutputElementsStack(), m_fillOutputElementsStack(),
     m_outputElementsQueue(0), m_contentOutputElementsQueue(), m_fillOutputElementsQueue(),
@@ -150,6 +150,7 @@ void libcdr::CDRContentCollector::collectObject(unsigned level)
   m_currentObjectLevel = level;
   m_currentFillStyle = CDRFillStyle();
   m_currentLineStyle = CDRLineStyle();
+  m_currentStyleId = 0;
   m_currentBBox = CDRBox();
 }
 
@@ -681,6 +682,13 @@ void libcdr::CDRContentCollector::collectPolygonTransform(unsigned numAngles, un
 
 void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &propList)
 {
+  if (m_currentFillStyle.fillType == (unsigned short)-1 && m_currentStyleId)
+  {
+    CDRStyle tmpStyle;
+    m_ps.getRecursedStyle(tmpStyle, m_currentStyleId);
+    m_currentFillStyle = tmpStyle.m_fillStyle;
+  }
+
   if (m_fillOpacity < 1.0)
     propList.insert("draw:opacity", m_fillOpacity, librevenge::RVNG_PERCENT);
   if (m_currentFillStyle.fillType == 0)
@@ -994,12 +1002,17 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
 
 void libcdr::CDRContentCollector::_lineProperties(librevenge::RVNGPropertyList &propList)
 {
-  if (m_currentLineStyle.lineType == (unsigned short)-1)
+  if (m_currentLineStyle.lineType == (unsigned short)-1 && m_currentStyleId)
   {
-    propList.insert("draw:stroke", "solid");
-    propList.insert("svg:stroke-width", 0.0);
-    propList.insert("svg:stroke-color", "#000000");
+    CDRStyle tmpStyle;
+    m_ps.getRecursedStyle(tmpStyle, m_currentStyleId);
+    m_currentLineStyle = tmpStyle.m_lineStyle;
   }
+
+  if (m_currentLineStyle.lineType == (unsigned short)-1)
+    /* No line style specified and also no line style from the style id,
+       the shape has no outline then. */
+    propList.insert("draw:stroke", "none");
   else
   {
     if (m_currentLineStyle.lineType & 0x1)
@@ -1313,6 +1326,11 @@ void libcdr::CDRContentCollector::collectParagraphText(double x, double y, doubl
   std::map<unsigned, std::vector<CDRTextLine> >::const_iterator iter = m_ps.m_texts.find(m_spnd);
   if (iter != m_ps.m_texts.end())
     m_currentText = &(iter->second);
+}
+
+void libcdr::CDRContentCollector::collectStyleId(unsigned styleId)
+{
+  m_currentStyleId = styleId;
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

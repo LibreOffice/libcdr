@@ -100,6 +100,7 @@ public:
   virtual void collectArtisticText(double x, double y) = 0;
   virtual void collectParagraphText(double x, double y, double width, double height) = 0;
   virtual void collectStld(unsigned id, const CDRStyle &style) = 0;
+  virtual void collectStyleId(unsigned id) = 0;
 };
 
 } // namespace libcdr

@@ -65,6 +65,7 @@ public:
   void collectArtisticText(double, double) {}
   void collectParagraphText(double, double, double, double) {}
   void collectStld(unsigned id, const CDRStyle &style);
+  void collectStyleId(unsigned) {}
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);

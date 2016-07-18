@@ -66,6 +66,7 @@ public:
   void collectArtisticText(double x, double y);
   void collectParagraphText(double x, double y, double width, double height);
   void collectStld(unsigned, const CDRStyle &) {}
+  void collectStyleId(unsigned styleId);
 
 private:
   CDRContentCollector(const CDRContentCollector &);
@@ -94,7 +95,7 @@ private:
   CDRFillStyle m_currentFillStyle;
   CDRLineStyle m_currentLineStyle;
   unsigned m_spnd;
-  unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentVectLevel, m_currentPageLevel;
+  unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentVectLevel, m_currentPageLevel, m_currentStyleId;
   CDRImage m_currentImage;
   const std::vector<CDRTextLine> *m_currentText;
   CDRBox m_currentBBox;

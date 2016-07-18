@@ -2160,7 +2160,9 @@ void libcdr::CDRParser::readLoda(librevenge::RVNGInputStream *input, unsigned le
     }
     else if (argTypes[i] == 0xc8)
     {
-      // TODO: Handle styles
+      unsigned styleId = readUnsigned(input);
+      if (styleId)
+        m_collector->collectStyleId(styleId);
     }
     else if (argTypes[i] == 0x2af8)
       readPolygonTransform(input);
