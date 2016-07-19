@@ -99,6 +99,7 @@
 #define CDR_FOURCC_ppdt 0x74647070
 #define CDR_FOURCC_ppid 0x64697070
 #define CDR_FOURCC_pref 0x66657270
+#define CDR_FOURCC_proc 0x636f7270
 #define CDR_FOURCC_ptrt 0x74727470
 
 #define CDR_FOURCC_RIFF 0x46464952

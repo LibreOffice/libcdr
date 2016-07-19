@@ -118,6 +118,7 @@ private:
   void readCMXHeader(librevenge::RVNGInputStream *input);
   void readDisp(librevenge::RVNGInputStream *input);
   void readPage(librevenge::RVNGInputStream *input);
+  void readProc(librevenge::RVNGInputStream *input);
   void readRclr(librevenge::RVNGInputStream *input);
   void readRotl(librevenge::RVNGInputStream *input);
   void readRott(librevenge::RVNGInputStream *input);
@@ -127,10 +128,12 @@ private:
   void readIxef(librevenge::RVNGInputStream *input);
   void readIxmr(librevenge::RVNGInputStream *input);
   void readIxpg(librevenge::RVNGInputStream *input);
+  void readIxpc(librevenge::RVNGInputStream *input);
   void readInfo(librevenge::RVNGInputStream *input);
   void readData(librevenge::RVNGInputStream *input);
 
   // Command readers
+  void readCommands(librevenge::RVNGInputStream *input, unsigned length);
   void readBeginPage(librevenge::RVNGInputStream *input);
   void readBeginLayer(librevenge::RVNGInputStream *input);
   void readBeginGroup(librevenge::RVNGInputStream *input);

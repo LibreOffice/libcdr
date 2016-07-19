@@ -366,7 +366,11 @@ void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
     input->seek(*address, librevenge::RVNG_SEEK_SET);
     readIxef(input);
   }
-
+  if ((address = _getOffsetByType(CMX_PROCEDURE_INDEX_TABLE, offsets)))
+  {
+    input->seek(*address, librevenge::RVNG_SEEK_SET);
+    readIxpc(input);
+  }
   if ((address = _getOffsetByType(CMX_PAGE_INDEX_TABLE, offsets)))
   {
     input->seek(*address, librevenge::RVNG_SEEK_SET);
@@ -375,13 +379,8 @@ void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
   input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
 }
 
-void libcdr::CMXParser::readPage(librevenge::RVNGInputStream *input)
+void libcdr::CMXParser::readCommands(librevenge::RVNGInputStream *input, unsigned length)
 {
-  unsigned fourCC = readU32(input, m_bigEndian);
-  if (CDR_FOURCC_page != fourCC)
-    return;
-  unsigned length = readU32(input, m_bigEndian);
-
   long endPosition = length + input->tell();
   while (!input->isEnd() && endPosition > input->tell())
   {
@@ -391,7 +390,7 @@ void libcdr::CMXParser::readPage(librevenge::RVNGInputStream *input)
       instructionSize = readS32(input, m_bigEndian);
     m_nextInstructionOffset = startPosition+instructionSize;
     short instructionCode = abs(readS16(input, m_bigEndian));
-    CDR_DEBUG_MSG(("CMXParser::readPage - instructionSize %i, instructionCode %i\n", instructionSize, instructionCode));
+    CDR_DEBUG_MSG(("CMXParser::readCommands - instructionSize %i, instructionCode %i\n", instructionSize, instructionCode));
     switch (instructionCode)
     {
     case CMX_Command_BeginPage:
@@ -423,6 +422,26 @@ void libcdr::CMXParser::readPage(librevenge::RVNGInputStream *input)
     }
     input->seek(m_nextInstructionOffset, librevenge::RVNG_SEEK_SET);
   }
+}
+
+void libcdr::CMXParser::readPage(librevenge::RVNGInputStream *input)
+{
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_page != fourCC)
+    return;
+  unsigned length = readU32(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMXParser::readPage\n"));
+  readCommands(input, length);
+}
+
+void libcdr::CMXParser::readProc(librevenge::RVNGInputStream *input)
+{
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_proc != fourCC)
+    return;
+  unsigned length = readU32(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMXParser::readProc\n"));
+  readCommands(input, length);
 }
 
 void libcdr::CMXParser::readBeginPage(librevenge::RVNGInputStream *input)
@@ -477,8 +496,51 @@ void libcdr::CMXParser::readBeginPage(librevenge::RVNGInputStream *input)
 void libcdr::CMXParser::readBeginLayer(librevenge::RVNGInputStream * /* input */)
 {
 }
-void libcdr::CMXParser::readBeginGroup(librevenge::RVNGInputStream * /* input */)
+void libcdr::CMXParser::readBeginGroup(librevenge::RVNGInputStream *input)
 {
+  CDRBox box;
+  if (m_precision == libcdr::PRECISION_32BIT)
+  {
+    unsigned char tagId = 0;
+    unsigned short tagLength = 0;
+    do
+    {
+      long startOffset = input->tell();
+      tagId = readU8(input, m_bigEndian);
+      if (tagId == CMX_Tag_EndTag)
+      {
+        CDR_DEBUG_MSG(("  CMXParser::readBeginGroup - tagId %i\n", tagId));
+        break;
+      }
+      tagLength = readU16(input, m_bigEndian);
+      CDR_DEBUG_MSG(("  CMXParser::readBeginGroup - tagId %i, tagLength %u\n", tagId, tagLength));
+      switch (tagId)
+      {
+      case CMX_Tag_BeginGroup_GroupSpecification:
+      {
+        box = readBBox(input);
+        /* unsigned short groupCount = */ readU16(input, m_bigEndian);
+        /* unsigned commandCount = */ readU32(input, m_bigEndian);
+        /* unsigned endAddress = */ readU32(input, m_bigEndian);
+        break;
+      }
+      default:
+        break;
+      }
+      input->seek(startOffset + tagLength, librevenge::RVNG_SEEK_SET);
+    }
+    while (tagId != CMX_Tag_EndTag);
+  }
+  else if (m_precision == libcdr::PRECISION_16BIT)
+  {
+    box = readBBox(input);
+    /* unsigned short groupCount = */ readU16(input, m_bigEndian);
+    /* unsigned commandCount = */ readU32(input, m_bigEndian);
+    /* unsigned endAddress = */ readU32(input, m_bigEndian);
+  }
+  else
+    return;
+  m_collector->collectBBox(box.getMinX(), box.getMinX() + box.getWidth(), box.getMinY(), box.getMinY() + box.getHeight());
 }
 
 void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
@@ -1953,6 +2015,43 @@ void libcdr::CMXParser::readIxpg(librevenge::RVNGInputStream *input)
     }
     if (sizeInFile)
       input->seek(sizeInFile-16, librevenge::RVNG_SEEK_CUR);
+  }
+}
+
+void libcdr::CMXParser::readIxpc(librevenge::RVNGInputStream *input)
+{
+  unsigned fourCC = readU32(input, m_bigEndian);
+  if (CDR_FOURCC_ixpc != fourCC)
+    return;
+  /* unsigned length = */ readU32(input, m_bigEndian);
+
+  unsigned numRecords = readU16(input, m_bigEndian);
+  CDR_DEBUG_MSG(("CMXParser::readIxpc - numRecords %i\n", numRecords));
+
+  /* Don't really parse it for the while */
+  return;
+  for (unsigned j = 1; j <= numRecords; ++j)
+  {
+    int sizeInFile(0);
+    if (m_precision == libcdr::PRECISION_32BIT)
+    {
+      sizeInFile = readU16(input, m_bigEndian);
+      if (sizeInFile < 8)
+        return;
+    }
+    /* unsigned refListOffset = */ readU32(input, m_bigEndian);
+    unsigned procOffset = readU32(input, m_bigEndian);
+    if (procOffset && procOffset != (unsigned)-1)
+    {
+      long oldOffset = input->tell();
+      input->seek(procOffset, librevenge::RVNG_SEEK_SET);
+      m_collector->collectVect(1);
+      m_collector->collectSpnd(j);
+      readProc(input);
+      input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
+    }
+    if (sizeInFile)
+      input->seek(sizeInFile-8, librevenge::RVNG_SEEK_CUR);
   }
 }
 
