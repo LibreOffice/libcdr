@@ -69,15 +69,24 @@ int main(int argc, char *argv[])
     return printUsage();
 
   librevenge::RVNGFileStream input(file);
+  librevenge::RVNGStringVector pages;
+  librevenge::RVNGTextDrawingGenerator painter(pages);
 
   if (!libcdr::CDRDocument::isSupported(&input))
   {
-    fprintf(stderr, "ERROR: Unsupported file format (unsupported version) or file is encrypted!\n");
-    return 1;
+    if (!libcdr::CMXDocument::isSupported(&input))
+    {
+      fprintf(stderr, "ERROR: Unsupported file format (unsupported version) or file is encrypted!\n");
+      return 1;
+    }
+
+    if (!libcdr::CMXDocument::parse(&input, &painter))
+    {
+      fprintf(stderr, "ERROR: Parsing of document failed!\n");
+      return 1;
+    }
   }
 
-  librevenge::RVNGStringVector pages;
-  librevenge::RVNGTextDrawingGenerator painter(pages);
   if (!libcdr::CDRDocument::parse(&input, &painter))
   {
     fprintf(stderr, "ERROR: Parsing of document failed!\n");

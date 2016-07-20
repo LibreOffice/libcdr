@@ -72,14 +72,21 @@ int main(int argc, char *argv[])
     return printUsage();
 
   librevenge::RVNGFileStream input(file);
+  librevenge::RVNGRawDrawingGenerator painter(printIndentLevel);
 
   if (!libcdr::CDRDocument::isSupported(&input))
   {
-    fprintf(stderr, "ERROR: Unsupported file format!\n");
-    return 1;
+    if (!libcdr::CMXDocument::isSupported(&input))
+    {
+      fprintf(stderr, "ERROR: Unsupported file format!\n");
+      return 1;
+    }
+
+    libcdr::CMXDocument::parse(&input, &painter);
+
+    return 0;
   }
 
-  librevenge::RVNGRawDrawingGenerator painter(printIndentLevel);
   libcdr::CDRDocument::parse(&input, &painter);
 
   return 0;

@@ -70,20 +70,30 @@ int main(int argc, char *argv[])
     return printUsage();
 
   librevenge::RVNGFileStream input(file);
+  librevenge::RVNGStringVector output;
+  librevenge::RVNGSVGDrawingGenerator generator(output, "svg");
 
   if (!libcdr::CDRDocument::isSupported(&input))
   {
-    std::cerr << "ERROR: Unsupported file format!" << std::endl;
-    return 1;
+    if (!libcdr::CMXDocument::isSupported(&input))
+    {
+      std::cerr << "ERROR: Unsupported file format!" << std::endl;
+      return 1;
+    }
+
+    if (!libcdr::CMXDocument::parse(&input, &generator))
+    {
+      std::cerr << "ERROR: SVG Generation failed!" << std::endl;
+      return 1;
+    }
   }
 
-  librevenge::RVNGStringVector output;
-  librevenge::RVNGSVGDrawingGenerator generator(output, "svg");
   if (!libcdr::CDRDocument::parse(&input, &generator))
   {
     std::cerr << "ERROR: SVG Generation failed!" << std::endl;
     return 1;
   }
+
   if (output.empty())
   {
     std::cerr << "ERROR: No SVG document generated!" << std::endl;
