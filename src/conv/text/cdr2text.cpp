@@ -79,15 +79,13 @@ int main(int argc, char *argv[])
       fprintf(stderr, "ERROR: Unsupported file format (unsupported version) or file is encrypted!\n");
       return 1;
     }
-
-    if (!libcdr::CMXDocument::parse(&input, &painter))
+    else if (!libcdr::CMXDocument::parse(&input, &painter))
     {
       fprintf(stderr, "ERROR: Parsing of document failed!\n");
       return 1;
     }
   }
-
-  if (!libcdr::CDRDocument::parse(&input, &painter))
+  else if (!libcdr::CDRDocument::parse(&input, &painter))
   {
     fprintf(stderr, "ERROR: Parsing of document failed!\n");
     return 1;

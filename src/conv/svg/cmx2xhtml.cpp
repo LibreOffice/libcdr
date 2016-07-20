@@ -71,26 +71,24 @@ int main(int argc, char *argv[])
 
   librevenge::RVNGFileStream input(file);
   librevenge::RVNGStringVector output;
-  librevenge::RVNGSVGDrawingGenerator generator(output, "svg");
+  librevenge::RVNGSVGDrawingGenerator painter(output, "svg");
 
   if (!libcdr::CMXDocument::isSupported(&input))
   {
     if (!libcdr::CDRDocument::isSupported(&input))
     {
-      std::cerr << "ERROR: Unsupported file format!" << std::endl;
+      fprintf(stderr, "ERROR: Unsupported file format (unsupported version) or file is encrypted!\n");
       return 1;
     }
-
-    if (!libcdr::CDRDocument::parse(&input, &generator))
+    else if (!libcdr::CDRDocument::parse(&input, &painter))
     {
-      std::cerr << "ERROR: SVG Generation failed!" << std::endl;
+      fprintf(stderr, "ERROR: Parsing of document failed!\n");
       return 1;
     }
   }
-
-  if (!libcdr::CMXDocument::parse(&input, &generator))
+  else if (!libcdr::CMXDocument::parse(&input, &painter))
   {
-    std::cerr << "ERROR: SVG Generation failed!" << std::endl;
+    fprintf(stderr, "ERROR: Parsing of document failed!\n");
     return 1;
   }
 
