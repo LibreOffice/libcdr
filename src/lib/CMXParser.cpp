@@ -1232,6 +1232,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     }
     break;
   case 9: // Imported Bitmap
+  case 10: // Full Color Pattern
     if (m_precision == libcdr::PRECISION_32BIT)
     {
       unsigned char tagId = 0;
@@ -1242,11 +1243,11 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
         tagId = readU8(input, m_bigEndian);
         if (tagId == CMX_Tag_EndTag)
         {
-          CDR_DEBUG_MSG(("    Imported Bitmap fill - tagId %i\n", tagId));
+          CDR_DEBUG_MSG(("    %s fill - tagId %i\n", fillType == 9 ? "Imported Bitmap" : "Full Color Pattern", tagId));
           break;
         }
         tagLength = readU16(input, m_bigEndian);
-        CDR_DEBUG_MSG(("    Imported Bitmap fill - tagId %i, tagLength %u\n", tagId, tagLength));
+        CDR_DEBUG_MSG(("    %s fill - tagId %i, tagLength %u\n", fillType == 9 ? "Imported Bitmap" : "Full Color Pattern", tagId, tagLength));
         switch (tagId)
         {
         case CMX_Tag_RenderAttr_FillSpec_ColorBM:
@@ -1282,7 +1283,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     }
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
-      CDR_DEBUG_MSG(("    Imported Bitmap fill\n"));
+      CDR_DEBUG_MSG(("    %s fill\n", fillType == 9 ? "Imported Bitmap" : "Full Color Pattern"));
       unsigned short patternId = readU16(input, m_bigEndian);
       int tmpWidth = readU16(input, m_bigEndian);
       int tmpHeight = readU16(input, m_bigEndian);
@@ -1301,23 +1302,6 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       }
       /* libcdr::CDRBox box = */ readBBox(input);
       imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
-    }
-    break;
-  case 10:
-    CDR_DEBUG_MSG(("    Full-Color Pattern fill\n"));
-    if (m_precision == libcdr::PRECISION_32BIT)
-    {
-    }
-    else if (m_precision == libcdr::PRECISION_16BIT)
-    {
-      /* unsigned short pattern = */ readU16(input, m_bigEndian);
-      /* unsigned short width = */ readU16(input, m_bigEndian);
-      /* unsigned short height = */ readU16(input, m_bigEndian);
-      /* unsigned short xoff = */ readU16(input, m_bigEndian);
-      /* unsigned short yoff = */ readU16(input, m_bigEndian);
-      /* unsigned short inter = */ readU16(input, m_bigEndian);
-      /* unsigned short flags = */ readU16(input, m_bigEndian);
-      /* libcdr::CDRBox box = */ readBBox(input);
     }
     break;
   case 11:
@@ -2045,7 +2029,7 @@ void libcdr::CMXParser::readIxpc(librevenge::RVNGInputStream *input)
     {
       long oldOffset = input->tell();
       input->seek(procOffset, librevenge::RVNG_SEEK_SET);
-      m_collector->collectVect(1);
+      m_collector->collectVect(0);
       m_collector->collectSpnd(j);
       readProc(input);
       input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
