@@ -1,3 +1,16 @@
+libcdr 0.1.3
+
+* Improvements for CMX parsers
+  - More robust parsing using the pointers from CMX header
+  - Implement almost all fills
+  - Implement outline properties
+  - Implement embedded raster images
+  - Implement transparency lens for fills
+* Some fixes for CDR parsers
+  - Consider fill/outline styles
+* Tools
+  - Make cmx2* and cdr2* tools handle both CDR and CMX
+
 libcdr 0.1.2
 
 * Fix various crashes and hangs when reading broken files found with the
