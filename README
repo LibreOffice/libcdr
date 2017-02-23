@@ -1,13 +1,14 @@
 libcdr is a library and a set of tools for reading and converting binary files
 produced by Corel DRAW.
 
-libcdr requires boost, icu, lcms2, libwpd, libwpg and zlib to build.
 Most up to date code is available from Git repository at libreoffice.org
 (https://gerrit.libreoffice.org/gitweb?p=libcdr.git), which is mirrored at
 freedesktop.org (http://cgit.freedesktop.org/libreoffice/libcdr/). See
-http://www.freedesktop.org/wiki/Software/libcdr for more information.
+https://wiki.documentfoundation.org/DLP/Libraries/libcdr for more information.
 
-The library is available under  MPL 2.0.
+libcdr requires boost, icu, lcms2, librevenge and zlib to build.
+
+The library is available under MPL 2.0.
 
 Corel DRAW is a trademark by Corel. The developers of libcdr are in no way
 affiliated with the company.
