@@ -402,8 +402,17 @@ void libcdr::CMXParser::readCommands(librevenge::RVNGInputStream *input, unsigne
   {
     long startPosition = input->tell();
     int instructionSize = readS16(input, m_bigEndian);
+    int minInstructionSize = 4;
     if (instructionSize < 0)
+    {
       instructionSize = readS32(input, m_bigEndian);
+      minInstructionSize += 4;
+    }
+    if (instructionSize < minInstructionSize)
+    {
+      CDR_DEBUG_MSG(("CMXParser::readCommands - invalid instructionSize %i\n", instructionSize));
+      instructionSize = minInstructionSize;
+    }
     m_nextInstructionOffset = startPosition+instructionSize;
     short instructionCode = abs(readS16(input, m_bigEndian));
     CDR_DEBUG_MSG(("CMXParser::readCommands - instructionSize %i, instructionCode %i\n", instructionSize, instructionCode));
