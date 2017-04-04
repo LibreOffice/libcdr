@@ -32,6 +32,22 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+namespace
+{
+
+uint16_t readTagLength(librevenge::RVNGInputStream *const input, const bool bigEndian)
+{
+  uint16_t tagLength = libcdr::readU16(input, bigEndian);
+  if (tagLength < 3)
+  {
+    CDR_DEBUG_MSG(("invalid tag length %" PRIu16 "\n", tagLength));
+    tagLength = 3;
+  }
+  return tagLength;
+}
+
+}
+
 libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, CMXParserState &parserState)
   : CommonParser(collector),
     m_bigEndian(false), m_unit(0),
@@ -462,7 +478,7 @@ void libcdr::CMXParser::readBeginPage(librevenge::RVNGInputStream *input)
         CDR_DEBUG_MSG(("  CMXParser::readBeginPage - tagId %i\n", tagId));
         break;
       }
-      tagLength = readU16(input, m_bigEndian);
+      tagLength = readTagLength(input, m_bigEndian);
       CDR_DEBUG_MSG(("  CMXParser::readBeginPage - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
@@ -512,7 +528,7 @@ void libcdr::CMXParser::readBeginGroup(librevenge::RVNGInputStream *input)
         CDR_DEBUG_MSG(("  CMXParser::readBeginGroup - tagId %i\n", tagId));
         break;
       }
-      tagLength = readU16(input, m_bigEndian);
+      tagLength = readTagLength(input, m_bigEndian);
       CDR_DEBUG_MSG(("  CMXParser::readBeginGroup - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
@@ -562,7 +578,7 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
         CDR_DEBUG_MSG(("  CMXParser::readPolyCurve - tagId %i\n", tagId));
         break;
       }
-      tagLength = readU16(input, m_bigEndian);
+      tagLength = readTagLength(input, m_bigEndian);
       CDR_DEBUG_MSG(("  CMXParser::readPolyCurve - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
@@ -644,7 +660,7 @@ void libcdr::CMXParser::readEllipse(librevenge::RVNGInputStream *input)
         CDR_DEBUG_MSG(("  CMXParser::readEllipse - tagId %i\n", tagId));
         break;
       }
-      tagLength = readU16(input, m_bigEndian);
+      tagLength = readTagLength(input, m_bigEndian);
       CDR_DEBUG_MSG(("  CMXParser::readEllipse - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
@@ -742,7 +758,7 @@ void libcdr::CMXParser::readDrawImage(librevenge::RVNGInputStream *input)
         CDR_DEBUG_MSG(("  CMXParser::readDrawImage - tagId %i\n", tagId));
         break;
       }
-      tagLength = readU16(input, m_bigEndian);
+      tagLength = readTagLength(input, m_bigEndian);
       CDR_DEBUG_MSG(("  CMXParser::readDrawImage - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
@@ -806,7 +822,7 @@ void libcdr::CMXParser::readRectangle(librevenge::RVNGInputStream *input)
         CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i\n", tagId));
         break;
       }
-      tagLength = readU16(input, m_bigEndian);
+      tagLength = readTagLength(input, m_bigEndian);
       CDR_DEBUG_MSG(("  CMXParser::readRectangle - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
@@ -888,7 +904,7 @@ void libcdr::CMXParser::readBeginProcedure(librevenge::RVNGInputStream *input)
         CDR_DEBUG_MSG(("  CMXParser::readBeginProcedure - tagId %i\n", tagId));
         break;
       }
-      tagLength = readU16(input, m_bigEndian);
+      tagLength = readTagLength(input, m_bigEndian);
       CDR_DEBUG_MSG(("  CMXParser::readBeginProcedure - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
@@ -1037,7 +1053,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
           CDR_DEBUG_MSG(("    Solid fill - tagId %i\n", tagId));
           break;
         }
-        tagLength = readU16(input, m_bigEndian);
+        tagLength = readTagLength(input, m_bigEndian);
         CDR_DEBUG_MSG(("    Solid fill - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
@@ -1077,7 +1093,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
           CDR_DEBUG_MSG(("    Fountain fill - tagId %i\n", tagId));
           break;
         }
-        tagLength = readU16(input, m_bigEndian);
+        tagLength = readTagLength(input, m_bigEndian);
         CDR_DEBUG_MSG(("    Fountain fill - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
@@ -1169,7 +1185,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
           CDR_DEBUG_MSG(("    %s fill - tagId %i\n", fillType == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap", tagId));
           break;
         }
-        tagLength = readU16(input, m_bigEndian);
+        tagLength = readTagLength(input, m_bigEndian);
         CDR_DEBUG_MSG(("    %s fill - tagId %i, tagLength %u\n", fillType == 7 ? "Two-Color Pattern" : "Monochrome with transparent bitmap", tagId, tagLength));
         switch (tagId)
         {
@@ -1246,7 +1262,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
           CDR_DEBUG_MSG(("    %s fill - tagId %i\n", fillType == 9 ? "Imported Bitmap" : "Full Color Pattern", tagId));
           break;
         }
-        tagLength = readU16(input, m_bigEndian);
+        tagLength = readTagLength(input, m_bigEndian);
         CDR_DEBUG_MSG(("    %s fill - tagId %i, tagLength %u\n", fillType == 9 ? "Imported Bitmap" : "Full Color Pattern", tagId, tagLength));
         switch (tagId)
         {
@@ -1318,7 +1334,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
           CDR_DEBUG_MSG(("    Texture fill - tagId %i\n", tagId));
           break;
         }
-        tagLength = readU16(input, m_bigEndian);
+        tagLength = readTagLength(input, m_bigEndian);
         CDR_DEBUG_MSG(("    Texture fill - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
@@ -1332,7 +1348,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
             subTagId = readU8(input, m_bigEndian);
             if (subTagId == CMX_Tag_EndTag)
               break;
-            subTagLength = readU16(input, m_bigEndian);
+            subTagLength = readTagLength(input, m_bigEndian);
             switch (subTagId)
             {
             case CMX_Tag_RenderAttr_FillSpec_ColorBM:
@@ -1438,7 +1454,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
           CDR_DEBUG_MSG(("  Fill specification - tagId %i\n", tagId));
           break;
         }
-        tagLength = readU16(input, m_bigEndian);
+        tagLength = readTagLength(input, m_bigEndian);
         CDR_DEBUG_MSG(("  Fill specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
@@ -1474,7 +1490,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
           CDR_DEBUG_MSG(("  Outline specification - tagId %i\n", tagId));
           break;
         }
-        tagLength = readU16(input, m_bigEndian);
+        tagLength = readTagLength(input, m_bigEndian);
         CDR_DEBUG_MSG(("  Outline specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
@@ -1509,7 +1525,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
           CDR_DEBUG_MSG(("  Lens specification - tagId %i\n", tagId));
           break;
         }
-        tagLength = readU16(input, m_bigEndian);
+        tagLength = readTagLength(input, m_bigEndian);
         CDR_DEBUG_MSG(("  Lens specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
@@ -1543,7 +1559,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
           CDR_DEBUG_MSG(("  Canvas specification - tagId %i\n", tagId));
           break;
         }
-        tagLength = readU16(input, m_bigEndian);
+        tagLength = readTagLength(input, m_bigEndian);
         CDR_DEBUG_MSG(("  Canvas specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
@@ -1573,7 +1589,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
           CDR_DEBUG_MSG(("  Container specification - tagId %i\n", tagId));
           break;
         }
-        tagLength = readU16(input, m_bigEndian);
+        tagLength = readTagLength(input, m_bigEndian);
         CDR_DEBUG_MSG(("  Container specification - tagId %i, tagLength %u\n", tagId, tagLength));
         switch (tagId)
         {
@@ -1608,7 +1624,7 @@ void libcdr::CMXParser::readJumpAbsolute(librevenge::RVNGInputStream *input)
         CDR_DEBUG_MSG(("  CMXParser::readJumpAbsolute - tagId %i\n", tagId));
         break;
       }
-      tagLength = readU16(input, m_bigEndian);
+      tagLength = readTagLength(input, m_bigEndian);
       CDR_DEBUG_MSG(("  CMXParser::readJumpAbsolute - tagId %i, tagLength %u\n", tagId, tagLength));
       switch (tagId)
       {
@@ -1649,7 +1665,7 @@ void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input)
         tagId = readU8(input, m_bigEndian);
         if (tagId == CMX_Tag_EndTag)
           break;
-        unsigned short tagLength = readU16(input, m_bigEndian);
+        unsigned short tagLength = readTagLength(input, m_bigEndian);
         switch (tagId)
         {
         case CMX_Tag_DescrSection_Color_Base:
@@ -1698,7 +1714,7 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
         tagId = readU8(input, m_bigEndian);
         if (tagId == CMX_Tag_EndTag)
           break;
-        unsigned short tagLength = readU16(input, m_bigEndian);
+        unsigned short tagLength = readTagLength(input, m_bigEndian);
         switch (tagId)
         {
         case CMX_Tag_DescrSection_Dash:
@@ -1748,7 +1764,7 @@ void libcdr::CMXParser::readRott(librevenge::RVNGInputStream *input)
         tagId = readU8(input, m_bigEndian);
         if (tagId == CMX_Tag_EndTag)
           break;
-        unsigned short tagLength = readU16(input, m_bigEndian);
+        unsigned short tagLength = readTagLength(input, m_bigEndian);
         switch (tagId)
         {
         case CMX_Tag_DescrSection_LineStyle:
@@ -1796,7 +1812,7 @@ void libcdr::CMXParser::readRotl(librevenge::RVNGInputStream *input)
         tagId = readU8(input, m_bigEndian);
         if (tagId == CMX_Tag_EndTag)
           break;
-        unsigned short tagLength = readU16(input, m_bigEndian);
+        unsigned short tagLength = readTagLength(input, m_bigEndian);
         switch (tagId)
         {
         case CMX_Tag_DescrSection_Outline:
@@ -1852,7 +1868,7 @@ void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
         tagId = readU8(input, m_bigEndian);
         if (tagId == CMX_Tag_EndTag)
           break;
-        unsigned short tagLength = readU16(input, m_bigEndian);
+        unsigned short tagLength = readTagLength(input, m_bigEndian);
         switch (tagId)
         {
         case CMX_Tag_DescrSection_Pen:
@@ -2052,7 +2068,7 @@ void libcdr::CMXParser::readInfo(librevenge::RVNGInputStream *input)
       tagId = readU8(input, m_bigEndian);
       if (tagId == CMX_Tag_EndTag)
         break;
-      unsigned short tagLength = readU16(input, m_bigEndian);
+      unsigned short tagLength = readTagLength(input, m_bigEndian);
       switch (tagId)
       {
       case CMX_Tag_DescrSection_Image_ImageInfo:
