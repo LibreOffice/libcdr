@@ -875,7 +875,7 @@ void libcdr::CDRPath::clear()
 {
   for (std::vector<CDRPathElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
     if (*iter)
-      delete(*iter);
+      delete (*iter);
   m_elements.clear();
   m_isClosed = false;
 }
