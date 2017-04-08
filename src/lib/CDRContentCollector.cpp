@@ -78,6 +78,7 @@ libcdr::CDRContentCollector::~CDRContentCollector()
     _endPage();
   if (m_isDocumentStarted)
     _endDocument();
+  delete m_polygon;
 }
 
 void libcdr::CDRContentCollector::_startDocument()
