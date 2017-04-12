@@ -36,6 +36,9 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
   libcdr::CDRInternalStream stream(bitmap);
   librevenge::RVNGBinaryData image;
 
+  if (height == 0)
+    height = 1;
+
   unsigned tmpPixelSize = (unsigned)(height * width);
   if (tmpPixelSize < (unsigned)height) // overflow
     return;
