@@ -24,7 +24,7 @@
 #define CDR_EPSILON 1E-6
 #define CDR_ALMOST_ZERO(m) (fabs(m) <= CDR_EPSILON)
 
-#if defined(__clang__) || defined(__GNUC__)
+#if defined(HAVE_FUNC_ATTRIBUTE_FORMAT)
 #  define CDR_ATTRIBUTE_PRINTF(fmt, arg) __attribute__((__format__(__printf__, fmt, arg)))
 #else
 #  define CDR_ATTRIBUTE_PRINTF(fmt, arg)

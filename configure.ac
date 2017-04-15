@@ -34,6 +34,7 @@ LT_INIT([win32-dll disable-static pic-only])
 AC_CANONICAL_HOST
 
 AX_CXX_COMPILE_STDCXX_11
+AX_GCC_FUNC_ATTRIBUTE([format])
 
 PKG_PROG_PKG_CONFIG([0.20])
 
