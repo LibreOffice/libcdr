@@ -64,22 +64,14 @@ typedef __int64 int64_t;
 
 #endif
 
-// debug message includes source file and line number
-//#define VERBOSE_DEBUG 1
-
 // do nothing with debug messages in a release compile
 #ifdef DEBUG
 namespace libcdr
 {
 void debugPrint(const char *format, ...) CDR_ATTRIBUTE_PRINTF(1, 2);
 }
-#ifdef VERBOSE_DEBUG
-#define CDR_DEBUG_MSG(M) libcdr::debugPrint("%15s:%5d: ", __FILE__, __LINE__); libcdr::debugPrint M
-#define CDR_DEBUG(M) M
-#else
 #define CDR_DEBUG_MSG(M) libcdr::debugPrint M
 #define CDR_DEBUG(M) M
-#endif
 #else
 #define CDR_DEBUG_MSG(M)
 #define CDR_DEBUG(M)
