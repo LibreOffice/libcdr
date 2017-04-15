@@ -7,9 +7,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <memory>
 #include <string>
 #include <string.h>
-#include <boost/scoped_ptr.hpp>
+
 #include <libcdr/libcdr.h>
 #include "CDRParser.h"
 #include "CDRContentCollector.h"
@@ -162,7 +163,7 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input, libre
         input = tmpInput->getSubStreamByName("content/root.dat");
         if (input)
         {
-          boost::scoped_ptr<librevenge::RVNGInputStream> tmpStream(tmpInput->getSubStreamByName("content/dataFileList.dat"));
+          std::unique_ptr<librevenge::RVNGInputStream> tmpStream(tmpInput->getSubStreamByName("content/dataFileList.dat"));
           if (bool(tmpStream))
           {
             std::string dataFileName;
