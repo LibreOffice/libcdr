@@ -8,6 +8,7 @@
  */
 
 #include <librevenge-stream/librevenge-stream.h>
+#include <cinttypes>
 #include <locale.h>
 #include <math.h>
 #include <set>

@@ -129,6 +129,7 @@ AC_SUBST(ICU_LIBS)
 # ===========================
 
 AC_CHECK_HEADERS(
+	boost/cstdint.hpp \
 	boost/optional.hpp \
 	boost/property_tree/ptree.hpp \
 	boost/spirit/include/classic.hpp \
