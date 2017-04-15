@@ -15,6 +15,7 @@
 #ifndef BOOST_ALL_NO_LIB
 #define BOOST_ALL_NO_LIB 1
 #endif
+#include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/spirit/include/classic.hpp>
