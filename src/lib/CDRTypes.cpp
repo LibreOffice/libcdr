@@ -13,6 +13,9 @@
 
 void libcdr::CDRPolygon::create(libcdr::CDRPath &path) const
 {
+  if (m_numAngles == 0)
+    return;
+
   libcdr::CDRPath tmpPath(path);
   double step = 2*M_PI / (double)m_numAngles;
   if (m_nextPoint && m_numAngles % m_nextPoint)
