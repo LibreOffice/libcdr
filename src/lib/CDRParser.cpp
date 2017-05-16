@@ -18,7 +18,7 @@
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include <boost/spirit/include/classic.hpp>
+#include <boost/spirit/include/qi.hpp>
 #include "libcdr_utils.h"
 #include "CDRDocumentStructure.h"
 #include "CDRInternalStream.h"
@@ -115,37 +115,44 @@ static void processNameForEncoding(librevenge::RVNGString &name, unsigned short 
 
 static int parseColourString(const char *colourString, libcdr::CDRColor &colour, double &opacity)
 {
-  using namespace boost::spirit::classic;
+  using namespace boost::spirit::qi;
   bool bRes = false;
 
-  std::string colourModel;
+  boost::optional<unsigned> colourModel;
   unsigned val0, val1, val2, val3, val4;
 
   if (colourString)
   {
-    bRes = parse(colourString,
-                 //  Begin grammar
-                 (
-                   (repeat_p(1, more)[alnum_p])[assign_a(colourModel)] >> (',' | eps_p)
-                   >> (repeat_p(1, more)[alnum_p]) >> (',' | eps_p)
-                   >> int_p[assign_a(val0)] >> (',' | eps_p)
-                   >> int_p[assign_a(val1)] >> (',' | eps_p)
-                   >> int_p[assign_a(val2)] >> (',' | eps_p)
-                   >> int_p[assign_a(val3)] >> (',' | eps_p)
-                   >> int_p[assign_a(val4)] >> (',' | eps_p)
-                   >> (repeat_p(8)[alnum_p] >> ('-') >> repeat_p(3)[repeat_p(4)[alnum_p] >> ('-')] >> repeat_p(12)[alnum_p])
-                 ) >> end_p,
-                 //  End grammar
-                 space_p).full;
+    symbols<char, unsigned> cmodel;
+    cmodel.add
+    ("CMYK", 2)
+    ("CMYK255", 3)
+    ;
+    auto it = colourString;
+    const auto end = it + std::strlen(it);
+    bRes = phrase_parse(it, end,
+                        //  Begin grammar
+                        (
+                          (cmodel | omit[+alnum]) >> -lit(',')
+                          >> omit[+alnum] >> -lit(',')
+                          >> uint_ >> -lit(',')
+                          >> uint_ >> -lit(',')
+                          >> uint_ >> -lit(',')
+                          >> uint_ >> -lit(',')
+                          >> uint_ >> -lit(',')
+                          >> (repeat(8)[alnum] >> '-' >> repeat(3)[repeat(4)[alnum] >> '-'] >> repeat(12)[alnum])
+                        ),
+                        //  End grammar
+                        space,
+                        colourModel, val0, val1, val2, val3, val4)
+           && it == end;
   }
 
   if (!bRes)
     return -1;
 
-  if (colourModel == "CMYK")
-    colour.m_colorModel = 2;
-  else if (colourModel == "CMYK255")
-    colour.m_colorModel = 3;
+  if (colourModel)
+    colour.m_colorModel = get(colourModel);
   colour.m_colorValue = val0 | (val1 << 8) | (val2 << 16) | (val3 << 24);
   opacity = (double)val4 / 100.0;
 
