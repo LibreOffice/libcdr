@@ -115,7 +115,7 @@ static void processNameForEncoding(librevenge::RVNGString &name, unsigned short 
 
 static int parseColourString(const char *colourString, libcdr::CDRColor &colour, double &opacity)
 {
-  using namespace ::boost::spirit::classic;
+  using namespace boost::spirit::classic;
   bool bRes = false;
 
   std::string colourModel;

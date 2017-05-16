@@ -27,7 +27,7 @@ namespace libcdr
 class CDRContentCollector : public CDRCollector
 {
 public:
-  CDRContentCollector(CDRParserState &ps, ::librevenge::RVNGDrawingInterface *painter, bool reverseOrder = true);
+  CDRContentCollector(CDRParserState &ps, librevenge::RVNGDrawingInterface *painter, bool reverseOrder = true);
   virtual ~CDRContentCollector();
 
   // collector functions
