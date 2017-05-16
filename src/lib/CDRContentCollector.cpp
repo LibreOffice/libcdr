@@ -15,10 +15,6 @@
 #include "CDRInternalStream.h"
 #include "libcdr_utils.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 #ifndef DUMP_PATTERN
 #define DUMP_PATTERN 0
 #endif

@@ -12,10 +12,6 @@
 #include "libcdr_utils.h"
 #include "CommonParser.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 libcdr::CommonParser::CommonParser(libcdr::CDRCollector *collector)
   : m_collector(collector), m_precision(libcdr::PRECISION_UNKNOWN) {}
 

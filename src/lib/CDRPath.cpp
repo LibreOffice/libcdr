@@ -12,10 +12,6 @@
 #include "CDRPath.h"
 #include "CDRTypes.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 #ifndef DEBUG_SPLINES
 #define DEBUG_SPLINES 0
 #endif
