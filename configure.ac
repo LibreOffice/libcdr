@@ -131,9 +131,10 @@ AC_SUBST(ICU_LIBS)
 AC_CHECK_HEADERS(
 	boost/cstdint.hpp \
 	boost/optional.hpp \
+	boost/property_tree/json_parser.hpp \
 	boost/property_tree/ptree.hpp \
 	boost/spirit/include/classic.hpp \
-	boost/property_tree/json_parser.hpp,
+        ,
 	[],
 	[AC_MSG_ERROR(Required boost headers not found. Install boost >= 1.41.0)],
 	[]
