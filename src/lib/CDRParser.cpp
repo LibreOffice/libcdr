@@ -15,6 +15,7 @@
 #ifndef BOOST_ALL_NO_LIB
 #define BOOST_ALL_NO_LIB 1
 #endif
+#include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -73,44 +74,35 @@ struct CDRStltRecord
 
 static void processNameForEncoding(librevenge::RVNGString &name, unsigned short &encoding)
 {
+  namespace qi = boost::spirit::qi;
+
+  qi::symbols<char, unsigned short> codepage;
+  codepage.add
+  ("EC ", 0xee)
+  ("cilliryC ", 0xcc)
+  ("ryC ", 0xcc)
+  ("RYC ", 0xcc)
+  ("citlaB ", 0xba)
+  ("keerG ", 0xa1)
+  ("ruT ", 0xa2)
+  ("RUT ", 0xa2)
+  ("werbeH ", 0xb1)
+  ("cibarA ", 0xb2)
+  ("iahT ", 0xde)
+  ;
+
   std::string fontName(name.cstr());
-  size_t length = fontName.length();
-  size_t found = std::string::npos;
-
-  if (length > 3 && (found=fontName.find(" CE", length - 3)) != std::string::npos)
-    encoding = 0xee;
-  else if (length > 9 && (found=fontName.rfind(" Cyrillic", length - 9)) != std::string::npos)
-    encoding = 0xcc;
-  else if (length > 4 && (found=fontName.rfind(" Cyr", length - 4)) != std::string::npos)
-    encoding = 0xcc;
-  else if (length > 4 && (found=fontName.rfind(" CYR", length - 4)) != std::string::npos)
-    encoding = 0xcc;
-  else if (length > 7 && (found=fontName.rfind(" Baltic", length - 7)) != std::string::npos)
-    encoding = 0xba;
-  else if (length > 6 && (found=fontName.rfind(" Greek", length - 6)) != std::string::npos)
-    encoding = 0xa1;
-  else if (length > 4 && (found=fontName.rfind(" Tur", length - 4)) != std::string::npos)
-    encoding = 0xa2;
-  else if (length > 4 && (found=fontName.rfind(" TUR", length - 4)) != std::string::npos)
-    encoding = 0xa2;
-  else if (length > 7 && (found=fontName.rfind(" Hebrew", length - 7)) != std::string::npos)
-    encoding = 0xb1;
-  else if (length > 7 && (found=fontName.rfind(" Arabic", length - 7)) != std::string::npos)
-    encoding = 0xb2;
-  else if (length > 5 && (found=fontName.rfind(" Thai", length - 5)) != std::string::npos)
-    encoding = 0xde;
-  else if (length >= 4 && (found=fontName.find("GOST", 0, 4)) != std::string::npos)
+  unsigned short enc = encoding;
+  std::string revName;
+  if (qi::parse(fontName.rbegin(), fontName.rend(), codepage >> +qi::char_, enc, revName))
+  {
+    encoding = enc;
+    name = std::string(revName.rbegin(), revName.rend()).c_str();
+  }
+  else if (boost::starts_with(fontName, "GOST"))
   {
     encoding = 0xcc;
-    found = std::string::npos;
   }
-
-  if (found != std::string::npos)
-  {
-    fontName.erase(found, std::string::npos);
-    name = fontName.c_str();
-  }
-  return;
 }
 
 static int parseColourString(const char *colourString, libcdr::CDRColor &colour, double &opacity)
