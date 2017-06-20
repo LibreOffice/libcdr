@@ -1172,8 +1172,12 @@ void libcdr::CDRParser::readRectangle(librevenge::RVNGInputStream *input)
   }
   else
   {
-    scaleX = readDouble(input);
-    scaleY = readDouble(input);
+    double scale = readDouble(input);
+    if (scale != 0)
+      scaleX = scale;
+    scale = readDouble(input);
+    if (scale != 0)
+      scaleY = scale;
     unsigned int scale_with = readU8(input);
     input->seek(7, librevenge::RVNG_SEEK_CUR);
     if (scale_with == 0)
