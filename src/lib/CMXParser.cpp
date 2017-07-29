@@ -2297,7 +2297,7 @@ libcdr::CDRColor libcdr::CMXParser::readColor(librevenge::RVNGInputStream *input
   }
   case 0xff: // something funny here
     input->seek(4, librevenge::RVNG_SEEK_CUR);
-  // Fallthrough intended
+    CDR_FALLTHROUGH;
   default:
     CDR_DEBUG_MSG(("Unknown color model %i\n", colorModel));
     break;

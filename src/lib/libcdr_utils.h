@@ -36,6 +36,14 @@
 #  define CDR_ATTRIBUTE_PRINTF(fmt, arg)
 #endif
 
+#if defined(HAVE_CLANG_ATTRIBUTE_FALLTHROUGH)
+#  define CDR_FALLTHROUGH [[clang::fallthrough]]
+#elif defined(HAVE_GCC_ATTRIBUTE_FALLTHROUGH)
+#  define CDR_FALLTHROUGH __attribute__((fallthrough))
+#else
+#  define CDR_FALLTHROUGH ((void) 0)
+#endif
+
 // do nothing with debug messages in a release compile
 #ifdef DEBUG
 namespace libcdr
