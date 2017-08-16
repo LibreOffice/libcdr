@@ -36,7 +36,7 @@ class CDRPath : public CDRPathElement
 public:
   CDRPath() : m_elements(), m_isClosed(false) {}
   CDRPath(const CDRPath &path);
-  ~CDRPath();
+  ~CDRPath() override;
 
   CDRPath &operator=(const CDRPath &path);
 
@@ -49,11 +49,11 @@ public:
   void appendClosePath();
   void appendPath(const CDRPath &path);
 
-  void writeOut(librevenge::RVNGPropertyListVector &vec) const;
+  void writeOut(librevenge::RVNGPropertyListVector &vec) const override;
   void writeOut(librevenge::RVNGString &path, librevenge::RVNGString &viewBox, double &width) const;
-  void transform(const CDRTransforms &trafos);
-  void transform(const CDRTransform &trafo);
-  CDRPathElement *clone();
+  void transform(const CDRTransforms &trafos) override;
+  void transform(const CDRTransform &trafo) override;
+  CDRPathElement *clone() override;
 
   void clear();
   bool empty() const;

@@ -104,7 +104,7 @@ class CMXParser : protected CommonParser
 {
 public:
   explicit CMXParser(CDRCollector *collector, CMXParserState &parserState);
-  virtual ~CMXParser();
+  ~CMXParser() override;
   bool parseRecords(librevenge::RVNGInputStream *input, long size = -1, unsigned level = 0);
 
 private:

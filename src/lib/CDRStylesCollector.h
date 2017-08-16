@@ -28,45 +28,45 @@ class CDRStylesCollector : public CDRCollector
 {
 public:
   CDRStylesCollector(CDRParserState &ps);
-  virtual ~CDRStylesCollector();
+  ~CDRStylesCollector() override;
 
   // collector functions
-  void collectPage(unsigned level);
-  void collectObject(unsigned) {}
-  void collectGroup(unsigned) {}
-  void collectVect(unsigned) {}
-  void collectOtherList() {}
-  void collectPath(const CDRPath &) {}
-  void collectLevel(unsigned) {}
-  void collectTransform(const CDRTransforms &, bool) {}
-  void collectFillStyle(unsigned id, const CDRFillStyle &fillStyle);
-  void collectFillStyleId(unsigned) {}
-  void collectLineStyle(unsigned id, const CDRLineStyle &lineStyle);
-  void collectLineStyleId(unsigned) {}
-  void collectRotate(double,double,double) {}
-  void collectFlags(unsigned, bool) {}
-  void collectPageSize(double width, double height, double offsetX, double offsetY);
-  void collectPolygonTransform(unsigned, unsigned, double, double, double, double) {}
-  void collectBitmap(unsigned, double, double, double, double) {}
-  void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap);
-  void collectBmp(unsigned imageId, const std::vector<unsigned char> &bitmap);
-  void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern);
-  void collectPpdt(const std::vector<std::pair<double, double> > &, const std::vector<unsigned> &) {}
-  void collectFillTransform(const CDRTransforms &) {}
-  void collectFillOpacity(double) {}
-  void collectPolygon() {}
-  void collectSpline() {}
-  void collectColorProfile(const std::vector<unsigned char> &profile);
-  void collectBBox(double, double, double, double) {}
-  void collectSpnd(unsigned) {}
-  void collectVectorPattern(unsigned, const librevenge::RVNGBinaryData &) {}
-  void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color);
+  void collectPage(unsigned level) override;
+  void collectObject(unsigned) override {}
+  void collectGroup(unsigned) override {}
+  void collectVect(unsigned) override {}
+  void collectOtherList() override {}
+  void collectPath(const CDRPath &) override {}
+  void collectLevel(unsigned) override {}
+  void collectTransform(const CDRTransforms &, bool) override {}
+  void collectFillStyle(unsigned id, const CDRFillStyle &fillStyle) override;
+  void collectFillStyleId(unsigned) override {}
+  void collectLineStyle(unsigned id, const CDRLineStyle &lineStyle) override;
+  void collectLineStyleId(unsigned) override {}
+  void collectRotate(double,double,double) override {}
+  void collectFlags(unsigned, bool) override {}
+  void collectPageSize(double width, double height, double offsetX, double offsetY) override;
+  void collectPolygonTransform(unsigned, unsigned, double, double, double, double) override {}
+  void collectBitmap(unsigned, double, double, double, double) override {}
+  void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap) override;
+  void collectBmp(unsigned imageId, const std::vector<unsigned char> &bitmap) override;
+  void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern) override;
+  void collectPpdt(const std::vector<std::pair<double, double> > &, const std::vector<unsigned> &) override {}
+  void collectFillTransform(const CDRTransforms &) override {}
+  void collectFillOpacity(double) override {}
+  void collectPolygon() override {}
+  void collectSpline() override {}
+  void collectColorProfile(const std::vector<unsigned char> &profile) override;
+  void collectBBox(double, double, double, double) override {}
+  void collectSpnd(unsigned) override {}
+  void collectVectorPattern(unsigned, const librevenge::RVNGBinaryData &) override {}
+  void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color) override;
   void collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
-                   const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRStyle> &styleOverrides);
-  void collectArtisticText(double, double) {}
-  void collectParagraphText(double, double, double, double) {}
-  void collectStld(unsigned id, const CDRStyle &style);
-  void collectStyleId(unsigned) {}
+                   const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRStyle> &styleOverrides) override;
+  void collectArtisticText(double, double) override {}
+  void collectParagraphText(double, double, double, double) override {}
+  void collectStld(unsigned id, const CDRStyle &style) override;
+  void collectStyleId(unsigned) override {}
 
 private:
   CDRStylesCollector(const CDRStylesCollector &);

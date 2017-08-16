@@ -28,7 +28,7 @@ class CDRParser : protected CommonParser
 {
 public:
   explicit CDRParser(const std::vector<librevenge::RVNGInputStream *> &externalStreams, CDRCollector *collector);
-  virtual ~CDRParser();
+  ~CDRParser() override;
   bool parseRecords(librevenge::RVNGInputStream *input, const std::vector<unsigned> &blockLengths = std::vector<unsigned>(), unsigned level = 0);
   bool parseWaldo(librevenge::RVNGInputStream *input);
 
