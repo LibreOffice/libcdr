@@ -50,7 +50,7 @@ libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, CMXParserState &pa
     m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
     m_fillIndex(0), m_nextInstructionOffset(0), m_parserState(parserState),
-    m_currentImageInfo(), m_currentPattern(0), m_currentBitmap(0) {}
+    m_currentImageInfo(), m_currentPattern(nullptr), m_currentBitmap(nullptr) {}
 
 libcdr::CMXParser::~CMXParser()
 {
@@ -319,7 +319,7 @@ const unsigned *libcdr::CMXParser::_getOffsetByType(unsigned short type, const s
   std::map<unsigned short, unsigned>::const_iterator iter = offsets.find(type);
   if (iter != offsets.end())
     return &(iter->second);
-  return 0;
+  return nullptr;
 }
 
 void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
@@ -343,7 +343,7 @@ void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
     offsets[indexRecordId] = offset;
   }
   long oldOffset = input->tell();
-  const unsigned *address = 0;
+  const unsigned *address = nullptr;
   if ((address = _getOffsetByType(CMX_COLOR_DESCRIPTION_SECTION, offsets)))
   {
     input->seek(*address, librevenge::RVNG_SEEK_SET);
@@ -1938,7 +1938,7 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
         m_collector->collectBmpf(j, m_currentPattern->width, m_currentPattern->height, m_currentPattern->pattern);
       if (m_currentPattern)
         delete m_currentPattern;
-      m_currentPattern = 0;
+      m_currentPattern = nullptr;
       break;
     }
     case 6:
@@ -1983,7 +1983,7 @@ void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
                                 m_currentBitmap->bpp, m_currentBitmap->palette, m_currentBitmap->bitmap);
       if (m_currentBitmap)
         delete m_currentBitmap;
-      m_currentBitmap = 0;
+      m_currentBitmap = nullptr;
     }
     if (sizeInFile)
       input->seek(sizeInFile-6, librevenge::RVNG_SEEK_CUR);

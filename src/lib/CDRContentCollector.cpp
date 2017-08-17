@@ -57,10 +57,10 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   : m_painter(painter), m_isDocumentStarted(false), m_isPageProperties(false), m_isPageStarted(false),
     m_ignorePage(false), m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFillStyle(), m_currentLineStyle(),
     m_spnd(0), m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
-    m_currentStyleId(0), m_currentImage(), m_currentText(0), m_currentBBox(), m_currentTextBox(), m_currentPath(),
-    m_currentTransforms(), m_fillTransforms(), m_polygon(0), m_isInPolygon(false), m_isInSpline(false),
-    m_outputElementsStack(0), m_contentOutputElementsStack(), m_fillOutputElementsStack(),
-    m_outputElementsQueue(0), m_contentOutputElementsQueue(), m_fillOutputElementsQueue(),
+    m_currentStyleId(0), m_currentImage(), m_currentText(nullptr), m_currentBBox(), m_currentTextBox(), m_currentPath(),
+    m_currentTransforms(), m_fillTransforms(), m_polygon(nullptr), m_isInPolygon(false), m_isInSpline(false),
+    m_outputElementsStack(nullptr), m_contentOutputElementsStack(), m_fillOutputElementsStack(),
+    m_outputElementsQueue(nullptr), m_contentOutputElementsQueue(), m_fillOutputElementsQueue(),
     m_groupLevels(), m_groupTransforms(), m_splineData(), m_fillOpacity(1.0), m_reverseOrder(reverseOrder),
     m_ps(ps)
 {
@@ -217,7 +217,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     if (m_polygon)
     {
       delete m_polygon;
-      m_polygon = 0;
+      m_polygon = nullptr;
     }
     m_isInPolygon = false;
     if (!m_splineData.empty() && m_isInSpline)
@@ -537,7 +537,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   m_currentTransforms.clear();
   m_fillTransforms = libcdr::CDRTransforms();
   m_fillOpacity = 1.0;
-  m_currentText = 0;
+  m_currentText = nullptr;
 }
 
 void libcdr::CDRContentCollector::collectTransform(const CDRTransforms &transforms, bool considerGroupTransform)

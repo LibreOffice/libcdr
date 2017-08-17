@@ -102,7 +102,7 @@ static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLe
   if (!buffer)
     return 0;
   UErrorCode status = U_ZERO_ERROR;
-  UCharsetDetector *csd = 0;
+  UCharsetDetector *csd = nullptr;
   try
   {
     csd = ucsdet_open(&status);
@@ -377,7 +377,7 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned
   else
   {
     UErrorCode status = U_ZERO_ERROR;
-    UConverter *conv = NULL;
+    UConverter *conv = nullptr;
     switch (charset)
     {
     case 0x80: // SHIFTJIS

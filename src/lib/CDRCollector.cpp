@@ -16,13 +16,13 @@
 libcdr::CDRParserState::CDRParserState()
   : m_bmps(), m_patterns(), m_vects(), m_pages(), m_documentPalette(), m_texts(),
     m_styles(), m_fillStyles(), m_lineStyles(),
-    m_colorTransformCMYK2RGB(0), m_colorTransformLab2RGB(0), m_colorTransformRGB2RGB(0)
+    m_colorTransformCMYK2RGB(nullptr), m_colorTransformLab2RGB(nullptr), m_colorTransformRGB2RGB(nullptr)
 {
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
   m_colorTransformRGB2RGB = cmsCreateTransform(tmpRGBProfile, TYPE_RGB_8, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
   cmsHPROFILE tmpCMYKProfile = cmsOpenProfileFromMem(CMYK_icc, sizeof(CMYK_icc)/sizeof(CMYK_icc[0]));
   m_colorTransformCMYK2RGB = cmsCreateTransform(tmpCMYKProfile, TYPE_CMYK_DBL, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
-  cmsHPROFILE tmpLabProfile = cmsCreateLab4Profile(0);
+  cmsHPROFILE tmpLabProfile = cmsCreateLab4Profile(nullptr);
   m_colorTransformLab2RGB = cmsCreateTransform(tmpLabProfile, TYPE_Lab_DBL, tmpRGBProfile, TYPE_RGB_8, INTENT_PERCEPTUAL, 0);
   cmsCloseProfile(tmpLabProfile);
   cmsCloseProfile(tmpCMYKProfile);
