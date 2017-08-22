@@ -185,10 +185,10 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input, libre
       }
     }
     dataStreams.reserve(dataFiles.size());
-    for (unsigned i=0; i<dataFiles.size(); i++)
+    for (const auto &dataFile : dataFiles)
     {
       std::string streamName("content/data/");
-      streamName += dataFiles[i];
+      streamName += dataFile;
       CDR_DEBUG_MSG(("Extracting stream: %s\n", streamName.c_str()));
       tmpInput->seek(0, librevenge::RVNG_SEEK_SET);
       dataStreams.push_back(tmpInput->getSubStreamByName(streamName.c_str()));
@@ -232,8 +232,8 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input, libre
   }
   if (input != tmpInput)
     delete input;
-  for (std::vector<librevenge::RVNGInputStream *>::iterator iter = dataStreams.begin(); iter != dataStreams.end(); ++iter)
-    delete *iter;
+  for (auto &dataStream : dataStreams)
+    delete dataStream;
   return retVal;
 }
 

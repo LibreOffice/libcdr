@@ -206,9 +206,9 @@ bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
       gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8, recordsOther);
     }
     std::map<unsigned, WaldoRecordType1> records1;
-    for (std::vector<WaldoRecordInfo>::iterator iterVec = records.begin(); iterVec != records.end(); ++iterVec)
+    for (auto &record : records)
     {
-      input->seek(iterVec->offset, librevenge::RVNG_SEEK_SET);
+      input->seek(record.offset, librevenge::RVNG_SEEK_SET);
       unsigned length = readU32(input);
       if (length != 0x18)
       {
@@ -241,7 +241,7 @@ bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
         double v5 = readFixedPoint(input) / 1000.0;
         trafo = CDRTransform(v0, v1, v2, v3, v4, v5);
       }
-      records1[iterVec->id] = WaldoRecordType1(iterVec->id, next, previous, child, parent, flags, x0, y0, x1, y1, trafo);
+      records1[record.id] = WaldoRecordType1(record.id, next, previous, child, parent, flags, x0, y0, x1, y1, trafo);
     }
     std::map<unsigned, WaldoRecordInfo>::const_iterator iter;
     for (iter = records3.begin(); iter != records3.end(); ++iter)

@@ -253,14 +253,14 @@ bool libcdr::CDRTransforms::empty() const
 
 void libcdr::CDRTransforms::applyToPoint(double &x, double &y) const
 {
-  for (std::vector<CDRTransform>::const_iterator iter = m_trafos.begin(); iter != m_trafos.end(); ++iter)
-    iter->applyToPoint(x,y);
+  for (const auto &trafo : m_trafos)
+    trafo.applyToPoint(x,y);
 }
 
 void libcdr::CDRTransforms::applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &x, double &y) const
 {
-  for (std::vector<CDRTransform>::const_iterator iter = m_trafos.begin(); iter != m_trafos.end(); ++iter)
-    iter->applyToArc(rx, ry, rotation, sweep, x, y);
+  for (const auto &trafo : m_trafos)
+    trafo.applyToArc(rx, ry, rotation, sweep, x, y);
 }
 
 double libcdr::CDRTransforms::_getScaleX() const

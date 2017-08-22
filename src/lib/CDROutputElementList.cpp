@@ -406,28 +406,28 @@ libcdr::CDROutputElementList::CDROutputElementList(const libcdr::CDROutputElemen
 
 libcdr::CDROutputElementList &libcdr::CDROutputElementList::operator=(const libcdr::CDROutputElementList &elementList)
 {
-  for (std::vector<CDROutputElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
-    delete *iter;
+  for (auto &element : m_elements)
+    delete element;
 
   m_elements.clear();
 
-  for (std::vector<CDROutputElement *>::const_iterator cstiter = elementList.m_elements.begin(); cstiter != elementList.m_elements.end(); ++cstiter)
-    m_elements.push_back((*cstiter)->clone());
+  for (auto element : elementList.m_elements)
+    m_elements.push_back(element->clone());
 
   return *this;
 }
 
 libcdr::CDROutputElementList::~CDROutputElementList()
 {
-  for (std::vector<CDROutputElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
-    delete *iter;
+  for (auto &element : m_elements)
+    delete element;
   m_elements.clear();
 }
 
 void libcdr::CDROutputElementList::draw(librevenge::RVNGDrawingInterface *painter) const
 {
-  for (std::vector<CDROutputElement *>::const_iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
-    (*iter)->draw(painter);
+  for (auto element : m_elements)
+    element->draw(painter);
 }
 
 void libcdr::CDROutputElementList::addStyle(const librevenge::RVNGPropertyList &propList)

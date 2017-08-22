@@ -569,16 +569,14 @@ void libcdr::CDRSplineToElement::writeOut(librevenge::RVNGPropertyListVector &ve
 
 void libcdr::CDRSplineToElement::transform(const CDRTransforms &trafos)
 {
-  for (std::vector<std::pair<double, double> >::iterator iter = m_points.begin();
-       iter != m_points.end(); ++iter)
-    trafos.applyToPoint(iter->first, iter->second);
+  for (auto &point : m_points)
+    trafos.applyToPoint(point.first, point.second);
 }
 
 void libcdr::CDRSplineToElement::transform(const CDRTransform &trafo)
 {
-  for (std::vector<std::pair<double, double> >::iterator iter = m_points.begin();
-       iter != m_points.end(); ++iter)
-    trafo.applyToPoint(iter->first, iter->second);
+  for (auto &point : m_points)
+    trafo.applyToPoint(point.first, point.second);
 }
 
 libcdr::CDRPathElement *libcdr::CDRSplineToElement::clone()
@@ -673,8 +671,8 @@ void libcdr::CDRPath::appendClosePath()
 
 libcdr::CDRPath::CDRPath(const libcdr::CDRPath &path) : m_elements(), m_isClosed(false)
 {
-  for (std::vector<CDRPathElement *>::const_iterator iter = path.m_elements.begin(); iter != path.m_elements.end(); ++iter)
-    m_elements.push_back((*iter)->clone());
+  for (auto element : path.m_elements)
+    m_elements.push_back(element->clone());
   m_isClosed = path.isClosed();
 }
 
@@ -684,8 +682,8 @@ libcdr::CDRPath &libcdr::CDRPath::operator=(const libcdr::CDRPath &path)
   if (this == &path)
     return *this;
   clear();
-  for (std::vector<CDRPathElement *>::const_iterator iter = path.m_elements.begin(); iter != path.m_elements.end(); ++iter)
-    m_elements.push_back((*iter)->clone());
+  for (auto element : path.m_elements)
+    m_elements.push_back(element->clone());
   m_isClosed = path.isClosed();
   return *this;
 }
@@ -698,26 +696,26 @@ libcdr::CDRPath::~CDRPath()
 
 void libcdr::CDRPath::appendPath(const CDRPath &path)
 {
-  for (std::vector<CDRPathElement *>::const_iterator iter = path.m_elements.begin(); iter != path.m_elements.end(); ++iter)
-    m_elements.push_back((*iter)->clone());
+  for (auto element : path.m_elements)
+    m_elements.push_back(element->clone());
 }
 
 void libcdr::CDRPath::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   bool wasZ = true;
-  for (std::vector<CDRPathElement *>::const_iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
+  for (auto element : m_elements)
   {
-    if (dynamic_cast<CDRClosePathElement *>(*iter))
+    if (dynamic_cast<CDRClosePathElement *>(element))
     {
       if (!wasZ)
       {
-        (*iter)->writeOut(vec);
+        element->writeOut(vec);
         wasZ = true;
       }
     }
     else
     {
-      (*iter)->writeOut(vec);
+      element->writeOut(vec);
       wasZ = false;
     }
   }
@@ -852,14 +850,14 @@ void libcdr::CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGStr
 
 void libcdr::CDRPath::transform(const CDRTransforms &trafos)
 {
-  for (std::vector<CDRPathElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
-    (*iter)->transform(trafos);
+  for (auto &element : m_elements)
+    element->transform(trafos);
 }
 
 void libcdr::CDRPath::transform(const CDRTransform &trafo)
 {
-  for (std::vector<CDRPathElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
-    (*iter)->transform(trafo);
+  for (auto &element : m_elements)
+    element->transform(trafo);
 }
 
 libcdr::CDRPathElement *libcdr::CDRPath::clone()
@@ -869,9 +867,9 @@ libcdr::CDRPathElement *libcdr::CDRPath::clone()
 
 void libcdr::CDRPath::clear()
 {
-  for (std::vector<CDRPathElement *>::iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
-    if (*iter)
-      delete *iter;
+  for (auto &element : m_elements)
+    if (element)
+      delete element;
   m_elements.clear();
   m_isClosed = false;
 }

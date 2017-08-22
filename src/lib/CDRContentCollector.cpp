@@ -471,9 +471,9 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     textFrameProps.insert("fo:padding-left", 0.0);
     textFrameProps.insert("fo:padding-right", 0.0);
     outputElement.addStartTextObject(textFrameProps);
-    for (unsigned i = 0; i < m_currentText->size(); ++i)
+    for (const auto &i : *m_currentText)
     {
-      const std::vector<CDRText> &currentLine = (*m_currentText)[i].m_line;
+      const std::vector<CDRText> &currentLine = i.m_line;
       if (currentLine.empty())
         continue;
       librevenge::RVNGPropertyList paraProps;
@@ -506,19 +506,19 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         break;
       }
       outputElement.addOpenParagraph(paraProps);
-      for (unsigned j = 0; j < currentLine.size(); ++j)
+      for (const auto &j : currentLine)
       {
-        if (!currentLine[j].m_text.empty())
+        if (!j.m_text.empty())
         {
           librevenge::RVNGPropertyList spanProps;
-          double fontSize = (double)cdr_round(144.0*currentLine[j].m_style.m_fontSize) / 2.0;
+          double fontSize = (double)cdr_round(144.0*j.m_style.m_fontSize) / 2.0;
           spanProps.insert("fo:font-size", fontSize, librevenge::RVNG_POINT);
-          if (currentLine[j].m_style.m_fontName.len())
-            spanProps.insert("style:font-name", currentLine[j].m_style.m_fontName);
-          if (currentLine[j].m_style.m_fillStyle.fillType != (unsigned short)-1)
-            spanProps.insert("fo:color", m_ps.getRGBColorString(currentLine[j].m_style.m_fillStyle.color1));
+          if (j.m_style.m_fontName.len())
+            spanProps.insert("style:font-name", j.m_style.m_fontName);
+          if (j.m_style.m_fillStyle.fillType != (unsigned short)-1)
+            spanProps.insert("fo:color", m_ps.getRGBColorString(j.m_style.m_fillStyle.color1));
           outputElement.addOpenSpan(spanProps);
-          outputElement.addInsertText(currentLine[j].m_text);
+          outputElement.addInsertText(j.m_text);
           outputElement.addCloseSpan();
         }
       }
@@ -759,9 +759,8 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
               angle -= 360.0;
             propList.insert("draw:angle", (int)angle);
             librevenge::RVNGPropertyListVector vec;
-            for (unsigned i = 0; i < m_currentFillStyle.gradient.m_stops.size(); i++)
+            for (auto &gradStop : m_currentFillStyle.gradient.m_stops)
             {
-              libcdr::CDRGradientStop &gradStop = m_currentFillStyle.gradient.m_stops[i];
               librevenge::RVNGPropertyList stopElement;
               stopElement.insert("svg:offset", gradStop.m_offset, librevenge::RVNG_PERCENT);
               stopElement.insert("svg:stop-color", m_ps.getRGBColorString(gradStop.m_color));
@@ -784,9 +783,8 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             angle -= 360.0;
           propList.insert("draw:angle", (int)angle);
           librevenge::RVNGPropertyListVector vec;
-          for (unsigned i = 0; i < m_currentFillStyle.gradient.m_stops.size(); i++)
+          for (auto &gradStop : m_currentFillStyle.gradient.m_stops)
           {
-            libcdr::CDRGradientStop &gradStop = m_currentFillStyle.gradient.m_stops[i];
             librevenge::RVNGPropertyList stopElement;
             stopElement.insert("svg:offset", gradStop.m_offset, librevenge::RVNG_PERCENT);
             stopElement.insert("svg:stop-color", m_ps.getRGBColorString(gradStop.m_color));
