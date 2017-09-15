@@ -1733,6 +1733,7 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
 
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRdot - numRecords %i\n", numRecords));
+  sanitizeNumRecords(numRecords, m_precision, 2, 2, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     std::vector<unsigned> dots;
@@ -1751,6 +1752,8 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
         case CMX_Tag_DescrSection_Dash:
         {
           unsigned short dotCount = readU16(input, m_bigEndian);
+          if (dotCount > getRemainingLength(input) / 2)
+            dotCount = getRemainingLength(input) / 2;
           for (unsigned short i = 0; i < dotCount; ++i)
             dots.push_back(readU16(input, m_bigEndian));
           break;
@@ -1765,6 +1768,8 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       unsigned short dotCount = readU16(input, m_bigEndian);
+      if (dotCount > getRemainingLength(input) / 2)
+        dotCount = getRemainingLength(input) / 2;
       for (unsigned short i = 0; i < dotCount; ++i)
         dots.push_back(readU16(input, m_bigEndian));
     }
