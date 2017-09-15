@@ -1142,6 +1142,8 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
         case CMX_Tag_RenderAttr_FillSpec_Fountain_Color:
         {
           unsigned short colorCount = readU16(input, m_bigEndian);
+          if (colorCount > getRemainingLength(input) / 4)
+            colorCount = getRemainingLength(input) / 4;
           for (unsigned short i = 0; i < colorCount; ++i)
           {
             unsigned short colorRef = readU16(input, m_bigEndian);
@@ -1173,6 +1175,8 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       /* unsigned short steps = */ readU16(input, m_bigEndian);
       gradient.m_mode = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
       unsigned short colorCount = readU16(input, m_bigEndian);
+      if (colorCount > getRemainingLength(input) / 4)
+        colorCount = getRemainingLength(input) / 4;
       for (unsigned short i = 0; i < colorCount; ++i)
       {
         unsigned short colorRef = readU16(input, m_bigEndian);
@@ -1193,6 +1197,8 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     {
       /* unsigned atom = */ readU32(input, m_bigEndian);
       unsigned short count = readU16(input, m_bigEndian);
+      if (count > getRemainingLength(input) / 2)
+        count = getRemainingLength(input) / 2;
       for (unsigned short i = 0; i < count; ++i)
         readU16(input, m_bigEndian);
       readString(input);
