@@ -1878,6 +1878,7 @@ void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
 
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRpen - numRecords %i\n", numRecords));
+  sanitizeNumRecords(numRecords, m_precision, 10, 12, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     CMXPen pen;
