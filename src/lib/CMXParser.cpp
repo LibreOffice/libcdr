@@ -1979,6 +1979,7 @@ void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
 
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readIxef - numRecords %i\n", numRecords));
+  sanitizeNumRecords(numRecords, m_precision, 6, 8 - 1, 0, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     int sizeInFile(0);
