@@ -1941,6 +1941,7 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
       return;
   }
   unsigned type = readU16(input, m_bigEndian);
+  sanitizeNumRecords(numRecords, m_precision, 4, 4 - 1, 0, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     switch (type)
