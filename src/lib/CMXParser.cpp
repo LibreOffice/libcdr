@@ -1444,6 +1444,8 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       /* librevenge::RVNGString name = */ readString(input);
       /* librevenge::RVNGString stl = */ readString(input);
       unsigned short count = readU16(input, m_bigEndian);
+      if (count > getRemainingLength(input) / 8)
+        count = getRemainingLength(input) / 8;
       for (unsigned short i = 0; i < count; ++i)
       {
         readU16(input, m_bigEndian);
