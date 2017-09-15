@@ -43,6 +43,20 @@ uint16_t readTagLength(librevenge::RVNGInputStream *const input, const bool bigE
   return tagLength;
 }
 
+void sanitizeNumRecords(
+  unsigned &numRecords,
+  const libcdr::CoordinatePrecision precision, const unsigned size16, const unsigned size32, const unsigned tags,
+  const unsigned long remainingLength)
+{
+  unsigned recordSize = 1;
+  if (precision == libcdr::PRECISION_16BIT)
+    recordSize = size16;
+  else if (precision == libcdr::PRECISION_32BIT)
+    recordSize = size32 + 3 * tags + 1;
+  if (numRecords > remainingLength / recordSize)
+    numRecords = remainingLength / recordSize;
+}
+
 }
 
 libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, CMXParserState &parserState)
@@ -1806,6 +1820,7 @@ void libcdr::CMXParser::readRotl(librevenge::RVNGInputStream *input)
 
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRotl - numRecords %i\n", numRecords));
+  sanitizeNumRecords(numRecords, m_precision, 12, 12, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     CMXOutline outline;
