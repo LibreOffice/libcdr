@@ -1772,6 +1772,7 @@ void libcdr::CMXParser::readRott(librevenge::RVNGInputStream *input)
 
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRott - numRecords %i\n", numRecords));
+  sanitizeNumRecords(numRecords, m_precision, 2, 2, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     CMXLineStyle lineStyle;
