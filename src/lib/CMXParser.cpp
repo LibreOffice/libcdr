@@ -353,6 +353,8 @@ void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
   readU16(input, m_bigEndian); // Master ID
   readU16(input, m_bigEndian); // Size
   unsigned short recordCount = readU16(input, m_bigEndian);
+  if (recordCount > getRemainingLength(input) / 6)
+    recordCount = getRemainingLength(input) / 6;
   std::map<unsigned short, unsigned> offsets;
   for (unsigned short i = 1; i <= recordCount; ++i)
   {
