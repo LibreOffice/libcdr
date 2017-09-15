@@ -14,6 +14,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <memory>
 #include <librevenge-stream/librevenge-stream.h>
 #include "CDRTypes.h"
 #include "CommonParser.h"
@@ -168,8 +169,8 @@ private:
   unsigned m_nextInstructionOffset;
   CMXParserState &m_parserState;
   CMXImageInfo m_currentImageInfo;
-  CDRPattern *m_currentPattern;
-  CDRBitmap *m_currentBitmap;
+  std::unique_ptr<CDRPattern> m_currentPattern;
+  std::unique_ptr<CDRBitmap> m_currentBitmap;
 };
 
 } // namespace libcdr

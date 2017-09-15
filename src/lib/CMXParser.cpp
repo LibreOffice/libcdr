@@ -72,14 +72,10 @@ libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, CMXParserState &pa
     m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
     m_fillIndex(0), m_nextInstructionOffset(0), m_parserState(parserState),
-    m_currentImageInfo(), m_currentPattern(nullptr), m_currentBitmap(nullptr) {}
+    m_currentImageInfo(), m_currentPattern(), m_currentBitmap() {}
 
 libcdr::CMXParser::~CMXParser()
 {
-  if (m_currentPattern)
-    delete m_currentPattern;
-  if (m_currentBitmap)
-    delete m_currentBitmap;
 }
 
 bool libcdr::CMXParser::parseRecords(librevenge::RVNGInputStream *input, long size, unsigned level)
@@ -1963,8 +1959,6 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
       input->seek(oldOffset, librevenge::RVNG_SEEK_SET);
       if (m_currentPattern && !m_currentPattern->pattern.empty())
         m_collector->collectBmpf(j, m_currentPattern->width, m_currentPattern->height, m_currentPattern->pattern);
-      if (m_currentPattern)
-        delete m_currentPattern;
       m_currentPattern = nullptr;
       break;
     }
@@ -2009,8 +2003,6 @@ void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
       if (m_currentBitmap && !(m_currentBitmap->bitmap.empty()))
         m_collector->collectBmp(j, m_currentBitmap->colorModel, m_currentBitmap->width, m_currentBitmap->height,
                                 m_currentBitmap->bpp, m_currentBitmap->palette, m_currentBitmap->bitmap);
-      if (m_currentBitmap)
-        delete m_currentBitmap;
       m_currentBitmap = nullptr;
     }
     if (sizeInFile)
@@ -2154,18 +2146,14 @@ void libcdr::CMXParser::readData(librevenge::RVNGInputStream *input)
         {
           unsigned fileSize = readU32(input, m_bigEndian);
           input->seek(8, librevenge::RVNG_SEEK_CUR);
-          if (m_currentPattern)
-            delete m_currentPattern;
-          m_currentPattern = new libcdr::CDRPattern();
+          m_currentPattern.reset(new libcdr::CDRPattern());
           readBmpPattern(m_currentPattern->width, m_currentPattern->height, m_currentPattern->pattern,
                          fileSize - 14, input, m_bigEndian);
         }
         else if (0x52 == first && 0x49 == second) // RI
         {
           input->seek(12, librevenge::RVNG_SEEK_CUR);
-          if (m_currentBitmap)
-            delete m_currentBitmap;
-          m_currentBitmap = new libcdr::CDRBitmap();
+          m_currentBitmap.reset(new libcdr::CDRBitmap());
           readRImage(m_currentBitmap->colorModel, m_currentBitmap->width, m_currentBitmap->height,
                      m_currentBitmap->bpp, m_currentBitmap->palette, m_currentBitmap->bitmap,
                      input, m_bigEndian);
@@ -2187,17 +2175,13 @@ void libcdr::CMXParser::readData(librevenge::RVNGInputStream *input)
     {
       unsigned fileSize = readU32(input, m_bigEndian);
       input->seek(8, librevenge::RVNG_SEEK_CUR);
-      if (m_currentPattern)
-        delete m_currentPattern;
-      m_currentPattern = new libcdr::CDRPattern();
+      m_currentPattern.reset(new libcdr::CDRPattern());
       readBmpPattern(m_currentPattern->width, m_currentPattern->height, m_currentPattern->pattern, fileSize - 14, input);
     }
     else if (0x52 == first && 0x49 == second)
     {
       input->seek(12, librevenge::RVNG_SEEK_CUR); // RI
-      if (m_currentBitmap)
-        delete m_currentBitmap;
-      m_currentBitmap = new libcdr::CDRBitmap();
+      m_currentBitmap.reset(new libcdr::CDRBitmap());
       readRImage(m_currentBitmap->colorModel, m_currentBitmap->width, m_currentBitmap->height,
                  m_currentBitmap->bpp, m_currentBitmap->palette, m_currentBitmap->bitmap,
                  input, m_bigEndian);
