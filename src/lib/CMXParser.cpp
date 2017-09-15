@@ -1672,6 +1672,7 @@ void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input)
 
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRclr - numRecords %i\n", numRecords));
+  sanitizeNumRecords(numRecords, m_precision, 2, 2 + 0, 2, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     CDR_DEBUG_MSG(("Color index %i\n", j));
