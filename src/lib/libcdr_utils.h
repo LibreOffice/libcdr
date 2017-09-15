@@ -60,6 +60,11 @@ void debugPrint(const char *format, ...) CDR_ATTRIBUTE_PRINTF(1, 2);
 namespace libcdr
 {
 
+struct CDRDummyDeleter
+{
+  void operator()(void *) const {}
+};
+
 uint8_t readU8(librevenge::RVNGInputStream *input, bool bigEndian=false);
 uint16_t readU16(librevenge::RVNGInputStream *input, bool bigEndian=false);
 uint32_t readU32(librevenge::RVNGInputStream *input, bool bigEndian=false);
