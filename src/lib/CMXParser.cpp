@@ -1003,6 +1003,8 @@ libcdr::CDRBox libcdr::CMXParser::readBBox(librevenge::RVNGInputStream *input)
 librevenge::RVNGString libcdr::CMXParser::readString(librevenge::RVNGInputStream *input)
 {
   unsigned short count = readU16(input, m_bigEndian);
+  if (count > getRemainingLength(input))
+    count = getRemainingLength(input);
   librevenge::RVNGString tmpString;
   for (unsigned short i = 0; i < count; ++i)
     tmpString.append((char)readU8(input, m_bigEndian));
