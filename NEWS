@@ -2,6 +2,7 @@ libcdr 0.1.4
 
 * Fix several issues found by oss-fuzz.
 * Require C++11 for build.
+* Fix issues found by coverity.
 * Various code cleanups.
 
 libcdr 0.1.3
