@@ -2017,6 +2017,7 @@ void libcdr::CMXParser::readIxpg(librevenge::RVNGInputStream *input)
 
   unsigned numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readIxpg - numRecords %i\n", numRecords));
+  sanitizeNumRecords(numRecords, m_precision, 16, 18 - 1, 0, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     int sizeInFile(0);
