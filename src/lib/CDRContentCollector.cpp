@@ -797,7 +797,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
       case 7: // Pattern
       case 8: // Pattern
       {
-        std::map<unsigned, CDRPattern>::iterator iterPattern = m_ps.m_patterns.find(m_currentFillStyle.imageFill.id);
+        auto iterPattern = m_ps.m_patterns.find(m_currentFillStyle.imageFill.id);
         if (iterPattern != m_ps.m_patterns.end())
         {
           propList.insert("draw:fill", "bitmap");
@@ -871,7 +871,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
       case 9: // Bitmap
       case 11: // Texture
       {
-        std::map<unsigned, librevenge::RVNGBinaryData>::iterator iterBmp = m_ps.m_bmps.find(m_currentFillStyle.imageFill.id);
+        auto iterBmp = m_ps.m_bmps.find(m_currentFillStyle.imageFill.id);
         if (iterBmp != m_ps.m_bmps.end())
         {
           propList.insert("librevenge:mime-type", "image/bmp");
@@ -931,7 +931,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
       break;
       case 10: // Full color
       {
-        std::map<unsigned, librevenge::RVNGBinaryData>::iterator iterVect = m_ps.m_vects.find(m_currentFillStyle.imageFill.id);
+        auto iterVect = m_ps.m_vects.find(m_currentFillStyle.imageFill.id);
         if (iterVect != m_ps.m_vects.end())
         {
           propList.insert("draw:fill", "bitmap");
@@ -1155,7 +1155,7 @@ void libcdr::CDRContentCollector::_generateBitmapFromPattern(librevenge::RVNGBin
 {
   unsigned height = pattern.height;
   unsigned width = pattern.width;
-  unsigned tmpPixelSize = (unsigned)(height * width);
+  auto tmpPixelSize = (unsigned)(height * width);
   if (tmpPixelSize < (unsigned)height) // overflow
     return;
 
@@ -1224,7 +1224,7 @@ void libcdr::CDRContentCollector::_generateBitmapFromPattern(librevenge::RVNGBin
 
 void libcdr::CDRContentCollector::collectBitmap(unsigned imageId, double x1, double x2, double y1, double y2)
 {
-  std::map<unsigned, librevenge::RVNGBinaryData>::iterator iter = m_ps.m_bmps.find(imageId);
+  auto iter = m_ps.m_bmps.find(imageId);
   if (iter != m_ps.m_bmps.end())
     m_currentImage = CDRImage(iter->second, x1, x2, y1, y2);
 }

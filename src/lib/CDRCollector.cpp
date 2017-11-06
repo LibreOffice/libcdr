@@ -305,7 +305,7 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
       0x00, 0x46, 0x73, 0x91, 0xa2, 0xad, 0x2a, 0x3d, 0x69, 0x7d, 0x85, 0x8f, 0xa3,
     };
 
-    unsigned short pantoneIndex = (unsigned short)(((int)col1 << 8) | (int)col0);
+    auto pantoneIndex = (unsigned short)(((int)col1 << 8) | (int)col0);
     double pantoneSaturation = (double)(((unsigned short)col3 << 8) | (unsigned short)col2) / 100.0;
     typedef struct
     {
@@ -322,9 +322,9 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
       pureColor.g = WaldoColorType0_G[pantoneIndex];
       pureColor.b = WaldoColorType0_B[pantoneIndex];
     }
-    unsigned tmpRed = (unsigned)cdr_round(255.0*(1-pantoneSaturation) + (double)pureColor.r*pantoneSaturation);
-    unsigned tmpGreen = (unsigned)cdr_round(255.0*(1-pantoneSaturation) + (double)pureColor.g*pantoneSaturation);
-    unsigned tmpBlue = (unsigned)cdr_round(255.0*(1-pantoneSaturation) + (double)pureColor.b*pantoneSaturation);
+    auto tmpRed = (unsigned)cdr_round(255.0*(1-pantoneSaturation) + (double)pureColor.r*pantoneSaturation);
+    auto tmpGreen = (unsigned)cdr_round(255.0*(1-pantoneSaturation) + (double)pureColor.g*pantoneSaturation);
+    auto tmpBlue = (unsigned)cdr_round(255.0*(1-pantoneSaturation) + (double)pureColor.b*pantoneSaturation);
     red = (tmpRed < 255 ? (unsigned char)tmpRed : 255);
     green = (tmpGreen < 255 ? (unsigned char)tmpGreen : 255);
     blue = (tmpBlue < 255 ? (unsigned char)tmpBlue : 255);
@@ -390,7 +390,7 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
   // HSB
   case 0x06:
   {
-    unsigned short hue = (unsigned short)(((int)col1<<8) | col0);
+    auto hue = (unsigned short)(((int)col1<<8) | col0);
     double saturation = (double)col2/255.0;
     double brightness = (double)col3/255.0;
 
@@ -425,7 +425,7 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
   // HLS
   case 0x07:
   {
-    unsigned short hue = (unsigned short)(((int)col1<<8) | col0);
+    auto hue = (unsigned short)(((int)col1<<8) | col0);
     double lightness = (double)col2/255.0;
     double saturation = (double)col3/255.0;
 
@@ -490,9 +490,9 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
   // YIQ255
   case 0x0b:
   {
-    double y = (double)col0;
-    double i = (double)col1;
-    double q = (double)col2;
+    auto y = (double)col0;
+    auto i = (double)col1;
+    auto q = (double)col2;
 
     y -= 100.0;
     if (y < 0.0)

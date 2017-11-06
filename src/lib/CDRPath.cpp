@@ -516,7 +516,7 @@ void libcdr::CDRSplineToElement::writeOut(librevenge::RVNGPropertyListVector &ve
     unsigned mult = b - i + 1;
     if (mult < CDR_SPLINE_DEGREE)
     {
-      double numer = (double)(knot(b) - knot(a));
+      auto numer = (double)(knot(b) - knot(a));
       unsigned j = CDR_SPLINE_DEGREE;
       std::map<unsigned, double> alphas;
       for (; j >mult; j--)

@@ -34,13 +34,13 @@ try
   if (riff != CDR_FOURCC_RIFF && riff != CDR_FOURCC_RIFX)
     return false;
   input->seek(4, librevenge::RVNG_SEEK_CUR);
-  char signature_c = (char)readU8(input);
+  auto signature_c = (char)readU8(input);
   if (signature_c != 'C' && signature_c != 'c')
     return false;
-  char signature_d = (char)readU8(input);
+  auto signature_d = (char)readU8(input);
   if (signature_d != 'M' && signature_d != 'm')
     return false;
-  char signature_r = (char)readU8(input);
+  auto signature_r = (char)readU8(input);
   if (signature_r != 'X' && signature_r != 'x')
     return false;
   return true;

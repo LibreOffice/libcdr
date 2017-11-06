@@ -228,7 +228,7 @@ void libcdr::CMXParser::readCMXHeader(librevenge::RVNGInputStream *input)
   for (i = 0; i < 2; i++)
     tmpString.append((char)readU8(input, m_bigEndian));
   CDR_DEBUG_MSG(("CMX Coordinate Size: %s\n", tmpString.cstr()));
-  unsigned short coordSize = (unsigned short)atoi(tmpString.cstr());
+  auto coordSize = (unsigned short)atoi(tmpString.cstr());
   switch (coordSize)
   {
   case 2:
@@ -334,7 +334,7 @@ void libcdr::CMXParser::readDisp(librevenge::RVNGInputStream *input)
 
 const unsigned *libcdr::CMXParser::_getOffsetByType(unsigned short type, const std::map<unsigned short, unsigned> &offsets)
 {
-  std::map<unsigned short, unsigned>::const_iterator iter = offsets.find(type);
+  auto iter = offsets.find(type);
   if (iter != offsets.end())
     return &(iter->second);
   return nullptr;
@@ -1063,7 +1063,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
   libcdr::CDRColor color2;
   libcdr::CDRImageFill imageFill;
   libcdr::CDRGradient gradient;
-  unsigned fillId = (unsigned)input->tell();
+  auto fillId = (unsigned)input->tell();
   unsigned fillType = readU16(input, m_bigEndian);
   switch (fillType)
   {
@@ -1514,7 +1514,7 @@ bool libcdr::CMXParser::readRenderingAttributes(librevenge::RVNGInputStream *inp
   if (bitMask & 0x02) // outline
   {
     CDRLineStyle lineStyle;
-    unsigned lineStyleId = (unsigned)input->tell();
+    auto lineStyleId = (unsigned)input->tell();
     if (m_precision == libcdr::PRECISION_32BIT)
     {
       do

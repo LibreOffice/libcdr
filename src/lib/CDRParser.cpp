@@ -255,7 +255,7 @@ bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
     if (!records1.empty() && !records2.empty())
     {
 
-      std::map<unsigned, WaldoRecordType1>::iterator iter1 = records1.find(1);
+      auto iter1 = records1.find(1);
       std::stack<WaldoRecordType1> waldoStack;
       if (iter1 != records1.end())
       {
@@ -1538,7 +1538,7 @@ void libcdr::CDRParser::readWaldoOutl(librevenge::RVNGInputStream *input)
     return;
   unsigned short lineType = readU8(input);
   lineType <<= 1;
-  double lineWidth = (double)readCoordinate(input);
+  auto lineWidth = (double)readCoordinate(input);
   double stretch = (double)readU16(input) / 100.0;
   double angle = readAngle(input);
   libcdr::CDRColor color = readColor(input);
@@ -1810,7 +1810,7 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
     gradient.m_mode = (unsigned char)(readUnsigned(input) & 0xff);
     gradient.m_midPoint = (double)readU8(input) / 100.0;
     input->seek(1, librevenge::RVNG_SEEK_CUR);
-    unsigned short numStops = (unsigned short)(readUnsigned(input) & 0xffff);
+    auto numStops = (unsigned short)(readUnsigned(input) & 0xffff);
     if (m_version >= 1300)
       input->seek(3, librevenge::RVNG_SEEK_CUR);
     for (unsigned short i = 0; i < numStops; ++i)
@@ -2040,7 +2040,7 @@ void libcdr::CDRParser::readOutl(librevenge::RVNGInputStream *input, unsigned le
   unsigned short joinType = readU16(input);
   if (m_version < 1300 && m_version >= 600)
     input->seek(2, librevenge::RVNG_SEEK_CUR);
-  double lineWidth = (double)readCoordinate(input);
+  auto lineWidth = (double)readCoordinate(input);
   double stretch = (double)readU16(input) / 100.0;
   if (m_version >= 600)
     input->seek(2, librevenge::RVNG_SEEK_CUR);

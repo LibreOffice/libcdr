@@ -262,8 +262,8 @@ double libcdr::readDouble(librevenge::RVNGInputStream *input, bool bigEndian)
 double libcdr::readFixedPoint(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   unsigned fixedPointNumber = readU32(input, bigEndian);
-  short fixedPointNumberIntegerPart = (short)((fixedPointNumber & 0xFFFF0000) >> 16);
-  double fixedPointNumberFractionalPart = (double)((double)(fixedPointNumber & 0x0000FFFF)/(double)0xFFFF);
+  auto fixedPointNumberIntegerPart = (short)((fixedPointNumber & 0xFFFF0000) >> 16);
+  auto fixedPointNumberFractionalPart = (double)((double)(fixedPointNumber & 0x0000FFFF)/(double)0xFFFF);
   return ((double)fixedPointNumberIntegerPart + fixedPointNumberFractionalPart);
 }
 
@@ -425,7 +425,7 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned
     }
     if (U_SUCCESS(status) && conv)
     {
-      const char *src = (const char *)&characters[0];
+      const auto *src = (const char *)&characters[0];
       const char *srcLimit = (const char *)src + characters.size();
       while (src < srcLimit)
       {
@@ -449,7 +449,7 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned
 
   if (U_SUCCESS(status) && conv)
   {
-    const char *src = (const char *)&characters[0];
+    const auto *src = (const char *)&characters[0];
     const char *srcLimit = (const char *)src + characters.size();
     while (src < srcLimit)
     {

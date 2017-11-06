@@ -31,13 +31,13 @@ static unsigned getCDRVersion(librevenge::RVNGInputStream *input)
   if (riff != CDR_FOURCC_RIFF)
     return 0;
   input->seek(4, librevenge::RVNG_SEEK_CUR);
-  char signature_c = (char)readU8(input);
+  auto signature_c = (char)readU8(input);
   if (signature_c != 'C' && signature_c != 'c')
     return 0;
-  char signature_d = (char)readU8(input);
+  auto signature_d = (char)readU8(input);
   if (signature_d != 'D' && signature_d != 'd')
     return 0;
-  char signature_r = (char)readU8(input);
+  auto signature_r = (char)readU8(input);
   if (signature_r != 'R' && signature_r != 'r')
     return 0;
   unsigned char c = readU8(input);

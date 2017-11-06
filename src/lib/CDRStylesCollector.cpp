@@ -35,7 +35,7 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
   if (height == 0)
     height = 1;
 
-  unsigned tmpPixelSize = (unsigned)(height * width);
+  auto tmpPixelSize = (unsigned)(height * width);
   if (tmpPixelSize < (unsigned)height) // overflow
     return;
 
@@ -226,7 +226,7 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   for (i=0, j=0; i<charDescriptions.size() && j<data.size(); ++i)
   {
     tmpCharStyle = defaultCharStyle;
-    std::map<unsigned, CDRStyle>::const_iterator iter = styleOverrides.find(tmpCharDescription & 0xfe);
+    auto iter = styleOverrides.find(tmpCharDescription & 0xfe);
     if (iter != styleOverrides.end())
       tmpCharStyle.overrideStyle(iter->second);
     if (charDescriptions[i] != tmpCharDescription)
