@@ -345,10 +345,7 @@ void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
   unsigned fourCC = readU32(input, m_bigEndian);
   if (CDR_FOURCC_ixmr != fourCC)
     return;
-  unsigned length = readU32(input, m_bigEndian);
-  const unsigned long maxLength = getRemainingLength(input);
-  if (length > maxLength)
-    length = maxLength;
+  readU32(input, m_bigEndian); // Length
 
   readU16(input, m_bigEndian); // Master ID
   readU16(input, m_bigEndian); // Size
