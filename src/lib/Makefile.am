@@ -6,12 +6,6 @@ endif
 
 noinst_LTLIBRARIES = libcdr-internal.la
 lib_LTLIBRARIES = libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@.la
-libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_includedir = $(includedir)/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@/libcdr
-libcdr_@CDR_MAJOR_VERSION@_@CDR_MINOR_VERSION@_include_HEADERS = \
-	$(top_srcdir)/inc/libcdr/libcdr.h \
-	$(top_srcdir)/inc/libcdr/libcdr_api.h \
-	$(top_srcdir)/inc/libcdr/CDRDocument.h \
-	$(top_srcdir)/inc/libcdr/CMXDocument.h
 
 AM_CXXFLAGS = -I$(top_srcdir)/inc \
 	$(REVENGE_CFLAGS) \
