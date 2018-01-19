@@ -1652,7 +1652,7 @@ void libcdr::CMXParser::readJumpAbsolute(librevenge::RVNGInputStream *input)
     unsigned short tagLength = 0;
     do
     {
-      long endOffset = input->tell() + tagLength;
+      long offset = input->tell();
       tagId = readU8(input, m_bigEndian);
       if (tagId == CMX_Tag_EndTag)
       {
@@ -1668,7 +1668,7 @@ void libcdr::CMXParser::readJumpAbsolute(librevenge::RVNGInputStream *input)
       default:
         break;
       }
-      input->seek(endOffset, librevenge::RVNG_SEEK_SET);
+      input->seek(offset + tagLength, librevenge::RVNG_SEEK_SET);
     }
     while (tagId != CMX_Tag_EndTag);
   }
