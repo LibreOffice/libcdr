@@ -123,6 +123,8 @@ bool libcdr::CMXParser::parseRecord(librevenge::RVNGInputStream *input, unsigned
 
     if (fourCC == CDR_FOURCC_RIFF || fourCC == CDR_FOURCC_RIFX || fourCC == CDR_FOURCC_LIST)
     {
+      if (length < 4)
+        return false;
 #ifdef DEBUG
       unsigned listType = readU32(input, m_bigEndian);
 #else
