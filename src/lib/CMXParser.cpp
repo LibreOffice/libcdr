@@ -1373,11 +1373,11 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
         {
         case CMX_Tag_RenderAttr_FillSpec_Texture:
         {
-          long subStartOffset = input->tell();
           unsigned char subTagId = 0;
           unsigned short subTagLength = 0;
           do
           {
+            long subStartOffset = input->tell();
             subTagId = readU8(input, m_bigEndian);
             if (subTagId == CMX_Tag_EndTag)
               break;
