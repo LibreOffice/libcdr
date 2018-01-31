@@ -29,6 +29,8 @@
 #define DUMP_IMAGE 0
 #endif
 
+static const int MAX_RECORD_DEPTH = 1 << 10;
+
 namespace
 {
 
@@ -80,7 +82,7 @@ libcdr::CMXParser::~CMXParser()
 
 bool libcdr::CMXParser::parseRecords(librevenge::RVNGInputStream *input, long size, unsigned level)
 {
-  if (!input)
+  if (!input || level > MAX_RECORD_DEPTH)
   {
     return false;
   }
