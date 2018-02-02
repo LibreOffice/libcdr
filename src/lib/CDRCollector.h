@@ -11,23 +11,21 @@
 #define __CDRCOLLECTOR_H__
 
 #include <map>
+#include <utility>
 #include <vector>
-#include <stack>
+
 #include <librevenge/librevenge.h>
 #include <librevenge-stream/librevenge-stream.h>
-#include <lcms2.h>
-#include "CDRTypes.h"
-#include "CDRPath.h"
-#include "CDROutputElementList.h"
-#include "libcdr_utils.h"
 
-namespace
-{
-#include "CDRColorProfiles.h"
-}
+#include <lcms2.h>
+
+#include "CDRTypes.h"
 
 namespace libcdr
 {
+
+class CDRPath;
+class CDRTransforms;
 
 class CDRParserState
 {

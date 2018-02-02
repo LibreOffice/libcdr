@@ -10,11 +10,16 @@
 #ifndef __COMMONPARSER_H__
 #define __COMMONPARSER_H__
 
-#include "CDRCollector.h"
-#include "CDRPath.h"
+#include <utility>
+#include <vector>
+
+#include <librevenge-stream/librevenge-stream.h>
 
 namespace libcdr
 {
+
+class CDRCollector;
+class CDRPath;
 
 enum CoordinatePrecision
 { PRECISION_UNKNOWN = 0, PRECISION_16BIT, PRECISION_32BIT };

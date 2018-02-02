@@ -12,7 +12,7 @@
 #include <librevenge/librevenge.h>
 #include <libcdr/libcdr.h>
 #include "CDRContentCollector.h"
-#include "CDRInternalStream.h"
+#include "CDROutputElementList.h"
 #include "libcdr_utils.h"
 
 #ifndef DUMP_PATTERN

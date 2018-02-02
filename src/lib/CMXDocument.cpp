@@ -7,9 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <map>
-#include <string>
-#include <string.h>
 #include <libcdr/libcdr.h>
 #include "CDRDocumentStructure.h"
 #include "CMXParser.h"

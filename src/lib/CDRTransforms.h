@@ -11,12 +11,10 @@
 #define __CDRTRANSFORMS_H__
 
 #include <vector>
-#include <math.h>
 #include <librevenge/librevenge.h>
 
 namespace libcdr
 {
-class CDRPath;
 
 class CDRTransform
 {

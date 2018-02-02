@@ -10,12 +10,13 @@
 #ifndef __CMXPARSER_H__
 #define __CMXPARSER_H__
 
-#include <stdio.h>
-#include <iostream>
 #include <vector>
 #include <map>
 #include <memory>
+
 #include <librevenge-stream/librevenge-stream.h>
+
+#include "CDRTransforms.h"
 #include "CDRTypes.h"
 #include "CommonParser.h"
 

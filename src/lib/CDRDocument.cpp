@@ -9,7 +9,6 @@
 
 #include <memory>
 #include <string>
-#include <string.h>
 
 #include <libcdr/libcdr.h>
 #include "CDRParser.h"

@@ -9,7 +9,6 @@
 
 #include <zlib.h>
 #include "CDRInternalStream.h"
-#include "libcdr_utils.h"
 #include <string.h>  // for memcpy
 
 

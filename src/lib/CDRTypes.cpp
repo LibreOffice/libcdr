@@ -8,8 +8,8 @@
  */
 
 #include "CDRTypes.h"
+
 #include "CDRPath.h"
-#include "libcdr_utils.h"
 
 void libcdr::CDRPolygon::create(libcdr::CDRPath &path) const
 {

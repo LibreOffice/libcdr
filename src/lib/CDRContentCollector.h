@@ -11,14 +11,17 @@
 #define __CDRCONTENTCOLLECTOR_H__
 
 #include <map>
+#include <utility>
 #include <vector>
 #include <stack>
 #include <queue>
+
 #include <librevenge/librevenge.h>
-#include <lcms2.h>
+
+#include "CDROutputElementList.h"
+#include "CDRTransforms.h"
 #include "CDRTypes.h"
 #include "CDRPath.h"
-#include "CDROutputElementList.h"
 #include "CDRCollector.h"
 
 namespace libcdr

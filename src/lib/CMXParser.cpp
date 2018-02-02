@@ -8,14 +8,13 @@
  */
 
 #include <librevenge-stream/librevenge-stream.h>
-#include <cinttypes>
-#include <locale.h>
+
 #include <math.h>
-#include <set>
-#include <string.h>
 #include <stdlib.h>
+#include <utility>
+
 #include "libcdr_utils.h"
-#include "CDRInternalStream.h"
+#include "CDRPath.h"
 #include "CMXParser.h"
 #include "CDRCollector.h"
 #include "CDRDocumentStructure.h"

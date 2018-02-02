@@ -10,10 +10,8 @@
 #ifndef __CDROUTPUTELEMENTLIST_H__
 #define __CDROUTPUTELEMENTLIST_H__
 
-#include <map>
-#include <list>
 #include <vector>
-#include <librevenge/librevenge.h>
+
 #include <librevenge/librevenge.h>
 
 namespace libcdr

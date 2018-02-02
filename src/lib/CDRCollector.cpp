@@ -8,9 +8,11 @@
  */
 
 #include <math.h>
+#include <stack>
 #include <string.h>
 #include <lcms2.h>
 #include "CDRCollector.h"
+#include "CDRColorProfiles.h"
 #include "libcdr_utils.h"
 
 libcdr::CDRParserState::CDRParserState()

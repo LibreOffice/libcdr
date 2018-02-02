@@ -14,7 +14,6 @@
 #include "config.h"
 #endif
 
-#include <string>
 #include <math.h>
 #include <vector>
 

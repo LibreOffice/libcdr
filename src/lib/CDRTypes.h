@@ -10,6 +10,7 @@
 #ifndef __CDRTYPES_H__
 #define __CDRTYPES_H__
 
+#include <utility>
 #include <vector>
 #include <math.h>
 #include <librevenge/librevenge.h>

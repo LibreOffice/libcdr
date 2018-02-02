@@ -8,7 +8,9 @@
  */
 
 #include <string.h>
-#include <librevenge-stream/librevenge-stream.h>
+
+#include "CDRCollector.h"
+#include "CDRPath.h"
 #include "libcdr_utils.h"
 #include "CommonParser.h"
 

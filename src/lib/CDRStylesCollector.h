@@ -11,18 +11,19 @@
 #define __CDRSTYLESCOLLECTOR_H__
 
 #include <map>
+#include <utility>
 #include <vector>
-#include <stack>
+
 #include <librevenge/librevenge.h>
-#include <lcms2.h>
+
 #include "CDRTypes.h"
-#include "CDRPath.h"
-#include "CDROutputElementList.h"
 #include "CDRCollector.h"
-#include "libcdr_utils.h"
 
 namespace libcdr
 {
+
+class CDRPath;
+class CDRTransforms;
 
 class CDRStylesCollector : public CDRCollector
 {

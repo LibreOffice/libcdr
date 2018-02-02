@@ -9,8 +9,9 @@
 
 #include <math.h>
 #include <map>
+
 #include "CDRPath.h"
-#include "CDRTypes.h"
+#include "CDRTransforms.h"
 
 #ifndef DEBUG_SPLINES
 #define DEBUG_SPLINES 0

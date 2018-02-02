@@ -10,6 +10,7 @@
 #ifndef __CDRPATH_H__
 #define __CDRPATH_H__
 
+#include <utility>
 #include <vector>
 #include <librevenge/librevenge.h>
 
