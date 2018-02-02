@@ -7,8 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <zlib.h>
 #include "CDRInternalStream.h"
+
+#include <zlib.h>
 #include <string.h>  // for memcpy
 
 

@@ -7,6 +7,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "CMXParser.h"
+
 #include <librevenge-stream/librevenge-stream.h>
 
 #include <math.h>
@@ -15,7 +17,6 @@
 
 #include "libcdr_utils.h"
 #include "CDRPath.h"
-#include "CMXParser.h"
 #include "CDRCollector.h"
 #include "CDRDocumentStructure.h"
 #include "CMXDocumentStructure.h"

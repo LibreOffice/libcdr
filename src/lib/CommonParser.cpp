@@ -7,12 +7,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "CommonParser.h"
+
 #include <string.h>
 
 #include "CDRCollector.h"
 #include "CDRPath.h"
 #include "libcdr_utils.h"
-#include "CommonParser.h"
 
 libcdr::CommonParser::CommonParser(libcdr::CDRCollector *collector)
   : m_collector(collector), m_precision(libcdr::PRECISION_UNKNOWN) {}

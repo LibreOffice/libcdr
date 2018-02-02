@@ -8,6 +8,7 @@
  */
 
 #include "CDRStylesCollector.h"
+
 #include "CDRInternalStream.h"
 #include "libcdr_utils.h"
 

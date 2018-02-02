@@ -7,11 +7,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "CDRContentCollector.h"
+
 #include <math.h>
 #include <string.h>
 #include <librevenge/librevenge.h>
 #include <libcdr/libcdr.h>
-#include "CDRContentCollector.h"
 #include "CDROutputElementList.h"
 #include "libcdr_utils.h"
 

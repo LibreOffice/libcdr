@@ -7,10 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "CDRPath.h"
+
 #include <math.h>
 #include <map>
 
-#include "CDRPath.h"
 #include "CDRTransforms.h"
 
 #ifndef DEBUG_SPLINES

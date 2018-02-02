@@ -7,12 +7,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "libcdr_utils.h"
+
 #include <cassert>
 #include <cstdarg>
 #include <cstdio>
 #include <string.h>
-
-#include "libcdr_utils.h"
 
 #include <unicode/ucsdet.h>
 #include <unicode/ucnv.h>

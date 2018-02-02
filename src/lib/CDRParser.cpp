@@ -7,6 +7,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "CDRParser.h"
+
 #include <locale.h>
 #include <math.h>
 #include <string.h>
@@ -23,7 +25,6 @@
 #include "libcdr_utils.h"
 #include "CDRDocumentStructure.h"
 #include "CDRInternalStream.h"
-#include "CDRParser.h"
 #include "CDRCollector.h"
 #include "CDRColorPalettes.h"
 

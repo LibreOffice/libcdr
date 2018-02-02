@@ -7,11 +7,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "CDRCollector.h"
+
 #include <math.h>
 #include <stack>
 #include <string.h>
 #include <lcms2.h>
-#include "CDRCollector.h"
 #include "CDRColorProfiles.h"
 #include "libcdr_utils.h"
 
