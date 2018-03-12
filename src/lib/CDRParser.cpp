@@ -148,6 +148,13 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   return 1;
 }
 
+void normalizeAngle(double &angle)
+{
+  angle = std::fmod(angle, 2*M_PI);
+  if (angle < 0)
+    angle += 2*M_PI;
+}
+
 } // anonymous namespace
 
 libcdr::CDRParser::CDRParser(const std::vector<librevenge::RVNGInputStream *> &externalStreams, libcdr::CDRCollector *collector)
@@ -1283,15 +1290,8 @@ void libcdr::CDRParser::readEllipse(librevenge::RVNGInputStream *input)
   double rx = fabs(cx);
   double ry = fabs(cy);
 
-  while (angle1 < 0.0)
-    angle1 += 2*M_PI;
-  while (angle1 > 2*M_PI)
-    angle1 -= 2*M_PI;
-
-  while (angle2 < 0.0)
-    angle2 += 2*M_PI;
-  while (angle2 > 2*M_PI)
-    angle2 -= 2*M_PI;
+  normalizeAngle(angle1);
+  normalizeAngle(angle2);
 
   CDRPath path;
   if (angle1 != angle2)

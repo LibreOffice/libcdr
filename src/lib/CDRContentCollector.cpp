@@ -50,6 +50,13 @@ void normalize(double &d)
   }
 }
 
+void normalizeAngle(double &angle)
+{
+  angle = fmod(angle, 360);
+  if (angle < 0)
+    angle += 360;
+}
+
 }
 }
 
@@ -718,10 +725,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
         else if (m_currentFillStyle.gradient.m_stops.size() == 2)
         {
           double angle = m_currentFillStyle.gradient.m_angle * 180 / M_PI;
-          while (angle < 0.0)
-            angle += 360.0;
-          while (angle > 360.0)
-            angle -= 360.0;
+          normalizeAngle(angle);
           propList.insert("draw:fill", "gradient");
           propList.insert("draw:start-color", m_ps.getRGBColorString(m_currentFillStyle.gradient.m_stops[0].m_color));
           propList.insert("draw:end-color", m_ps.getRGBColorString(m_currentFillStyle.gradient.m_stops[1].m_color));
@@ -732,10 +736,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
           case 3: // conical
             propList.insert("draw:style", "linear");
             angle += 90.0;
-            while (angle < 0.0)
-              angle += 360.0;
-            while (angle > 360.0)
-              angle -= 360.0;
+            normalizeAngle(angle);
             propList.insert("draw:angle", (int)angle);
             propList.insert("draw:border", (double)(m_currentFillStyle.gradient.m_edgeOffset)/100.0, librevenge::RVNG_PERCENT);
             break;
@@ -754,10 +755,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
           default:
             propList.insert("draw:style", "linear");
             angle += 90.0;
-            while (angle < 0.0)
-              angle += 360.0;
-            while (angle > 360.0)
-              angle -= 360.0;
+            normalizeAngle(angle);
             propList.insert("draw:angle", (int)angle);
             librevenge::RVNGPropertyListVector vec;
             for (auto &gradStop : m_currentFillStyle.gradient.m_stops)
@@ -778,10 +776,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
           propList.insert("draw:style", "linear");
           double angle = m_currentFillStyle.gradient.m_angle * 180 / M_PI;
           angle += 90.0;
-          while (angle < 0.0)
-            angle += 360.0;
-          while (angle > 360.0)
-            angle -= 360.0;
+          normalizeAngle(angle);
           propList.insert("draw:angle", (int)angle);
           librevenge::RVNGPropertyListVector vec;
           for (auto &gradStop : m_currentFillStyle.gradient.m_stops)
