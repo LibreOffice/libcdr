@@ -2338,7 +2338,7 @@ void libcdr::CDRParser::readBmpf(librevenge::RVNGInputStream *input, unsigned le
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned patternId = readU32(input);
-  unsigned width, height;
+  unsigned width{}, height{};
   std::vector<unsigned char> pattern;
   readBmpPattern(width, height, pattern, length-4, input);
   m_collector->collectBmpf(patternId, width, height, pattern);
