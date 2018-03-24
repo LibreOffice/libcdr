@@ -10,8 +10,6 @@
 #ifndef __CDRPARSER_H__
 #define __CDRPARSER_H__
 
-#include <stdio.h>
-#include <iostream>
 #include <memory>
 #include <vector>
 #include <map>
