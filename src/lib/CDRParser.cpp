@@ -157,7 +157,7 @@ void normalizeAngle(double &angle)
 
 } // anonymous namespace
 
-libcdr::CDRParser::CDRParser(const std::vector<librevenge::RVNGInputStream *> &externalStreams, libcdr::CDRCollector *collector)
+libcdr::CDRParser::CDRParser(const std::vector<std::unique_ptr<librevenge::RVNGInputStream>> &externalStreams, libcdr::CDRCollector *collector)
   : CommonParser(collector), m_externalStreams(externalStreams),
     m_fonts(), m_fillStyles(), m_lineStyles(), m_arrows(), m_version(0), m_waldoOutlId(0), m_waldoFillId(0) {}
 
@@ -2427,7 +2427,7 @@ bool libcdr::CDRParser::_redirectX6Chunk(librevenge::RVNGInputStream **input, un
     if (streamNumber < m_externalStreams.size())
     {
       unsigned streamOffset = readU32(*input);
-      *input = m_externalStreams[streamNumber];
+      *input = m_externalStreams[streamNumber].get();
       if (*input)
       {
         (*input)->seek(streamOffset, librevenge::RVNG_SEEK_SET);

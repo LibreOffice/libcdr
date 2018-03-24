@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <map>
 #include <stack>
@@ -27,7 +28,7 @@ class CDRCollector;
 class CDRParser : protected CommonParser
 {
 public:
-  explicit CDRParser(const std::vector<librevenge::RVNGInputStream *> &externalStreams, CDRCollector *collector);
+  explicit CDRParser(const std::vector<std::unique_ptr<librevenge::RVNGInputStream>> &externalStreams, CDRCollector *collector);
   ~CDRParser() override;
   bool parseRecords(librevenge::RVNGInputStream *input, const std::vector<unsigned> &blockLengths = std::vector<unsigned>(), unsigned level = 0);
   bool parseWaldo(librevenge::RVNGInputStream *input);
@@ -96,7 +97,7 @@ private:
   bool _redirectX6Chunk(librevenge::RVNGInputStream **input, unsigned &length);
   void _readX6StyleString(librevenge::RVNGInputStream *input, unsigned length, CDRStyle &style);
 
-  std::vector<librevenge::RVNGInputStream *> m_externalStreams;
+  const std::vector<std::unique_ptr<librevenge::RVNGInputStream>> &m_externalStreams;
 
   std::map<unsigned, CDRFont> m_fonts;
   std::map<unsigned, CDRFillStyle> m_fillStyles;

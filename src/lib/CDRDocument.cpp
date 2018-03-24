@@ -117,7 +117,7 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
       input->seek(0, librevenge::RVNG_SEEK_SET);
       CDRParserState ps;
       CDRStylesCollector stylesCollector(ps);
-      CDRParser stylesParser(std::vector<librevenge::RVNGInputStream *>(), &stylesCollector);
+      CDRParser stylesParser(std::vector<std::unique_ptr<librevenge::RVNGInputStream>>(), &stylesCollector);
       if (version >= 300)
         retVal = stylesParser.parseRecords(input.get());
       else
@@ -128,7 +128,7 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
       {
         input->seek(0, librevenge::RVNG_SEEK_SET);
         CDRContentCollector contentCollector(ps, painter);
-        CDRParser contentParser(std::vector<librevenge::RVNGInputStream *>(), &contentCollector);
+        CDRParser contentParser(std::vector<std::unique_ptr<librevenge::RVNGInputStream>>(), &contentCollector);
         if (version >= 300)
           retVal = contentParser.parseRecords(input.get());
         else
@@ -144,7 +144,6 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
   }
 
   librevenge::RVNGInputStream *tmpInput = input_;
-  std::vector<librevenge::RVNGInputStream *> dataStreams;
   try
   {
     std::vector<std::string> dataFiles;
@@ -179,6 +178,7 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
         }
       }
     }
+    std::vector<std::unique_ptr<librevenge::RVNGInputStream>> dataStreams;
     dataStreams.reserve(dataFiles.size());
     for (const auto &dataFile : dataFiles)
     {
@@ -186,7 +186,8 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
       streamName += dataFile;
       CDR_DEBUG_MSG(("Extracting stream: %s\n", streamName.c_str()));
       tmpInput->seek(0, librevenge::RVNG_SEEK_SET);
-      dataStreams.push_back(tmpInput->getSubStreamByName(streamName.c_str()));
+      std::unique_ptr<librevenge::RVNGInputStream> strm(tmpInput->getSubStreamByName(streamName.c_str()));
+      dataStreams.push_back(std::move(strm));
     }
     if (!input)
       input.reset(tmpInput, CDRDummyDeleter());
@@ -223,8 +224,6 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
   {
     retVal = false;
   }
-  for (auto &dataStream : dataStreams)
-    delete dataStream;
   return retVal;
 }
 
