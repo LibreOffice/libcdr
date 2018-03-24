@@ -15,6 +15,7 @@
 #endif
 
 #include <math.h>
+#include <memory>
 #include <vector>
 
 #include <boost/cstdint.hpp>
@@ -63,6 +64,12 @@ struct CDRDummyDeleter
 {
   void operator()(void *) const {}
 };
+
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args &&... args)
+{
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
 
 uint8_t readU8(librevenge::RVNGInputStream *input, bool bigEndian=false);
 uint16_t readU16(librevenge::RVNGInputStream *input, bool bigEndian=false);

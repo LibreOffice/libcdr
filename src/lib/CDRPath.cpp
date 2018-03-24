@@ -13,6 +13,7 @@
 #include <map>
 
 #include "CDRTransforms.h"
+#include "libcdr_utils.h"
 
 #ifndef DEBUG_SPLINES
 #define DEBUG_SPLINES 0
@@ -231,7 +232,7 @@ public:
   void writeOut(librevenge::RVNGPropertyListVector &vec) const override;
   void transform(const CDRTransforms &trafos) override;
   void transform(const CDRTransform &trafo) override;
-  CDRPathElement *clone() override;
+  std::unique_ptr<CDRPathElement> clone() override;
 private:
   double m_x;
   double m_y;
@@ -247,7 +248,7 @@ public:
   void writeOut(librevenge::RVNGPropertyListVector &vec) const override;
   void transform(const CDRTransforms &trafos) override;
   void transform(const CDRTransform &trafo) override;
-  CDRPathElement *clone() override;
+  std::unique_ptr<CDRPathElement> clone() override;
 private:
   double m_x;
   double m_y;
@@ -267,7 +268,7 @@ public:
   void writeOut(librevenge::RVNGPropertyListVector &vec) const override;
   void transform(const CDRTransforms &trafos) override;
   void transform(const CDRTransform &trafo) override;
-  CDRPathElement *clone() override;
+  std::unique_ptr<CDRPathElement> clone() override;
 private:
   double m_x1;
   double m_y1;
@@ -289,7 +290,7 @@ public:
   void writeOut(librevenge::RVNGPropertyListVector &vec) const override;
   void transform(const CDRTransforms &trafos) override;
   void transform(const CDRTransform &trafo) override;
-  CDRPathElement *clone() override;
+  std::unique_ptr<CDRPathElement> clone() override;
 private:
   double m_x1;
   double m_y1;
@@ -306,7 +307,7 @@ public:
   void writeOut(librevenge::RVNGPropertyListVector &vec) const override;
   void transform(const CDRTransforms &trafos) override;
   void transform(const CDRTransform &trafo) override;
-  CDRPathElement *clone() override;
+  std::unique_ptr<CDRPathElement> clone() override;
 private:
   std::vector<std::pair<double, double> > m_points;
   unsigned knot(unsigned i) const;
@@ -327,7 +328,7 @@ public:
   void writeOut(librevenge::RVNGPropertyListVector &vec) const override;
   void transform(const CDRTransforms &trafos) override;
   void transform(const CDRTransform &trafo) override;
-  CDRPathElement *clone() override;
+  std::unique_ptr<CDRPathElement> clone() override;
 private:
   double m_rx;
   double m_ry;
@@ -346,7 +347,7 @@ public:
   void writeOut(librevenge::RVNGPropertyListVector &vec) const override;
   void transform(const CDRTransforms &trafos) override;
   void transform(const CDRTransform &trafo) override;
-  CDRPathElement *clone() override;
+  std::unique_ptr<CDRPathElement> clone() override;
 };
 
 } // namespace libcdr
@@ -371,9 +372,9 @@ void libcdr::CDRMoveToElement::transform(const CDRTransform &trafo)
   trafo.applyToPoint(m_x,m_y);
 }
 
-libcdr::CDRPathElement *libcdr::CDRMoveToElement::clone()
+std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRMoveToElement::clone()
 {
-  return new CDRMoveToElement(m_x, m_y);
+  return make_unique<CDRMoveToElement>(m_x, m_y);
 }
 
 void libcdr::CDRLineToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
@@ -395,9 +396,9 @@ void libcdr::CDRLineToElement::transform(const CDRTransform &trafo)
   trafo.applyToPoint(m_x,m_y);
 }
 
-libcdr::CDRPathElement *libcdr::CDRLineToElement::clone()
+std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRLineToElement::clone()
 {
-  return new CDRLineToElement(m_x, m_y);
+  return make_unique<CDRLineToElement>(m_x, m_y);
 }
 
 void libcdr::CDRCubicBezierToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
@@ -427,9 +428,9 @@ void libcdr::CDRCubicBezierToElement::transform(const CDRTransform &trafo)
   trafo.applyToPoint(m_x,m_y);
 }
 
-libcdr::CDRPathElement *libcdr::CDRCubicBezierToElement::clone()
+std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRCubicBezierToElement::clone()
 {
-  return new CDRCubicBezierToElement(m_x1, m_y1, m_x2, m_y2, m_x, m_y);
+  return make_unique<CDRCubicBezierToElement>(m_x1, m_y1, m_x2, m_y2, m_x, m_y);
 }
 
 void libcdr::CDRQuadraticBezierToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
@@ -455,9 +456,9 @@ void libcdr::CDRQuadraticBezierToElement::transform(const CDRTransform &trafo)
   trafo.applyToPoint(m_x,m_y);
 }
 
-libcdr::CDRPathElement *libcdr::CDRQuadraticBezierToElement::clone()
+std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRQuadraticBezierToElement::clone()
 {
-  return new CDRQuadraticBezierToElement(m_x1, m_y1, m_x, m_y);
+  return make_unique<CDRQuadraticBezierToElement>(m_x1, m_y1, m_x, m_y);
 }
 
 #define CDR_SPLINE_DEGREE 3
@@ -581,9 +582,9 @@ void libcdr::CDRSplineToElement::transform(const CDRTransform &trafo)
     trafo.applyToPoint(point.first, point.second);
 }
 
-libcdr::CDRPathElement *libcdr::CDRSplineToElement::clone()
+std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRSplineToElement::clone()
 {
-  return new CDRSplineToElement(m_points);
+  return libcdr::make_unique<CDRSplineToElement>(m_points);
 }
 
 void libcdr::CDRArcToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
@@ -610,9 +611,9 @@ void libcdr::CDRArcToElement::transform(const CDRTransform &trafo)
   trafo.applyToArc(m_rx, m_ry, m_rotation, m_sweep, m_x, m_y);
 }
 
-libcdr::CDRPathElement *libcdr::CDRArcToElement::clone()
+std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRArcToElement::clone()
 {
-  return new CDRArcToElement(m_rx, m_ry, m_rotation, m_largeArc, m_sweep, m_x, m_y);
+  return make_unique<CDRArcToElement>(m_rx, m_ry, m_rotation, m_largeArc, m_sweep, m_x, m_y);
 }
 
 void libcdr::CDRClosePathElement::transform(const CDRTransforms &)
@@ -623,9 +624,9 @@ void libcdr::CDRClosePathElement::transform(const CDRTransform &)
 {
 }
 
-libcdr::CDRPathElement *libcdr::CDRClosePathElement::clone()
+std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRClosePathElement::clone()
 {
-  return new CDRClosePathElement();
+  return make_unique<CDRClosePathElement>();
 }
 
 void libcdr::CDRClosePathElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
@@ -637,37 +638,37 @@ void libcdr::CDRClosePathElement::writeOut(librevenge::RVNGPropertyListVector &v
 
 void libcdr::CDRPath::appendMoveTo(double x, double y)
 {
-  m_elements.push_back(new libcdr::CDRMoveToElement(x, y));
+  m_elements.push_back(make_unique<libcdr::CDRMoveToElement>(x, y));
 }
 
 void libcdr::CDRPath::appendLineTo(double x, double y)
 {
-  m_elements.push_back(new libcdr::CDRLineToElement(x, y));
+  m_elements.push_back(make_unique<libcdr::CDRLineToElement>(x, y));
 }
 
 void libcdr::CDRPath::appendCubicBezierTo(double x1, double y1, double x2, double y2, double x, double y)
 {
-  m_elements.push_back(new libcdr::CDRCubicBezierToElement(x1, y1, x2, y2, x, y));
+  m_elements.push_back(make_unique<libcdr::CDRCubicBezierToElement>(x1, y1, x2, y2, x, y));
 }
 
 void libcdr::CDRPath::appendQuadraticBezierTo(double x1, double y1, double x, double y)
 {
-  m_elements.push_back(new libcdr::CDRQuadraticBezierToElement(x1, y1, x, y));
+  m_elements.push_back(make_unique<libcdr::CDRQuadraticBezierToElement>(x1, y1, x, y));
 }
 
 void libcdr::CDRPath::appendArcTo(double rx, double ry, double rotation, bool longAngle, bool sweep, double x, double y)
 {
-  m_elements.push_back(new libcdr::CDRArcToElement(rx, ry, rotation, longAngle, sweep, x, y));
+  m_elements.push_back(make_unique<libcdr::CDRArcToElement>(rx, ry, rotation, longAngle, sweep, x, y));
 }
 
-void libcdr::CDRPath::appendSplineTo(std::vector<std::pair<double, double> > &points)
+void libcdr::CDRPath::appendSplineTo(const std::vector<std::pair<double, double> > &points)
 {
-  m_elements.push_back(new libcdr::CDRSplineToElement(points));
+  m_elements.push_back(libcdr::make_unique<libcdr::CDRSplineToElement>(points));
 }
 
 void libcdr::CDRPath::appendClosePath()
 {
-  m_elements.push_back(new libcdr::CDRClosePathElement());
+  m_elements.push_back(make_unique<libcdr::CDRClosePathElement>());
   m_isClosed = true;
 }
 
@@ -691,21 +692,20 @@ libcdr::CDRPath &libcdr::CDRPath::operator=(const libcdr::CDRPath &path)
 
 libcdr::CDRPath::~CDRPath()
 {
-  clear();
 }
 
 void libcdr::CDRPath::appendPath(const CDRPath &path)
 {
-  for (auto element : path.m_elements)
+  for (const auto &element : path.m_elements)
     m_elements.push_back(element->clone());
 }
 
 void libcdr::CDRPath::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   bool wasZ = true;
-  for (auto element : m_elements)
+  for (const auto &element : m_elements)
   {
-    if (dynamic_cast<CDRClosePathElement *>(element))
+    if (dynamic_cast<CDRClosePathElement *>(element.get()))
     {
       if (!wasZ)
       {
@@ -860,16 +860,13 @@ void libcdr::CDRPath::transform(const CDRTransform &trafo)
     element->transform(trafo);
 }
 
-libcdr::CDRPathElement *libcdr::CDRPath::clone()
+std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRPath::clone()
 {
-  return new CDRPath(*this);
+  return make_unique<CDRPath>(*this);
 }
 
 void libcdr::CDRPath::clear()
 {
-  for (auto &element : m_elements)
-    if (element)
-      delete element;
   m_elements.clear();
   m_isClosed = false;
 }

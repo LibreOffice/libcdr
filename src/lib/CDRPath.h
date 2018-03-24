@@ -10,6 +10,7 @@
 #ifndef __CDRPATH_H__
 #define __CDRPATH_H__
 
+#include <memory>
 #include <utility>
 #include <vector>
 #include <librevenge/librevenge.h>
@@ -28,7 +29,7 @@ public:
   virtual void writeOut(librevenge::RVNGPropertyListVector &vec) const = 0;
   virtual void transform(const CDRTransforms &trafos) = 0;
   virtual void transform(const CDRTransform &trafo) = 0;
-  virtual CDRPathElement *clone() = 0;
+  virtual std::unique_ptr<CDRPathElement> clone() = 0;
 };
 
 
@@ -45,7 +46,7 @@ public:
   void appendLineTo(double x, double y);
   void appendCubicBezierTo(double x1, double y1, double x2, double y2, double x, double y);
   void appendQuadraticBezierTo(double x1, double y1, double x, double y);
-  void appendSplineTo(std::vector<std::pair<double, double> > &points);
+  void appendSplineTo(const std::vector<std::pair<double, double> > &points);
   void appendArcTo(double rx, double ry, double rotation, bool longAngle, bool sweep, double x, double y);
   void appendClosePath();
   void appendPath(const CDRPath &path);
@@ -54,14 +55,14 @@ public:
   void writeOut(librevenge::RVNGString &path, librevenge::RVNGString &viewBox, double &width) const;
   void transform(const CDRTransforms &trafos) override;
   void transform(const CDRTransform &trafo) override;
-  CDRPathElement *clone() override;
+  std::unique_ptr<CDRPathElement> clone() override;
 
   void clear();
   bool empty() const;
   bool isClosed() const;
 
 private:
-  std::vector<CDRPathElement *> m_elements;
+  std::vector<std::unique_ptr<CDRPathElement>> m_elements;
   bool m_isClosed;
 };
 
