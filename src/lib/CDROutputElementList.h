@@ -10,6 +10,7 @@
 #ifndef __CDROUTPUTELEMENTLIST_H__
 #define __CDROUTPUTELEMENTLIST_H__
 
+#include <memory>
 #include <vector>
 
 #include <librevenge/librevenge.h>
@@ -23,9 +24,7 @@ class CDROutputElementList
 {
 public:
   CDROutputElementList();
-  CDROutputElementList(const CDROutputElementList &elementList);
-  CDROutputElementList &operator=(const CDROutputElementList &elementList);
-  virtual ~CDROutputElementList();
+  ~CDROutputElementList();
   void draw(librevenge::RVNGDrawingInterface *painter) const;
   void addStyle(const librevenge::RVNGPropertyList &propList);
   void addPath(const librevenge::RVNGPropertyList &propList);
@@ -44,7 +43,7 @@ public:
     return m_elements.empty();
   }
 private:
-  std::vector<CDROutputElement *> m_elements;
+  std::vector<std::shared_ptr<CDROutputElement>> m_elements;
 };
 
 

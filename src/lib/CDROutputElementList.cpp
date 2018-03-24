@@ -102,7 +102,6 @@ public:
   CDROutputElement() {}
   virtual ~CDROutputElement() {}
   virtual void draw(librevenge::RVNGDrawingInterface *painter) = 0;
-  virtual CDROutputElement *clone() = 0;
 };
 
 
@@ -112,10 +111,6 @@ public:
   CDRStyleOutputElement(const librevenge::RVNGPropertyList &propList);
   ~CDRStyleOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDRStyleOutputElement(m_propList);
-  }
 private:
   librevenge::RVNGPropertyList m_propList;
 };
@@ -127,10 +122,6 @@ public:
   CDRPathOutputElement(const librevenge::RVNGPropertyList &propList);
   ~CDRPathOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDRPathOutputElement(m_propList);
-  }
 private:
   librevenge::RVNGPropertyList m_propList;
 };
@@ -142,10 +133,6 @@ public:
   CDRGraphicObjectOutputElement(const librevenge::RVNGPropertyList &propList);
   ~CDRGraphicObjectOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDRGraphicObjectOutputElement(m_propList);
-  }
 private:
   librevenge::RVNGPropertyList m_propList;
 };
@@ -157,10 +144,6 @@ public:
   CDRStartTextObjectOutputElement(const librevenge::RVNGPropertyList &propList);
   ~CDRStartTextObjectOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDRStartTextObjectOutputElement(m_propList);
-  }
 private:
   librevenge::RVNGPropertyList m_propList;
 };
@@ -172,10 +155,6 @@ public:
   CDROpenParagraphOutputElement(const librevenge::RVNGPropertyList &propList);
   ~CDROpenParagraphOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDROpenParagraphOutputElement(m_propList);
-  }
 private:
   librevenge::RVNGPropertyList m_propList;
 };
@@ -187,10 +166,6 @@ public:
   CDROpenSpanOutputElement(const librevenge::RVNGPropertyList &propList);
   ~CDROpenSpanOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDROpenSpanOutputElement(m_propList);
-  }
 private:
   librevenge::RVNGPropertyList m_propList;
 };
@@ -202,10 +177,6 @@ public:
   CDRInsertTextOutputElement(const librevenge::RVNGString &text);
   ~CDRInsertTextOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDRInsertTextOutputElement(m_text);
-  }
 private:
   librevenge::RVNGString m_text;
 };
@@ -217,10 +188,6 @@ public:
   CDRCloseSpanOutputElement();
   ~CDRCloseSpanOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDRCloseSpanOutputElement();
-  }
 };
 
 
@@ -230,10 +197,6 @@ public:
   CDRCloseParagraphOutputElement();
   ~CDRCloseParagraphOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDRCloseParagraphOutputElement();
-  }
 };
 
 
@@ -243,10 +206,6 @@ public:
   CDREndTextObjectOutputElement();
   ~CDREndTextObjectOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDREndTextObjectOutputElement();
-  }
 };
 
 class CDRStartLayerOutputElement : public CDROutputElement
@@ -255,10 +214,6 @@ public:
   CDRStartLayerOutputElement(const librevenge::RVNGPropertyList &propList);
   ~CDRStartLayerOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDRStartLayerOutputElement(m_propList);
-  }
 private:
   librevenge::RVNGPropertyList m_propList;
 };
@@ -269,10 +224,6 @@ public:
   CDREndLayerOutputElement();
   ~CDREndLayerOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
-  CDROutputElement *clone() override
-  {
-    return new CDREndLayerOutputElement();
-  }
 };
 
 CDRStyleOutputElement::CDRStyleOutputElement(const librevenge::RVNGPropertyList &propList) :
@@ -394,32 +345,8 @@ CDROutputElementList::CDROutputElementList()
 {
 }
 
-CDROutputElementList::CDROutputElementList(const CDROutputElementList &elementList)
-  : m_elements()
-{
-  std::vector<CDROutputElement *>::const_iterator iter;
-  for (iter = elementList.m_elements.begin(); iter != elementList.m_elements.end(); ++iter)
-    m_elements.push_back((*iter)->clone());
-}
-
-CDROutputElementList &CDROutputElementList::operator=(const CDROutputElementList &elementList)
-{
-  for (auto &element : m_elements)
-    delete element;
-
-  m_elements.clear();
-
-  for (auto element : elementList.m_elements)
-    m_elements.push_back(element->clone());
-
-  return *this;
-}
-
 CDROutputElementList::~CDROutputElementList()
 {
-  for (auto &element : m_elements)
-    delete element;
-  m_elements.clear();
 }
 
 void CDROutputElementList::draw(librevenge::RVNGDrawingInterface *painter) const
@@ -430,62 +357,62 @@ void CDROutputElementList::draw(librevenge::RVNGDrawingInterface *painter) const
 
 void CDROutputElementList::addStyle(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDRStyleOutputElement(propList));
+  m_elements.push_back(std::make_shared<CDRStyleOutputElement>(propList));
 }
 
 void CDROutputElementList::addPath(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDRPathOutputElement(propList));
+  m_elements.push_back(std::make_shared<CDRPathOutputElement>(propList));
 }
 
 void CDROutputElementList::addGraphicObject(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDRGraphicObjectOutputElement(propList));
+  m_elements.push_back(std::make_shared<CDRGraphicObjectOutputElement>(propList));
 }
 
 void CDROutputElementList::addStartTextObject(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDRStartTextObjectOutputElement(propList));
+  m_elements.push_back(std::make_shared<CDRStartTextObjectOutputElement>(propList));
 }
 
 void CDROutputElementList::addOpenParagraph(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDROpenParagraphOutputElement(propList));
+  m_elements.push_back(std::make_shared<CDROpenParagraphOutputElement>(propList));
 }
 
 void CDROutputElementList::addOpenSpan(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDROpenSpanOutputElement(propList));
+  m_elements.push_back(std::make_shared<CDROpenSpanOutputElement>(propList));
 }
 
 void CDROutputElementList::addInsertText(const librevenge::RVNGString &text)
 {
-  m_elements.push_back(new CDRInsertTextOutputElement(text));
+  m_elements.push_back(std::make_shared<CDRInsertTextOutputElement>(text));
 }
 
 void CDROutputElementList::addCloseSpan()
 {
-  m_elements.push_back(new CDRCloseSpanOutputElement());
+  m_elements.push_back(std::make_shared<CDRCloseSpanOutputElement>());
 }
 
 void CDROutputElementList::addCloseParagraph()
 {
-  m_elements.push_back(new CDRCloseParagraphOutputElement());
+  m_elements.push_back(std::make_shared<CDRCloseParagraphOutputElement>());
 }
 
 void CDROutputElementList::addEndTextObject()
 {
-  m_elements.push_back(new CDREndTextObjectOutputElement());
+  m_elements.push_back(std::make_shared<CDREndTextObjectOutputElement>());
 }
 
 void CDROutputElementList::addStartGroup(const librevenge::RVNGPropertyList &propList)
 {
-  m_elements.push_back(new CDRStartLayerOutputElement(propList));
+  m_elements.push_back(std::make_shared<CDRStartLayerOutputElement>(propList));
 }
 
 void CDROutputElementList::addEndGroup()
 {
-  m_elements.push_back(new CDREndLayerOutputElement());
+  m_elements.push_back(std::make_shared<CDREndLayerOutputElement>());
 }
 
 } // namespace libcdr
