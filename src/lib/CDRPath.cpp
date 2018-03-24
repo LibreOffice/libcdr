@@ -19,6 +19,9 @@
 #define DEBUG_SPLINES 0
 #endif
 
+namespace libcdr
+{
+
 namespace
 {
 
@@ -219,9 +222,6 @@ static void getCubicBezierBBox(double x0, double y0, double x1, double y1, doubl
 
 } // anonymous namespace
 
-namespace libcdr
-{
-
 class CDRMoveToElement : public CDRPathElement
 {
 public:
@@ -350,10 +350,7 @@ public:
   std::unique_ptr<CDRPathElement> clone() override;
 };
 
-} // namespace libcdr
-
-
-void libcdr::CDRMoveToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
+void CDRMoveToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   librevenge::RVNGPropertyList node;
   node.insert("librevenge:path-action", "M");
@@ -362,22 +359,22 @@ void libcdr::CDRMoveToElement::writeOut(librevenge::RVNGPropertyListVector &vec)
   vec.append(node);
 }
 
-void libcdr::CDRMoveToElement::transform(const CDRTransforms &trafos)
+void CDRMoveToElement::transform(const CDRTransforms &trafos)
 {
   trafos.applyToPoint(m_x,m_y);
 }
 
-void libcdr::CDRMoveToElement::transform(const CDRTransform &trafo)
+void CDRMoveToElement::transform(const CDRTransform &trafo)
 {
   trafo.applyToPoint(m_x,m_y);
 }
 
-std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRMoveToElement::clone()
+std::unique_ptr<CDRPathElement> CDRMoveToElement::clone()
 {
   return make_unique<CDRMoveToElement>(m_x, m_y);
 }
 
-void libcdr::CDRLineToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
+void CDRLineToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   librevenge::RVNGPropertyList node;
   node.insert("librevenge:path-action", "L");
@@ -386,22 +383,22 @@ void libcdr::CDRLineToElement::writeOut(librevenge::RVNGPropertyListVector &vec)
   vec.append(node);
 }
 
-void libcdr::CDRLineToElement::transform(const CDRTransforms &trafos)
+void CDRLineToElement::transform(const CDRTransforms &trafos)
 {
   trafos.applyToPoint(m_x,m_y);
 }
 
-void libcdr::CDRLineToElement::transform(const CDRTransform &trafo)
+void CDRLineToElement::transform(const CDRTransform &trafo)
 {
   trafo.applyToPoint(m_x,m_y);
 }
 
-std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRLineToElement::clone()
+std::unique_ptr<CDRPathElement> CDRLineToElement::clone()
 {
   return make_unique<CDRLineToElement>(m_x, m_y);
 }
 
-void libcdr::CDRCubicBezierToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
+void CDRCubicBezierToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   librevenge::RVNGPropertyList node;
   node.insert("librevenge:path-action", "C");
@@ -414,26 +411,26 @@ void libcdr::CDRCubicBezierToElement::writeOut(librevenge::RVNGPropertyListVecto
   vec.append(node);
 }
 
-void libcdr::CDRCubicBezierToElement::transform(const CDRTransforms &trafos)
+void CDRCubicBezierToElement::transform(const CDRTransforms &trafos)
 {
   trafos.applyToPoint(m_x1,m_y1);
   trafos.applyToPoint(m_x2,m_y2);
   trafos.applyToPoint(m_x,m_y);
 }
 
-void libcdr::CDRCubicBezierToElement::transform(const CDRTransform &trafo)
+void CDRCubicBezierToElement::transform(const CDRTransform &trafo)
 {
   trafo.applyToPoint(m_x1,m_y1);
   trafo.applyToPoint(m_x2,m_y2);
   trafo.applyToPoint(m_x,m_y);
 }
 
-std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRCubicBezierToElement::clone()
+std::unique_ptr<CDRPathElement> CDRCubicBezierToElement::clone()
 {
   return make_unique<CDRCubicBezierToElement>(m_x1, m_y1, m_x2, m_y2, m_x, m_y);
 }
 
-void libcdr::CDRQuadraticBezierToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
+void CDRQuadraticBezierToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   librevenge::RVNGPropertyList node;
   node.insert("librevenge:path-action", "Q");
@@ -444,26 +441,26 @@ void libcdr::CDRQuadraticBezierToElement::writeOut(librevenge::RVNGPropertyListV
   vec.append(node);
 }
 
-void libcdr::CDRQuadraticBezierToElement::transform(const CDRTransforms &trafos)
+void CDRQuadraticBezierToElement::transform(const CDRTransforms &trafos)
 {
   trafos.applyToPoint(m_x1,m_y1);
   trafos.applyToPoint(m_x,m_y);
 }
 
-void libcdr::CDRQuadraticBezierToElement::transform(const CDRTransform &trafo)
+void CDRQuadraticBezierToElement::transform(const CDRTransform &trafo)
 {
   trafo.applyToPoint(m_x1,m_y1);
   trafo.applyToPoint(m_x,m_y);
 }
 
-std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRQuadraticBezierToElement::clone()
+std::unique_ptr<CDRPathElement> CDRQuadraticBezierToElement::clone()
 {
   return make_unique<CDRQuadraticBezierToElement>(m_x1, m_y1, m_x, m_y);
 }
 
 #define CDR_SPLINE_DEGREE 3
 
-unsigned libcdr::CDRSplineToElement::knot(unsigned i) const
+unsigned CDRSplineToElement::knot(unsigned i) const
 {
   /* Emulates knot vector of an uniform B-Spline of degree 3 */
   if (i < CDR_SPLINE_DEGREE)
@@ -473,7 +470,7 @@ unsigned libcdr::CDRSplineToElement::knot(unsigned i) const
   return i - CDR_SPLINE_DEGREE;
 }
 
-void libcdr::CDRSplineToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
+void CDRSplineToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   librevenge::RVNGPropertyList node;
 
@@ -570,24 +567,24 @@ void libcdr::CDRSplineToElement::writeOut(librevenge::RVNGPropertyListVector &ve
   }
 }
 
-void libcdr::CDRSplineToElement::transform(const CDRTransforms &trafos)
+void CDRSplineToElement::transform(const CDRTransforms &trafos)
 {
   for (auto &point : m_points)
     trafos.applyToPoint(point.first, point.second);
 }
 
-void libcdr::CDRSplineToElement::transform(const CDRTransform &trafo)
+void CDRSplineToElement::transform(const CDRTransform &trafo)
 {
   for (auto &point : m_points)
     trafo.applyToPoint(point.first, point.second);
 }
 
-std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRSplineToElement::clone()
+std::unique_ptr<CDRPathElement> CDRSplineToElement::clone()
 {
   return libcdr::make_unique<CDRSplineToElement>(m_points);
 }
 
-void libcdr::CDRArcToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
+void CDRArcToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   librevenge::RVNGPropertyList node;
   node.insert("librevenge:path-action", "A");
@@ -601,84 +598,84 @@ void libcdr::CDRArcToElement::writeOut(librevenge::RVNGPropertyListVector &vec) 
   vec.append(node);
 }
 
-void libcdr::CDRArcToElement::transform(const CDRTransforms &trafos)
+void CDRArcToElement::transform(const CDRTransforms &trafos)
 {
   trafos.applyToArc(m_rx, m_ry, m_rotation, m_sweep, m_x, m_y);
 }
 
-void libcdr::CDRArcToElement::transform(const CDRTransform &trafo)
+void CDRArcToElement::transform(const CDRTransform &trafo)
 {
   trafo.applyToArc(m_rx, m_ry, m_rotation, m_sweep, m_x, m_y);
 }
 
-std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRArcToElement::clone()
+std::unique_ptr<CDRPathElement> CDRArcToElement::clone()
 {
   return make_unique<CDRArcToElement>(m_rx, m_ry, m_rotation, m_largeArc, m_sweep, m_x, m_y);
 }
 
-void libcdr::CDRClosePathElement::transform(const CDRTransforms &)
+void CDRClosePathElement::transform(const CDRTransforms &)
 {
 }
 
-void libcdr::CDRClosePathElement::transform(const CDRTransform &)
+void CDRClosePathElement::transform(const CDRTransform &)
 {
 }
 
-std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRClosePathElement::clone()
+std::unique_ptr<CDRPathElement> CDRClosePathElement::clone()
 {
   return make_unique<CDRClosePathElement>();
 }
 
-void libcdr::CDRClosePathElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
+void CDRClosePathElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   librevenge::RVNGPropertyList node;
   node.insert("librevenge:path-action", "Z");
   vec.append(node);
 }
 
-void libcdr::CDRPath::appendMoveTo(double x, double y)
+void CDRPath::appendMoveTo(double x, double y)
 {
-  m_elements.push_back(make_unique<libcdr::CDRMoveToElement>(x, y));
+  m_elements.push_back(make_unique<CDRMoveToElement>(x, y));
 }
 
-void libcdr::CDRPath::appendLineTo(double x, double y)
+void CDRPath::appendLineTo(double x, double y)
 {
-  m_elements.push_back(make_unique<libcdr::CDRLineToElement>(x, y));
+  m_elements.push_back(make_unique<CDRLineToElement>(x, y));
 }
 
-void libcdr::CDRPath::appendCubicBezierTo(double x1, double y1, double x2, double y2, double x, double y)
+void CDRPath::appendCubicBezierTo(double x1, double y1, double x2, double y2, double x, double y)
 {
-  m_elements.push_back(make_unique<libcdr::CDRCubicBezierToElement>(x1, y1, x2, y2, x, y));
+  m_elements.push_back(make_unique<CDRCubicBezierToElement>(x1, y1, x2, y2, x, y));
 }
 
-void libcdr::CDRPath::appendQuadraticBezierTo(double x1, double y1, double x, double y)
+void CDRPath::appendQuadraticBezierTo(double x1, double y1, double x, double y)
 {
-  m_elements.push_back(make_unique<libcdr::CDRQuadraticBezierToElement>(x1, y1, x, y));
+  m_elements.push_back(make_unique<CDRQuadraticBezierToElement>(x1, y1, x, y));
 }
 
-void libcdr::CDRPath::appendArcTo(double rx, double ry, double rotation, bool longAngle, bool sweep, double x, double y)
+void CDRPath::appendArcTo(double rx, double ry, double rotation, bool longAngle, bool sweep, double x, double y)
 {
-  m_elements.push_back(make_unique<libcdr::CDRArcToElement>(rx, ry, rotation, longAngle, sweep, x, y));
+  m_elements.push_back(make_unique<CDRArcToElement>(rx, ry, rotation, longAngle, sweep, x, y));
 }
 
-void libcdr::CDRPath::appendSplineTo(const std::vector<std::pair<double, double> > &points)
+void CDRPath::appendSplineTo(const std::vector<std::pair<double, double> > &points)
 {
-  m_elements.push_back(libcdr::make_unique<libcdr::CDRSplineToElement>(points));
+  m_elements.push_back(libcdr::make_unique<CDRSplineToElement>(points));
 }
 
-void libcdr::CDRPath::appendClosePath()
+void CDRPath::appendClosePath()
 {
-  m_elements.push_back(make_unique<libcdr::CDRClosePathElement>());
+  m_elements.push_back(make_unique<CDRClosePathElement>());
   m_isClosed = true;
 }
 
-libcdr::CDRPath::CDRPath(const libcdr::CDRPath &path) : m_elements(), m_isClosed(false)
+CDRPath::CDRPath(const CDRPath &path) : m_elements(), m_isClosed(false)
 {
   appendPath(path);
   m_isClosed = path.isClosed();
 }
 
-libcdr::CDRPath &libcdr::CDRPath::operator=(const libcdr::CDRPath &path)
+CDRPath &CDRPath::operator=(const CDRPath &path)
 {
   // Check for self-assignment
   if (this == &path)
@@ -690,17 +687,17 @@ libcdr::CDRPath &libcdr::CDRPath::operator=(const libcdr::CDRPath &path)
 }
 
 
-libcdr::CDRPath::~CDRPath()
+CDRPath::~CDRPath()
 {
 }
 
-void libcdr::CDRPath::appendPath(const CDRPath &path)
+void CDRPath::appendPath(const CDRPath &path)
 {
   for (const auto &element : path.m_elements)
     m_elements.push_back(element->clone());
 }
 
-void libcdr::CDRPath::writeOut(librevenge::RVNGPropertyListVector &vec) const
+void CDRPath::writeOut(librevenge::RVNGPropertyListVector &vec) const
 {
   bool wasZ = true;
   for (const auto &element : m_elements)
@@ -721,7 +718,7 @@ void libcdr::CDRPath::writeOut(librevenge::RVNGPropertyListVector &vec) const
   }
 }
 
-void libcdr::CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGString &viewBox, double &width) const
+void CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGString &viewBox, double &width) const
 {
   librevenge::RVNGPropertyListVector vec;
   writeOut(vec);
@@ -848,37 +845,39 @@ void libcdr::CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGStr
   }
 }
 
-void libcdr::CDRPath::transform(const CDRTransforms &trafos)
+void CDRPath::transform(const CDRTransforms &trafos)
 {
   for (auto &element : m_elements)
     element->transform(trafos);
 }
 
-void libcdr::CDRPath::transform(const CDRTransform &trafo)
+void CDRPath::transform(const CDRTransform &trafo)
 {
   for (auto &element : m_elements)
     element->transform(trafo);
 }
 
-std::unique_ptr<libcdr::CDRPathElement> libcdr::CDRPath::clone()
+std::unique_ptr<CDRPathElement> CDRPath::clone()
 {
   return make_unique<CDRPath>(*this);
 }
 
-void libcdr::CDRPath::clear()
+void CDRPath::clear()
 {
   m_elements.clear();
   m_isClosed = false;
 }
 
-bool libcdr::CDRPath::empty() const
+bool CDRPath::empty() const
 {
   return m_elements.empty();
 }
 
-bool libcdr::CDRPath::isClosed() const
+bool CDRPath::isClosed() const
 {
   return m_isClosed;
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
