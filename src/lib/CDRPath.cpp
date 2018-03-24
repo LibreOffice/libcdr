@@ -673,8 +673,7 @@ void libcdr::CDRPath::appendClosePath()
 
 libcdr::CDRPath::CDRPath(const libcdr::CDRPath &path) : m_elements(), m_isClosed(false)
 {
-  for (auto element : path.m_elements)
-    m_elements.push_back(element->clone());
+  appendPath(path);
   m_isClosed = path.isClosed();
 }
 
@@ -684,8 +683,7 @@ libcdr::CDRPath &libcdr::CDRPath::operator=(const libcdr::CDRPath &path)
   if (this == &path)
     return *this;
   clear();
-  for (auto element : path.m_elements)
-    m_elements.push_back(element->clone());
+  appendPath(path);
   m_isClosed = path.isClosed();
   return *this;
 }
