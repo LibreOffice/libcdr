@@ -275,136 +275,134 @@ public:
   }
 };
 
-} // namespace libcdr
-
-libcdr::CDRStyleOutputElement::CDRStyleOutputElement(const librevenge::RVNGPropertyList &propList) :
+CDRStyleOutputElement::CDRStyleOutputElement(const librevenge::RVNGPropertyList &propList) :
   m_propList(propList) {}
 
-void libcdr::CDRStyleOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDRStyleOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->setStyle(m_propList);
 }
 
 
-libcdr::CDRPathOutputElement::CDRPathOutputElement(const librevenge::RVNGPropertyList &propList) :
+CDRPathOutputElement::CDRPathOutputElement(const librevenge::RVNGPropertyList &propList) :
   m_propList(propList) {}
 
-void libcdr::CDRPathOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDRPathOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->drawPath(m_propList);
 }
 
 
-libcdr::CDRGraphicObjectOutputElement::CDRGraphicObjectOutputElement(const librevenge::RVNGPropertyList &propList) :
+CDRGraphicObjectOutputElement::CDRGraphicObjectOutputElement(const librevenge::RVNGPropertyList &propList) :
   m_propList(propList) {}
 
-void libcdr::CDRGraphicObjectOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDRGraphicObjectOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->drawGraphicObject(m_propList);
 }
 
 
-libcdr::CDRStartTextObjectOutputElement::CDRStartTextObjectOutputElement(const librevenge::RVNGPropertyList &propList) :
+CDRStartTextObjectOutputElement::CDRStartTextObjectOutputElement(const librevenge::RVNGPropertyList &propList) :
   m_propList(propList) {}
 
-void libcdr::CDRStartTextObjectOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDRStartTextObjectOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->startTextObject(m_propList);
 }
 
-libcdr::CDROpenSpanOutputElement::CDROpenSpanOutputElement(const librevenge::RVNGPropertyList &propList) :
+CDROpenSpanOutputElement::CDROpenSpanOutputElement(const librevenge::RVNGPropertyList &propList) :
   m_propList(propList) {}
 
-void libcdr::CDROpenSpanOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDROpenSpanOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->openSpan(m_propList);
 }
 
 
-libcdr::CDROpenParagraphOutputElement::CDROpenParagraphOutputElement(const librevenge::RVNGPropertyList &propList) :
+CDROpenParagraphOutputElement::CDROpenParagraphOutputElement(const librevenge::RVNGPropertyList &propList) :
   m_propList(propList) {}
 
-void libcdr::CDROpenParagraphOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDROpenParagraphOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->openParagraph(m_propList);
 }
 
 
-libcdr::CDRInsertTextOutputElement::CDRInsertTextOutputElement(const librevenge::RVNGString &text) :
+CDRInsertTextOutputElement::CDRInsertTextOutputElement(const librevenge::RVNGString &text) :
   m_text(text) {}
 
-void libcdr::CDRInsertTextOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDRInsertTextOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     separateSpacesAndInsertText(painter, m_text);
 }
 
-libcdr::CDRCloseSpanOutputElement::CDRCloseSpanOutputElement() {}
+CDRCloseSpanOutputElement::CDRCloseSpanOutputElement() {}
 
-void libcdr::CDRCloseSpanOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDRCloseSpanOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->closeSpan();
 }
 
 
-libcdr::CDRCloseParagraphOutputElement::CDRCloseParagraphOutputElement() {}
+CDRCloseParagraphOutputElement::CDRCloseParagraphOutputElement() {}
 
-void libcdr::CDRCloseParagraphOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDRCloseParagraphOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->closeParagraph();
 }
 
 
-libcdr::CDREndTextObjectOutputElement::CDREndTextObjectOutputElement() {}
+CDREndTextObjectOutputElement::CDREndTextObjectOutputElement() {}
 
-void libcdr::CDREndTextObjectOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDREndTextObjectOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->endTextObject();
 }
 
 
-libcdr::CDREndLayerOutputElement::CDREndLayerOutputElement() {}
+CDREndLayerOutputElement::CDREndLayerOutputElement() {}
 
-void libcdr::CDREndLayerOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDREndLayerOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->endLayer();
 }
 
 
-libcdr::CDRStartLayerOutputElement::CDRStartLayerOutputElement(const librevenge::RVNGPropertyList &propList) :
+CDRStartLayerOutputElement::CDRStartLayerOutputElement(const librevenge::RVNGPropertyList &propList) :
   m_propList(propList) {}
 
-void libcdr::CDRStartLayerOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
+void CDRStartLayerOutputElement::draw(librevenge::RVNGDrawingInterface *painter)
 {
   if (painter)
     painter->startLayer(m_propList);
 }
 
 
-libcdr::CDROutputElementList::CDROutputElementList()
+CDROutputElementList::CDROutputElementList()
   : m_elements()
 {
 }
 
-libcdr::CDROutputElementList::CDROutputElementList(const libcdr::CDROutputElementList &elementList)
+CDROutputElementList::CDROutputElementList(const CDROutputElementList &elementList)
   : m_elements()
 {
-  std::vector<libcdr::CDROutputElement *>::const_iterator iter;
+  std::vector<CDROutputElement *>::const_iterator iter;
   for (iter = elementList.m_elements.begin(); iter != elementList.m_elements.end(); ++iter)
     m_elements.push_back((*iter)->clone());
 }
 
-libcdr::CDROutputElementList &libcdr::CDROutputElementList::operator=(const libcdr::CDROutputElementList &elementList)
+CDROutputElementList &CDROutputElementList::operator=(const CDROutputElementList &elementList)
 {
   for (auto &element : m_elements)
     delete element;
@@ -417,77 +415,79 @@ libcdr::CDROutputElementList &libcdr::CDROutputElementList::operator=(const libc
   return *this;
 }
 
-libcdr::CDROutputElementList::~CDROutputElementList()
+CDROutputElementList::~CDROutputElementList()
 {
   for (auto &element : m_elements)
     delete element;
   m_elements.clear();
 }
 
-void libcdr::CDROutputElementList::draw(librevenge::RVNGDrawingInterface *painter) const
+void CDROutputElementList::draw(librevenge::RVNGDrawingInterface *painter) const
 {
   for (auto element : m_elements)
     element->draw(painter);
 }
 
-void libcdr::CDROutputElementList::addStyle(const librevenge::RVNGPropertyList &propList)
+void CDROutputElementList::addStyle(const librevenge::RVNGPropertyList &propList)
 {
   m_elements.push_back(new CDRStyleOutputElement(propList));
 }
 
-void libcdr::CDROutputElementList::addPath(const librevenge::RVNGPropertyList &propList)
+void CDROutputElementList::addPath(const librevenge::RVNGPropertyList &propList)
 {
   m_elements.push_back(new CDRPathOutputElement(propList));
 }
 
-void libcdr::CDROutputElementList::addGraphicObject(const librevenge::RVNGPropertyList &propList)
+void CDROutputElementList::addGraphicObject(const librevenge::RVNGPropertyList &propList)
 {
   m_elements.push_back(new CDRGraphicObjectOutputElement(propList));
 }
 
-void libcdr::CDROutputElementList::addStartTextObject(const librevenge::RVNGPropertyList &propList)
+void CDROutputElementList::addStartTextObject(const librevenge::RVNGPropertyList &propList)
 {
   m_elements.push_back(new CDRStartTextObjectOutputElement(propList));
 }
 
-void libcdr::CDROutputElementList::addOpenParagraph(const librevenge::RVNGPropertyList &propList)
+void CDROutputElementList::addOpenParagraph(const librevenge::RVNGPropertyList &propList)
 {
   m_elements.push_back(new CDROpenParagraphOutputElement(propList));
 }
 
-void libcdr::CDROutputElementList::addOpenSpan(const librevenge::RVNGPropertyList &propList)
+void CDROutputElementList::addOpenSpan(const librevenge::RVNGPropertyList &propList)
 {
   m_elements.push_back(new CDROpenSpanOutputElement(propList));
 }
 
-void libcdr::CDROutputElementList::addInsertText(const librevenge::RVNGString &text)
+void CDROutputElementList::addInsertText(const librevenge::RVNGString &text)
 {
   m_elements.push_back(new CDRInsertTextOutputElement(text));
 }
 
-void libcdr::CDROutputElementList::addCloseSpan()
+void CDROutputElementList::addCloseSpan()
 {
   m_elements.push_back(new CDRCloseSpanOutputElement());
 }
 
-void libcdr::CDROutputElementList::addCloseParagraph()
+void CDROutputElementList::addCloseParagraph()
 {
   m_elements.push_back(new CDRCloseParagraphOutputElement());
 }
 
-void libcdr::CDROutputElementList::addEndTextObject()
+void CDROutputElementList::addEndTextObject()
 {
   m_elements.push_back(new CDREndTextObjectOutputElement());
 }
 
-void libcdr::CDROutputElementList::addStartGroup(const librevenge::RVNGPropertyList &propList)
+void CDROutputElementList::addStartGroup(const librevenge::RVNGPropertyList &propList)
 {
   m_elements.push_back(new CDRStartLayerOutputElement(propList));
 }
 
-void libcdr::CDROutputElementList::addEndGroup()
+void CDROutputElementList::addEndGroup()
 {
   m_elements.push_back(new CDREndLayerOutputElement());
 }
+
+} // namespace libcdr
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
