@@ -66,7 +66,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
     m_ignorePage(false), m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFillStyle(), m_currentLineStyle(),
     m_spnd(0), m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
     m_currentStyleId(0), m_currentImage(), m_currentText(nullptr), m_currentBBox(), m_currentTextBox(), m_currentPath(),
-    m_currentTransforms(), m_fillTransforms(), m_polygon(nullptr), m_isInPolygon(false), m_isInSpline(false),
+    m_currentTransforms(), m_fillTransforms(), m_polygon(), m_isInPolygon(false), m_isInSpline(false),
     m_outputElementsStack(nullptr), m_contentOutputElementsStack(), m_fillOutputElementsStack(),
     m_outputElementsQueue(nullptr), m_contentOutputElementsQueue(), m_fillOutputElementsQueue(),
     m_groupLevels(), m_groupTransforms(), m_splineData(), m_fillOpacity(1.0), m_reverseOrder(reverseOrder),
@@ -82,7 +82,6 @@ libcdr::CDRContentCollector::~CDRContentCollector()
     _endPage();
   if (m_isDocumentStarted)
     _endDocument();
-  delete m_polygon;
 }
 
 void libcdr::CDRContentCollector::_startDocument()
@@ -222,11 +221,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   {
     if (m_polygon && m_isInPolygon)
       m_polygon->create(m_currentPath);
-    if (m_polygon)
-    {
-      delete m_polygon;
-      m_polygon = nullptr;
-    }
+    m_polygon.reset();
     m_isInPolygon = false;
     if (!m_splineData.empty() && m_isInSpline)
       m_splineData.create(m_currentPath);
@@ -682,9 +677,7 @@ void libcdr::CDRContentCollector::collectSpline()
 
 void libcdr::CDRContentCollector::collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy)
 {
-  if (m_polygon)
-    delete m_polygon;
-  m_polygon = new CDRPolygon(numAngles, nextPoint, rx, ry, cx, cy);
+  m_polygon.reset(new CDRPolygon(numAngles, nextPoint, rx, ry, cx, cy));
 }
 
 void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &propList)

@@ -11,6 +11,7 @@
 #define __CDRCONTENTCOLLECTOR_H__
 
 #include <map>
+#include <memory>
 #include <utility>
 #include <vector>
 #include <stack>
@@ -107,7 +108,7 @@ private:
   CDRPath m_currentPath;
   CDRTransforms m_currentTransforms;
   CDRTransforms m_fillTransforms;
-  CDRPolygon *m_polygon;
+  std::unique_ptr<CDRPolygon> m_polygon;
   bool m_isInPolygon;
   bool m_isInSpline;
   std::stack<CDROutputElementList> *m_outputElementsStack;
