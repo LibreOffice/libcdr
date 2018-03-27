@@ -116,8 +116,9 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
     {
       input->seek(0, librevenge::RVNG_SEEK_SET);
       CDRParserState ps;
+      std::vector<std::unique_ptr<librevenge::RVNGInputStream>> dummyDataStreams;
       CDRStylesCollector stylesCollector(ps);
-      CDRParser stylesParser(std::vector<std::unique_ptr<librevenge::RVNGInputStream>>(), &stylesCollector);
+      CDRParser stylesParser(dummyDataStreams, &stylesCollector);
       if (version >= 300)
         retVal = stylesParser.parseRecords(input.get());
       else
@@ -128,7 +129,7 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
       {
         input->seek(0, librevenge::RVNG_SEEK_SET);
         CDRContentCollector contentCollector(ps, painter);
-        CDRParser contentParser(std::vector<std::unique_ptr<librevenge::RVNGInputStream>>(), &contentCollector);
+        CDRParser contentParser(dummyDataStreams, &contentCollector);
         if (version >= 300)
           retVal = contentParser.parseRecords(input.get());
         else
