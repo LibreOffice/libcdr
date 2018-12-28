@@ -117,9 +117,9 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
         writeU32(image, m_ps.getBMPColor(libcdr::CDRColor(colorModel, palette[c])));
       }
     }
-    else if (bpp == 24)
+    else if (bpp == 24 && lineWidth >= 3)
     {
-      while (i < lineWidth && k < width)
+      while (i < lineWidth -2 && k < width)
       {
         unsigned c = ((unsigned)bitmap[j*lineWidth+i+2] << 16) | ((unsigned)bitmap[j*lineWidth+i+1] << 8) | ((unsigned)bitmap[j*lineWidth+i]);
         i += 3;
