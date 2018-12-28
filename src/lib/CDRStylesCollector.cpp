@@ -127,9 +127,9 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
         k++;
       }
     }
-    else if (bpp == 32)
+    else if (bpp == 32 && lineWidth >= 4)
     {
-      while (i < lineWidth && k < width)
+      while (i < lineWidth - 3 && k < width)
       {
         unsigned c = (bitmap[j*lineWidth+i+3] << 24) | (bitmap[j*lineWidth+i+2] << 16) | (bitmap[j*lineWidth+i+1] << 8) | (bitmap[j*lineWidth+i]);
         i += 4;
