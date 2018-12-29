@@ -1,3 +1,10 @@
+libcdr 0.1.5
+
+* Drop outdated MSVC project files.
+* Fix several issues found by oss-fuzz.
+* Switch from --enable-werror to --disable-werror as configure default.
+* Miscellaneous code cleanups.
+
 libcdr 0.1.4
 
 * Fix several issues found by oss-fuzz.
