@@ -190,7 +190,7 @@ AS_IF([test $platform_win32 = yes],
         CXXFLAGS="$saved_CXXFLAGS"
         AX_GCC_FUNC_ATTRIBUTE([visibility])
         AM_CONDITIONAL([HAVE_VISIBILITY], [
-            test "$have_visibility" = "yes" && test "$ax_cv_gcc_func_attribute_visibility" = "yes"])
+            test "$have_visibility" = "yes" && test "$ax_cv_have_func_attribute_visibility" = "yes"])
     ]
 )
 
