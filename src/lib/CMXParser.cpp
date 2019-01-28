@@ -14,6 +14,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <utility>
+#include <cinttypes>
 
 #include "libcdr_utils.h"
 #include "CDRPath.h"
