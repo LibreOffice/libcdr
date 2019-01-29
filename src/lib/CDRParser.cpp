@@ -1678,7 +1678,7 @@ void libcdr::CDRParser::readTrfd(librevenge::RVNGInputStream *input, unsigned le
   if (numOfArgs > (length - startOfArgs) / 4) // avoid extra big allocation in case of a broken file
     numOfArgs = (length - startOfArgs) / 4;
   std::vector<unsigned> argOffsets(numOfArgs, 0);
-  unsigned i = 0;
+  size_t i = 0;
   input->seek(startPosition+startOfArgs, librevenge::RVNG_SEEK_SET);
   while (i<numOfArgs)
     argOffsets[i++] = readUnsigned(input);
@@ -2106,7 +2106,7 @@ void libcdr::CDRParser::readLoda(librevenge::RVNGInputStream *input, unsigned le
     m_collector->collectSpline();
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   std::vector<unsigned> argTypes(numOfArgs, 0);
-  unsigned i = 0;
+  size_t i = 0;
   input->seek(startPosition+startOfArgs, librevenge::RVNG_SEEK_SET);
   while (i<numOfArgs)
     argOffsets[i++] = readUnsigned(input);
@@ -3301,7 +3301,7 @@ void libcdr::CDRParser::readStyd(librevenge::RVNGInputStream *input)
   style.m_parentId =  readUnsigned(input);
   std::vector<unsigned> argOffsets(numOfArgs, 0);
   std::vector<unsigned> argTypes(numOfArgs, 0);
-  unsigned i = 0;
+  size_t i = 0;
   input->seek(startPosition+startOfArgs, librevenge::RVNG_SEEK_SET);
   while (i<numOfArgs)
     argOffsets[i++] = readUnsigned(input);

@@ -735,7 +735,7 @@ void CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGString &vie
   double lastX = 0.0;
   double lastY = 0.0;
 
-  for (unsigned k = 0; k < vec.count(); ++k)
+  for (unsigned long k = 0; k < vec.count(); ++k)
   {
     if (!vec[k]["svg:x"] || !vec[k]["svg:y"])
       continue;
@@ -798,7 +798,7 @@ void CDRPath::writeOut(librevenge::RVNGString &path, librevenge::RVNGString &vie
   width = qy - py;
   viewBox.sprintf("%i %i %i %i", 0, 0, (unsigned)(2540*(qx - px)), (unsigned)(2540*(qy - py)));
 
-  for (unsigned i = 0; i < vec.count(); ++i)
+  for (unsigned long i = 0; i < vec.count(); ++i)
   {
     librevenge::RVNGString sElement;
     if (vec[i]["librevenge:path-action"]->getStr() == "M")

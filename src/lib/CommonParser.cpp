@@ -80,7 +80,7 @@ void libcdr::CommonParser::processPath(const std::vector<std::pair<double, doubl
 {
   bool isClosedPath = false;
   std::vector<std::pair<double, double> >tmpPoints;
-  for (unsigned k=0; k<points.size(); k++)
+  for (size_t k=0; k<points.size(); k++)
   {
     const unsigned char &type = types[k];
     if (type & 0x08)
