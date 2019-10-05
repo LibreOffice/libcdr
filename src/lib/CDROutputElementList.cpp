@@ -351,7 +351,7 @@ CDROutputElementList::~CDROutputElementList()
 
 void CDROutputElementList::draw(librevenge::RVNGDrawingInterface *painter) const
 {
-  for (auto element : m_elements)
+  for (const auto &element : m_elements)
     element->draw(painter);
 }
 
