@@ -369,8 +369,8 @@ struct CDRFont
   CDRFont() : m_name(), m_encoding(0) {}
   CDRFont(const librevenge::RVNGString &name, unsigned short encoding)
     : m_name(name), m_encoding(encoding) {}
-  CDRFont(const CDRFont &font)
-    : m_name(font.m_name), m_encoding(font.m_encoding) {}
+  CDRFont(const CDRFont &font) = default;
+  CDRFont& operator=(const CDRFont &font) = default;
   librevenge::RVNGString m_name;
   unsigned short m_encoding;
 };

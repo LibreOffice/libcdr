@@ -23,11 +23,6 @@ libcdr::CDRTransform::CDRTransform(double v0, double v1, double x0, double v3, d
 {
 }
 
-libcdr::CDRTransform::CDRTransform(const CDRTransform &trafo)
-  : m_v0(trafo.m_v0), m_v1(trafo.m_v1), m_x0(trafo.m_x0),
-    m_v3(trafo.m_v3), m_v4(trafo.m_v4), m_y0(trafo.m_y0) {}
-
-
 void libcdr::CDRTransform::applyToPoint(double &x, double &y) const
 {
   double tmpX = m_v0*x + m_v1*y+m_x0;
@@ -219,11 +214,6 @@ librevenge::RVNGString libcdr::CDRTransform::toString() const
 
 libcdr::CDRTransforms::CDRTransforms()
   : m_trafos()
-{
-}
-
-libcdr::CDRTransforms::CDRTransforms(const CDRTransforms &trafos)
-  : m_trafos(trafos.m_trafos)
 {
 }
 
