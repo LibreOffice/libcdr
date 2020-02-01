@@ -1156,6 +1156,9 @@ libcdr::CDRColor libcdr::CDRParser::readColor(librevenge::RVNGInputStream *input
     colorModel = readU8(input);
     colorValue = readU32(input);
   }
+
+  CDR_DEBUG_MSG(("CDRParser::redColor --> colorModel 0x%x -- colorValue 0x%x\n", colorModel, colorValue));
+
   return libcdr::CDRColor(colorModel, colorValue);
 }
 
@@ -1758,13 +1761,8 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned fillId = readU32(input);
-  unsigned short v13flag = 0;
   if (m_version >= 1300)
-  {
-    input->seek(4, librevenge::RVNG_SEEK_CUR);
-    v13flag = readU16(input);
-    input->seek(2, librevenge::RVNG_SEEK_CUR);
-  }
+    input->seek(8, librevenge::RVNG_SEEK_CUR);
   unsigned short fillType = readU16(input);
   libcdr::CDRColor color1;
   libcdr::CDRColor color2;
@@ -1818,14 +1816,11 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
     {
       libcdr::CDRGradientStop stop;
       stop.m_color = readColor(input);
-      if (m_version >= 1300)
-      {
-        if (v13flag == 0x9e || (m_version >= 1600 && v13flag == 0x96))
-          input->seek(26, librevenge::RVNG_SEEK_CUR);
-        else
-          input->seek(5, librevenge::RVNG_SEEK_CUR);
-      }
-      stop.m_offset = (double)readUnsigned(input) / 100.0;
+      if (m_version >= 1400)
+        input->seek(26, librevenge::RVNG_SEEK_CUR);
+      else if (m_version >= 1300)
+        input->seek(5, librevenge::RVNG_SEEK_CUR);
+      stop.m_offset = (double)(readUnsigned(input) & 0xffff) / 100.0;
       if (m_version >= 1300)
         input->seek(3, librevenge::RVNG_SEEK_CUR);
       gradient.m_stops.push_back(stop);
@@ -1867,12 +1862,7 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
       input->seek(1, librevenge::RVNG_SEEK_CUR);
     color1 = readColor(input);
     if (m_version >= 1300)
-    {
-      if (v13flag == 0x94 || (m_version >= 1600 && v13flag == 0x8c))
-        input->seek(31, librevenge::RVNG_SEEK_CUR);
-      else
-        input->seek(10, librevenge::RVNG_SEEK_CUR);
-    }
+      input->seek(31, librevenge::RVNG_SEEK_CUR);
     color2 = readColor(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
   }
@@ -1921,12 +1911,7 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
   case 10: // Full color
   {
     if (m_version >= 1300)
-    {
-      if (v13flag == 0x4e)
-        input->seek(28, librevenge::RVNG_SEEK_CUR);
-      else
-        input->seek(4, librevenge::RVNG_SEEK_CUR);
-    }
+      input->seek(28, librevenge::RVNG_SEEK_CUR);
     else
       input->seek(2, librevenge::RVNG_SEEK_CUR);
     unsigned patternId = readUnsigned(input);
@@ -1966,12 +1951,7 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
     if (m_version < 600)
       fillType = 10;
     if (m_version >= 1300)
-    {
-      if (v13flag == 0x18e)
-        input->seek(36, librevenge::RVNG_SEEK_CUR);
-      else
-        input->seek(1, librevenge::RVNG_SEEK_CUR);
-    }
+      input->seek(36, librevenge::RVNG_SEEK_CUR);
     else
       input->seek(2, librevenge::RVNG_SEEK_CUR);
     unsigned patternId = readU32(input);
