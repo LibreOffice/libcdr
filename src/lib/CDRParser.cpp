@@ -2911,7 +2911,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
           std::map<unsigned, CDRFillStyle>::const_iterator iter = m_fillStyles.find(fillId);
           if (iter != m_fillStyles.end())
             style.m_fillStyle = iter->second;
-          if (m_version >= 1500)
+          if (m_version >= 1600)
             input->seek(48, librevenge::RVNG_SEEK_CUR);
         }
         if (fl2&0x80) // Font Outl Colour
