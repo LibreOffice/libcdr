@@ -108,7 +108,7 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   bool bRes = false;
 
   boost::optional<unsigned> colourModel;
-  unsigned val0, val1, val2, val3, val4;
+  std::vector<unsigned> val;
 
   if (colourString)
   {
@@ -116,6 +116,7 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     cmodel.add
     ("CMYK", 2)
     ("CMYK255", 3)
+    ("RGB255", 5)
     ;
     auto it = colourString;
     const auto end = it + std::strlen(it);
@@ -124,27 +125,48 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
                         (
                           (cmodel | omit[+alnum]) >> -lit(',')
                           >> omit[+alnum] >> -lit(',')
-                          >> uint_ >> -lit(',')
-                          >> uint_ >> -lit(',')
-                          >> uint_ >> -lit(',')
-                          >> uint_ >> -lit(',')
-                          >> uint_ >> -lit(',')
+                          >> *(uint_ >> -lit(','))
                           >> (repeat(8)[alnum] >> '-' >> repeat(3)[repeat(4)[alnum] >> '-'] >> repeat(12)[alnum])
                         ),
                         //  End grammar
                         space,
-                        colourModel, val0, val1, val2, val3, val4)
+                        colourModel, val)
            && it == end;
   }
 
-  if (!bRes)
+  if (bRes)
     return -1;
 
   if (colourModel)
     colour.m_colorModel = get(colourModel);
-  colour.m_colorValue = val0 | (val1 << 8) | (val2 << 16) | (val3 << 24);
-  opacity = (double)val4 / 100.0;
 
+  switch (colour.m_colorModel)
+  {
+  case 5:
+    if (val.size() >= 4)
+    {
+      colour.m_colorValue = val[0] | (val[1] << 8) | (val[2] << 16);
+      opacity = (double)val[3] / 100.0;
+      break;
+    }
+    else
+    {
+      CDR_DEBUG_MSG(("parseColourString error: not enough values read: %lu\n", val.size()));
+      return 0;
+    }
+  default:
+    if (val.size() >= 5)
+    {
+      colour.m_colorValue = val[0] | (val[1] << 8) | (val[2] << 16) | (val[3] << 24);
+      opacity = (double)val[4] / 100.0;
+      break;
+    }
+    else
+    {
+      CDR_DEBUG_MSG(("parseColourString error: not enough values read: %lu\n", val.size()));
+      return 0;
+    }
+  }
   return 1;
 }
 
