@@ -3086,7 +3086,9 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
     std::vector<unsigned char> charDescriptions(numChars);
     for (i=0; i<numChars; ++i)
     {
-      charDescriptions[i] = readU64(input);
+      unsigned tmpCharDescription = 0;
+      tmpCharDescription = readU64(input) & 0xffffffff;
+      charDescriptions[i] = (tmpCharDescription >> 16) | (tmpCharDescription & 0x01);
     }
     unsigned numBytes = readU32(input);
     unsigned long numBytesRead = 0;
