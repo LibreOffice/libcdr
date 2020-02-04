@@ -3416,16 +3416,20 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
   CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
 
   boost::property_tree::ptree pt;
+#ifndef DEBUG
   try
+#endif
   {
     std::stringstream ss;
     ss << styleString.cstr();
     boost::property_tree::read_json(ss, pt);
   }
+#ifndef DEBUG
   catch (...)
   {
     return;
   }
+#endif
 
   if (pt.count("character"))
   {
@@ -3440,7 +3444,7 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
     if (!!fontSize)
       style.m_fontSize = (double)fontSize.get() / 254000.0;
 
-    if (pt.count("character.outline"))
+    if (!!pt.get_child_optional("character.outline"))
     {
       style.m_lineStyle.lineType = 0;
       boost::optional<unsigned> lineWidth = pt.get_optional<unsigned>("character.outline.width");
@@ -3454,7 +3458,7 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
       }
     }
 
-    if (pt.count("character.fill"))
+    if (!!pt.get_child_optional("character.fill"))
     {
       boost::optional<unsigned short> type = pt.get_optional<unsigned short>("character.fill.type");
       if (!!type)
