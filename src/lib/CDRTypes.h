@@ -370,7 +370,7 @@ struct CDRFont
   CDRFont(const librevenge::RVNGString &name, unsigned short encoding)
     : m_name(name), m_encoding(encoding) {}
   CDRFont(const CDRFont &font) = default;
-  CDRFont& operator=(const CDRFont &font) = default;
+  CDRFont &operator=(const CDRFont &font) = default;
   librevenge::RVNGString m_name;
   unsigned short m_encoding;
 };
