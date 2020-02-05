@@ -105,7 +105,7 @@ static void processNameForEncoding(librevenge::RVNGString &name, unsigned short 
 static int parseColourString(const char *colourString, libcdr::CDRColor &colour, double &opacity)
 {
   using namespace boost::spirit::qi;
-  bool bRes = false;
+  bool bRes = true;
 
   boost::optional<unsigned> colourModel;
   std::vector<unsigned> val;
@@ -140,34 +140,21 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   if (colourModel)
     colour.m_colorModel = get(colourModel);
 
-  switch (colour.m_colorModel)
+  if (val.size() >= 5)
   {
-  case 5:
-    if (val.size() >= 4)
-    {
-      colour.m_colorValue = val[0] | (val[1] << 8) | (val[2] << 16);
-      opacity = (double)val[3] / 100.0;
-      break;
-    }
-    else
-    {
-      CDR_DEBUG_MSG(("parseColourString error: not enough values read: %lu\n", val.size()));
-      return 0;
-    }
-  default:
-    if (val.size() >= 5)
-    {
-      colour.m_colorValue = val[0] | (val[1] << 8) | (val[2] << 16) | (val[3] << 24);
-      opacity = (double)val[4] / 100.0;
-      break;
-    }
-    else
-    {
-      CDR_DEBUG_MSG(("parseColourString error: not enough values read: %lu\n", val.size()));
-      return 0;
-    }
+    colour.m_colorValue = val[0] | (val[1] << 8) | (val[2] << 16) | (val[3] << 24);
+    opacity = (double)val[4] / 100.0;
+    return 1;
   }
-  return 1;
+
+  if (val.size() >= 4)
+  {
+    colour.m_colorValue = val[0] | (val[1] << 8) | (val[2] << 16);
+    opacity = (double)val[3] / 100.0;
+    return 1;
+  }
+
+  return 0;
 }
 
 void normalizeAngle(double &angle)
