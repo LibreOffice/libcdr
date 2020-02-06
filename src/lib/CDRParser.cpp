@@ -1166,7 +1166,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(librevenge::RVNGInputStream *input
     colorValue = readU32(input);
   }
 
-  CDR_DEBUG_MSG(("CDRParser::redColor --> colorModel 0x%x -- colorValue 0x%x\n", colorModel, colorValue));
+  CDR_DEBUG_MSG(("CDRParser::readColor --> colorModel 0x%x -- colorValue 0x%x\n", colorModel, colorValue));
 
   return libcdr::CDRColor(colorModel, colorValue);
 }
