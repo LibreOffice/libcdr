@@ -1870,8 +1870,10 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
     else
       input->seek(1, librevenge::RVNG_SEEK_CUR);
     color1 = readColor(input);
-    if (m_version >= 1300)
+    if (m_version >= 1600)
       input->seek(31, librevenge::RVNG_SEEK_CUR);
+    else if (m_version >= 1300)
+      input->seek(10, librevenge::RVNG_SEEK_CUR);
     color2 = readColor(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
   }
@@ -1880,12 +1882,14 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
   {
     if (m_version < 600)
       fillType = 10;
-    input->seek(2, librevenge::RVNG_SEEK_CUR);
-    unsigned patternId = readUnsigned(input);
-    if (m_version >= 1600)
-      input->seek(26, librevenge::RVNG_SEEK_CUR);
-    else if (m_version >= 1300)
+    if (m_version >= 1300)
+    {
+      _skipX3Optional(input);
+      input->seek(-4, librevenge::RVNG_SEEK_CUR);
+    }
+    else
       input->seek(2, librevenge::RVNG_SEEK_CUR);
+    unsigned patternId = readUnsigned(input);
     int tmpWidth = readUnsigned(input);
     int tmpHeight = readUnsigned(input);
     double tileOffsetX = 0.0;
@@ -1920,7 +1924,10 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
   case 10: // Full color
   {
     if (m_version >= 1300)
-      input->seek(28, librevenge::RVNG_SEEK_CUR);
+    {
+      _skipX3Optional(input);
+      input->seek(-4, librevenge::RVNG_SEEK_CUR);
+    }
     else
       input->seek(2, librevenge::RVNG_SEEK_CUR);
     unsigned patternId = readUnsigned(input);
@@ -1960,7 +1967,10 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
     if (m_version < 600)
       fillType = 10;
     if (m_version >= 1300)
-      input->seek(36, librevenge::RVNG_SEEK_CUR);
+    {
+      _skipX3Optional(input);
+      input->seek(-4, librevenge::RVNG_SEEK_CUR);
+    }
     else
       input->seek(2, librevenge::RVNG_SEEK_CUR);
     unsigned patternId = readU32(input);
@@ -3475,5 +3485,36 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
   }
 }
 
+void libcdr::CDRParser::_skipX3Optional(librevenge::RVNGInputStream *input)
+{
+  if (m_version < 1300)
+    return;
+
+  bool goOut = false;
+
+  while (!goOut)
+  {
+    switch (readU32(input))
+    {
+    case 0x640:
+    {
+      unsigned length = readU32(input);
+      input->seek(length, librevenge::RVNG_SEEK_CUR);
+      break;
+    }
+    case 0x514:
+    {
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
+      break;
+    }
+    default:
+    {
+      input->seek(-4, librevenge::RVNG_SEEK_CUR);
+      goOut = true;
+      break;
+    }
+    }
+  }
+}
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
