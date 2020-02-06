@@ -337,7 +337,6 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
   case 0x01:
   case 0x02:
   case 0x15:
-  case 0x14:
   {
     double cmyk[4] =
     {
@@ -567,6 +566,15 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     blue = rgb[2];
     break;
   }
+  // Registration colour
+  case 0x14:
+  {
+    red = (unsigned char)cdr_round(255.0 * col0 / 100.0);
+    green = (unsigned char)cdr_round(255.0 * col0 / 100.0);
+    blue = (unsigned char)cdr_round(255.0 * col0 / 100.0);
+    break;
+  }
+
   default:
     break;
   }

@@ -117,16 +117,23 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     ("CMYK", 2)
     ("CMYK255", 3)
     ("RGB255", 5)
+    ("HSB", 6)
+    ("HLS", 7)
+    ("GRAY255", 9)
+    ("YIQ255", 11)
+    ("LAB255", 18)
+    ("REGCOLOR", 20)
+    ("SPOT", 25)
     ;
     auto it = colourString;
     const auto end = it + std::strlen(it);
     bRes = phrase_parse(it, end,
                         //  Begin grammar
                         (
-                          (cmodel | omit[+alnum]) >> -lit(',')
-                          >> omit[+alnum] >> -lit(',')
-                          >> *(uint_ >> -lit(','))
-                          >> (repeat(8)[alnum] >> '-' >> repeat(3)[repeat(4)[alnum] >> '-'] >> repeat(12)[alnum])
+                          (cmodel | omit[+alnum]) >> lit(',')
+                          >> omit[+alnum] >> lit(',')
+                          >> *(uint_ >> lit(','))
+                          >> (repeat(8)[xdigit] >> '-' >> repeat(3)[repeat(4)[xdigit] >> '-'] >> repeat(12)[xdigit])
                         ),
                         //  End grammar
                         space,
@@ -134,8 +141,8 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
            && it == end;
   }
 
-  if (bRes)
-    return -1;
+  // if (bRes)
+  //  return -1;
 
   if (colourModel)
     colour.m_colorModel = get(colourModel);
@@ -144,17 +151,34 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   {
     colour.m_colorValue = val[0] | (val[1] << 8) | (val[2] << 16) | (val[3] << 24);
     opacity = (double)val[4] / 100.0;
-    return 1;
   }
-
-  if (val.size() >= 4)
+  else if (val.size() >= 4)
   {
-    colour.m_colorValue = val[0] | (val[1] << 8) | (val[2] << 16);
+    if (colour.m_colorModel == 5)
+      colour.m_colorValue = val[2] | (val[1] << 8) | (val[0] << 16);
+    else if (colour.m_colorModel == 6 || colour.m_colorModel == 7)
+      colour.m_colorValue = val[0] | (val[1] << 16) | (val[2] << 24);
+    else
+      colour.m_colorValue = val[0] | (val[1] << 8) | (val[2] << 16);
     opacity = (double)val[3] / 100.0;
-    return 1;
   }
-
-  return 0;
+  else if (val.size() >= 2)
+  {
+    colour.m_colorValue = val[0];
+    opacity = (double)val[1] / 100.0;
+  }
+  else if (val.size() >= 1)
+  {
+    colour.m_colorValue = val[0];
+    opacity = 1.0;
+  }
+  else
+  {
+    CDR_DEBUG_MSG(("parseColourString --> bRes %i, size %lu, colorModel %u, colorValue 0x%.8x\n", bRes, val.size(), colour.m_colorModel, colour.m_colorValue));
+    return 0;
+  }
+  CDR_DEBUG_MSG(("parseColourString --> bRes %i, size %lu, colorModel %u, colorValue 0x%.8x\n", bRes, val.size(), colour.m_colorModel, colour.m_colorValue));
+  return 1;
 }
 
 void normalizeAngle(double &angle)
