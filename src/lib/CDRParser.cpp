@@ -105,9 +105,10 @@ static void processNameForEncoding(librevenge::RVNGString &name, unsigned short 
 static int parseColourString(const char *colourString, libcdr::CDRColor &colour, double &opacity)
 {
   using namespace boost::spirit::qi;
-  bool bRes = true;
+  bool bRes = false;
 
-  boost::optional<unsigned> colourModel;
+  boost::optional<unsigned> colourModel, colourPalette;
+  std::vector<char> rest;
   std::vector<unsigned> val;
 
   if (colourString)
@@ -125,24 +126,31 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     ("REGCOLOR", 20)
     ("SPOT", 25)
     ;
+    symbols<char, unsigned> cpalette;
+    cpalette.add
+    ("USER", 5)
+    ("FOCTONE", 8)
+    ;
     auto it = colourString;
     const auto end = it + std::strlen(it);
     bRes = phrase_parse(it, end,
                         //  Begin grammar
                         (
                           (cmodel | omit[+alnum]) >> lit(',')
-                          >> omit[+alnum] >> lit(',')
+                          >> (cpalette | omit[+alnum]) >> lit(',')
                           >> *(uint_ >> lit(','))
-                          >> (repeat(8)[xdigit] >> '-' >> repeat(3)[repeat(4)[xdigit] >> '-'] >> repeat(12)[xdigit])
+                          >> omit[(repeat(8)[xdigit] >> '-' >> repeat(3)[repeat(4)[xdigit] >> '-'] >> repeat(12)[xdigit])]
+                          >> -(lit(',') >> *char_)
                         ),
                         //  End grammar
                         space,
-                        colourModel, val)
+                        colourModel, colourPalette, val, rest)
            && it == end;
   }
+  rest.push_back(0);
 
-  // if (bRes)
-  //  return -1;
+  if (!bRes)
+    return -1;
 
   if (colourModel)
     colour.m_colorModel = get(colourModel);
@@ -164,8 +172,13 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   }
   else if (val.size() >= 2)
   {
-    colour.m_colorValue = val[0];
-    opacity = (double)val[1] / 100.0;
+    if (colour.m_colorModel == 25)
+      colour.m_colorValue = (val[1] << 16) | val[0];
+    else
+    {
+      colour.m_colorValue = val[0];
+      opacity = (double)val[1] / 100.0;
+    }
   }
   else if (val.size() >= 1)
   {
@@ -1018,9 +1031,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(librevenge::RVNGInputStream *input
         }
         break;
       default:
-        colorValue = tint;
-        colorValue <<= 16;
-        colorValue |= ix;
+        colorValue = (tint << 16) | ix;
         break;
       }
 
