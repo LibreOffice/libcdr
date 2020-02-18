@@ -155,6 +155,9 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   if (colourModel)
     colour.m_colorModel = get(colourModel);
 
+  if (colourPalette)
+    colour.m_colorPalette = get(colourPalette);
+
   if (val.size() >= 5)
   {
     colour.m_colorValue = val[0] | (val[1] << 8) | (val[2] << 16) | (val[3] << 24);
@@ -172,7 +175,7 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   }
   else if (val.size() >= 2)
   {
-    if (colour.m_colorModel == 25)
+    if (colour.m_colorModel == 25 || colour.m_colorModel == 14)
       colour.m_colorValue = (val[1] << 16) | val[0];
     else
     {
@@ -3070,6 +3073,7 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
       {
         double opacity = 1.0;
         parseColourString(color.get().c_str(), style.m_lineStyle.color, opacity);
+        _resolveColorPalette(style.m_lineStyle.color);
       }
     }
 
@@ -3083,12 +3087,14 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
       {
         double opacity = 1.0;
         parseColourString(color1.get().c_str(), style.m_fillStyle.color1, opacity);
+        _resolveColorPalette(style.m_fillStyle.color1);
       }
       boost::optional<std::string> color2 = pt.get_optional<std::string>("character.fill.primaryColor");
       if (!!color2)
       {
         double opacity = 1.0;
         parseColourString(color2.get().c_str(), style.m_fillStyle.color2, opacity);
+        _resolveColorPalette(style.m_fillStyle.color2);
       }
     }
   }
