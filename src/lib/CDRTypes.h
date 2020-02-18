@@ -53,10 +53,14 @@ struct CDRBox
 struct CDRColor
 {
   unsigned short m_colorModel;
+  unsigned short m_colorPalette;
   unsigned m_colorValue;
-  CDRColor() : m_colorModel(0), m_colorValue(0) {}
+  CDRColor(unsigned short colorModel, unsigned short colorPalette, unsigned colorValue)
+    : m_colorModel(colorModel), m_colorPalette(colorPalette), m_colorValue(colorValue) {}
+  CDRColor()
+    : m_colorModel(0), m_colorPalette(0), m_colorValue(0) {}
   CDRColor(unsigned short colorModel, unsigned colorValue)
-    : m_colorModel(colorModel), m_colorValue(colorValue) {}
+    : m_colorModel(colorModel), m_colorPalette(0), m_colorValue(colorValue) {}
 };
 
 struct CDRGradientStop

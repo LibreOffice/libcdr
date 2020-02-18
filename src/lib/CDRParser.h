@@ -95,6 +95,7 @@ private:
   bool _redirectX6Chunk(librevenge::RVNGInputStream **input, unsigned &length);
   void _readX6StyleString(librevenge::RVNGInputStream *input, unsigned length, CDRStyle &style);
   void _skipX3Optional(librevenge::RVNGInputStream *input);
+  void _resolveColorPalette(CDRColor &color);
 
   const std::vector<std::unique_ptr<librevenge::RVNGInputStream>> &m_externalStreams;
 
