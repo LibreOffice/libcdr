@@ -784,11 +784,7 @@ libcdr::CDRColor libcdr::CDRParser::readColor(librevenge::RVNGInputStream *input
     tmpColor.m_colorValue = readU32(input);
   }
 
-  CDR_DEBUG_MSG(("CDRParser::readColor --> colorModel 0x%x -- colorPalette 0x%x -- colorValue 0x%x\n", tmpColor.m_colorModel, tmpColor.m_colorPalette, tmpColor.m_colorValue));
-
   _resolveColorPalette(tmpColor);
-
-  CDR_DEBUG_MSG(("CDRParser::readColor resolved --> colorModel 0x%x -- colorPalette 0x%x -- colorValue 0x%x\n", tmpColor.m_colorModel, tmpColor.m_colorPalette, tmpColor.m_colorValue));
 
   return tmpColor;
 }
@@ -3144,6 +3140,8 @@ void libcdr::CDRParser::_skipX3Optional(librevenge::RVNGInputStream *input)
 
 void libcdr::CDRParser::_resolveColorPalette(libcdr::CDRColor &color)
 {
+  CDR_DEBUG_MSG(("CDRParser::_resolveColorPalette --> model 0x%x -- palette 0x%x -- value 0x%x\n", color.m_colorModel, color.m_colorPalette, color.m_colorValue));
+
   unsigned char r = 0;
   unsigned char g = 0;
   unsigned char b = 0;
@@ -3561,6 +3559,9 @@ void libcdr::CDRParser::_resolveColorPalette(libcdr::CDRColor &color)
       break;
     }
   }
+
+  CDR_DEBUG_MSG(("CDRParser::_resolveColorPalette resolved --> model 0x%x -- palette 0x%x -- value 0x%x\n", color.m_colorModel, color.m_colorPalette, color.m_colorValue));
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
