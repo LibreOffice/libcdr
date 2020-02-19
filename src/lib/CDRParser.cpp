@@ -2635,7 +2635,7 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
       unsigned tlen = readU32(input);
       if (m_version < 1700)
         tlen *= 2;
-      input->seek(tlen + 4, librevenge::RVNG_SEEK_CUR);
+      input->seek(tlen, librevenge::RVNG_SEEK_CUR);
     }
     else
     {
@@ -2657,65 +2657,72 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
       }
       else
         input->seek(8, librevenge::RVNG_SEEK_CUR);
-      input->seek(4, librevenge::RVNG_SEEK_CUR);
     }
 
-    unsigned stlId = readU32(input);
+    unsigned numPara = readU32(input);
 
-    if (frameFlag)
-      input->seek(1, librevenge::RVNG_SEEK_CUR);
-    input->seek(1, librevenge::RVNG_SEEK_CUR);
-
-    unsigned len2 = readU32(input);
-    if (m_version < 1700)
-      len2 *= 2;
-    CDRStyle defaultStyle;
-    _readX6StyleString(input, len2, defaultStyle);
-
-    unsigned numRecords = readU32(input);
-
-    unsigned i = 0;
-    std::map<unsigned, CDRStyle> styles;
-    for (i=0; i<numRecords && getRemainingLength(input) >= 17; ++i)
+    for (unsigned j = 0; j < numPara; ++j)
     {
-      styles[i*2] = defaultStyle;
-      input->seek(4, librevenge::RVNG_SEEK_CUR);
-      unsigned flag = readU8(input);
+
+      unsigned stlId = readU32(input);
+
+      if (frameFlag)
+        input->seek(1, librevenge::RVNG_SEEK_CUR);
       input->seek(1, librevenge::RVNG_SEEK_CUR);
-      unsigned lenN = 0;
-      if (flag & 0x04)
-      {
-        lenN = readU32(input);
-        lenN *= 2;
-        input->seek(lenN, librevenge::RVNG_SEEK_CUR);
-      }
-      lenN = readU32(input);
+
+      unsigned len2 = readU32(input);
       if (m_version < 1700)
-        lenN *= 2;
-      _readX6StyleString(input, lenN, styles[i*2]);
-    }
+        len2 *= 2;
+      CDRStyle defaultStyle;
+      _readX6StyleString(input, len2, defaultStyle);
 
-    unsigned numChars = readU32(input);
-    if (numChars > getRemainingLength(input) / 8)
-      numChars = getRemainingLength(input) / 8;
-    std::vector<unsigned char> charDescriptions(numChars);
-    for (i=0; i<numChars; ++i)
-    {
-      unsigned tmpCharDescription = 0;
-      tmpCharDescription = readU64(input) & 0xffffffff;
-      charDescriptions[i] = (tmpCharDescription >> 16) | (tmpCharDescription & 0x01);
-    }
-    unsigned numBytes = readU32(input);
-    unsigned long numBytesRead = 0;
-    const unsigned char *buffer = input->read(numBytes, numBytesRead);
-    if (numBytesRead != numBytes)
-      throw GenericException();
-    std::vector<unsigned char> textData(numBytesRead);
-    if (numBytesRead)
-      memcpy(&textData[0], buffer, numBytesRead);
+      unsigned numRecords = readU32(input);
 
-    if (!textData.empty())
-      m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
+      unsigned i = 0;
+      std::map<unsigned, CDRStyle> styles;
+      for (i=0; i<numRecords && getRemainingLength(input) >= 17; ++i)
+      {
+        styles[i*2] = defaultStyle;
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
+        unsigned flag = readU8(input);
+        input->seek(1, librevenge::RVNG_SEEK_CUR);
+        unsigned lenN = 0;
+        if (flag & 0x04)
+        {
+          lenN = readU32(input);
+          lenN *= 2;
+          input->seek(lenN, librevenge::RVNG_SEEK_CUR);
+        }
+        lenN = readU32(input);
+        if (m_version < 1700)
+          lenN *= 2;
+        _readX6StyleString(input, lenN, styles[i*2]);
+      }
+
+      unsigned numChars = readU32(input);
+      if (numChars > getRemainingLength(input) / 8)
+        numChars = getRemainingLength(input) / 8;
+      std::vector<unsigned char> charDescriptions(numChars);
+      for (i=0; i<numChars; ++i)
+      {
+        unsigned tmpCharDescription = 0;
+        tmpCharDescription = readU64(input) & 0xffffffff;
+        charDescriptions[i] = (tmpCharDescription >> 16) | (tmpCharDescription & 0x01);
+      }
+      unsigned numBytes = readU32(input);
+      unsigned long numBytesRead = 0;
+      const unsigned char *buffer = input->read(numBytes, numBytesRead);
+      if (numBytesRead != numBytes)
+        throw GenericException();
+      std::vector<unsigned char> textData(numBytesRead);
+      if (numBytesRead)
+        memcpy(&textData[0], buffer, numBytesRead);
+      input->seek(1, librevenge::RVNG_SEEK_CUR); //skip the 0 ending character
+
+
+      if (!textData.empty())
+        m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
+    }
 #ifndef DEBUG
   }
   catch (...)
