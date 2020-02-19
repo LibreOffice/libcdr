@@ -122,6 +122,7 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     ("HLS", 7)
     ("GRAY255", 9)
     ("YIQ255", 11)
+    ("PANTONEHX", 14)
     ("LAB255", 18)
     ("REGCOLOR", 20)
     ("SPOT", 25)
@@ -133,6 +134,12 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     ("DUPONT", 9)
     ("TOYO", 10)
     ("DIC", 11)
+    ("PAN_HEX", 12)
+    ("HKS", 0x17)
+    ("HKS_K", 0x1a)
+    ("HKS_N", 0x1b)
+    ("HKS_Z", 0x1c)
+    ("HKS_E", 0x1d)
     ;
     auto it = colourString;
     const auto end = it + std::strlen(it);
