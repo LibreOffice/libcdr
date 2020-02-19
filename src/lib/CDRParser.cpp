@@ -130,6 +130,9 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     cpalette.add
     ("USER", 5)
     ("FOCTONE", 8)
+    ("DUPONT", 9)
+    ("TOYO", 10)
+    ("DIC", 11)
     ;
     auto it = colourString;
     const auto end = it + std::strlen(it);
