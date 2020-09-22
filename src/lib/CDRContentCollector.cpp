@@ -452,6 +452,13 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         x2 = m_currentBBox.getMinX() + m_currentBBox.getWidth();
       }
     }
+    else if (!m_currentTransforms.empty())
+    {
+      x1 = m_currentTransforms.getTranslateX();
+      y1 = m_currentTransforms.getTranslateY();
+      x2 = x1;
+      y2 = y1;
+    }
 
     CDRTransform tmpTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
     tmpTrafo.applyToPoint(x1, y1);
