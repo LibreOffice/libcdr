@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "617cc584_e88eac9d",
+        "filename": "src/lib/CDRContentCollector.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 1000994
+      },
+      "writtenOn": "2020-10-26T06:28:10Z",
+      "side": 1,
+      "message": "Possibly this is not important, but shouldn\u0027t we check here that bbox is exactly 0x0 here, not \"CDR_ALMOST_ZERO\"?",
+      "range": {
+        "startLine": 455,
+        "startChar": 4,
+        "endLine": 455,
+        "endChar": 8
+      },
+      "revId": "9fb04e216645156e006826129d9c05b0e1cb09d1",
+      "serverId": "6622c302-437a-49ad-a91d-55ba7dcf1615",
+      "unresolved": true
+    }
+  ]
+}
