@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a836726_6a675dc7",
+        "filename": "src/lib/CDRContentCollector.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 1002788
+      },
+      "writtenOn": "2020-10-27T06:23:14Z",
+      "side": 1,
+      "message": "You may be right, however, CDR_ALMOST_ZERO is 1e-6, and I cannot imagine such a small text box actually not being zero. But it can be changed for sure.",
+      "parentUuid": "617cc584_e88eac9d",
+      "range": {
+        "startLine": 455,
+        "startChar": 4,
+        "endLine": 455,
+        "endChar": 8
+      },
+      "revId": "9fb04e216645156e006826129d9c05b0e1cb09d1",
+      "serverId": "6622c302-437a-49ad-a91d-55ba7dcf1615",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b59feae8_ec669d58",
         "filename": "src/lib/CDRContentCollector.cpp",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2020-10-26T18:19:52Z",
       "side": 1,
       "message": "This is wrong. If CorelDraw really can save a text box with zero dimensions, then that case should be handled the same way as the if branch above (so the current transformation is applied properly, not just its translation component; and possible group transformation is applied too).\n\nBtw, this still produces a text box with zero dimensions, so applications may decide to not show it... Are you sure this really is the problem? As opposed to, say, a parsing error earlier? Maybe the dimensions are represented in a way libcdr doesn\u0027t expect, because we haven\u0027t encountered it before...",
+      "revId": "9fb04e216645156e006826129d9c05b0e1cb09d1",
+      "serverId": "6622c302-437a-49ad-a91d-55ba7dcf1615",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95bf65c1_c67dd4fb",
+        "filename": "src/lib/CDRContentCollector.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 1002788
+      },
+      "writtenOn": "2020-10-27T06:23:14Z",
+      "side": 1,
+      "message": "Corel Draw here doesn\u0027t save a text box at all - it saves text object, but not the box around, so that libcdr does not have the point that the transform should be applied to. I agree with you that this case should be handled like the one above; however, as I have tens of thousands of such files, I have compared the file in question with the same file saved by CorelDraw 12 in CDR7 format (which does have the box). In fact, I didn\u0027t find the place where the dimensions are stored. It seems that Corel just calculates them on the fly somehow.",
+      "parentUuid": "b59feae8_ec669d58",
       "revId": "9fb04e216645156e006826129d9c05b0e1cb09d1",
       "serverId": "6622c302-437a-49ad-a91d-55ba7dcf1615",
       "unresolved": true
