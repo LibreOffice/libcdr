@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "2fd81778_f260d303",
+        "filename": "src/lib/CDRContentCollector.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 1000994
+      },
+      "writtenOn": "2020-10-27T06:29:18Z",
+      "side": 1,
+      "message": "My question was mainly to disambiguate between this specific handled case (*absent* bbox, where the dimensions here would *strictly* equal to 0), and other maybe (?) possible cases of invalid (? at least too small, but definitely existing) bbox data. But I\u0027m not an expert in CDR format, so please don\u0027t take my question too seriously.",
+      "parentUuid": "7a836726_6a675dc7",
+      "range": {
+        "startLine": 455,
+        "startChar": 4,
+        "endLine": 455,
+        "endChar": 8
+      },
+      "revId": "9fb04e216645156e006826129d9c05b0e1cb09d1",
+      "serverId": "6622c302-437a-49ad-a91d-55ba7dcf1615",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b59feae8_ec669d58",
         "filename": "src/lib/CDRContentCollector.cpp",
         "patchSetId": 2
