@@ -17,9 +17,6 @@
 #ifndef BOOST_ALL_NO_LIB
 #define BOOST_ALL_NO_LIB 1
 #endif
-#ifndef BOOST_SPIRIT_UNICODE
-#define BOOST_SPIRIT_UNICODE 1
-#endif
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -150,14 +147,14 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     bRes = phrase_parse(it, end,
                         //  Begin grammar
                         (
-                          (cmodel | omit[+unicode::alnum]) >> lit(',')
-                          >> (cpalette | omit[+unicode::alnum]) >> lit(',')
+                          (cmodel | omit[+iso8859_1::alnum]) >> lit(',')
+                          >> (cpalette | omit[+iso8859_1::alnum]) >> lit(',')
                           >> *(uint_ >> lit(','))
-                          >> omit[(repeat(8)[unicode::xdigit] >> '-' >> repeat(3)[repeat(4)[unicode::xdigit] >> '-'] >> repeat(12)[unicode::xdigit])]
-                          >> -(lit(',') >> *unicode::char_)
+                          >> omit[(repeat(8)[iso8859_1::xdigit] >> '-' >> repeat(3)[repeat(4)[iso8859_1::xdigit] >> '-'] >> repeat(12)[iso8859_1::xdigit])]
+                          >> -(lit(',') >> *iso8859_1::char_)
                         ),
                         //  End grammar
-                        unicode::space,
+                        iso8859_1::space,
                         colourModel, colourPalette, val, rest)
            && it == end;
   }
