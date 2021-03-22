@@ -105,6 +105,7 @@ static void processNameForEncoding(librevenge::RVNGString &name, unsigned short 
 static int parseColourString(const char *colourString, libcdr::CDRColor &colour, double &opacity)
 {
   using namespace boost::spirit::qi;
+
   bool bRes = false;
 
   boost::optional<unsigned> colourModel, colourPalette;
@@ -146,14 +147,14 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     bRes = phrase_parse(it, end,
                         //  Begin grammar
                         (
-                          (cmodel | omit[+alnum]) >> lit(',')
-                          >> (cpalette | omit[+alnum]) >> lit(',')
+                          (cmodel | omit[+iso8859_1::alnum]) >> lit(',')
+                          >> (cpalette | omit[+iso8859_1::alnum]) >> lit(',')
                           >> *(uint_ >> lit(','))
-                          >> omit[(repeat(8)[xdigit] >> '-' >> repeat(3)[repeat(4)[xdigit] >> '-'] >> repeat(12)[xdigit])]
-                          >> -(lit(',') >> *char_)
+                          >> omit[(repeat(8)[iso8859_1::xdigit] >> '-' >> repeat(3)[repeat(4)[iso8859_1::xdigit] >> '-'] >> repeat(12)[iso8859_1::xdigit])]
+                          >> -(lit(',') >> *iso8859_1::char_)
                         ),
                         //  End grammar
-                        space,
+                        iso8859_1::space,
                         colourModel, colourPalette, val, rest)
            && it == end;
   }
