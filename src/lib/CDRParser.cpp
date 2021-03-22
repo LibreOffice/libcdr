@@ -2631,7 +2631,9 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
   {
 #endif
     unsigned frameFlag = readU32(input);
-    input->seek(41, librevenge::RVNG_SEEK_CUR);
+    input->seek(37, librevenge::RVNG_SEEK_CUR);
+
+    unsigned numFrame = readU32(input);
 
     unsigned textId = readU32(input);
 
@@ -2643,6 +2645,17 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
       if (m_version < 1700)
         tlen *= 2;
       input->seek(tlen, librevenge::RVNG_SEEK_CUR);
+      if (numFrame > 1)
+      {
+        for (unsigned i = 0; i < numFrame-1; i++)
+        {
+          input->seek(80, librevenge::RVNG_SEEK_CUR);
+          tlen = readU32(input);
+          if (m_version < 1700)
+            tlen *= 2;
+          input->seek(tlen, librevenge::RVNG_SEEK_CUR);
+        }
+      }
     }
     else
     {
