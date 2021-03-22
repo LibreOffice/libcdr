@@ -3055,7 +3055,7 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
     memcpy(&styleBuffer[0], tmpBuffer, numBytesRead);
   librevenge::RVNGString styleString;
   if (m_version >= 1700)
-    libcdr::appendCharacters(styleString, styleBuffer, 0);
+    libcdr::appendUTF8Characters(styleString, styleBuffer);
   else
     libcdr::appendCharacters(styleString, styleBuffer);
   CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));

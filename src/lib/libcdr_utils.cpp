@@ -462,6 +462,15 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned
     ucnv_close(conv);
 }
 
+void libcdr::appendUTF8Characters(librevenge::RVNGString &text, std::vector<unsigned char> characters)
+{
+  if (characters.empty())
+    return;
+
+  for (std::vector<unsigned char>::const_iterator iter = characters.begin(); iter != characters.end(); ++iter)
+    text.append((char)*iter);
+}
+
 #ifdef DEBUG
 
 void libcdr::debugPrint(const char *const format, ...)

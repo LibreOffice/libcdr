@@ -91,6 +91,7 @@ void writeU16(librevenge::RVNGBinaryData &buffer, const int value);
 void writeU32(librevenge::RVNGBinaryData &buffer, const int value);
 void appendCharacters(librevenge::RVNGString &text, std::vector<unsigned char> characters, unsigned short charset);
 void appendCharacters(librevenge::RVNGString &text, std::vector<unsigned char> characters);
+void appendUTF8Characters(librevenge::RVNGString &text, std::vector<unsigned char> characters);
 
 #ifdef DEBUG
 const char *toFourCC(unsigned value, bool bigEndian=false);
