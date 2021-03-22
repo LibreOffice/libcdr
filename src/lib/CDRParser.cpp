@@ -109,7 +109,8 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   bool bRes = false;
 
   boost::optional<unsigned> colourModel, colourPalette;
-  std::vector<char> rest;
+  std::vector<std::string> fallbackColours;
+  std::string rest;
   std::vector<unsigned> val;
 
   if (colourString)
@@ -123,6 +124,7 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     ("HLS", 7)
     ("GRAY255", 9)
     ("YIQ255", 11)
+    ("LAB", 12)
     ("PANTONEHX", 14)
     ("LAB255", 18)
     ("REGCOLOR", 20)
@@ -151,17 +153,22 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
                           >> (cpalette | omit[+iso8859_1::alnum]) >> lit(',')
                           >> *(uint_ >> lit(','))
                           >> omit[(repeat(8)[iso8859_1::xdigit] >> '-' >> repeat(3)[repeat(4)[iso8859_1::xdigit] >> '-'] >> repeat(12)[iso8859_1::xdigit])]
-                          >> -(lit(',') >> *iso8859_1::char_)
+                          >> -(lit(",~,") >> omit[+(iso8859_1::char_ - lit(','))] >> lit(',') >> omit[uint_] >> lit(',')
+                               >> repeat[+(iso8859_1::char_ - lit(",~,")) >> lit(",~,")] >> omit[*iso8859_1::char_])
                         ),
                         //  End grammar
                         iso8859_1::space,
-                        colourModel, colourPalette, val, rest)
+                        colourModel, colourPalette, val, fallbackColours)
            && it == end;
   }
-  rest.push_back(0);
 
   if (!bRes)
     return -1;
+
+  // If fallback colours exist, use the first of them, since we are more likely
+  // to get them right then the paletted spot colours
+  if (!fallbackColours.empty())
+    return parseColourString(fallbackColours.begin()->c_str(), colour, opacity);
 
   if (colourModel)
     colour.m_colorModel = get(colourModel);
@@ -201,10 +208,10 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   }
   else
   {
-    CDR_DEBUG_MSG(("parseColourString --> bRes %i, size %lu, colorModel %u, colorValue 0x%.8x\n", bRes, val.size(), colour.m_colorModel, colour.m_colorValue));
+    CDR_DEBUG_MSG(("parseColourString --> bRes %i, size %lu, colorModel %u, colorValue 0x%.8x bkp: %lu\n", bRes, val.size(), colour.m_colorModel, colour.m_colorValue, fallbackColours.size()));
     return 0;
   }
-  CDR_DEBUG_MSG(("parseColourString --> bRes %i, size %lu, colorModel %u, colorValue 0x%.8x\n", bRes, val.size(), colour.m_colorModel, colour.m_colorValue));
+  CDR_DEBUG_MSG(("parseColourString --> bRes %i, size %lu, colorModel %u, colorValue 0x%.8x blp: %lu\n", bRes, val.size(), colour.m_colorModel, colour.m_colorValue, fallbackColours.size()));
   return 1;
 }
 
