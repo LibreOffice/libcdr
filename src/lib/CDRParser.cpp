@@ -153,8 +153,10 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
                           >> (cpalette | omit[+iso8859_1::alnum]) >> lit(',')
                           >> *(uint_ >> lit(','))
                           >> omit[(repeat(8)[iso8859_1::xdigit] >> '-' >> repeat(3)[repeat(4)[iso8859_1::xdigit] >> '-'] >> repeat(12)[iso8859_1::xdigit])]
-                          >> -(lit(",~,") >> omit[+(iso8859_1::char_ - lit(','))] >> lit(',') >> omit[uint_] >> lit(',')
-                               >> repeat[+(iso8859_1::char_ - lit(",~,")) >> lit(",~,")] >> omit[*iso8859_1::char_])
+                          >> -(lit(',')
+                               >> -(lit("~,") >> omit[+(iso8859_1::char_ - lit(','))] >> lit(',') >> omit[uint_] >> lit(',')
+                                    >> repeat[+(iso8859_1::char_ - lit(",~,")) >> lit(",~,")])
+                               >> omit[*iso8859_1::char_])
                         ),
                         //  End grammar
                         iso8859_1::space,
