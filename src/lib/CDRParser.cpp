@@ -165,7 +165,10 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   }
 
   if (!bRes)
+  {
+    CDR_DEBUG_MSG(("parseColourString --> spirit grammar failed with string: %s\n", colourString));
     return -1;
+  }
 
   // If fallback colours exist, use the first of them, since we are more likely
   // to get them right then the paletted spot colours
