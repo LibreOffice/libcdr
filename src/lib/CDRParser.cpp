@@ -2766,76 +2766,80 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
 
 void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
 {
-  unsigned fflag1 = readU32(input);
   input->seek(0x20, librevenge::RVNG_SEEK_CUR);
-  unsigned textId = readU32(input);
-  input->seek(48, librevenge::RVNG_SEEK_CUR);
-  input->seek(4, librevenge::RVNG_SEEK_CUR);
-  if (!fflag1)
-    input->seek(8, librevenge::RVNG_SEEK_CUR);
-  unsigned stlId = readU32(input);
-  unsigned numSt = readU32(input);
-  unsigned i = 0;
-  std::map<unsigned, CDRStyle> styles;
-  for (; i<numSt && getRemainingLength(input) >= 58; ++i)
+  unsigned numFrames = readU32(input);
+  unsigned textId = 0;
+  for (unsigned j=0; j<numFrames; ++j)
   {
-    CDRStyle style;
-    unsigned char flag = readU8(input);
-    input->seek(3, librevenge::RVNG_SEEK_CUR);
-    if (flag&0x01)
+    textId = readU32(input); // Frame Id
+    input->seek(48, librevenge::RVNG_SEEK_CUR); // Trafo 6*8 bytes
+    input->seek(8, librevenge::RVNG_SEEK_CUR); // Maybe flags
+  }
+  unsigned numPara = readU32(input);
+  for (unsigned j=0; j<numPara; ++j)
+  {
+    unsigned stlId = readU32(input);
+    unsigned numSt = readU32(input);
+    std::map<unsigned, CDRStyle> styles;
+    for (unsigned i=0; i<numSt; ++i)
     {
-      unsigned short fontId = readU16(input);
-      std::map<unsigned, CDRFont>::const_iterator iterFont = m_fonts.find(fontId);
-      if (iterFont != m_fonts.end())
+      CDRStyle style;
+
+      unsigned char flag = readU8(input);
+      input->seek(3, librevenge::RVNG_SEEK_CUR);
+      if (flag&0x01)
       {
-        style.m_fontName = iterFont->second.m_name;
-        style.m_charSet = iterFont->second.m_encoding;
+        unsigned short fontId = readU16(input);
+        std::map<unsigned, CDRFont>::const_iterator iterFont = m_fonts.find(fontId);
+        if (iterFont != m_fonts.end())
+        {
+          style.m_fontName = iterFont->second.m_name;
+          style.m_charSet = iterFont->second.m_encoding;
+        }
+        unsigned short charSet = readU16(input);
+        if (charSet)
+          style.m_charSet = charSet;
       }
-      unsigned short charSet = readU16(input);
-      if (charSet)
-        style.m_charSet = charSet;
-    }
-    else
+      else
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
       input->seek(4, librevenge::RVNG_SEEK_CUR);
-    input->seek(4, librevenge::RVNG_SEEK_CUR);
-    if (flag&0x04)
-      style.m_fontSize = readCoordinate(input);
-    else
-      input->seek(4, librevenge::RVNG_SEEK_CUR);
-    input->seek(44, librevenge::RVNG_SEEK_CUR);
-    if (flag&0x10)
-    {
-      unsigned fillId = readU32(input);
-      std::map<unsigned, CDRFillStyle>::const_iterator iter = m_fillStyles.find(fillId);
-      if (iter != m_fillStyles.end())
-        style.m_fillStyle = iter->second;
+      if (flag&0x04)
+        style.m_fontSize = readCoordinate(input);
+      else
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
+      input->seek(44, librevenge::RVNG_SEEK_CUR);
+      if (flag&0x10)
+      {
+        unsigned fillId = readU32(input);
+        std::map<unsigned, CDRFillStyle>::const_iterator iter = m_fillStyles.find(fillId);
+        if (iter != m_fillStyles.end())
+          style.m_fillStyle = iter->second;
+      }
+      if (flag&0x20)
+      {
+        unsigned outlId = readU32(input);
+        std::map<unsigned, CDRLineStyle>::const_iterator iter = m_lineStyles.find(outlId);
+        if (iter != m_lineStyles.end())
+          style.m_lineStyle = iter->second;
+      }
+      styles[2*i] = style;
     }
-    if (flag&0x20)
-    {
-      unsigned outlId = readU32(input);
-      std::map<unsigned, CDRLineStyle>::const_iterator iter = m_lineStyles.find(outlId);
-      if (iter != m_lineStyles.end())
-        style.m_lineStyle = iter->second;
-    }
-    styles[2*i] = style;
-  }
-  unsigned numChars = readU32(input);
-  if (numChars > getRemainingLength(input) / 12)
-    numChars = getRemainingLength(input) / 12;
-  std::vector<unsigned char> textData;
-  std::vector<unsigned char> charDescriptions;
-  textData.reserve(numChars);
-  charDescriptions.reserve(numChars);
-  for (i=0; i<numChars; ++i)
-  {
+    unsigned numChars = readU32(input);
     input->seek(4, librevenge::RVNG_SEEK_CUR);
-    textData.push_back(readU8(input));
-    input->seek(5, librevenge::RVNG_SEEK_CUR);
-    charDescriptions.push_back(readU8(input) << 1);
-    input->seek(1, librevenge::RVNG_SEEK_CUR);
+    std::vector<unsigned char> textData;
+    std::vector<unsigned char> charDescriptions;
+    textData.reserve(numChars);
+    charDescriptions.reserve(numChars);
+    for (unsigned i=0; i<numChars; ++i)
+    {
+      textData.push_back(readU8(input));
+      input->seek(5, librevenge::RVNG_SEEK_CUR);
+      charDescriptions.push_back(readU8(input) << 1);
+      input->seek(5, librevenge::RVNG_SEEK_CUR);
+    }
+    if (!textData.empty())
+      m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
   }
-  if (!textData.empty())
-    m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
 }
 
 void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
