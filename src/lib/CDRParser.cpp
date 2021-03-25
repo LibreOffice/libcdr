@@ -2479,59 +2479,39 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
       return readTxsm6(input);
     if (m_version >= 1600)
       return readTxsm16(input);
+
+    input->seek(0x24, librevenge::RVNG_SEEK_CUR);
     if (m_version >= 1500)
-      input->seek(0x25, librevenge::RVNG_SEEK_CUR);
-    else
-      input->seek(0x24, librevenge::RVNG_SEEK_CUR);
-    if (readU32(input))
-    {
-      if (m_version < 800)
-        input->seek(32, librevenge::RVNG_SEEK_CUR);
-    }
-    if (m_version < 800)
+      input->seek(1, librevenge::RVNG_SEEK_CUR);
+    else if (m_version < 800)
       input->seek(4, librevenge::RVNG_SEEK_CUR);
-    unsigned textId = readU32(input);
-    input->seek(48, librevenge::RVNG_SEEK_CUR);
-    if (m_version >= 800)
+    unsigned numFrames = readU32(input);
+    unsigned textId = 0;
+    for (unsigned i=0; i < numFrames; ++i)
     {
-      if (readU32(input))
-      {
-        input->seek(32, librevenge::RVNG_SEEK_CUR);
-        if (m_version >= 1300)
-          input->seek(8, librevenge::RVNG_SEEK_CUR);
-      }
-    }
-    if (m_version >= 1500)
-      input->seek(12, librevenge::RVNG_SEEK_CUR);
-    unsigned num = readU32(input);
-    unsigned num4 = 1;
-    if (!num)
-    {
-      if (m_version >= 800)
-        input->seek(4, librevenge::RVNG_SEEK_CUR);
+      unsigned frameId = readU32(input);
+      textId = frameId;
+      input->seek(48, librevenge::RVNG_SEEK_CUR);
+      input->seek(36, librevenge::RVNG_SEEK_CUR);
       if (m_version > 800)
         input->seek(2, librevenge::RVNG_SEEK_CUR);
-      if (m_version >= 1400)
+      if (m_version > 1300)
         input->seek(2, librevenge::RVNG_SEEK_CUR);
-      input->seek(24, librevenge::RVNG_SEEK_CUR);
-      if (m_version < 800)
-        input->seek(8, librevenge::RVNG_SEEK_CUR);
-      num4 = readU32(input);
+      if (m_version > 1400)
+        input->seek(12, librevenge::RVNG_SEEK_CUR);
     }
 
-    for (unsigned j = 0; j < num4 && getRemainingLength(input) >= 14; ++j)
+    unsigned numPara = readU32(input);
+
+    for (unsigned j = 0; j < numPara; ++j)
     {
       unsigned stlId = readU32(input);
-      if (m_version >= 1300 && num)
-        input->seek(1, librevenge::RVNG_SEEK_CUR);
       input->seek(1, librevenge::RVNG_SEEK_CUR);
-      unsigned numRecords = readU32(input);
+      unsigned numStyles = readU32(input);
       std::map<unsigned, CDRStyle> styles;
-      unsigned i = 0;
-      for (i=0; i<numRecords && getRemainingLength(input) >= 3; ++i)
+      for (unsigned i = 0; i < numStyles; ++i)
       {
-        unsigned char fl0 = readU8(input);
-        readU8(input);
+        readU16(input); // num chars using this style
         unsigned char fl2 = readU8(input);
         unsigned char fl3 = 0;
         if (m_version >= 800)
@@ -2568,10 +2548,10 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
           std::map<unsigned, CDRFillStyle>::const_iterator iter = m_fillStyles.find(fillId);
           if (iter != m_fillStyles.end())
             style.m_fillStyle = iter->second;
-          if (m_version >= 1600)
+          if (m_version >= 1300)
             input->seek(48, librevenge::RVNG_SEEK_CUR);
         }
-        if (fl2&0x80) // Font Outl Colour
+        if (fl2&0x80) // Font Outl ColourStld
         {
           unsigned outlId = readU32(input);
           std::map<unsigned, CDRLineStyle>::const_iterator iter = m_lineStyles.find(outlId);
@@ -2591,13 +2571,14 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
         if (fl3&0x20) // Something
         {
           unsigned flag = readU8(input);
+          input->seek(-1, librevenge::RVNG_SEEK_CUR);
           if (flag)
-            input->seek(52, librevenge::RVNG_SEEK_CUR);
+          {
+            input->seek(4, librevenge::RVNG_SEEK_CUR); // ftil fild Id
+            if (m_version >= 1500)
+              input->seek(48, librevenge::RVNG_SEEK_CUR);
+          }
         }
-        if (fl0 == 0x02)
-          if (m_version >= 1300)
-            input->seek(48, librevenge::RVNG_SEEK_CUR);
-
         styles[2*i] = style;
       }
       unsigned numChars = readU32(input);
@@ -2605,7 +2586,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
       if (numChars > getRemainingLength(input) / charSize)
         numChars = getRemainingLength(input) / charSize;
       std::vector<unsigned char> charDescriptions(numChars);
-      for (i=0; i<numChars; ++i)
+      for (unsigned i = 0; i < numChars; ++i)
       {
         unsigned tmpCharDescription = 0;
         if (m_version >= 1200)
@@ -2733,8 +2714,6 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
       }
 
       unsigned numChars = readU32(input);
-      if (numChars > getRemainingLength(input) / 8)
-        numChars = getRemainingLength(input) / 8;
       std::vector<unsigned char> charDescriptions(numChars);
       for (i=0; i<numChars; ++i)
       {
