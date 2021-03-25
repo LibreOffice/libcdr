@@ -2854,7 +2854,7 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
   unsigned numPara = readU16(input);
   for (unsigned j=0; j<numPara; ++j)
   {
-    input->seek(2, librevenge::RVNG_SEEK_CUR);
+    unsigned stlId = readU16(input);
     unsigned numSt = readU16(input);
     std::map<unsigned, CDRStyle> styles;
     for (unsigned i= 0; i<numSt /* && getRemainingLength(input) >= 34 */; ++i)
@@ -2919,7 +2919,7 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
       charDescriptions.push_back((readU16(input) >> 3) & 0xff);
     }
     if (!textData.empty())
-      m_collector->collectText(textId, 0, textData, charDescriptions, styles);
+      m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
   }
 }
 
