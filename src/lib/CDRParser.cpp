@@ -17,6 +17,9 @@
 #ifndef BOOST_ALL_NO_LIB
 #define BOOST_ALL_NO_LIB 1
 #endif
+#ifndef BOOST_BIND_GLOBAL_PLACEHOLDERS
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS 1
+#endif
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
