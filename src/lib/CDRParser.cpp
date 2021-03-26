@@ -2688,32 +2688,14 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
     unsigned frameFlag = readU32(input);
     input->seek(37, librevenge::RVNG_SEEK_CUR);
 
-    unsigned numFrame = readU32(input);
+    unsigned numFrames = readU32(input);
 
-    unsigned textId = readU32(input);
-
-    input->seek(48, librevenge::RVNG_SEEK_CUR);
-    if (!frameFlag)
+    unsigned textId = 0;
+    for (unsigned i = 0; i < numFrames; ++i)
     {
-      input->seek(28, librevenge::RVNG_SEEK_CUR);
-      unsigned tlen = readU32(input);
-      if (m_version < 1700)
-        tlen *= 2;
-      input->seek(tlen, librevenge::RVNG_SEEK_CUR);
-      if (numFrame > 1)
-      {
-        for (unsigned i = 0; i < numFrame-1; i++)
-        {
-          input->seek(80, librevenge::RVNG_SEEK_CUR);
-          tlen = readU32(input);
-          if (m_version < 1700)
-            tlen *= 2;
-          input->seek(tlen, librevenge::RVNG_SEEK_CUR);
-        }
-      }
-    }
-    else
-    {
+      unsigned frameId = readU32(input);
+      textId = frameId;
+      input->seek(48, librevenge::RVNG_SEEK_CUR);
       unsigned textOnPath = readU32(input);
       if (textOnPath == 1)
       {
@@ -2732,6 +2714,17 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
       }
       else
         input->seek(8, librevenge::RVNG_SEEK_CUR);
+
+      if (!frameFlag)
+      {
+        input->seek(16, librevenge::RVNG_SEEK_CUR);
+        unsigned tlen = readU32(input);
+        if (m_version > 1600)
+          input->seek(tlen, librevenge::RVNG_SEEK_CUR);
+        else
+          input->seek(tlen*2, librevenge::RVNG_SEEK_CUR);
+
+      }
     }
 
     unsigned numPara = readU32(input);
@@ -2741,15 +2734,15 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
 
       unsigned stlId = readU32(input);
 
+      input->seek(1, librevenge::RVNG_SEEK_CUR);
       if (frameFlag)
         input->seek(1, librevenge::RVNG_SEEK_CUR);
-      input->seek(1, librevenge::RVNG_SEEK_CUR);
 
-      unsigned len2 = readU32(input);
+      unsigned styleLen = readU32(input);
       if (m_version < 1700)
-        len2 *= 2;
+        styleLen *= 2;
       CDRStyle defaultStyle;
-      _readX6StyleString(input, len2, defaultStyle);
+      _readX6StyleString(input, styleLen, defaultStyle);
 
       unsigned numRecords = readU32(input);
 
@@ -2758,20 +2751,23 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
       for (i=0; i<numRecords && getRemainingLength(input) >= 17; ++i)
       {
         styles[i*2] = defaultStyle;
-        input->seek(4, librevenge::RVNG_SEEK_CUR);
-        unsigned flag = readU8(input);
-        input->seek(1, librevenge::RVNG_SEEK_CUR);
-        unsigned lenN = 0;
-        if (flag & 0x04)
+        input->seek(2, librevenge::RVNG_SEEK_CUR);
+        unsigned short stFlag1 = readU16(input);
+        unsigned short stFlag2 = readU16(input);
+        if (stFlag2 & 0x04)
         {
-          lenN = readU32(input);
-          lenN *= 2;
-          input->seek(lenN, librevenge::RVNG_SEEK_CUR);
+          // encoding
+          unsigned encLen = readU32(input);
+          encLen *= 2;
+          input->seek(encLen, librevenge::RVNG_SEEK_CUR);
         }
-        lenN = readU32(input);
-        if (m_version < 1700)
-          lenN *= 2;
-        _readX6StyleString(input, lenN, styles[i*2]);
+        if (stFlag1 || stFlag2 & 0x4)
+        {
+          unsigned jsonLen = readU32(input);
+          if (m_version < 1700)
+            jsonLen *= 2;
+          _readX6StyleString(input, jsonLen, styles[i*2]);
+        }
       }
 
       unsigned numChars = readU32(input);
