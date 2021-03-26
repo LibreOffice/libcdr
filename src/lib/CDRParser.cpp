@@ -2483,11 +2483,28 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
     if (m_version >= 1600)
       return readTxsm16(input);
 
-    input->seek(0x24, librevenge::RVNG_SEEK_CUR);
+    unsigned frameFlag = readU32(input);
+    input->seek(0x20, librevenge::RVNG_SEEK_CUR);
     if (m_version >= 1500)
       input->seek(1, librevenge::RVNG_SEEK_CUR);
-    else if (m_version < 800)
-      input->seek(4, librevenge::RVNG_SEEK_CUR);
+
+    if (m_version <= 700)
+    {
+      unsigned textOnPath = readU32(input);
+
+      if (textOnPath == 1)
+      {
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var1
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var3
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // Offset
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var4
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // Distance
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var5
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var6
+        input->seek(4, librevenge::RVNG_SEEK_CUR); // var7
+      }
+    }
+
     unsigned numFrames = readU32(input);
     unsigned textId = 0;
     for (unsigned i=0; i < numFrames; ++i)
@@ -2495,13 +2512,49 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
       unsigned frameId = readU32(input);
       textId = frameId;
       input->seek(48, librevenge::RVNG_SEEK_CUR);
-      input->seek(36, librevenge::RVNG_SEEK_CUR);
-      if (m_version > 800)
-        input->seek(2, librevenge::RVNG_SEEK_CUR);
-      if (m_version > 1300)
-        input->seek(2, librevenge::RVNG_SEEK_CUR);
-      if (m_version > 1400)
-        input->seek(12, librevenge::RVNG_SEEK_CUR);
+      if (m_version > 700)
+      {
+        unsigned textOnPath = readU32(input);
+        if (textOnPath == 1)
+        {
+          input->seek(4, librevenge::RVNG_SEEK_CUR); // var1
+          if (m_version > 1200)
+          {
+            input->seek(4, librevenge::RVNG_SEEK_CUR); // Orientation
+            input->seek(4, librevenge::RVNG_SEEK_CUR); // var2
+          }
+          input->seek(4, librevenge::RVNG_SEEK_CUR); // var3
+          input->seek(4, librevenge::RVNG_SEEK_CUR); // Offset
+          input->seek(4, librevenge::RVNG_SEEK_CUR); // var4
+          input->seek(4, librevenge::RVNG_SEEK_CUR); // Distance
+          input->seek(4, librevenge::RVNG_SEEK_CUR); // var5
+          input->seek(4, librevenge::RVNG_SEEK_CUR); // Mirror Vert
+          input->seek(4, librevenge::RVNG_SEEK_CUR); // Mirror Hor
+          if (m_version >= 1500)
+          {
+            input->seek(4, librevenge::RVNG_SEEK_CUR); // var6
+            input->seek(4, librevenge::RVNG_SEEK_CUR); // var7
+          }
+        }
+        else if (m_version >= 1500)
+          input->seek(8, librevenge::RVNG_SEEK_CUR);
+      }
+
+      if (!frameFlag)
+      {
+        if (m_version >= 1500)
+          input->seek(40, librevenge::RVNG_SEEK_CUR);
+        else if (m_version >= 1400)
+          input->seek(36, librevenge::RVNG_SEEK_CUR);
+        else if (m_version > 800)
+          input->seek(34, librevenge::RVNG_SEEK_CUR);
+        else if (m_version >= 800)
+          input->seek(32, librevenge::RVNG_SEEK_CUR);
+        else if (m_version >= 700)
+          input->seek(36, librevenge::RVNG_SEEK_CUR); // !!! txt-on-path is before frame, hence things are rearranged
+      }
+      else if (m_version >= 1500)
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
     }
 
     unsigned numPara = readU32(input);
@@ -2510,6 +2563,9 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
     {
       unsigned stlId = readU32(input);
       input->seek(1, librevenge::RVNG_SEEK_CUR);
+      if (m_version > 1200 && frameFlag)
+        input->seek(1, librevenge::RVNG_SEEK_CUR);
+
       unsigned numStyles = readU32(input);
       std::map<unsigned, CDRStyle> styles;
       for (unsigned i = 0; i < numStyles; ++i)
@@ -2611,7 +2667,9 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
       input->seek(1, librevenge::RVNG_SEEK_CUR); //skip the 0 ending character
 
       if (!textData.empty() || !styles.empty())
+      {
         m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
+      }
     }
 #ifndef DEBUG
   }
