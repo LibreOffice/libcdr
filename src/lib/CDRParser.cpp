@@ -2748,14 +2748,30 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
 
 void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
 {
-  input->seek(0x20, librevenge::RVNG_SEEK_CUR);
+  unsigned frameFlag = readU32(input);
+  input->seek(0x18, librevenge::RVNG_SEEK_CUR);
+  unsigned textOnPath = readU32(input);
+
+  if (textOnPath == 1)
+  {
+    input->seek(4, librevenge::RVNG_SEEK_CUR); // var1
+    input->seek(4, librevenge::RVNG_SEEK_CUR); // var3
+    input->seek(4, librevenge::RVNG_SEEK_CUR); // Offset
+    input->seek(4, librevenge::RVNG_SEEK_CUR); // var4
+    input->seek(4, librevenge::RVNG_SEEK_CUR); // Distance
+    input->seek(4, librevenge::RVNG_SEEK_CUR); // var5
+    input->seek(4, librevenge::RVNG_SEEK_CUR); // var6
+    input->seek(4, librevenge::RVNG_SEEK_CUR); // var7
+  }
+
   unsigned numFrames = readU32(input);
   unsigned textId = 0;
   for (unsigned j=0; j<numFrames; ++j)
   {
     textId = readU32(input); // Frame Id
     input->seek(48, librevenge::RVNG_SEEK_CUR); // Trafo 6*8 bytes
-    input->seek(8, librevenge::RVNG_SEEK_CUR); // Maybe flags
+    if (!frameFlag)
+      input->seek(8, librevenge::RVNG_SEEK_CUR); // Maybe flags
   }
   unsigned numPara = readU32(input);
   for (unsigned j=0; j<numPara; ++j)
