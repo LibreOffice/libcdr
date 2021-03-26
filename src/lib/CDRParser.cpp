@@ -113,7 +113,6 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
 
   boost::optional<unsigned> colourModel, colourPalette;
   std::vector<std::string> fallbackColours;
-  std::string rest;
   std::vector<unsigned> val;
 
   if (colourString)
@@ -172,6 +171,8 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     CDR_DEBUG_MSG(("parseColourString --> spirit grammar failed with string: %s\n", colourString));
     return -1;
   }
+  CDR_DEBUG_MSG(("parseColourString --> colourModel %u, colourPalette %u, val size %lu, num fallback %lu\n",
+                 colourModel ? colourModel.get() : 0, colourPalette ? colourPalette.get() : 0, val.size(), fallbackColours.size()));
 
   // If fallback colours exist, use the first of them, since we are more likely
   // to get them right then the paletted spot colours
@@ -216,10 +217,10 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
   }
   else
   {
-    CDR_DEBUG_MSG(("parseColourString --> bRes %i, size %lu, colorModel %u, colorValue 0x%.8x bkp: %lu\n", bRes, val.size(), colour.m_colorModel, colour.m_colorValue, fallbackColours.size()));
+    CDR_DEBUG_MSG(("parseColourString --> colourModel %u, colorValue 0x%.8x, return 0\n", colour.m_colorModel, colour.m_colorValue));
     return 0;
   }
-  CDR_DEBUG_MSG(("parseColourString --> bRes %i, size %lu, colorModel %u, colorValue 0x%.8x blp: %lu\n", bRes, val.size(), colour.m_colorModel, colour.m_colorValue, fallbackColours.size()));
+  CDR_DEBUG_MSG(("parseColourString --> colourModel %u, colorValue 0x%.8x, return 1\n", colour.m_colorModel, colour.m_colorValue));
   return 1;
 }
 
