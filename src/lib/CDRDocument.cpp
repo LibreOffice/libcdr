@@ -55,7 +55,7 @@ static unsigned getCDRVersion(librevenge::RVNGInputStream *input)
 
 /**
 Analyzes the content of an input stream to see if it can be parsed
-\param input The input stream
+\param input_ The input stream
 \return A value that indicates whether the content from the input
 stream is a Corel Draw Document that libcdr is able to parse
 */
@@ -95,7 +95,7 @@ catch (...)
 Parses the input stream content. It will make callbacks to the functions provided by a
 CDRPaintInterface class implementation when needed. This is often commonly called the
 'main parsing routine'.
-\param input The input stream
+\param input_ The input stream
 \param painter A CDRPainterInterface implementation
 \return A value that indicates whether the parsing was successful
 */
