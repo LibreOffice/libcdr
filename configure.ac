@@ -259,7 +259,7 @@ AS_IF([test "x$native_win32" = "xyes"], [
 			CXXFLAGS="$CXXFLAGS -Wpointer-arith -Wredundant-decls -Wreturn-type"
 			CXXFLAGS="$CXXFLAGS -Wsequence-point -Wsign-compare -Wstrict-aliasing"
 			CXXFLAGS="$CXXFLAGS -Wstrict-aliasing=2 -Wswitch -Wswitch-default"
-			CXXFLAGS="$CXXFLAGS -Wswitch-enum -Wtrigraphs -Wunknown-pragmas -Wunused"
+			CXXFLAGS="$CXXFLAGS -Wtrigraphs -Wunknown-pragmas -Wunused"
 			CXXFLAGS="$CXXFLAGS -Wunused-function -Wunused-label -Wunused-parameter"
 			CXXFLAGS="$CXXFLAGS -Wunused-value -Wvariadic-macros"
 			CXXFLAGS="$CXXFLAGS -Wvolatile-register-var -Wwrite-strings"
