@@ -122,7 +122,7 @@ bool libcdr::CMXParser::parseRecord(librevenge::RVNGInputStream *input, unsigned
       length = maxLength;
     long endPosition = input->tell() + length;
 
-    CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8x (%u)\n", level, toFourCC(fourCC), length, length));
+    CDR_DEBUG_MSG(("Record: level %u %s, length: 0x%.8lx (%lu)\n", level, toFourCC(fourCC), length, length));
 
     if (fourCC == CDR_FOURCC_RIFF || fourCC == CDR_FOURCC_RIFX || fourCC == CDR_FOURCC_LIST)
     {
@@ -1689,7 +1689,7 @@ void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input)
   /* unsigned length = */ readU32(input, m_bigEndian);
 
   unsigned long numRecords = readU16(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMXParser::readRclr - numRecords %i\n", numRecords));
+  CDR_DEBUG_MSG(("CMXParser::readRclr - numRecords %li\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 2, 2 + 0, 2, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
@@ -1740,7 +1740,7 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
   /* unsigned length = */ readU32(input, m_bigEndian);
 
   unsigned long numRecords = readU16(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMXParser::readRdot - numRecords %i\n", numRecords));
+  CDR_DEBUG_MSG(("CMXParser::readRdot - numRecords %li\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 2, 2, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
@@ -1795,7 +1795,7 @@ void libcdr::CMXParser::readRott(librevenge::RVNGInputStream *input)
   /* unsigned length = */ readU32(input, m_bigEndian);
 
   unsigned long numRecords = readU16(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMXParser::readRott - numRecords %i\n", numRecords));
+  CDR_DEBUG_MSG(("CMXParser::readRott - numRecords %li\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 2, 2, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
@@ -1844,7 +1844,7 @@ void libcdr::CMXParser::readRotl(librevenge::RVNGInputStream *input)
   /* unsigned length = */ readU32(input, m_bigEndian);
 
   unsigned long numRecords = readU16(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMXParser::readRotl - numRecords %i\n", numRecords));
+  CDR_DEBUG_MSG(("CMXParser::readRotl - numRecords %li\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 12, 12, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
@@ -1901,7 +1901,7 @@ void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
   /* unsigned length = */ readU32(input, m_bigEndian);
 
   unsigned long numRecords = readU16(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMXParser::readRpen - numRecords %i\n", numRecords));
+  CDR_DEBUG_MSG(("CMXParser::readRpen - numRecords %li\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 10, 12, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
@@ -1955,7 +1955,7 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
   /* unsigned length = */ readU32(input, m_bigEndian);
 
   unsigned long numRecords = readU16(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMXParser::readIxtl - numRecords %i\n", numRecords));
+  CDR_DEBUG_MSG(("CMXParser::readIxtl - numRecords %li\n", numRecords));
   int sizeInFile(0);
   if (m_precision == libcdr::PRECISION_32BIT)
   {
@@ -2000,7 +2000,7 @@ void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
   /* unsigned length = */ readU32(input, m_bigEndian);
 
   unsigned long numRecords = readU16(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMXParser::readIxef - numRecords %i\n", numRecords));
+  CDR_DEBUG_MSG(("CMXParser::readIxef - numRecords %li\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 6, 8, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
@@ -2037,7 +2037,7 @@ void libcdr::CMXParser::readIxpg(librevenge::RVNGInputStream *input)
   /* unsigned length = */ readU32(input, m_bigEndian);
 
   unsigned long numRecords = readU16(input, m_bigEndian);
-  CDR_DEBUG_MSG(("CMXParser::readIxpg - numRecords %i\n", numRecords));
+  CDR_DEBUG_MSG(("CMXParser::readIxpg - numRecords %li\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 16, 18, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
   {
