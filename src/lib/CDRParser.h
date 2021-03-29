@@ -93,7 +93,7 @@ private:
   void readParagraphText(librevenge::RVNGInputStream *input);
 
   bool _redirectX6Chunk(librevenge::RVNGInputStream **input, unsigned &length);
-  void _readX6StyleString(librevenge::RVNGInputStream *input, unsigned length, CDRStyle &style);
+  void _readX6StyleString(librevenge::RVNGInputStream *input, unsigned long length, CDRStyle &style);
   void _skipX3Optional(librevenge::RVNGInputStream *input);
   void _resolveColorPalette(CDRColor &color);
 

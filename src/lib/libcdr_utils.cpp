@@ -97,7 +97,7 @@ static unsigned short getEncodingFromICUName(const char *name)
   return 0;
 }
 
-static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLength)
+static unsigned short getEncoding(const unsigned char *buffer, unsigned long bufferLength)
 {
   if (!buffer)
     return 0;
@@ -109,7 +109,7 @@ static unsigned short getEncoding(const unsigned char *buffer, unsigned bufferLe
     if (U_FAILURE(status) || !csd)
       return 0;
     ucsdet_enableInputFilter(csd, true);
-    ucsdet_setText(csd, (const char *)buffer, bufferLength, &status);
+    ucsdet_setText(csd, (const char *)buffer, (unsigned)bufferLength, &status);
     if (U_FAILURE(status))
       throw libcdr::EncodingException();
     const UCharsetMatch *csm = ucsdet_detect(csd, &status);
@@ -189,8 +189,8 @@ uint16_t libcdr::readU16(librevenge::RVNGInputStream *input, bool bigEndian)
   if (p && numBytesRead == sizeof(uint16_t))
   {
     if (bigEndian)
-      return (uint16_t)p[1]|((uint16_t)p[0]<<8);
-    return (uint16_t)p[0]|((uint16_t)p[1]<<8);
+      return (uint16_t)(p[1]|((uint16_t)p[0]<<8));
+    return (uint16_t)(p[0]|((uint16_t)p[1]<<8));
   }
   CDR_DEBUG_MSG(("Throwing EndOfStreamException\n"));
   throw EndOfStreamException();

@@ -149,11 +149,11 @@ void libcdr::CommonParser::readRImage(unsigned &colorModel, unsigned &width, uns
   {
     palette.clear();
     input->seek(2, librevenge::RVNG_SEEK_CUR);
-    unsigned short palettesize = readU16(input);
+    unsigned long palettesize = readU16(input);
     if (palettesize > getRemainingLength(input) / 3)
       palettesize = getRemainingLength(input) / 3;
     palette.reserve(palettesize);
-    for (unsigned short i = 0; i <palettesize; ++i)
+    for (unsigned long i = 0; i <palettesize; ++i)
     {
       unsigned b = readU8(input);
       unsigned g = readU8(input);

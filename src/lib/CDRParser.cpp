@@ -180,10 +180,10 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     return parseColourString(fallbackColours.begin()->c_str(), colour, opacity);
 
   if (colourModel)
-    colour.m_colorModel = get(colourModel);
+    colour.m_colorModel = (unsigned short)(get(colourModel));
 
   if (colourPalette)
-    colour.m_colorPalette = get(colourPalette);
+    colour.m_colorPalette = (unsigned short)(get(colourPalette));
 
   if (val.size() >= 5)
   {
@@ -344,7 +344,7 @@ bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
       if (iter1 != records1.end())
       {
         waldoStack.push(iter1->second);
-        m_collector->collectVect(waldoStack.size());
+        m_collector->collectVect((unsigned)(waldoStack.size()));
         parseWaldoStructure(input, waldoStack, records1, records2);
       }
       iter1 = records1.find(0);
@@ -352,7 +352,7 @@ bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
         return false;
       waldoStack = std::stack<WaldoRecordType1>();
       waldoStack.push(iter1->second);
-      m_collector->collectPage(waldoStack.size());
+      m_collector->collectPage((unsigned)(waldoStack.size()));
       if (!parseWaldoStructure(input, waldoStack, records1, records2))
         return false;
     }
@@ -427,7 +427,7 @@ bool libcdr::CDRParser::parseWaldoStructure(librevenge::RVNGInputStream *input, 
     {
       if (waldoStack.size() > 1)
       {
-        m_collector->collectGroup(waldoStack.size());
+        m_collector->collectGroup((unsigned)(waldoStack.size()));
         m_collector->collectSpnd(waldoStack.top().m_id);
         CDRTransforms trafos;
         trafos.append(waldoStack.top().m_trafo);
@@ -437,19 +437,19 @@ bool libcdr::CDRParser::parseWaldoStructure(librevenge::RVNGInputStream *input, 
       if (iter1 == records1.end())
         return false;
       waldoStack.push(iter1->second);
-      m_collector->collectLevel(waldoStack.size());
+      m_collector->collectLevel((unsigned)(waldoStack.size()));
     }
     else
     {
       if (waldoStack.size() > 1)
-        m_collector->collectObject(waldoStack.size());
+        m_collector->collectObject((unsigned)(waldoStack.size()));
       std::map<unsigned, WaldoRecordInfo>::const_iterator iter2 = records2.find(waldoStack.top().m_child);
       if (iter2 == records2.end())
         return false;
       readWaldoRecord(input, iter2->second);
       while (!waldoStack.empty() && !waldoStack.top().m_next)
         waldoStack.pop();
-      m_collector->collectLevel(waldoStack.size());
+      m_collector->collectLevel((unsigned)(waldoStack.size()));
       if (waldoStack.empty())
         return true;
       iter1 = records1.find(waldoStack.top().m_next);
@@ -634,7 +634,7 @@ bool libcdr::CDRParser::parseRecord(librevenge::RVNGInputStream *input, const st
         m_collector->collectGroup(level);
       else if ((listType & 0xffffff) == CDR_FOURCC_CDR || (listType & 0xffffff) == CDR_FOURCC_cdr)
       {
-        m_version = getCDRVersion((listType & 0xff000000) >> 24);
+        m_version = getCDRVersion((unsigned char)((listType & 0xff000000) >> 24));
         if (m_version < 600)
           m_precision = libcdr::PRECISION_16BIT;
         else
@@ -653,7 +653,7 @@ bool libcdr::CDRParser::parseRecord(librevenge::RVNGInputStream *input, const st
       else
       {
         std::vector<unsigned> tmpBlockLengths;
-        unsigned blocksLength = length + position - input->tell();
+        unsigned long blocksLength = length + position - input->tell();
         CDRInternalStream tmpBlocksStream(input, blocksLength, compressed);
         while (!tmpBlocksStream.isEnd())
           tmpBlockLengths.push_back(readU32(&tmpBlocksStream));
@@ -835,10 +835,10 @@ void libcdr::CDRParser::readRectangle(librevenge::RVNGInputStream *input)
   else
   {
     double scale = readDouble(input);
-    if (scale != 0)
+    if (!CDR_ALMOST_ZERO(scale))
       scaleX = scale;
     scale = readDouble(input);
-    if (scale != 0)
+    if (!CDR_ALMOST_ZERO(scale))
       scaleY = scale;
     unsigned int scale_with = readU8(input);
     input->seek(7, librevenge::RVNG_SEEK_CUR);
@@ -948,7 +948,7 @@ void libcdr::CDRParser::readEllipse(librevenge::RVNGInputStream *input)
   normalizeAngle(angle2);
 
   CDRPath path;
-  if (angle1 != angle2)
+  if (!CDR_ALMOST_EQUAL(angle1, angle2))
   {
     if (angle2 < angle1)
       angle2 += 2*M_PI;
@@ -1033,7 +1033,7 @@ void libcdr::CDRParser::readLineAndCurve(librevenge::RVNGInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readLineAndCurve\n"));
 
-  unsigned short pointNum = readU16(input);
+  unsigned long pointNum = readU16(input);
   const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
   input->seek(2, librevenge::RVNG_SEEK_CUR);
   if (pointNum > getRemainingLength(input) / pointSize)
@@ -1042,14 +1042,14 @@ void libcdr::CDRParser::readLineAndCurve(librevenge::RVNGInputStream *input)
   std::vector<unsigned char> pointTypes;
   points.reserve(pointNum);
   pointTypes.reserve(pointNum);
-  for (unsigned j=0; j<pointNum; j++)
+  for (unsigned long j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
     point.first = (double)readCoordinate(input);
     point.second = (double)readCoordinate(input);
     points.push_back(point);
   }
-  for (unsigned k=0; k<pointNum; k++)
+  for (unsigned long k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
   outputPath(points, pointTypes);
 }
@@ -1059,7 +1059,7 @@ void libcdr::CDRParser::readPath(librevenge::RVNGInputStream *input)
   CDR_DEBUG_MSG(("CDRParser::readPath\n"));
 
   input->seek(4, librevenge::RVNG_SEEK_CUR);
-  unsigned short pointNum = readU16(input)+readU16(input);
+  unsigned long pointNum = readU16(input)+readU16(input);
   const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
   const unsigned long maxLength = getRemainingLength(input);
   if (maxLength < 16)
@@ -1071,14 +1071,14 @@ void libcdr::CDRParser::readPath(librevenge::RVNGInputStream *input)
   std::vector<unsigned char> pointTypes;
   points.reserve(pointNum);
   pointTypes.reserve(pointNum);
-  for (unsigned j=0; j<pointNum; j++)
+  for (unsigned long j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
     point.first = (double)readCoordinate(input);
     point.second = (double)readCoordinate(input);
     points.push_back(point);
   }
-  for (unsigned k=0; k<pointNum; k++)
+  for (unsigned long k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
   outputPath(points, pointTypes);
 }
@@ -1092,7 +1092,7 @@ void libcdr::CDRParser::readArrw(librevenge::RVNGInputStream *input, unsigned le
     throw GenericException();
   unsigned arrowId = readU32(input);
   input->seek(4, librevenge::RVNG_SEEK_CUR);
-  unsigned short pointNum = readU16(input);
+  unsigned long pointNum = readU16(input);
   const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
   const unsigned long maxLength = getRemainingLength(input);
   if (maxLength < 5)
@@ -1102,12 +1102,12 @@ void libcdr::CDRParser::readArrw(librevenge::RVNGInputStream *input, unsigned le
   input->seek(4, librevenge::RVNG_SEEK_CUR);
   std::vector<unsigned char> pointTypes;
   pointTypes.reserve(pointSize);
-  for (unsigned k=0; k<pointNum; k++)
+  for (unsigned long k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
   input->seek(1, librevenge::RVNG_SEEK_CUR);
   std::vector<std::pair<double, double> > points;
   points.reserve(pointSize);
-  for (unsigned j=0; j<pointNum; j++)
+  for (unsigned long j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
     point.second = (double)readCoordinate(input);
@@ -1164,7 +1164,7 @@ void libcdr::CDRParser::readBitmap(librevenge::RVNGInputStream *input)
     else
       input->seek(20, librevenge::RVNG_SEEK_CUR);
 
-    unsigned short pointNum = readU16(input);
+    unsigned long pointNum = readU16(input);
     input->seek(2, librevenge::RVNG_SEEK_CUR);
     const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
     if (pointNum > getRemainingLength(input) / pointSize)
@@ -1173,14 +1173,14 @@ void libcdr::CDRParser::readBitmap(librevenge::RVNGInputStream *input)
     std::vector<unsigned char> pointTypes;
     points.reserve(pointNum);
     pointTypes.reserve(pointNum);
-    for (unsigned j=0; j<pointNum; j++)
+    for (unsigned long j=0; j<pointNum; j++)
     {
       std::pair<double, double> point;
       point.first = (double)readCoordinate(input);
       point.second = (double)readCoordinate(input);
       points.push_back(point);
     }
-    for (unsigned k=0; k<pointNum; k++)
+    for (unsigned long k=0; k<pointNum; k++)
       pointTypes.push_back(readU8(input));
     outputPath(points, pointTypes);
   }
@@ -1199,7 +1199,7 @@ void libcdr::CDRParser::readWaldoOutl(librevenge::RVNGInputStream *input)
   libcdr::CDRColor color = readColor(input);
   input->seek(7, librevenge::RVNG_SEEK_CUR);
   unsigned short numDash = readU8(input);
-  int fixPosition = input->tell();
+  long fixPosition = input->tell();
   std::vector<unsigned> dashArray;
   for (unsigned short i = 0; i < numDash; ++i)
     dashArray.push_back(readU8(input));
@@ -1696,13 +1696,13 @@ void libcdr::CDRParser::readOutl(librevenge::RVNGInputStream *input, unsigned le
     input->seek(10, librevenge::RVNG_SEEK_CUR);
   else
     input->seek(16, librevenge::RVNG_SEEK_CUR);
-  unsigned short numDash = readU16(input);
+  unsigned long numDash = readU16(input);
   if (numDash > getRemainingLength(input) / 2)
     numDash = getRemainingLength(input) / 2;
-  int fixPosition = input->tell();
+  long fixPosition = input->tell();
   std::vector<unsigned> dashArray;
   dashArray.reserve(numDash);
-  for (unsigned short i = 0; i < numDash; ++i)
+  for (unsigned long i = 0; i < numDash; ++i)
     dashArray.push_back(readU16(input));
   if (m_version < 600)
     input->seek(fixPosition + 20, librevenge::RVNG_SEEK_SET);
@@ -1862,7 +1862,7 @@ void libcdr::CDRParser::readPolygonCoords(librevenge::RVNGInputStream *input)
 {
   CDR_DEBUG_MSG(("CDRParser::readPolygonCoords\n"));
 
-  unsigned short pointNum = readU16(input);
+  unsigned long pointNum = readU16(input);
   const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
   if (pointNum > getRemainingLength(input) / pointSize)
     pointNum = getRemainingLength(input) / pointSize;
@@ -1871,14 +1871,14 @@ void libcdr::CDRParser::readPolygonCoords(librevenge::RVNGInputStream *input)
   std::vector<unsigned char> pointTypes;
   points.reserve(pointNum);
   pointTypes.reserve(pointNum);
-  for (unsigned j=0; j<pointNum; j++)
+  for (unsigned long j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
     point.first = (double)readCoordinate(input);
     point.second = (double)readCoordinate(input);
     points.push_back(point);
   }
-  for (unsigned k=0; k<pointNum; k++)
+  for (unsigned long k=0; k<pointNum; k++)
     pointTypes.push_back(readU8(input));
   outputPath(points, pointTypes);
   m_collector->collectPolygon();
@@ -2012,7 +2012,7 @@ void libcdr::CDRParser::readPpdt(librevenge::RVNGInputStream *input, unsigned le
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
-  unsigned short pointNum = readU16(input);
+  unsigned long pointNum = readU16(input);
   const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 4;
   if (pointNum > getRemainingLength(input) / pointSize)
     pointNum = getRemainingLength(input) / pointSize;
@@ -2021,14 +2021,14 @@ void libcdr::CDRParser::readPpdt(librevenge::RVNGInputStream *input, unsigned le
   std::vector<unsigned> knotVector;
   points.reserve(pointNum);
   knotVector.reserve(pointNum);
-  for (unsigned j=0; j<pointNum; j++)
+  for (unsigned long j=0; j<pointNum; j++)
   {
     std::pair<double, double> point;
     point.first = (double)readCoordinate(input);
     point.second = (double)readCoordinate(input);
     points.push_back(point);
   }
-  for (unsigned k=0; k<pointNum; k++)
+  for (unsigned long k=0; k<pointNum; k++)
     knotVector.push_back(readU32(input));
   m_collector->collectPpdt(points, knotVector);
 }
@@ -2207,14 +2207,13 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
     CDR_DEBUG_MSG(("CDRParser::readStlt numRecords 0x%x\n", numRecords));
     if (!numRecords)
       return;
-    unsigned numFills = readU32(input);
+    unsigned long numFills = readU32(input);
     const unsigned fillSize = 3 * 4 + (m_version >= 1300 ? 48 : 0);
     if (numFills > getRemainingLength(input) / fillSize)
       numFills = getRemainingLength(input) / fillSize;
     CDR_DEBUG_MSG(("CDRParser::readStlt numFills 0x%x\n", numFills));
-    unsigned i = 0;
     std::map<unsigned, unsigned> fillIds;
-    for (i=0; i<numFills; ++i)
+    for (unsigned long i=0; i<numFills; ++i)
     {
       unsigned fillId = readU32(input);
       input->seek(4, librevenge::RVNG_SEEK_CUR);
@@ -2222,25 +2221,25 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
       if (m_version >= 1300)
         input->seek(48, librevenge::RVNG_SEEK_CUR);
     }
-    unsigned numOutls = readU32(input);
+    unsigned long numOutls = readU32(input);
     if (numOutls > getRemainingLength(input) / 12)
       numOutls = getRemainingLength(input) / 12;
     CDR_DEBUG_MSG(("CDRParser::readStlt numOutls 0x%x\n", numOutls));
     std::map<unsigned, unsigned> outlIds;
-    for (i=0; i<numOutls; ++i)
+    for (unsigned long i=0; i<numOutls; ++i)
     {
       unsigned outlId = readU32(input);
       input->seek(4, librevenge::RVNG_SEEK_CUR);
       outlIds[outlId] = readU32(input);
     }
-    unsigned numFonts = readU32(input);
+    unsigned long numFonts = readU32(input);
     const unsigned fontsSize = 4 + 2 * 2 + 8 + (m_precision == PRECISION_16BIT ? 2 : 4) + 2 * (m_version < 1000 ? 12 : 20);
     if (numFonts > getRemainingLength(input) / fontsSize)
       numFonts = getRemainingLength(input) / fontsSize;
     CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%x\n", numFonts));
     std::map<unsigned,unsigned short> fontIds, fontEncodings;
     std::map<unsigned,double> fontSizes;
-    for (i=0; i<numFonts; ++i)
+    for (unsigned long i=0; i<numFonts; ++i)
     {
       unsigned fontStyleId = readU32(input);
       if (m_version < 1000)
@@ -2256,12 +2255,12 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
       else
         input->seek(20, librevenge::RVNG_SEEK_CUR);
     }
-    unsigned numAligns = readU32(input);
+    unsigned long numAligns = readU32(input);
     if (numAligns > getRemainingLength(input) / 12)
       numAligns = getRemainingLength(input) / 12;
     std::map<unsigned,unsigned> aligns;
     CDR_DEBUG_MSG(("CDRParser::readStlt numAligns 0x%x\n", numAligns));
-    for (i=0; i<numAligns; ++i)
+    for (unsigned long i=0; i<numAligns; ++i)
     {
       unsigned alignId = readU32(input);
       input->seek(4, librevenge::RVNG_SEEK_CUR);
@@ -2278,7 +2277,7 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
     input->seek(784 * static_cast<long>(numTabs), librevenge::RVNG_SEEK_CUR);
     unsigned numBullets = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numBullets 0x%x\n", numBullets));
-    for (i=0; i<numBullets && getRemainingLength(input) >= 16; ++i)
+    for (unsigned i=0; i<numBullets && getRemainingLength(input) >= 16; ++i)
     {
       input->seek(40, librevenge::RVNG_SEEK_CUR);
       if (m_version > 1300)
@@ -2300,13 +2299,13 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
         input->seek(8, librevenge::RVNG_SEEK_CUR);
       }
     }
-    unsigned numIndents = readU32(input);
+    unsigned long numIndents = readU32(input);
     const unsigned indentSize = 4 + 3 * (m_precision == PRECISION_16BIT ? 2 : 4);
     if (numIndents > getRemainingLength(input) / indentSize)
       numIndents = getRemainingLength(input) / indentSize;
     std::map<unsigned, double> rightIndents, firstIndents, leftIndents;
     CDR_DEBUG_MSG(("CDRParser::readStlt numIndents 0x%x\n", numIndents));
-    for (i=0; i<numIndents; ++i)
+    for (unsigned long i=0; i<numIndents; ++i)
     {
       unsigned indentId = readU32(input);
       input->seek(12, librevenge::RVNG_SEEK_CUR);
@@ -2334,7 +2333,7 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
         input->seek(12 * static_cast<long>(numSet11s), librevenge::RVNG_SEEK_CUR);
       }
       std::map<unsigned, CDRStltRecord> styles;
-      for (i=0; i<numRecords && getRemainingLength(input) >= 32; ++i)
+      for (unsigned i=0; i<numRecords && getRemainingLength(input) >= 32; ++i)
       {
         CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
         unsigned num = readU32(input);
@@ -2641,21 +2640,21 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
         }
         styles[2*i] = style;
       }
-      unsigned numChars = readU32(input);
+      unsigned long numChars = readU32(input);
       const unsigned charSize = m_version >= 1200 ? 8 : 4;
       if (numChars > getRemainingLength(input) / charSize)
         numChars = getRemainingLength(input) / charSize;
       std::vector<unsigned char> charDescriptions(numChars);
-      for (unsigned i = 0; i < numChars; ++i)
+      for (unsigned long i = 0; i < numChars; ++i)
       {
         unsigned tmpCharDescription = 0;
         if (m_version >= 1200)
           tmpCharDescription = readU64(input) & 0xffffffff;
         else
           tmpCharDescription = readU32(input);
-        charDescriptions[i] = (tmpCharDescription >> 16) | (tmpCharDescription & 0x01);
+        charDescriptions[i] = (unsigned char)((tmpCharDescription >> 16) | (tmpCharDescription & 0x01));
       }
-      unsigned numBytes = numChars;
+      unsigned long numBytes = numChars;
       if (m_version >= 1200)
         numBytes = readU32(input);
       unsigned long numBytesRead = 0;
@@ -2777,7 +2776,7 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
       {
         unsigned tmpCharDescription = 0;
         tmpCharDescription = readU64(input) & 0xffffffff;
-        charDescriptions[i] = (tmpCharDescription >> 16) | (tmpCharDescription & 0x01);
+        charDescriptions[i] = (unsigned char)((tmpCharDescription >> 16) | (tmpCharDescription & 0x01));
       }
       unsigned numBytes = readU32(input);
       unsigned long numBytesRead = 0;
@@ -2961,19 +2960,19 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
       input->seek(14, librevenge::RVNG_SEEK_CUR);
       styles[2*i] = style;
     }
-    unsigned numChars = readU16(input);
+    unsigned long numChars = readU16(input);
     if (numChars > getRemainingLength(input) / 8)
       numChars = getRemainingLength(input) / 8;
     std::vector<unsigned char> textData;
     std::vector<unsigned char> charDescriptions;
     textData.reserve(numChars);
     charDescriptions.reserve(numChars);
-    for (unsigned i=0; i<numChars; ++i)
+    for (unsigned long i=0; i<numChars; ++i)
     {
       input->seek(4, librevenge::RVNG_SEEK_CUR);
       textData.push_back(readU8(input));
       input->seek(1, librevenge::RVNG_SEEK_CUR);
-      charDescriptions.push_back((readU16(input) >> 3) & 0xff);
+      charDescriptions.push_back((unsigned char)((readU16(input) >> 3) & 0xff));
     }
     if (!textData.empty())
       m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
@@ -3119,7 +3118,7 @@ void libcdr::CDRParser::readParagraphText(librevenge::RVNGInputStream *input)
   m_collector->collectParagraphText(0.0, 0.0, width, height);
 }
 
-void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, unsigned length, libcdr::CDRStyle &style)
+void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, unsigned long length, libcdr::CDRStyle &style)
 {
   if (length > getRemainingLength(input))
   {
@@ -3161,7 +3160,7 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
     boost::optional<std::string> fontName = pt.get_optional<std::string>("character.latin.font");
     if (!!fontName)
       style.m_fontName = fontName.get().c_str();
-    unsigned short encoding = pt.get("character.latin.charset", 0);
+    unsigned short encoding = (unsigned short)(pt.get("character.latin.charset", 0));
     if (encoding || style.m_charSet == (unsigned short)-1)
       style.m_charSet = encoding;
     processNameForEncoding(style.m_fontName, style.m_charSet);
@@ -3259,7 +3258,7 @@ void libcdr::CDRParser::_resolveColorPalette(libcdr::CDRColor &color)
   unsigned char k = 100;
 
   unsigned short ix = color.m_colorValue & 0xffff;
-  unsigned short tint = (color.m_colorValue >> 16) & 0xffff;
+  unsigned short tint = (unsigned short)((color.m_colorValue >> 16) & 0xffff);
 
   if (color.m_colorModel == 0x19)
   {

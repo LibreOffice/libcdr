@@ -166,7 +166,7 @@ struct CDRStyle
       m_fontSize = override.m_fontSize;
     if (override.m_align)
       m_align = override.m_align;
-    if (override.m_leftIndent != 0.0 && override.m_firstIndent != 0.0 && override.m_rightIndent != 0.0)
+    if (!CDR_ALMOST_ZERO(override.m_leftIndent) && !CDR_ALMOST_ZERO(override.m_firstIndent) && !CDR_ALMOST_ZERO(override.m_rightIndent))
     {
       m_leftIndent = override.m_leftIndent;
       m_firstIndent = override.m_firstIndent;

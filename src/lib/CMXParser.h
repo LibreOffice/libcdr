@@ -114,7 +114,7 @@ private:
   CMXParser(const CMXParser &);
   CMXParser &operator=(const CMXParser &);
   bool parseRecord(librevenge::RVNGInputStream *input, unsigned level = 0);
-  void readRecord(unsigned fourCC, unsigned &length, librevenge::RVNGInputStream *input);
+  void readRecord(unsigned fourCC, unsigned long length, librevenge::RVNGInputStream *input);
   void parseImage(librevenge::RVNGInputStream *input);
 
   void readCMXHeader(librevenge::RVNGInputStream *input);
@@ -167,7 +167,7 @@ private:
   double m_scale;
   double m_xmin, m_xmax, m_ymin, m_ymax;
   unsigned m_fillIndex;
-  unsigned m_nextInstructionOffset;
+  unsigned long m_nextInstructionOffset;
   CMXParserState &m_parserState;
   CMXImageInfo m_currentImageInfo;
   std::unique_ptr<CDRPattern> m_currentPattern;

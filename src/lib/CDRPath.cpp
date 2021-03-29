@@ -40,7 +40,7 @@ static void getEllipticalArcBBox(double x0, double y0,
   if (ry < 0.0)
     ry *= -1.0;
 
-  if (rx == 0.0 || ry == 0.0)
+  if (CDR_ALMOST_ZERO(rx) || CDR_ALMOST_ZERO(ry))
   {
     xmin = (x0 < x ? x0 : x);
     xmax = (x0 > x ? x0 : x);
@@ -83,7 +83,7 @@ static void getEllipticalArcBBox(double x0, double y0,
 
   double txmin, txmax, tymin, tymax;
 
-  if (phi == 0 || phi == M_PI)
+  if (CDR_ALMOST_ZERO(phi) || CDR_ALMOST_EQUAL(phi, M_PI))
   {
     xmin = cx - rx;
     txmin = getAngle(-rx, 0);
@@ -94,7 +94,7 @@ static void getEllipticalArcBBox(double x0, double y0,
     ymax = cy + ry;
     tymax = getAngle(0, ry);
   }
-  else if (phi == M_PI / 2.0 || phi == 3.0*M_PI/2.0)
+  else if (CDR_ALMOST_EQUAL(phi, M_PI / 2.0) || CDR_ALMOST_EQUAL(phi, 3.0*M_PI/2.0))
   {
     xmin = cx - ry;
     txmin = getAngle(-ry, 0);
@@ -166,7 +166,7 @@ static inline double quadraticExtreme(double t, double a, double b, double c)
 static inline double quadraticDerivative(double a, double b, double c)
 {
   double denominator = a - 2.0*b + c;
-  if (fabs(denominator) != 0.0)
+  if (!CDR_ALMOST_ZERO(denominator))
     return (a - b)/denominator;
   return -1.0;
 }
@@ -501,7 +501,7 @@ void CDRSplineToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
    * The NURBS Book, 2nd Edition, 1997
    */
 
-  unsigned m = m_points.size() + CDR_SPLINE_DEGREE + 1;
+  unsigned long m = m_points.size() + CDR_SPLINE_DEGREE + 1;
   unsigned a = CDR_SPLINE_DEGREE;
   unsigned b = CDR_SPLINE_DEGREE + 1;
   std::vector< std::pair<double, double> > Qw(CDR_SPLINE_DEGREE+1), NextQw(CDR_SPLINE_DEGREE+1);

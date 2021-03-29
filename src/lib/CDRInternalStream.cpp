@@ -67,7 +67,7 @@ libcdr::CDRInternalStream::CDRInternalStream(librevenge::RVNGInputStream *input,
     }
 
     strm.avail_in = (uInt)tmpNumBytesRead;
-    strm.next_in = (Bytef *)tmpBuffer;
+    strm.next_in = const_cast<Bytef *>(tmpBuffer);
 
     do
     {
@@ -82,6 +82,8 @@ libcdr::CDRInternalStream::CDRInternalStream(librevenge::RVNGInputStream *input,
         (void)inflateEnd(&strm);
         m_buffer.clear();
         return;
+      default:
+        break;
       }
 
       unsigned have = CHUNK - strm.avail_out;
@@ -102,7 +104,7 @@ const unsigned char *libcdr::CDRInternalStream::read(unsigned long numBytes, uns
   if (numBytes == 0)
     return nullptr;
 
-  unsigned numBytesToRead;
+  unsigned long numBytesToRead;
 
   if ((m_offset+numBytes) < m_buffer.size())
     numBytesToRead = numBytes;

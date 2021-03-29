@@ -409,7 +409,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     while (rotate > 2.0*M_PI)
       rotate -= 2.0*M_PI;
 
-    if (rotate != 0.0)
+    if (!CDR_ALMOST_ZERO(rotate))
       propList.insert("librevenge:rotate", rotate * 180 / M_PI, librevenge::RVNG_GENERIC);
 
     propList.insert("librevenge:mime-type", "image/bmp");
@@ -606,7 +606,7 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
       const char *header =
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
       librevenge::RVNGBinaryData output((const unsigned char *)header, strlen(header));
-      output.append((unsigned char *)svgOutput[0].cstr(), strlen(svgOutput[0].cstr()));
+      output.append((const unsigned char *)svgOutput[0].cstr(), strlen(svgOutput[0].cstr()));
       m_ps.m_vects[m_spnd] = output;
     }
 #if DUMP_VECT
@@ -827,20 +827,20 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
           propList.insert("draw:fill-image-ref-point", "bottom-left");
           if (m_currentFillStyle.imageFill.isRelative)
           {
-            if (m_currentFillStyle.imageFill.xOffset != 0.0 && m_currentFillStyle.imageFill.xOffset != 1.0)
+            if (!CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.xOffset) && !CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.xOffset))
               propList.insert("draw:fill-image-ref-point-x", m_currentFillStyle.imageFill.xOffset, librevenge::RVNG_PERCENT);
-            if (m_currentFillStyle.imageFill.yOffset != 0.0 && m_currentFillStyle.imageFill.yOffset != 1.0)
+            if (!CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.yOffset) && !CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.yOffset))
               propList.insert("draw:fill-image-ref-point-y", m_currentFillStyle.imageFill.yOffset, librevenge::RVNG_PERCENT);
           }
           else
           {
-            if (m_fillTransforms.getTranslateX() != 0.0)
+            if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateX()))
             {
               double xOffset = m_fillTransforms.getTranslateX() / m_currentFillStyle.imageFill.width;
               normalize(xOffset);
               propList.insert("draw:fill-image-ref-point-x", xOffset, librevenge::RVNG_PERCENT);
             }
-            if (m_fillTransforms.getTranslateY() != 0.0)
+            if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateY()))
             {
               double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.width;
               normalize(yOffset);
@@ -887,14 +887,14 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
           propList.insert("draw:fill-image-ref-point", "bottom-left");
           if (m_currentFillStyle.imageFill.isRelative)
           {
-            if (m_currentFillStyle.imageFill.xOffset != 0.0 && m_currentFillStyle.imageFill.xOffset != 1.0)
+            if (!CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.xOffset) && !CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.xOffset))
               propList.insert("draw:fill-image-ref-point-x", m_currentFillStyle.imageFill.xOffset, librevenge::RVNG_PERCENT);
-            if (m_currentFillStyle.imageFill.yOffset != 0.0 && m_currentFillStyle.imageFill.yOffset != 1.0)
+            if (!CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.yOffset) && !CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.yOffset))
               propList.insert("draw:fill-image-ref-point-y", m_currentFillStyle.imageFill.yOffset, librevenge::RVNG_PERCENT);
           }
           else
           {
-            if (m_fillTransforms.getTranslateX() != 0.0)
+            if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateX()))
             {
               double xOffset = m_fillTransforms.getTranslateX() / m_currentFillStyle.imageFill.width;
               while (xOffset < 0.0)
@@ -903,7 +903,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
                 xOffset -= 1.0;
               propList.insert("draw:fill-image-ref-point-x", xOffset, librevenge::RVNG_PERCENT);
             }
-            if (m_fillTransforms.getTranslateY() != 0.0)
+            if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateY()))
             {
               double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.width;
               while (yOffset < 0.0)
@@ -947,14 +947,14 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
           propList.insert("draw:fill-image-ref-point", "bottom-left");
           if (m_currentFillStyle.imageFill.isRelative)
           {
-            if (m_currentFillStyle.imageFill.xOffset != 0.0 && m_currentFillStyle.imageFill.xOffset != 1.0)
+            if (!CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.xOffset) && !CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.xOffset))
               propList.insert("draw:fill-image-ref-point-x", m_currentFillStyle.imageFill.xOffset, librevenge::RVNG_PERCENT);
-            if (m_currentFillStyle.imageFill.yOffset != 0.0 && m_currentFillStyle.imageFill.yOffset != 1.0)
+            if (!CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.yOffset) && !CDR_ALMOST_ZERO(m_currentFillStyle.imageFill.yOffset))
               propList.insert("draw:fill-image-ref-point-y", m_currentFillStyle.imageFill.yOffset, librevenge::RVNG_PERCENT);
           }
           else
           {
-            if (m_fillTransforms.getTranslateX() != 0.0)
+            if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateX()))
             {
               double xOffset = m_fillTransforms.getTranslateX() / m_currentFillStyle.imageFill.width;
               while (xOffset < 0.0)
@@ -963,7 +963,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
                 xOffset -= 1.0;
               propList.insert("draw:fill-image-ref-point-x", xOffset, librevenge::RVNG_PERCENT);
             }
-            if (m_fillTransforms.getTranslateY() != 0.0)
+            if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateY()))
             {
               double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.width;
               while (yOffset < 0.0)
@@ -1231,7 +1231,7 @@ void libcdr::CDRContentCollector::collectFillOpacity(double opacity)
 void libcdr::CDRContentCollector::collectBBox(double x0, double y0, double x1, double y1)
 {
   CDRBox bBox(x0, y0, x1, y1);
-  if (m_currentVectLevel && m_page.width == 0.0 && m_page.height == 0.0)
+  if (m_currentVectLevel && CDR_ALMOST_ZERO(m_page.width) && CDR_ALMOST_ZERO(m_page.height))
   {
     m_page.width = bBox.getWidth();
     m_page.height = bBox.getHeight();
@@ -1268,7 +1268,7 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const librev
     const char *header =
       "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
     librevenge::RVNGBinaryData output((const unsigned char *)header, strlen(header));
-    output.append((unsigned char *)svgOutput[0].cstr(), strlen(svgOutput[0].cstr()));
+    output.append((const unsigned char *)svgOutput[0].cstr(), strlen(svgOutput[0].cstr()));
     m_ps.m_vects[id] = output;
   }
 #if DUMP_VECT

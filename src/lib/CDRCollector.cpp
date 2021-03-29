@@ -139,9 +139,9 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
     // todo handle tint
   }
   unsigned char col0 = colorValue & 0xff;
-  unsigned char col1 = (colorValue & 0xff00) >> 8;
-  unsigned char col2 = (colorValue & 0xff0000) >> 16;
-  unsigned char col3 = (colorValue & 0xff000000) >> 24;
+  unsigned char col1 = (colorValue >> 8) & 0xff;
+  unsigned char col2 = (colorValue >> 16) & 0xff;
+  unsigned char col3 = (unsigned char)((colorValue >> 24) & 0xff);
   switch (colorModel)
   {
   case 0x00: // Pantone palette in CDR1

@@ -47,7 +47,7 @@ uint16_t readTagLength(librevenge::RVNGInputStream *const input, const bool bigE
 }
 
 void sanitizeNumRecords(
-  unsigned &numRecords,
+  unsigned long &numRecords,
   const libcdr::CoordinatePrecision precision, const unsigned size16, const unsigned size32,
   const unsigned long remainingLength)
 {
@@ -61,7 +61,7 @@ void sanitizeNumRecords(
 }
 
 void sanitizeNumRecords(
-  unsigned &numRecords,
+  unsigned long &numRecords,
   const libcdr::CoordinatePrecision precision, const unsigned size16, const unsigned size32, const unsigned tags,
   const unsigned long remainingLength)
 {
@@ -116,7 +116,7 @@ bool libcdr::CMXParser::parseRecord(librevenge::RVNGInputStream *input, unsigned
     else
       return true;
     unsigned fourCC = readU32(input, m_bigEndian);
-    unsigned length = readU32(input, m_bigEndian);
+    unsigned long length = readU32(input, m_bigEndian);
     const unsigned long maxLength = getRemainingLength(input);
     if (length > maxLength)
       length = maxLength;
@@ -134,7 +134,7 @@ bool libcdr::CMXParser::parseRecord(librevenge::RVNGInputStream *input, unsigned
       input->seek(4, librevenge::RVNG_SEEK_CUR);
 #endif
       CDR_DEBUG_MSG(("CMX listType: %s\n", toFourCC(listType)));
-      unsigned dataSize = length-4;
+      unsigned long dataSize = length-4;
       if (!parseRecords(input, dataSize, level+1))
         return false;
     }
@@ -167,7 +167,7 @@ void libcdr::CMXParser::parseImage(librevenge::RVNGInputStream *input)
     else
       return;
     unsigned fourCC = readU32(input, m_bigEndian);
-    unsigned length = readU32(input, m_bigEndian);
+    unsigned long length = readU32(input, m_bigEndian);
     const unsigned long maxLength = getRemainingLength(input);
     if (length > maxLength)
       length = maxLength;
@@ -179,7 +179,7 @@ void libcdr::CMXParser::parseImage(librevenge::RVNGInputStream *input)
     CDR_DEBUG_MSG(("CMX listType: %s\n", toFourCC(listType)));
     if (listType != CDR_FOURCC_imag)
       return;
-    unsigned dataSize = length-4;
+    unsigned long dataSize = length-4;
     if (!parseRecords(input, dataSize, (unsigned)-1))
       return;
 
@@ -191,7 +191,7 @@ void libcdr::CMXParser::parseImage(librevenge::RVNGInputStream *input)
   }
 }
 
-void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned &length, librevenge::RVNGInputStream *input)
+void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned long length, librevenge::RVNGInputStream *input)
 {
   long recordEnd = input->tell() + length;
   switch (fourCC)
@@ -293,7 +293,7 @@ void libcdr::CMXParser::readDisp(librevenge::RVNGInputStream *input)
   unsigned fourCC = readU32(input, m_bigEndian);
   if (CDR_FOURCC_DISP != fourCC)
     return;
-  unsigned length = readU32(input, m_bigEndian);
+  unsigned long length = readU32(input, m_bigEndian);
   const unsigned long maxLength = getRemainingLength(input);
   if (length > maxLength)
     length = maxLength;
@@ -314,7 +314,7 @@ void libcdr::CMXParser::readDisp(librevenge::RVNGInputStream *input)
 
   long startPosition = input->tell();
   input->seek(0x18, librevenge::RVNG_SEEK_CUR);
-  int lengthX = length + 10 - readU32(input, m_bigEndian);
+  unsigned long lengthX = length + 10 - readU32(input, m_bigEndian);
   input->seek(startPosition, librevenge::RVNG_SEEK_SET);
 
   previewImage.append((unsigned char)((lengthX) & 0x000000ff));
@@ -323,7 +323,7 @@ void libcdr::CMXParser::readDisp(librevenge::RVNGInputStream *input)
   previewImage.append((unsigned char)(((lengthX) & 0xff000000) >> 24));
 
   input->seek(4, librevenge::RVNG_SEEK_CUR);
-  for (unsigned i = 4; i<length; i++)
+  for (unsigned long i = 4; i<length; i++)
     previewImage.append(readU8(input, m_bigEndian));
 #if DUMP_PREVIEW_IMAGE
   FILE *f = fopen("previewImage.bmp", "wb");
@@ -354,11 +354,11 @@ void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
 
   readU16(input, m_bigEndian); // Master ID
   readU16(input, m_bigEndian); // Size
-  unsigned short recordCount = readU16(input, m_bigEndian);
+  unsigned long recordCount = readU16(input, m_bigEndian);
   if (recordCount > getRemainingLength(input) / 6)
     recordCount = getRemainingLength(input) / 6;
   std::map<unsigned short, unsigned> offsets;
-  for (unsigned short i = 1; i <= recordCount; ++i)
+  for (unsigned long i = 1; i <= recordCount; ++i)
   {
     unsigned short indexRecordId = readU16(input, m_bigEndian);
     unsigned offset = readU32(input, m_bigEndian);
@@ -590,7 +590,7 @@ void libcdr::CMXParser::readBeginGroup(librevenge::RVNGInputStream *input)
 void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
 {
   m_collector->collectObject(1);
-  unsigned pointNum = 0;
+  unsigned long pointNum = 0;
   std::vector<std::pair<double, double> > points;
   std::vector<unsigned char> pointTypes;
   if (m_precision == libcdr::PRECISION_32BIT)
@@ -619,14 +619,14 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
           pointNum = getRemainingLength(input) / (2 * 4 + 1);
         points.reserve(pointNum);
         pointTypes.reserve(pointNum);
-        for (unsigned i = 0; i < pointNum; ++i)
+        for (unsigned long i = 0; i < pointNum; ++i)
         {
           std::pair<double, double> point;
           point.first = readCoordinate(input, m_bigEndian);
           point.second = readCoordinate(input, m_bigEndian);
           points.push_back(point);
         }
-        for (unsigned j = 0; j < pointNum; ++j)
+        for (unsigned long j = 0; j < pointNum; ++j)
           pointTypes.push_back(readU8(input, m_bigEndian));
         break;
       default:
@@ -645,14 +645,14 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
     const unsigned long maxPoints = getRemainingLength(input) / (2 * 2 + 1);
     if (pointNum > maxPoints)
       pointNum = maxPoints;
-    for (unsigned i = 0; i < pointNum; ++i)
+    for (unsigned long i = 0; i < pointNum; ++i)
     {
       std::pair<double, double> point;
       point.first = readCoordinate(input, m_bigEndian);
       point.second = readCoordinate(input, m_bigEndian);
       points.push_back(point);
     }
-    for (unsigned j = 0; j < pointNum; ++j)
+    for (unsigned long j = 0; j < pointNum; ++j)
       pointTypes.push_back(readU8(input, m_bigEndian));
   }
   else
@@ -729,7 +729,7 @@ void libcdr::CMXParser::readEllipse(librevenge::RVNGInputStream *input)
     return;
 
   CDRPath path;
-  if (angle1 != angle2)
+  if (!CDR_ALMOST_EQUAL(angle1,angle2))
   {
     if (angle2 < angle1)
       angle2 += 2*M_PI;
@@ -1006,11 +1006,11 @@ libcdr::CDRBox libcdr::CMXParser::readBBox(librevenge::RVNGInputStream *input)
 
 librevenge::RVNGString libcdr::CMXParser::readString(librevenge::RVNGInputStream *input)
 {
-  unsigned short count = readU16(input, m_bigEndian);
+  unsigned long count = readU16(input, m_bigEndian);
   if (count > getRemainingLength(input))
     count = getRemainingLength(input);
   librevenge::RVNGString tmpString;
-  for (unsigned short i = 0; i < count; ++i)
+  for (unsigned long i = 0; i < count; ++i)
     tmpString.append((char)readU8(input, m_bigEndian));
   return tmpString;
 }
@@ -1143,10 +1143,10 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
         }
         case CMX_Tag_RenderAttr_FillSpec_Fountain_Color:
         {
-          unsigned short colorCount = readU16(input, m_bigEndian);
+          unsigned long colorCount = readU16(input, m_bigEndian);
           if (colorCount > getRemainingLength(input) / 4)
             colorCount = getRemainingLength(input) / 4;
-          for (unsigned short i = 0; i < colorCount; ++i)
+          for (unsigned long i = 0; i < colorCount; ++i)
           {
             unsigned short colorRef = readU16(input, m_bigEndian);
             unsigned short offset = readU16(input, m_bigEndian);
@@ -1176,10 +1176,10 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       gradient.m_centerYOffset = readS16(input, m_bigEndian);
       /* unsigned short steps = */ readU16(input, m_bigEndian);
       gradient.m_mode = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
-      unsigned short colorCount = readU16(input, m_bigEndian);
+      unsigned long colorCount = readU16(input, m_bigEndian);
       if (colorCount > getRemainingLength(input) / 4)
         colorCount = getRemainingLength(input) / 4;
-      for (unsigned short i = 0; i < colorCount; ++i)
+      for (unsigned long i = 0; i < colorCount; ++i)
       {
         unsigned short colorRef = readU16(input, m_bigEndian);
         unsigned short offset = readU16(input, m_bigEndian);
@@ -1198,10 +1198,10 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       /* unsigned atom = */ readU32(input, m_bigEndian);
-      unsigned short count = readU16(input, m_bigEndian);
+      unsigned long count = readU16(input, m_bigEndian);
       if (count > getRemainingLength(input) / 2)
         count = getRemainingLength(input) / 2;
-      for (unsigned short i = 0; i < count; ++i)
+      for (unsigned long i = 0; i < count; ++i)
         readU16(input, m_bigEndian);
       readString(input);
     }
@@ -1234,7 +1234,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
           double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
           double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
           double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
-          unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+          unsigned char flags = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
           input->seek(1, librevenge::RVNG_SEEK_CUR); // CMX_Tag_EndTag
           double patternWidth = (double)tmpWidth / 254000.0;
           double patternHeight = (double)tmpHeight / 254000.0;
@@ -1267,7 +1267,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
       double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
       double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
-      unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+      unsigned char flags = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
       double patternWidth = (double)tmpWidth / 1000.0;
       double patternHeight = (double)tmpHeight / 1000.0;
       bool isRelative = false;
@@ -1311,7 +1311,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
           double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
           double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
           double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
-          unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+          unsigned char flags = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
           input->seek(1, librevenge::RVNG_SEEK_CUR); // CMX_Tag_EndTag
           double patternWidth = (double)tmpWidth / 254000.0;
           double patternHeight = (double)tmpHeight / 254000.0;
@@ -1342,7 +1342,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
       double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
       double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
-      unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+      unsigned char flags = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
       double patternWidth = (double)tmpWidth / 1000.0;
       double patternHeight = (double)tmpHeight / 1000.0;
       bool isRelative = false;
@@ -1396,7 +1396,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
               double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
               double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
               double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
-              unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+              unsigned char flags = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
               input->seek(1, librevenge::RVNG_SEEK_CUR); // CMX_Tag_EndTag
               double patternWidth = (double)tmpWidth / 254000.0;
               double patternHeight = (double)tmpHeight / 254000.0;
@@ -1434,7 +1434,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       double tileOffsetX = (double)readU16(input, m_bigEndian) / 100.0;
       double tileOffsetY = (double)readU16(input, m_bigEndian) / 100.0;
       double rcpOffset = (double)readU16(input, m_bigEndian) / 100.0;
-      unsigned char flags = readU16(input, m_bigEndian) & 0xff;
+      unsigned char flags = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
       double patternWidth = (double)tmpWidth / 1000.0;
       double patternHeight = (double)tmpHeight / 1000.0;
       bool isRelative = false;
@@ -1451,10 +1451,10 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       /* librevenge::RVNGString lib = */ readString(input);
       /* librevenge::RVNGString name = */ readString(input);
       /* librevenge::RVNGString stl = */ readString(input);
-      unsigned short count = readU16(input, m_bigEndian);
+      unsigned long count = readU16(input, m_bigEndian);
       if (count > getRemainingLength(input) / 8)
         count = getRemainingLength(input) / 8;
-      for (unsigned short i = 0; i < count; ++i)
+      for (unsigned long i = 0; i < count; ++i)
       {
         readU16(input, m_bigEndian);
         readU16(input, m_bigEndian);
@@ -1469,7 +1469,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
       return false;
     break;
   }
-  m_collector->collectFillStyle(fillId, CDRFillStyle(fillType, color1, color2, gradient, imageFill));
+  m_collector->collectFillStyle(fillId, CDRFillStyle((unsigned short)fillType, color1, color2, gradient, imageFill));
   m_collector->collectFillStyleId(fillId);
   return true;
 }
@@ -1688,7 +1688,7 @@ void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input)
     return;
   /* unsigned length = */ readU32(input, m_bigEndian);
 
-  unsigned numRecords = readU16(input, m_bigEndian);
+  unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRclr - numRecords %i\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 2, 2 + 0, 2, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
@@ -1739,7 +1739,7 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
     return;
   /* unsigned length = */ readU32(input, m_bigEndian);
 
-  unsigned numRecords = readU16(input, m_bigEndian);
+  unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRdot - numRecords %i\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 2, 2, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
@@ -1759,10 +1759,10 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
         {
         case CMX_Tag_DescrSection_Dash:
         {
-          unsigned short dotCount = readU16(input, m_bigEndian);
+          unsigned long dotCount = readU16(input, m_bigEndian);
           if (dotCount > getRemainingLength(input) / 2)
             dotCount = getRemainingLength(input) / 2;
-          for (unsigned short i = 0; i < dotCount; ++i)
+          for (unsigned long i = 0; i < dotCount; ++i)
             dots.push_back(readU16(input, m_bigEndian));
           break;
         }
@@ -1775,10 +1775,10 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
     }
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
-      unsigned short dotCount = readU16(input, m_bigEndian);
+      unsigned long dotCount = readU16(input, m_bigEndian);
       if (dotCount > getRemainingLength(input) / 2)
         dotCount = getRemainingLength(input) / 2;
-      for (unsigned short i = 0; i < dotCount; ++i)
+      for (unsigned long i = 0; i < dotCount; ++i)
         dots.push_back(readU16(input, m_bigEndian));
     }
     else
@@ -1794,7 +1794,7 @@ void libcdr::CMXParser::readRott(librevenge::RVNGInputStream *input)
     return;
   /* unsigned length = */ readU32(input, m_bigEndian);
 
-  unsigned numRecords = readU16(input, m_bigEndian);
+  unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRott - numRecords %i\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 2, 2, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
@@ -1843,7 +1843,7 @@ void libcdr::CMXParser::readRotl(librevenge::RVNGInputStream *input)
     return;
   /* unsigned length = */ readU32(input, m_bigEndian);
 
-  unsigned numRecords = readU16(input, m_bigEndian);
+  unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRotl - numRecords %i\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 12, 12, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
@@ -1900,7 +1900,7 @@ void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
     return;
   /* unsigned length = */ readU32(input, m_bigEndian);
 
-  unsigned numRecords = readU16(input, m_bigEndian);
+  unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRpen - numRecords %i\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 10, 12, 1, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
@@ -1954,7 +1954,7 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
     return;
   /* unsigned length = */ readU32(input, m_bigEndian);
 
-  unsigned numRecords = readU16(input, m_bigEndian);
+  unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readIxtl - numRecords %i\n", numRecords));
   int sizeInFile(0);
   if (m_precision == libcdr::PRECISION_32BIT)
@@ -1999,7 +1999,7 @@ void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
     return;
   /* unsigned length = */ readU32(input, m_bigEndian);
 
-  unsigned numRecords = readU16(input, m_bigEndian);
+  unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readIxef - numRecords %i\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 6, 8, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
@@ -2036,7 +2036,7 @@ void libcdr::CMXParser::readIxpg(librevenge::RVNGInputStream *input)
     return;
   /* unsigned length = */ readU32(input, m_bigEndian);
 
-  unsigned numRecords = readU16(input, m_bigEndian);
+  unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readIxpg - numRecords %i\n", numRecords));
   sanitizeNumRecords(numRecords, m_precision, 16, 18, getRemainingLength(input));
   for (unsigned j = 1; j <= numRecords; ++j)
@@ -2359,7 +2359,7 @@ libcdr::CDRLineStyle libcdr::CMXParser::getLineStyle(unsigned id)
   if (iterPen != m_parserState.m_pens.end())
   {
     tmpLineStyle.lineWidth = iterPen->second.m_width * (iterPen->second.m_matrix.getScaleX()+iterPen->second.m_matrix.getScaleY())/ 2.0;
-    if (iterPen->second.m_matrix.getScaleY() != 0)
+    if (!CDR_ALMOST_ZERO(iterPen->second.m_matrix.getScaleY()))
       tmpLineStyle.stretch = iterPen->second.m_matrix.getScaleX()/iterPen->second.m_matrix.getScaleY();
     else
       tmpLineStyle.stretch = 1.0;

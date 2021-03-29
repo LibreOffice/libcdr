@@ -70,7 +70,7 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
   writeU32(image, 0); // ColorsImportant
 
   // Cater for eventual padding
-  unsigned lineWidth = bitmap.size() / height;
+  unsigned long lineWidth = bitmap.size() / height;
 
   bool storeBMP = true;
 
@@ -103,18 +103,18 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
       {
         unsigned char c = bitmap[j*lineWidth+i];
         i++;
-        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor(colorModel, c)));
+        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor((unsigned short)colorModel, c)));
       }
     }
     else if (!palette.empty())
     {
       while (i < lineWidth && i < width)
       {
-        unsigned char c = bitmap[j*lineWidth+i];
+        unsigned long c = bitmap[j*lineWidth+i];
         if (c >= palette.size())
           c = palette.size() - 1;
         i++;
-        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor(colorModel, palette[c])));
+        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor((unsigned short)colorModel, palette[c])));
       }
     }
     else if (bpp == 24 && lineWidth >= 3)
@@ -123,7 +123,7 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
       {
         unsigned c = ((unsigned)bitmap[j*lineWidth+i+2] << 16) | ((unsigned)bitmap[j*lineWidth+i+1] << 8) | ((unsigned)bitmap[j*lineWidth+i]);
         i += 3;
-        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor(colorModel, c)));
+        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor((unsigned short)colorModel, c)));
         k++;
       }
     }
@@ -133,7 +133,7 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
       {
         unsigned c = (bitmap[j*lineWidth+i+3] << 24) | (bitmap[j*lineWidth+i+2] << 16) | (bitmap[j*lineWidth+i+1] << 8) | (bitmap[j*lineWidth+i]);
         i += 4;
-        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor(colorModel, c)));
+        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor((unsigned short)colorModel, c)));
         k++;
       }
     }
