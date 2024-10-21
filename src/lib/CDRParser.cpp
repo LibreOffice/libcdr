@@ -1467,7 +1467,8 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
     {
       libcdr::CDRGradientStop stop;
       stop.m_color = readColor(input);
-      if (m_version >= 1400)
+      // tdf130914 tdf158268 Version 1400 is using 5 bytes seek for Gradients
+      if (m_version >= 1500)
         input->seek(26, librevenge::RVNG_SEEK_CUR);
       else if (m_version >= 1300)
         input->seek(5, librevenge::RVNG_SEEK_CUR);
