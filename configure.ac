@@ -98,7 +98,10 @@ AC_SUBST(ZLIB_LIBS)
 # ========
 # Find icu
 # ========
-PKG_CHECK_MODULES([ICU], [icu-i18n])
+PKG_CHECK_MODULES([ICU], [icu-i18n >= 75 icu-uc >= 75],
+	[AX_CXX_COMPILE_STDCXX_17],
+	[PKG_CHECK_MODULES([ICU], [icu-i18n])]
+)
 AC_SUBST(ICU_CFLAGS)
 AC_SUBST(ICU_LIBS)
 
