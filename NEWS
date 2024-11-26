@@ -1,3 +1,9 @@
+libcdr 0.1.8
+
+* Upgrade m4 macros.
+* Fix crash appear with format CDR 14 and Gradients (tdf#130914, tdf#158268)
+* Fixes parsing CDR7 files with no bbox surrounding text objects (tdf#98994)
+
 libcdr 0.1.5
 
 * Drop outdated MSVC project files.
