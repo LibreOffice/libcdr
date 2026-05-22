@@ -315,7 +315,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       }
       else if (i()["librevenge:path-action"]->getStr() == "Z")
       {
-        if (tmpPath.back()["librevenge:path-action"] && tmpPath.back()["librevenge:path-action"]->getStr() != "Z")
+        if (!tmpPath.empty() && tmpPath.back()["librevenge:path-action"] && tmpPath.back()["librevenge:path-action"]->getStr() != "Z")
           tmpPath.push_back(i());
       }
     }
