@@ -2775,6 +2775,8 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
       }
 
       unsigned numChars = readU32(input);
+      if (numChars > getRemainingLength(input) / 8)
+        numChars = getRemainingLength(input) / 8;
       std::vector<unsigned char> charDescriptions(numChars);
       for (i=0; i<numChars; ++i)
       {
@@ -2882,6 +2884,8 @@ void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
     }
     unsigned numChars = readU32(input);
     input->seek(4, librevenge::RVNG_SEEK_CUR);
+    if (numChars > getRemainingLength(input) / 12)
+      numChars = getRemainingLength(input) / 12;
     std::vector<unsigned char> textData;
     std::vector<unsigned char> charDescriptions;
     textData.reserve(numChars);
