@@ -564,12 +564,18 @@ void libcdr::CDRParser::readWaldoLoda(librevenge::RVNGInputStream *input, unsign
   input->seek(startPosition + length, librevenge::RVNG_SEEK_SET);
 }
 
+// Matches the sibling CMXParser::MAX_RECORD_DEPTH for the same kind of
+// RIFF-style chunk nesting in the CMX parser.
+constexpr unsigned MAX_RECORD_NESTING = 1 << 10;
+
 bool libcdr::CDRParser::parseRecords(librevenge::RVNGInputStream *input, const std::vector<unsigned> &blockLengths, unsigned level)
 {
   if (!input)
   {
     return false;
   }
+  if (level > MAX_RECORD_NESTING)
+    return false;
   m_collector->collectLevel(level);
   while (!input->isEnd())
   {
