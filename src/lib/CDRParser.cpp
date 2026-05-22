@@ -652,8 +652,11 @@ bool libcdr::CDRParser::parseRecord(librevenge::RVNGInputStream *input, const st
       }
       else
       {
+        const long here = input->tell();
+        if (here < 0 || static_cast<unsigned long>(here) > length + position)
+          return false;
         std::vector<unsigned> tmpBlockLengths;
-        unsigned long blocksLength = length + position - input->tell();
+        unsigned long blocksLength = length + position - here;
         CDRInternalStream tmpBlocksStream(input, blocksLength, compressed);
         while (!tmpBlocksStream.isEnd())
           tmpBlockLengths.push_back(readU32(&tmpBlocksStream));
