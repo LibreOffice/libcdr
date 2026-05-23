@@ -67,7 +67,7 @@ void libcdr::CDRSplineData::create(libcdr::CDRPath &path) const
         path.appendLineTo(tmpPoints[1].first, tmpPoints[1].second);
       else if (tmpPoints.size() == 3)
         path.appendQuadraticBezierTo(tmpPoints[1].first, tmpPoints[1].second,
-                                     tmpPoints[2].first, tmpPoints[3].second);
+                                     tmpPoints[2].first, tmpPoints[2].second);
       else
         path.appendSplineTo(tmpPoints);
       tmpPoints.clear();
@@ -78,7 +78,7 @@ void libcdr::CDRSplineData::create(libcdr::CDRPath &path) const
     path.appendLineTo(tmpPoints[1].first, tmpPoints[1].second);
   else if (tmpPoints.size() == 3)
     path.appendQuadraticBezierTo(tmpPoints[1].first, tmpPoints[1].second,
-                                 tmpPoints[2].first, tmpPoints[3].second);
+                                 tmpPoints[2].first, tmpPoints[2].second);
   else if (tmpPoints.size() > 3)
     path.appendSplineTo(tmpPoints);
 }
