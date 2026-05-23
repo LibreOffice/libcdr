@@ -180,7 +180,7 @@ void libcdr::CMXParser::parseImage(librevenge::RVNGInputStream *input)
     if (listType != CDR_FOURCC_imag)
       return;
     unsigned long dataSize = length-4;
-    if (!parseRecords(input, dataSize, (unsigned)-1))
+    if (!parseRecords(input, dataSize, 0))
       return;
 
     if (input->tell() < endPosition)
