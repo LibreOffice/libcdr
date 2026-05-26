@@ -1,3 +1,7 @@
+libcdr 0.1.9
+
+* Memory safety fixes
+
 libcdr 0.1.8
 
 * Upgrade m4 macros.
