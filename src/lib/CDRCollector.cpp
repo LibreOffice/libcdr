@@ -50,7 +50,7 @@ void libcdr::CDRParserState::setColorTransform(const std::vector<unsigned char> 
   if (!tmpProfile)
     return;
   cmsHPROFILE tmpRGBProfile = cmsCreate_sRGBProfile();
-  cmsColorSpaceSignature signature = cmsGetColorSpace(tmpProfile);
+  cmsUInt32Number signature = cmsUInt32Number(cmsGetColorSpace(tmpProfile));
   switch (signature)
   {
   case cmsSigCmykData:
