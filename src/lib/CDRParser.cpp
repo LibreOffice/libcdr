@@ -12,6 +12,7 @@
 #include <locale.h>
 #include <math.h>
 #include <string.h>
+#include <algorithm>
 #include <sstream>
 #include <set>
 #ifndef BOOST_ALL_NO_LIB
@@ -3134,6 +3135,11 @@ void libcdr::CDRParser::readParagraphText(librevenge::RVNGInputStream *input)
   m_collector->collectParagraphText(0.0, 0.0, width, height);
 }
 
+// A style string holds a JSON document, and the parser that reads it descends
+// once for every open brace or bracket. A real style string has a dozen of
+// them at most, nested three deep.
+constexpr std::ptrdiff_t MAX_STYLE_CONTAINERS = 1 << 8;
+
 void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, unsigned long length, libcdr::CDRStyle &style)
 {
   if (length > getRemainingLength(input))
@@ -3154,6 +3160,11 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
   else
     libcdr::appendCharacters(styleString, styleBuffer);
   CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
+
+  const char *styleText = styleString.cstr();
+  if (styleText && std::count_if(styleText, styleText + styleString.size(),
+                                 [](char c) { return c == '{' || c == '['; }) > MAX_STYLE_CONTAINERS)
+    return;
 
   boost::property_tree::ptree pt;
 #ifndef DEBUG
