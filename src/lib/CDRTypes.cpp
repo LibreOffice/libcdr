@@ -11,9 +11,13 @@
 
 #include "CDRPath.h"
 
+// A polygon repeats its sub-path once for every angle, so the number of angles
+// and the size of the sub-path multiply together into the size of the outline.
+static const size_t MAX_POLYGON_ELEMENTS = 1 << 14;
+
 void libcdr::CDRPolygon::create(libcdr::CDRPath &path) const
 {
-  if (m_numAngles == 0)
+  if (m_numAngles == 0 || path.empty())
     return;
 
   libcdr::CDRPath tmpPath(path);
@@ -21,7 +25,7 @@ void libcdr::CDRPolygon::create(libcdr::CDRPath &path) const
   if (m_nextPoint && m_numAngles % m_nextPoint)
   {
     libcdr::CDRTransform tmpTrafo(cos(m_nextPoint*step), sin(m_nextPoint*step), 0.0, -sin(m_nextPoint*step), cos(m_nextPoint*step), 0.0);
-    for (unsigned i = 1; i < m_numAngles; ++i)
+    for (unsigned i = 1; i < m_numAngles && path.count() < MAX_POLYGON_ELEMENTS; ++i)
     {
       tmpPath.transform(tmpTrafo);
       path.appendPath(tmpPath);
@@ -31,14 +35,14 @@ void libcdr::CDRPolygon::create(libcdr::CDRPath &path) const
   {
     libcdr::CDRTransform tmpTrafo(cos(m_nextPoint*step), sin(m_nextPoint*step), 0.0, -sin(m_nextPoint*step), cos(m_nextPoint*step), 0.0);
     libcdr::CDRTransform tmpShift(cos(step), sin(step), 0.0, -sin(step), cos(step), 0.0);
-    for (unsigned i = 0; i < m_nextPoint; ++i)
+    for (unsigned i = 0; i < m_nextPoint && path.count() < MAX_POLYGON_ELEMENTS; ++i)
     {
       if (i)
       {
         tmpPath.transform(tmpShift);
         path.appendPath(tmpPath);
       }
-      for (unsigned j=1; j < m_numAngles / m_nextPoint; ++j)
+      for (unsigned j=1; j < m_numAngles / m_nextPoint && path.count() < MAX_POLYGON_ELEMENTS; ++j)
       {
         tmpPath.transform(tmpTrafo);
         path.appendPath(tmpPath);

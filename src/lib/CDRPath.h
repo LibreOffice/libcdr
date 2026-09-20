@@ -59,6 +59,7 @@ public:
 
   void clear();
   bool empty() const;
+  size_t count() const;
   bool isClosed() const;
 
 private:

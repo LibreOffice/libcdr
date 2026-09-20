@@ -873,6 +873,11 @@ bool CDRPath::empty() const
   return m_elements.empty();
 }
 
+size_t CDRPath::count() const
+{
+  return m_elements.size();
+}
+
 bool CDRPath::isClosed() const
 {
   return m_isClosed;
