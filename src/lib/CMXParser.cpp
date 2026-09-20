@@ -616,7 +616,15 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
         readRenderingAttributes(input);
         break;
       case CMX_Tag_PolyCurve_PointList:
+      {
         pointNum = readU16(input, m_bigEndian);
+        // The points sit inside this tag, so its own length says how many of
+        // them there is room for.
+        const long tagEnd = startOffset + tagLength;
+        const long here = input->tell();
+        const unsigned long pointsInTag = tagEnd > here ? (unsigned long)(tagEnd - here) / (2 * 4 + 1) : 0;
+        if (pointNum > pointsInTag)
+          pointNum = pointsInTag;
         if (pointNum > getRemainingLength(input) / (2 * 4 + 1))
           pointNum = getRemainingLength(input) / (2 * 4 + 1);
         points.reserve(pointNum);
@@ -631,6 +639,7 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
         for (unsigned long j = 0; j < pointNum; ++j)
           pointTypes.push_back(readU8(input, m_bigEndian));
         break;
+      }
       default:
         break;
       }
