@@ -2008,6 +2008,8 @@ void libcdr::CDRParser::readWaldoBmpf(librevenge::RVNGInputStream *input, unsign
     return;
   input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned dataSize = readU32(input);
+  if (dataSize == 0)
+    return;
   unsigned long tmpNumBytesRead = 0;
   input->seek(24, librevenge::RVNG_SEEK_CUR); // TODO: is this empirical experience universal???
   const unsigned char *tmpBuffer = input->read(dataSize, tmpNumBytesRead);
