@@ -464,6 +464,8 @@ void libcdr::CMXParser::readCommands(librevenge::RVNGInputStream *input, unsigne
     default:
       break;
     }
+    if (m_nextInstructionOffset <= (unsigned long)startPosition)
+      break;
     input->seek(m_nextInstructionOffset, librevenge::RVNG_SEEK_SET);
   }
 }
