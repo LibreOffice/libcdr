@@ -2166,6 +2166,8 @@ void libcdr::CMXParser::readData(librevenge::RVNGInputStream *input)
       if (tagId == CMX_Tag_EndTag)
         break;
       unsigned tagLength = readU32(input, m_bigEndian);
+      if (tagLength < 5)
+        tagLength = 5;
       switch (tagId)
       {
       case CMX_Tag_DescrSection_Image_ImageData:
