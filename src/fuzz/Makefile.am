@@ -1,5 +1,7 @@
 noinst_PROGRAMS = cdrfuzzer cmxfuzzer
 
+noinst_HEADERS = fuzzerlimits.hxx
+
 AM_CXXFLAGS = -I$(top_srcdir)/inc \
 	$(REVENGE_GENERATORS_CFLAGS) \
 	$(REVENGE_CFLAGS) \
