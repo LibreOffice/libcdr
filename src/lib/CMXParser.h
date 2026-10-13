@@ -13,6 +13,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <set>
 
 #include <librevenge-stream/librevenge-stream.h>
 
@@ -168,6 +169,7 @@ private:
   double m_xmin, m_xmax, m_ymin, m_ymax;
   unsigned m_fillIndex;
   unsigned long m_nextInstructionOffset;
+  std::set<unsigned> m_pagesRead;
   CMXParserState &m_parserState;
   CMXImageInfo m_currentImageInfo;
   std::unique_ptr<CDRPattern> m_currentPattern;
