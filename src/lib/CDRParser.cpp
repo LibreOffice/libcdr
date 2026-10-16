@@ -2254,6 +2254,16 @@ void libcdr::CDRParser::readFont(librevenge::RVNGInputStream *input, unsigned le
     m_fonts[fontId] = CDRFont(fontName, fontEncoding);
 }
 
+// CorelDRAW's font style word: 0x40 normal, 0x80 italic, 0x1000 bold, 0x2000 bold italic
+// (as the "weight" of the later style strings: 64, 4096); other values are left alone
+static void setFontStyle(libcdr::CDRStyle &style, unsigned fontStyle)
+{
+  if (fontStyle != 0x40 && fontStyle != 0x80 && fontStyle != 0x1000 && fontStyle != 0x2000)
+    return;
+  style.m_fontWeight = fontStyle >= 0x1000 ? 700 : 400;
+  style.m_fontItalic = fontStyle == 0x80 || fontStyle == 0x2000 ? 2 : 1;
+}
+
 void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned length)
 {
 #ifndef DEBUG
@@ -2302,6 +2312,7 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
     CDR_DEBUG_MSG(("CDRParser::readStlt numFonts 0x%lx\n", numFonts));
     std::map<unsigned,unsigned short> fontIds, fontEncodings;
     std::map<unsigned,double> fontSizes;
+    std::map<unsigned,unsigned> fontStyles;
     for (unsigned long i=0; i<numFonts; ++i)
     {
       unsigned fontStyleId = readU32(input);
@@ -2313,10 +2324,11 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
       fontEncodings[fontStyleId] = readU16(input);
       input->seek(8, librevenge::RVNG_SEEK_CUR);
       fontSizes[fontStyleId] = readCoordinate(input);
+      fontStyles[fontStyleId] = readU32(input) & 0xffff;   // (then the same for RTL and East Asian text)
       if (m_version < 1000)
-        input->seek(12, librevenge::RVNG_SEEK_CUR);
+        input->seek(8, librevenge::RVNG_SEEK_CUR);
       else
-        input->seek(20, librevenge::RVNG_SEEK_CUR);
+        input->seek(16, librevenge::RVNG_SEEK_CUR);
     }
     unsigned long numAligns = readU32(input);
     if (numAligns > getRemainingLength(input) / 12)
@@ -2455,6 +2467,9 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
           std::map<unsigned, double>::const_iterator iterFontSize = fontSizes.find(fontRecId);
           if (iterFontSize != fontSizes.end())
             tmpCharStyle.m_fontSize = iterFontSize->second;
+          std::map<unsigned, unsigned>::const_iterator iterFontStyle = fontStyles.find(fontRecId);
+          if (iterFontStyle != fontStyles.end())
+            setFontStyle(tmpCharStyle, iterFontStyle->second);
         }
         unsigned alignId = iter->second.alignId;
         if (alignId)
@@ -2656,13 +2671,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
         }
         if (fl2&2) // Bold/Italic, etc.
         {
-          // the font style: bold is 0x80 in CorelDRAW 9 files, 0x1000 from version 10 on
-          // (as the "weight" of the later style strings); other values are left alone
-          unsigned fontStyle = readU32(input) & 0xffff;
-          if (fontStyle == (m_version < 1000 ? 0x80 : 0x1000))
-            style.m_fontWeight = 700;
-          else if (fontStyle == 0x40)
-            style.m_fontWeight = 400;
+          setFontStyle(style, readU32(input) & 0xffff);
         }
         if (fl2&4) // Font Size
           style.m_fontSize = readCoordinate(input);
@@ -3010,7 +3019,11 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
       }
       else
         input->seek(2, librevenge::RVNG_SEEK_CUR);
-      input->seek(6, librevenge::RVNG_SEEK_CUR);
+      if (flag&0x02)   // the font style (see setFontStyle)
+        setFontStyle(style, readU16(input));
+      else
+        input->seek(2, librevenge::RVNG_SEEK_CUR);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
       if (flag&0x04)
         style.m_fontSize = readCoordinate(input);
       else
@@ -3155,6 +3168,8 @@ void libcdr::CDRParser::readStyd(librevenge::RVNGInputStream *input)
       if (m_version >= 600)
         input->seek(8, librevenge::RVNG_SEEK_CUR);
       style.m_fontSize = readCoordinate(input);
+      if (m_version < 600)   // the font style (see setFontStyle)
+        setFontStyle(style, readU16(input));
       break;
     }
     case STYD_ALIGN:
@@ -3259,6 +3274,9 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
     boost::optional<unsigned> fontWeight = pt.get_optional<unsigned>("character.latin.weight");
     if (!!fontWeight)   // 64 normal, 4096 bold
       style.m_fontWeight = fontWeight.get() & 0x1000 ? 700 : 400;
+    boost::optional<unsigned> fontItalic = pt.get_optional<unsigned>("character.latin.italic");
+    if (!!fontItalic)
+      style.m_fontItalic = fontItalic.get() ? 2 : 1;
 
     if (!!pt.get_child_optional("character.outline"))
     {
