@@ -1156,10 +1156,11 @@ void libcdr::CDRParser::readBitmap(librevenge::RVNGInputStream *input)
   unsigned imageId = 0;
   if (m_version < 600)
   {
-    x1 = readCoordinate(input);
-    y1 = readCoordinate(input);
-    x2 = 0.0;
-    y2 = 0.0;
+    // the bitmap spans (0, 0) .. (x, y): as x2, y2 (x1 > x2 made it a 180 degree rotation)
+    x1 = 0.0;
+    y1 = 0.0;
+    x2 = readCoordinate(input);
+    y2 = readCoordinate(input);
     if (m_version < 400)
       input->seek(2, librevenge::RVNG_SEEK_CUR);
     input->seek(8, librevenge::RVNG_SEEK_CUR);
