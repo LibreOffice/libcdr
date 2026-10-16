@@ -2629,7 +2629,15 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
             style.m_charSet = charSet;
         }
         if (fl2&2) // Bold/Italic, etc.
-          input->seek(4, librevenge::RVNG_SEEK_CUR);
+        {
+          // the font style: bold is 0x80 in CorelDRAW 9 files, 0x1000 from version 10 on
+          // (as the "weight" of the later style strings); other values are left alone
+          unsigned fontStyle = readU32(input) & 0xffff;
+          if (fontStyle == (m_version < 1000 ? 0x80 : 0x1000))
+            style.m_fontWeight = 700;
+          else if (fontStyle == 0x40)
+            style.m_fontWeight = 400;
+        }
         if (fl2&4) // Font Size
           style.m_fontSize = readCoordinate(input);
         if (fl2&8) // assumption
@@ -3220,6 +3228,9 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
     boost::optional<unsigned> fontSize = pt.get_optional<unsigned>("character.latin.size");
     if (!!fontSize)
       style.m_fontSize = (double)fontSize.get() / 254000.0;
+    boost::optional<unsigned> fontWeight = pt.get_optional<unsigned>("character.latin.weight");
+    if (!!fontWeight)   // 64 normal, 4096 bold
+      style.m_fontWeight = fontWeight.get() & 0x1000 ? 700 : 400;
 
     if (!!pt.get_child_optional("character.outline"))
     {

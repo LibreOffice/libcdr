@@ -144,6 +144,7 @@ struct CDRStyle
   unsigned short m_charSet;
   librevenge::RVNGString m_fontName;
   double m_fontSize;
+  unsigned m_fontWeight;   // 0: not set, else 400 / 700
   unsigned m_align;
   double m_leftIndent, m_firstIndent, m_rightIndent;
   CDRLineStyle m_lineStyle;
@@ -151,7 +152,7 @@ struct CDRStyle
   unsigned m_parentId;
   CDRStyle()
     : m_charSet((unsigned short)-1), m_fontName(),
-      m_fontSize(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
+      m_fontSize(0.0), m_fontWeight(0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
       m_rightIndent(0.0), m_lineStyle(), m_fillStyle(), m_parentId(0)
   {
     m_fontName.clear();
@@ -165,6 +166,8 @@ struct CDRStyle
     }
     if (!CDR_ALMOST_ZERO(override.m_fontSize))
       m_fontSize = override.m_fontSize;
+    if (override.m_fontWeight)
+      m_fontWeight = override.m_fontWeight;
     if (override.m_align)
       m_align = override.m_align;
     if (!CDR_ALMOST_ZERO(override.m_leftIndent) && !CDR_ALMOST_ZERO(override.m_firstIndent) && !CDR_ALMOST_ZERO(override.m_rightIndent))
