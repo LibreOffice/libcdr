@@ -14,6 +14,8 @@
 #include <vector>
 #include <map>
 #include <stack>
+#include <string>
+#include <boost/property_tree/ptree.hpp>
 #include <librevenge-stream/librevenge-stream.h>
 #include "CDRTypes.h"
 #include "CommonParser.h"
@@ -110,6 +112,8 @@ private:
   unsigned m_layerLevel;
   bool m_layerFlagsPending;
   bool m_skipLayer;
+  // X6 text styles, parsed once: big plans repeat the same JSON style strings thousands of times
+  std::map<std::string, std::shared_ptr<const boost::property_tree::ptree>> m_x6Styles;
 
 };
 

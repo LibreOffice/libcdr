@@ -238,7 +238,7 @@ void normalizeAngle(double &angle)
 libcdr::CDRParser::CDRParser(const std::vector<std::unique_ptr<librevenge::RVNGInputStream>> &externalStreams, libcdr::CDRCollector *collector)
   : CommonParser(collector), m_externalStreams(externalStreams),
     m_fonts(), m_fillStyles(), m_lineStyles(), m_arrows(), m_version(0), m_waldoOutlId(0), m_waldoFillId(0),
-    m_layerLevel(0), m_layerFlagsPending(false), m_skipLayer(false) {}
+    m_layerLevel(0), m_layerFlagsPending(false), m_skipLayer(false), m_x6Styles() {}
 
 libcdr::CDRParser::~CDRParser()
 {
@@ -3234,38 +3234,44 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
       --length; // the length must be even
   }
 
-  std::vector<unsigned char> styleBuffer(length);
   unsigned long numBytesRead = 0;
   const unsigned char *tmpBuffer = input->read(length, numBytesRead);
-  if (numBytesRead)
-    memcpy(&styleBuffer[0], tmpBuffer, numBytesRead);
-  librevenge::RVNGString styleString;
-  if (m_version >= 1700)
-    libcdr::appendUTF8Characters(styleString, styleBuffer);
-  else
-    libcdr::appendCharacters(styleString, styleBuffer);
-  CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
-
-  const char *styleText = styleString.cstr();
-  if (styleText && std::count_if(styleText, styleText + styleString.size(),
-                                 [](char c) { return c == '{' || c == '['; }) > MAX_STYLE_CONTAINERS)
-    return;
-
-  boost::property_tree::ptree pt;
-#ifndef DEBUG
-  try
-#endif
+  std::string key(reinterpret_cast<const char *>(tmpBuffer), tmpBuffer ? numBytesRead : 0);
+  std::shared_ptr<const boost::property_tree::ptree> &cached = m_x6Styles[key];
+  if (!cached)
   {
-    std::stringstream ss;
-    ss << styleString.cstr();
-    boost::property_tree::read_json(ss, pt);
-  }
+    auto parsed = std::make_shared<boost::property_tree::ptree>();
+    std::vector<unsigned char> styleBuffer(key.begin(), key.end());
+    styleBuffer.resize(length);
+    librevenge::RVNGString styleString;
+    if (m_version >= 1700)
+      libcdr::appendUTF8Characters(styleString, styleBuffer);
+    else
+      libcdr::appendCharacters(styleString, styleBuffer);
+    CDR_DEBUG_MSG(("CDRParser::_readX6StyleString - styleString = \"%s\"\n", styleString.cstr()));
+
+    const char *styleText = styleString.cstr();
+    if (!(styleText && std::count_if(styleText, styleText + styleString.size(),
+                                     [](char c) { return c == '{' || c == '['; }) > MAX_STYLE_CONTAINERS))
+    {
 #ifndef DEBUG
-  catch (...)
-  {
-    return;
-  }
+      try
 #endif
+      {
+        std::stringstream ss;
+        ss << styleString.cstr();
+        boost::property_tree::read_json(ss, *parsed);
+      }
+#ifndef DEBUG
+      catch (...)
+      {
+        parsed->clear();
+      }
+#endif
+    }
+    cached = parsed;
+  }
+  const boost::property_tree::ptree &pt = *cached;   // (empty if it could not be parsed)
 
   if (pt.count("character"))
   {
