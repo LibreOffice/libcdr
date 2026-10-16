@@ -2324,11 +2324,10 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
       fontEncodings[fontStyleId] = readU16(input);
       input->seek(8, librevenge::RVNG_SEEK_CUR);
       fontSizes[fontStyleId] = readCoordinate(input);
-      fontStyles[fontStyleId] = readU32(input) & 0xffff;   // (then the same for RTL and East Asian text)
-      if (m_version < 1000)
-        input->seek(8, librevenge::RVNG_SEEK_CUR);
-      else
-        input->seek(16, librevenge::RVNG_SEEK_CUR);
+      if (m_version >= 1000)
+        input->seek(8, librevenge::RVNG_SEEK_CUR);   // (the sizes for RTL and East Asian text)
+      fontStyles[fontStyleId] = readU32(input) & 0xffff;   // (then the styles for those)
+      input->seek(8, librevenge::RVNG_SEEK_CUR);
     }
     unsigned long numAligns = readU32(input);
     if (numAligns > getRemainingLength(input) / 12)
@@ -2677,10 +2676,12 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
           style.m_fontSize = readCoordinate(input);
         if (fl2&8) // assumption
           input->seek(4, librevenge::RVNG_SEEK_CUR);
+        // the characters' shift from their place in 1/100 em (PDF imports place each word of a
+        // line so; CorelDRAW's Shape tool too)
         if (fl2&0x10) // Offset X
-          input->seek(4, librevenge::RVNG_SEEK_CUR);
+          style.m_shiftX = readS32(input) / 100.0;
         if (fl2&0x20) // Offset Y
-          input->seek(4, librevenge::RVNG_SEEK_CUR);
+          style.m_shiftY = readS32(input) / 100.0;
         if (fl2&0x40) // Font Colour
         {
           unsigned fillId = readU32(input);
@@ -3274,6 +3275,12 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
     boost::optional<unsigned> fontWeight = pt.get_optional<unsigned>("character.latin.weight");
     if (!!fontWeight)   // 64 normal, 4096 bold
       style.m_fontWeight = fontWeight.get() & 0x1000 ? 700 : 400;
+    boost::optional<int> shiftX = pt.get_optional<int>("character.h_shift");   // (1/100 em)
+    if (!!shiftX)
+      style.m_shiftX = shiftX.get() / 100.0;
+    boost::optional<int> shiftY = pt.get_optional<int>("character.v_shift");
+    if (!!shiftY)
+      style.m_shiftY = shiftY.get() / 100.0;
     boost::optional<unsigned> fontItalic = pt.get_optional<unsigned>("character.latin.italic");
     if (!!fontItalic)
       style.m_fontItalic = fontItalic.get() ? 2 : 1;

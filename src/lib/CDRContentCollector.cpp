@@ -597,12 +597,15 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         if (!j.m_text.empty())
         {
           librevenge::RVNGPropertyList spanProps;
-          double fontSize = (double)cdr_round(144.0*j.m_style.m_fontSize) / 2.0;
+          // (to 1/100 pt: rounded to half points, the words a PDF import placed one by one
+          // moved apart)
+          double fontSize = (double)cdr_round(7200.0*j.m_style.m_fontSize*scaleY) / 100.0;
           if (!CDR_ALMOST_EQUAL(scaleY, 1.0) || !CDR_ALMOST_EQUAL(scaleX, 1.0))   // stretched artistic text
-          {
-            fontSize = (double)cdr_round(7200.0*j.m_style.m_fontSize*scaleY) / 100.0;
             spanProps.insert("style:text-scale", scaleX / scaleY, librevenge::RVNG_PERCENT);
-          }
+          if (!CDR_ALMOST_ZERO(j.m_style.m_shiftX))   // (libcdr's own: no ODF property for this)
+            spanProps.insert("libcdr:shift-x", j.m_style.m_shiftX, librevenge::RVNG_GENERIC);
+          if (!CDR_ALMOST_ZERO(j.m_style.m_shiftY))
+            spanProps.insert("libcdr:shift-y", j.m_style.m_shiftY, librevenge::RVNG_GENERIC);
           spanProps.insert("fo:font-size", fontSize, librevenge::RVNG_POINT);
           if (j.m_style.m_fontName.len())
             spanProps.insert("style:font-name", j.m_style.m_fontName);

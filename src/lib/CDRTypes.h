@@ -146,6 +146,7 @@ struct CDRStyle
   double m_fontSize;
   unsigned m_fontWeight;   // 0: not set, else 400 / 700
   unsigned m_fontItalic;   // 0: not set, 1 upright, 2 italic
+  double m_shiftX, m_shiftY;   // characters moved from their place, in em (up positive)
   unsigned m_align;
   double m_leftIndent, m_firstIndent, m_rightIndent;
   CDRLineStyle m_lineStyle;
@@ -153,7 +154,7 @@ struct CDRStyle
   unsigned m_parentId;
   CDRStyle()
     : m_charSet((unsigned short)-1), m_fontName(),
-      m_fontSize(0.0), m_fontWeight(0), m_fontItalic(0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
+      m_fontSize(0.0), m_fontWeight(0), m_fontItalic(0), m_shiftX(0.0), m_shiftY(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
       m_rightIndent(0.0), m_lineStyle(), m_fillStyle(), m_parentId(0)
   {
     m_fontName.clear();
@@ -171,6 +172,10 @@ struct CDRStyle
       m_fontWeight = override.m_fontWeight;
     if (override.m_fontItalic)
       m_fontItalic = override.m_fontItalic;
+    if (!CDR_ALMOST_ZERO(override.m_shiftX))
+      m_shiftX = override.m_shiftX;
+    if (!CDR_ALMOST_ZERO(override.m_shiftY))
+      m_shiftY = override.m_shiftY;
     if (override.m_align)
       m_align = override.m_align;
     if (!CDR_ALMOST_ZERO(override.m_leftIndent) && !CDR_ALMOST_ZERO(override.m_firstIndent) && !CDR_ALMOST_ZERO(override.m_rightIndent))
