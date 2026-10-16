@@ -238,7 +238,6 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     librevenge::RVNGPropertyList style;
     _fillProperties(style);
     _lineProperties(style);
-    outputElement.addStyle(style);
     m_currentPath.transform(m_currentTransforms);
     if (!m_groupTransforms.empty())
       m_currentPath.transform(m_groupTransforms.top());
@@ -336,6 +335,14 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       else
         tmpPath.pop_back();
     }
+    // CorelDRAW fills only closed paths: an open one (a polyline) keeps just its outline
+    bool hasClosed = false;
+    for (const auto &node : tmpPath)
+      if (node["librevenge:path-action"] && node["librevenge:path-action"]->getStr() == "Z")
+        hasClosed = true;
+    if (!hasClosed)
+      style.insert("draw:fill", "none");
+    outputElement.addStyle(style);
     if (!tmpPath.empty())
     {
       librevenge::RVNGPropertyListVector outputPath;
