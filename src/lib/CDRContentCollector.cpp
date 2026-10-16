@@ -9,6 +9,8 @@
 
 #include "CDRContentCollector.h"
 
+#include <utility>
+
 #include <math.h>
 #include <string.h>
 #include <librevenge/librevenge.h>
@@ -26,6 +28,14 @@
 
 namespace libcdr
 {
+// librevenge with movable property lists (LIBREVENGE_PROPERTYLIST_MOVE): a path's nodes are moved
+// along, not copied; with any other one they are copied as before
+#ifdef LIBREVENGE_PROPERTYLIST_MOVE
+#define CDR_PATH_NODE(vec, k) (vec).at(k)
+#else
+#define CDR_PATH_NODE(vec, k) (vec)[k]
+#endif
+
 namespace
 {
 
@@ -290,16 +300,15 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
 
     bool isPathClosed = m_currentPath.isClosed();
 
-    librevenge::RVNGPropertyListVector::Iter i(path);
-    for (i.rewind(); i.next();)
+    for (unsigned long k = 0; k < path.count(); ++k)   // (the nodes are moved into tmpPath)
     {
-      if (!i()["librevenge:path-action"])
+      if (!CDR_PATH_NODE(path, k)["librevenge:path-action"])
         continue;
-      if (i()["svg:x"] && i()["svg:y"])
+      if (CDR_PATH_NODE(path, k)["svg:x"] && CDR_PATH_NODE(path, k)["svg:y"])
       {
         bool ignoreM = false;
-        x = i()["svg:x"]->getDouble();
-        y = i()["svg:y"]->getDouble();
+        x = CDR_PATH_NODE(path, k)["svg:x"]->getDouble();
+        y = CDR_PATH_NODE(path, k)["svg:y"]->getDouble();
         if (firstPoint)
         {
           initialX = x;
@@ -307,7 +316,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
           firstPoint = false;
           wasMove = true;
         }
-        else if (i()["librevenge:path-action"]->getStr() == "M")
+        else if (CDR_PATH_NODE(path, k)["librevenge:path-action"]->getStr() == "M")
         {
           // This is needed for a good generation of path from polygon
           if (CDR_ALMOST_ZERO(previousX - x) && CDR_ALMOST_ZERO(previousY - y))
@@ -343,16 +352,16 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
 
         if (!ignoreM)
         {
-          tmpPath.push_back(i());
+          tmpPath.push_back(std::move(CDR_PATH_NODE(path, k)));
           previousX = x;
           previousY = y;
         }
 
       }
-      else if (i()["librevenge:path-action"]->getStr() == "Z")
+      else if (CDR_PATH_NODE(path, k)["librevenge:path-action"]->getStr() == "Z")
       {
         if (!tmpPath.empty() && tmpPath.back()["librevenge:path-action"] && tmpPath.back()["librevenge:path-action"]->getStr() != "Z")
-          tmpPath.push_back(i());
+          tmpPath.push_back(std::move(CDR_PATH_NODE(path, k)));
       }
     }
     if (!tmpPath.empty())
@@ -382,14 +391,15 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     outputElement.addStyle(style);
     if (!tmpPath.empty())
     {
+      // (moved along, not copied: big plans have millions of path nodes)
       librevenge::RVNGPropertyListVector outputPath;
-      for (std::vector<librevenge::RVNGPropertyList>::const_iterator iter = tmpPath.begin(); iter != tmpPath.end(); ++iter)
-        outputPath.append(*iter);
-      librevenge::RVNGPropertyList propList;
-      propList.insert("svg:d", outputPath);
-      outputElement.addPath(propList);
+      for (auto &node : tmpPath)
+        outputPath.append(std::move(node));
       if (m_currentImage.getImage().size() && hasClosed)
         imageClip = outputPath;
+      librevenge::RVNGPropertyList propList;
+      propList.insert("svg:d", std::move(outputPath));
+      outputElement.addPath(std::move(propList));
     }
     m_currentPath.clear();
   }

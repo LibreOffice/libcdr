@@ -9,6 +9,8 @@
 
 #include "CDROutputElementList.h"
 
+#include <utility>
+
 namespace libcdr
 {
 
@@ -120,6 +122,7 @@ class CDRPathOutputElement : public CDROutputElement
 {
 public:
   CDRPathOutputElement(const librevenge::RVNGPropertyList &propList);
+  CDRPathOutputElement(librevenge::RVNGPropertyList &&propList) : m_propList(std::move(propList)) {}
   ~CDRPathOutputElement() override {}
   void draw(librevenge::RVNGDrawingInterface *painter) override;
 private:
@@ -363,6 +366,11 @@ void CDROutputElementList::addStyle(const librevenge::RVNGPropertyList &propList
 void CDROutputElementList::addPath(const librevenge::RVNGPropertyList &propList)
 {
   m_elements.push_back(std::make_shared<CDRPathOutputElement>(propList));
+}
+
+void CDROutputElementList::addPath(librevenge::RVNGPropertyList &&propList)
+{
+  m_elements.push_back(std::make_shared<CDRPathOutputElement>(std::move(propList)));
 }
 
 void CDROutputElementList::addGraphicObject(const librevenge::RVNGPropertyList &propList)

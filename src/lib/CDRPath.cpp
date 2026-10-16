@@ -9,6 +9,8 @@
 
 #include "CDRPath.h"
 
+#include <utility>
+
 #include <math.h>
 #include <map>
 
@@ -356,7 +358,7 @@ void CDRMoveToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
   node.insert("librevenge:path-action", "M");
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
-  vec.append(node);
+  vec.append(std::move(node));   // (moved: no deep copy)
 }
 
 void CDRMoveToElement::transform(const CDRTransforms &trafos)
@@ -380,7 +382,7 @@ void CDRLineToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
   node.insert("librevenge:path-action", "L");
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
-  vec.append(node);
+  vec.append(std::move(node));   // (moved: no deep copy)
 }
 
 void CDRLineToElement::transform(const CDRTransforms &trafos)
@@ -408,7 +410,7 @@ void CDRCubicBezierToElement::writeOut(librevenge::RVNGPropertyListVector &vec) 
   node.insert("svg:y2", m_y2);
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
-  vec.append(node);
+  vec.append(std::move(node));   // (moved: no deep copy)
 }
 
 void CDRCubicBezierToElement::transform(const CDRTransforms &trafos)
@@ -438,7 +440,7 @@ void CDRQuadraticBezierToElement::writeOut(librevenge::RVNGPropertyListVector &v
   node.insert("svg:y1", m_y1);
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
-  vec.append(node);
+  vec.append(std::move(node));   // (moved: no deep copy)
 }
 
 void CDRQuadraticBezierToElement::transform(const CDRTransforms &trafos)
@@ -595,7 +597,7 @@ void CDRArcToElement::writeOut(librevenge::RVNGPropertyListVector &vec) const
   node.insert("librevenge:sweep", m_sweep);
   node.insert("svg:x", m_x);
   node.insert("svg:y", m_y);
-  vec.append(node);
+  vec.append(std::move(node));   // (moved: no deep copy)
 }
 
 void CDRArcToElement::transform(const CDRTransforms &trafos)
@@ -630,7 +632,7 @@ void CDRClosePathElement::writeOut(librevenge::RVNGPropertyListVector &vec) cons
 {
   librevenge::RVNGPropertyList node;
   node.insert("librevenge:path-action", "Z");
-  vec.append(node);
+  vec.append(std::move(node));   // (moved: no deep copy)
 }
 
 void CDRPath::appendMoveTo(double x, double y)

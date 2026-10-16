@@ -28,6 +28,7 @@ public:
   void draw(librevenge::RVNGDrawingInterface *painter) const;
   void addStyle(const librevenge::RVNGPropertyList &propList);
   void addPath(const librevenge::RVNGPropertyList &propList);
+  void addPath(librevenge::RVNGPropertyList &&propList);   // (moved: no deep copy)
   void addGraphicObject(const librevenge::RVNGPropertyList &propList);
   void addStartTextObject(const librevenge::RVNGPropertyList &propList);
   void addOpenParagraph(const librevenge::RVNGPropertyList &propList);
