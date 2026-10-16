@@ -3067,6 +3067,13 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
       // else pairs of characters were read as one (CorelDRAW 5 texts came out as CJK)
       charDescriptions.push_back((unsigned char)((readU16(input) >> 3) & 0xfe));
     }
+    // a leading line break does not make a line in CorelDRAW 5: texts start with one more than the
+    // lines they show above (two columns of a sheet, one starting with a line break, line up)
+    if (!textData.empty() && textData[0] == 0x0d)
+    {
+      textData.erase(textData.begin());
+      charDescriptions.erase(charDescriptions.begin());
+    }
     if (!textData.empty())
       m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
   }
