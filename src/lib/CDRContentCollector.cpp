@@ -213,6 +213,22 @@ void libcdr::CDRContentCollector::collectPath(const CDRPath &path)
   m_currentPath.appendPath(path);
 }
 
+// The rotation of the current object's x axis on the output page (y down), in degrees.
+double libcdr::CDRContentCollector::_textRotation()
+{
+  double ox = 0.0, oy = 0.0, ux = 1.0, uy = 0.0;
+  m_currentTransforms.applyToPoint(ox, oy);
+  m_currentTransforms.applyToPoint(ux, uy);
+  if (!m_groupTransforms.empty())
+  {
+    m_groupTransforms.top().applyToPoint(ox, oy);
+    m_groupTransforms.top().applyToPoint(ux, uy);
+  }
+  if (CDR_ALMOST_ZERO(ux - ox) && CDR_ALMOST_ZERO(uy - oy))
+    return 0.0;
+  return atan2(-(uy - oy), ux - ox) * 180.0 / M_PI;   // page y is flipped below
+}
+
 void libcdr::CDRContentCollector::_flushCurrentPath()
 {
   CDR_DEBUG_MSG(("CDRContentCollector::_flushCurrentPath\n"));
@@ -429,15 +445,44 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     double y1 = m_currentTextBox.m_y;
     double x2 = m_currentTextBox.m_x + m_currentTextBox.m_w;
     double y2 = m_currentTextBox.m_y - m_currentTextBox.m_h;
+    double rotate = 0.0;   // the text frame's rotation (degrees, as for images)
     if (!CDR_ALMOST_ZERO(m_currentTextBox.m_h) && !CDR_ALMOST_ZERO(m_currentTextBox.m_w))
     {
-      m_currentTransforms.applyToPoint(x1, y1);
-      m_currentTransforms.applyToPoint(x2, y2);
-      if (!m_groupTransforms.empty())
+      // three corners of the frame (top left, top right, bottom left): its centre, size and
+      // rotation; only transforming two opposite corners lost the rotation
+      double c[3][2] = {{x1, y1}, {x2, y1}, {x1, y2}};
+      for (auto &p : c)
       {
-        m_groupTransforms.top().applyToPoint(x1, y1);
-        m_groupTransforms.top().applyToPoint(x2, y2);
+        m_currentTransforms.applyToPoint(p[0], p[1]);
+        if (!m_groupTransforms.empty())
+          m_groupTransforms.top().applyToPoint(p[0], p[1]);
+        CDRTransform pageTrafo(1.0, 0.0, -m_page.offsetX, 0.0, 1.0, -m_page.offsetY);
+        pageTrafo.applyToPoint(p[0], p[1]);
+        pageTrafo = CDRTransform(1.0, 0.0, 0.0, 0.0, -1.0, m_page.height);
+        pageTrafo.applyToPoint(p[0], p[1]);
       }
+      double width = sqrt((c[1][0] - c[0][0]) * (c[1][0] - c[0][0]) + (c[1][1] - c[0][1]) * (c[1][1] - c[0][1]));
+      double height = sqrt((c[2][0] - c[0][0]) * (c[2][0] - c[0][0]) + (c[2][1] - c[0][1]) * (c[2][1] - c[0][1]));
+      double cx = (c[1][0] + c[2][0]) / 2.0, cy = (c[1][1] + c[2][1]) / 2.0;
+      rotate = atan2(c[1][1] - c[0][1], c[1][0] - c[0][0]) * 180.0 / M_PI;
+      // back into page coordinates before the page transforms below (y up)
+      x1 = cx - width / 2.0 + m_page.offsetX;
+      x2 = cx + width / 2.0 + m_page.offsetX;
+      y1 = m_page.height - (cy - height / 2.0) + m_page.offsetY;
+      y2 = m_page.height - (cy + height / 2.0) + m_page.offsetY;
+    }
+    else if (!m_currentTransforms.empty())
+    {
+      // artistic text (no frame): anchored at its transformed origin (the first line's baseline
+      // at the alignment point), turned around it; the bounding box only approximated that
+      rotate = _textRotation();
+      x1 = 0.0;
+      y1 = 0.0;
+      m_currentTransforms.applyToPoint(x1, y1);
+      if (!m_groupTransforms.empty())
+        m_groupTransforms.top().applyToPoint(x1, y1);
+      x2 = x1;
+      y2 = y1;
     }
     else if (!CDR_ALMOST_ZERO(m_currentBBox.getWidth()) && !CDR_ALMOST_ZERO(m_currentBBox.getHeight()))
     {
@@ -483,6 +528,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     textFrameProps.insert("svg:height", fabs(y2-y1));
     textFrameProps.insert("svg:x", x1);
     textFrameProps.insert("svg:y", y1);
+    if (!CDR_ALMOST_ZERO(rotate))
+      textFrameProps.insert("librevenge:rotate", rotate, librevenge::RVNG_GENERIC);
     textFrameProps.insert("fo:padding-top", 0.0);
     textFrameProps.insert("fo:padding-bottom", 0.0);
     textFrameProps.insert("fo:padding-left", 0.0);
