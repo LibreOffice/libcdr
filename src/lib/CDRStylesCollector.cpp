@@ -18,12 +18,20 @@
 
 
 libcdr::CDRStylesCollector::CDRStylesCollector(libcdr::CDRParserState &ps) :
-  m_ps(ps), m_page(8.5, 11.0, -4.25, -5.5)
+  m_ps(ps), m_mask(), m_page(8.5, 11.0, -4.25, -5.5)
 {
 }
 
 libcdr::CDRStylesCollector::~CDRStylesCollector()
 {
+}
+
+void libcdr::CDRStylesCollector::collectBmpMask(unsigned imageId, unsigned width, unsigned height, const std::vector<unsigned char> &mask)
+{
+  m_maskId = imageId;
+  m_maskWidth = width;
+  m_maskHeight = height;
+  m_mask = mask;
 }
 
 void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap)
@@ -155,6 +163,21 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
       fclose(f);
     }
 #endif
+
+    // a transparency mask: its values become the alpha of the pixels (left 0 otherwise,
+    // which BMP readers take as an opaque image)
+    if (m_maskId == imageId && m_maskWidth == width && m_maskHeight == height && height &&
+        m_mask.size() / height >= width && image.size() == 54 + (unsigned long)width * height * 4)
+    {
+      std::vector<unsigned char> pixels(image.getDataBuffer(), image.getDataBuffer() + image.size());
+      const unsigned long maskStride = m_mask.size() / height;
+      for (unsigned j = 0; j < height; ++j)
+        for (unsigned k = 0; k < width; ++k)
+          pixels[54 + ((unsigned long)j * width + k) * 4 + 3] = m_mask[j * maskStride + k];
+      image = librevenge::RVNGBinaryData(&pixels[0], pixels.size());
+    }
+    m_mask.clear();
+    m_maskId = 0;
 
     m_ps.m_bmps[imageId] = image;
   }

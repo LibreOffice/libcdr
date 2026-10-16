@@ -52,6 +52,7 @@ public:
   void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap) override;
   void collectBmp(unsigned imageId, const std::vector<unsigned char> &bitmap) override;
   void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern) override;
+  void collectBmpMask(unsigned imageId, unsigned width, unsigned height, const std::vector<unsigned char> &mask) override;
   void collectPpdt(const std::vector<std::pair<double, double> > &, const std::vector<unsigned> &) override {}
   void collectFillTransform(const CDRTransforms &) override {}
   void collectFillOpacity(double) override {}
@@ -74,6 +75,8 @@ private:
   CDRStylesCollector &operator=(const CDRStylesCollector &);
 
   CDRParserState &m_ps;
+  unsigned m_maskId = 0, m_maskWidth = 0, m_maskHeight = 0;
+  std::vector<unsigned char> m_mask;
   CDRPage m_page;
 };
 

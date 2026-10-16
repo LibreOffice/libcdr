@@ -85,6 +85,8 @@ public:
   virtual void collectBmp(unsigned imageId, unsigned colorModel, unsigned width, unsigned height, unsigned bpp, const std::vector<unsigned> &palette, const std::vector<unsigned char> &bitmap) = 0;
   virtual void collectBmp(unsigned imageId, const std::vector<unsigned char> &bitmap) = 0;
   virtual void collectBmpf(unsigned patternId, unsigned width, unsigned height, const std::vector<unsigned char> &pattern) = 0;
+  // the transparency mask of the bitmap collected next (8 bits per pixel, rows as in the bitmap)
+  virtual void collectBmpMask(unsigned /* imageId */, unsigned /* width */, unsigned /* height */, const std::vector<unsigned char> & /* mask */) {}
   virtual void collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector) = 0;
   virtual void collectFillTransform(const CDRTransforms &fillTrafos) = 0;
   virtual void collectFillOpacity(double opacity) = 0;

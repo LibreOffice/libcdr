@@ -1975,6 +1975,7 @@ void libcdr::CDRParser::readBmp(librevenge::RVNGInputStream *input, unsigned len
 {
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
+  const long bmpStart = input->tell();
   unsigned imageId = readUnsigned(input);
   std::vector<unsigned char> bitmap;
   if (m_version < 500)
@@ -2003,6 +2004,24 @@ void libcdr::CDRParser::readBmp(librevenge::RVNGInputStream *input, unsigned len
   unsigned colorModel, width, height, bpp;
   std::vector<unsigned> palette;
   readRImage(colorModel, width, height, bpp, palette, bitmap, input);
+  // a bitmap with a transparent background: an 8-bit image of the same size follows, its mask
+  if (!bitmap.empty() && input->tell() + 14 + 64 < bmpStart + (long)length && readU8(input) == 0x52 && readU8(input) == 0x49)
+  {
+    // (the header of readRImage, but no palette)
+    input->seek(12 + 8, librevenge::RVNG_SEEK_CUR);
+    unsigned maskWidth = readU32(input);
+    unsigned maskHeight = readU32(input);
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
+    unsigned maskBpp = readU32(input);
+    input->seek(4, librevenge::RVNG_SEEK_CUR);
+    unsigned maskSize = readU32(input);
+    input->seek(32, librevenge::RVNG_SEEK_CUR);
+    unsigned long numBytesRead = 0;
+    const unsigned char *maskData = maskSize ? input->read(maskSize, numBytesRead) : nullptr;
+    if (maskData && numBytesRead == maskSize && maskWidth == width && maskHeight == height && maskBpp == 8 &&
+        height && maskSize / height >= width)
+      m_collector->collectBmpMask(imageId, width, height, std::vector<unsigned char>(maskData, maskData + maskSize));
+  }
   m_collector->collectBmp(imageId, colorModel, width, height, bpp, palette, bitmap);
 }
 
