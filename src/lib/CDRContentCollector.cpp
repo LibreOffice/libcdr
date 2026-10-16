@@ -253,6 +253,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
 {
   CDR_DEBUG_MSG(("CDRContentCollector::_flushCurrentPath\n"));
   CDROutputElementList outputElement;
+  librevenge::RVNGPropertyListVector imageClip;   // the outline of a bitmap (see below)
   if (!m_currentPath.empty() || (!m_splineData.empty() && m_isInSpline))
   {
     if (m_polygon && m_isInPolygon)
@@ -387,7 +388,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       librevenge::RVNGPropertyList propList;
       propList.insert("svg:d", outputPath);
       outputElement.addPath(propList);
-
+      if (m_currentImage.getImage().size() && hasClosed)
+        imageClip = outputPath;
     }
     m_currentPath.clear();
   }
@@ -457,6 +459,10 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
 
     propList.insert("librevenge:mime-type", "image/bmp");
     propList.insert("office:binary-data", m_currentImage.getImage());
+    // the bitmap's own outline (a bitmap cropped with the Shape tool, or a pattern tile of an
+    // imported PDF): it shows only inside it (libcdr's own: librevenge has no clip for images)
+    if (imageClip.count())
+      propList.insert("libcdr:clip-path", imageClip);
     outputElement.addGraphicObject(propList);
   }
   if (m_currentText && !m_currentText->empty())
