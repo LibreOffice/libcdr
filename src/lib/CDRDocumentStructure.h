@@ -76,6 +76,7 @@
 #define CDR_FOURCC_INFO 0x4f464e49
 
 #define CDR_FOURCC_layr 0x7279616c
+#define CDR_FOURCC_sytr 0x72747973
 #define CDR_FOURCC_lgob 0x626f676c
 #define CDR_FOURCC_LIST 0x5453494c
 #define CDR_FOURCC_lnkg 0x676b6e6c

@@ -613,6 +613,13 @@ bool libcdr::CDRParser::parseRecord(librevenge::RVNGInputStream *input, const st
     if (fourCC == CDR_FOURCC_RIFF || fourCC == CDR_FOURCC_LIST)
     {
       listType = readU32(input);
+      if (listType == CDR_FOURCC_sytr)
+      {
+        // the symbol definitions (CorelDRAW X6+): not part of any page; drawn here they
+        // came out as an extra page before the drawing
+        input->seek(position + length, librevenge::RVNG_SEEK_SET);
+        return true;
+      }
       if (listType == CDR_FOURCC_stlt && m_version >= 700)
         fourCC = listType;
       else
