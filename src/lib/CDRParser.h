@@ -107,6 +107,9 @@ private:
   unsigned m_version;
   unsigned m_waldoOutlId;
   unsigned m_waldoFillId;
+  unsigned m_layerLevel;
+  bool m_layerFlagsPending;
+  bool m_skipLayer;
 
 };
 

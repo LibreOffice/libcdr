@@ -237,7 +237,8 @@ void normalizeAngle(double &angle)
 
 libcdr::CDRParser::CDRParser(const std::vector<std::unique_ptr<librevenge::RVNGInputStream>> &externalStreams, libcdr::CDRCollector *collector)
   : CommonParser(collector), m_externalStreams(externalStreams),
-    m_fonts(), m_fillStyles(), m_lineStyles(), m_arrows(), m_version(0), m_waldoOutlId(0), m_waldoFillId(0) {}
+    m_fonts(), m_fillStyles(), m_lineStyles(), m_arrows(), m_version(0), m_waldoOutlId(0), m_waldoFillId(0),
+    m_layerLevel(0), m_layerFlagsPending(false), m_skipLayer(false) {}
 
 libcdr::CDRParser::~CDRParser()
 {
@@ -634,10 +635,24 @@ bool libcdr::CDRParser::parseRecord(librevenge::RVNGInputStream *input, const st
         if (readU16(input) != 4)
           return false;
       }
+      else if (listType == CDR_FOURCC_layr)
+      {
+        // a layer: its first flgs record says whether it is shown (see readFlags)
+        m_layerLevel = level;
+        m_layerFlagsPending = true;
+        m_skipLayer = false;
+      }
       else if (listType == CDR_FOURCC_page)
         m_collector->collectPage(level);
       else if (listType == CDR_FOURCC_obj)
+      {
+        if (m_skipLayer && level > m_layerLevel)
+        {
+          input->seek(position + length, librevenge::RVNG_SEEK_SET);
+          return true;
+        }
         m_collector->collectObject(level);
+      }
       else if (listType == CDR_FOURCC_grp || listType == CDR_FOURCC_lnkg)
         m_collector->collectGroup(level);
       else if ((listType & 0xffffff) == CDR_FOURCC_CDR || (listType & 0xffffff) == CDR_FOURCC_cdr)
@@ -1837,6 +1852,13 @@ void libcdr::CDRParser::readFlags(librevenge::RVNGInputStream *input, unsigned l
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned flags = readU32(input);
+  if (m_layerFlagsPending)
+  {
+    // layer flags: 0x100 on a layer that is neither shown nor printed (e.g. the hidden
+    // layers of an imported PDF); its objects are skipped, as CorelDRAW's PDF export does
+    m_layerFlagsPending = false;
+    m_skipLayer = !(flags & 0x00ff0000) && (flags & 0x100);
+  }
   m_collector->collectFlags(flags, m_version >= 400);
 }
 
