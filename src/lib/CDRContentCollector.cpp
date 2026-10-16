@@ -213,6 +213,26 @@ void libcdr::CDRContentCollector::collectPath(const CDRPath &path)
   m_currentPath.appendPath(path);
 }
 
+// The lengths of the current object's x and y axes on the output page: an artistic text
+// stretched or squeezed in CorelDRAW keeps its font size and gets this scaling.
+void libcdr::CDRContentCollector::_textScale(double &sx, double &sy)
+{
+  double ox = 0.0, oy = 0.0, ux = 1.0, uy = 0.0, vx = 0.0, vy = 1.0;
+  m_currentTransforms.applyToPoint(ox, oy);
+  m_currentTransforms.applyToPoint(ux, uy);
+  m_currentTransforms.applyToPoint(vx, vy);
+  if (!m_groupTransforms.empty())
+  {
+    m_groupTransforms.top().applyToPoint(ox, oy);
+    m_groupTransforms.top().applyToPoint(ux, uy);
+    m_groupTransforms.top().applyToPoint(vx, vy);
+  }
+  sx = hypot(ux - ox, uy - oy);
+  sy = hypot(vx - ox, vy - oy);
+  if (CDR_ALMOST_ZERO(sx) || CDR_ALMOST_ZERO(sy))
+    sx = sy = 1.0;
+}
+
 // The rotation of the current object's x axis on the output page (y down), in degrees.
 double libcdr::CDRContentCollector::_textRotation()
 {
@@ -446,6 +466,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     double x2 = m_currentTextBox.m_x + m_currentTextBox.m_w;
     double y2 = m_currentTextBox.m_y - m_currentTextBox.m_h;
     double rotate = 0.0;   // the text frame's rotation (degrees, as for images)
+    double scaleX = 1.0, scaleY = 1.0;   // artistic text stretched by its transform
     if (!CDR_ALMOST_ZERO(m_currentTextBox.m_h) && !CDR_ALMOST_ZERO(m_currentTextBox.m_w))
     {
       // three corners of the frame (top left, top right, bottom left): its centre, size and
@@ -476,6 +497,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       // artistic text (no frame): anchored at its transformed origin (the first line's baseline
       // at the alignment point), turned around it; the bounding box only approximated that
       rotate = _textRotation();
+      _textScale(scaleX, scaleY);
       x1 = 0.0;
       y1 = 0.0;
       m_currentTransforms.applyToPoint(x1, y1);
@@ -576,6 +598,11 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         {
           librevenge::RVNGPropertyList spanProps;
           double fontSize = (double)cdr_round(144.0*j.m_style.m_fontSize) / 2.0;
+          if (!CDR_ALMOST_EQUAL(scaleY, 1.0) || !CDR_ALMOST_EQUAL(scaleX, 1.0))   // stretched artistic text
+          {
+            fontSize = (double)cdr_round(7200.0*j.m_style.m_fontSize*scaleY) / 100.0;
+            spanProps.insert("style:text-scale", scaleX / scaleY, librevenge::RVNG_PERCENT);
+          }
           spanProps.insert("fo:font-size", fontSize, librevenge::RVNG_POINT);
           if (j.m_style.m_fontName.len())
             spanProps.insert("style:font-name", j.m_style.m_fontName);

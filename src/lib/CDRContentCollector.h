@@ -83,6 +83,7 @@ private:
   void _endPage();
   void _flushCurrentPath();
   double _textRotation();
+  void _textScale(double &sx, double &sy);
 
   void _fillProperties(librevenge::RVNGPropertyList &propList);
   void _lineProperties(librevenge::RVNGPropertyList &propList);
