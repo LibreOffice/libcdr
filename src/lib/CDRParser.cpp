@@ -121,6 +121,7 @@ static int parseColourString(const char *colourString, libcdr::CDRColor &colour,
     symbols<char, unsigned> cmodel;
     cmodel.add
     ("CMYK", 2)
+    ("CMYK100", 2)   // CorelDRAW 2022 writes this name too (without it the colour came out white)
     ("CMYK255", 3)
     ("RGB255", 5)
     ("HSB", 6)
