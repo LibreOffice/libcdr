@@ -2681,10 +2681,12 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
         }
         if (fl3&0x20) // Something
         {
+          // a zero byte alone, else a fill id (+ 48 bytes from version 15); the zero byte
+          // was not skipped, so the text of such records was lost
           unsigned flag = readU8(input);
-          input->seek(-1, librevenge::RVNG_SEEK_CUR);
           if (flag)
           {
+            input->seek(-1, librevenge::RVNG_SEEK_CUR);
             input->seek(4, librevenge::RVNG_SEEK_CUR); // ftil fild Id
             if (m_version >= 1500)
               input->seek(48, librevenge::RVNG_SEEK_CUR);
