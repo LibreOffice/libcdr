@@ -3013,7 +3013,9 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
       input->seek(4, librevenge::RVNG_SEEK_CUR);
       textData.push_back(readU8(input));
       input->seek(1, librevenge::RVNG_SEEK_CUR);
-      charDescriptions.push_back((unsigned char)((readU16(input) >> 3) & 0xff));
+      // one byte per character here: bit 0 (two-byte UTF-16 in later versions) must not be set,
+      // else pairs of characters were read as one (CorelDRAW 5 texts came out as CJK)
+      charDescriptions.push_back((unsigned char)((readU16(input) >> 3) & 0xfe));
     }
     if (!textData.empty())
       m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
