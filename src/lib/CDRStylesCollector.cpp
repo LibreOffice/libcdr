@@ -9,6 +9,8 @@
 
 #include "CDRStylesCollector.h"
 
+#include <algorithm>
+
 #include "CDRInternalStream.h"
 #include "libcdr_utils.h"
 
@@ -77,6 +79,31 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
   writeU32(image, 0); // ColorsUsed
   writeU32(image, 0); // ColorsImportant
 
+  // the pixels go to a plain buffer (not byte by byte into the RVNGBinaryData), and each
+  // colour is converted once: a colour conversion (lcms) per pixel made big bitmaps slow
+  std::vector<unsigned char> pixels;
+  pixels.reserve(std::min((unsigned long)tmpDIBImageSize, (unsigned long)bitmap.size() * 32));   // (at most 1 bit a pixel)
+  auto put = [&pixels](unsigned v)
+  {
+    pixels.push_back((unsigned char)v);
+    pixels.push_back((unsigned char)(v >> 8));
+    pixels.push_back((unsigned char)(v >> 16));
+    pixels.push_back((unsigned char)(v >> 24));
+  };
+  struct CachedColor
+  {
+    unsigned value, color;
+    bool used;
+  };
+  std::vector<CachedColor> colorCache(4096);
+  auto color = [&](unsigned value)
+  {
+    CachedColor &c = colorCache[(value * 2654435761u) >> 20];
+    if (!c.used || c.value != value)
+      c = CachedColor{value, m_ps.getBMPColor(libcdr::CDRColor((unsigned short)colorModel, value)), true};
+    return c.color;
+  };
+
   // Cater for eventual padding
   unsigned long lineWidth = bitmap.size() / height;
 
@@ -96,9 +123,9 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
         while (k < width && l < 8)
         {
           if (c & 0x80)
-            writeU32(image, 0xffffff);
+            put(0xffffff);
           else
-            writeU32(image, 0);
+            put(0);
           c <<= 1;
           l++;
           k++;
@@ -111,7 +138,7 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
       {
         unsigned char c = bitmap[j*lineWidth+i];
         i++;
-        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor((unsigned short)colorModel, c)));
+        put(color(c));
       }
     }
     else if (!palette.empty())
@@ -122,7 +149,7 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
         if (c >= palette.size())
           c = palette.size() - 1;
         i++;
-        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor((unsigned short)colorModel, palette[c])));
+        put(color(palette[c]));
       }
     }
     else if (bpp == 24 && lineWidth >= 3)
@@ -131,7 +158,7 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
       {
         unsigned c = ((unsigned)bitmap[j*lineWidth+i+2] << 16) | ((unsigned)bitmap[j*lineWidth+i+1] << 8) | ((unsigned)bitmap[j*lineWidth+i]);
         i += 3;
-        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor((unsigned short)colorModel, c)));
+        put(color(c));
         k++;
       }
     }
@@ -141,7 +168,7 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
       {
         unsigned c = (bitmap[j*lineWidth+i+3] << 24) | (bitmap[j*lineWidth+i+2] << 16) | (bitmap[j*lineWidth+i+1] << 8) | (bitmap[j*lineWidth+i]);
         i += 4;
-        writeU32(image, m_ps.getBMPColor(libcdr::CDRColor((unsigned short)colorModel, c)));
+        put(color(c));
         k++;
       }
     }
@@ -167,15 +194,14 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
     // a transparency mask: its values become the alpha of the pixels (left 0 otherwise,
     // which BMP readers take as an opaque image)
     if (m_maskId == imageId && m_maskWidth == width && m_maskHeight == height && height &&
-        m_mask.size() / height >= width && image.size() == 54 + (unsigned long)width * height * 4)
+        m_mask.size() / height >= width && pixels.size() == (unsigned long)width * height * 4)
     {
-      std::vector<unsigned char> pixels(image.getDataBuffer(), image.getDataBuffer() + image.size());
       const unsigned long maskStride = m_mask.size() / height;
       for (unsigned j = 0; j < height; ++j)
         for (unsigned k = 0; k < width; ++k)
-          pixels[54 + ((unsigned long)j * width + k) * 4 + 3] = m_mask[j * maskStride + k];
-      image = librevenge::RVNGBinaryData(&pixels[0], pixels.size());
+          pixels[((unsigned long)j * width + k) * 4 + 3] = m_mask[j * maskStride + k];
     }
+    image.append(pixels.data(), pixels.size());
     m_mask.clear();
     m_maskId = 0;
 
