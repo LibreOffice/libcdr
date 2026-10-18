@@ -35,6 +35,7 @@ public:
   bool getFlipY() const;
 
   librevenge::RVNGString toString() const;
+  bool operator==(const CDRTransform &trafo) const;
 
 private:
   double _getScaleX() const;
@@ -69,6 +70,7 @@ public:
   double getTranslateY() const;
   bool getFlipX() const;
   bool getFlipY() const;
+  bool operator==(const CDRTransforms &trafos) const;
 
 private:
   double _getScaleX() const;

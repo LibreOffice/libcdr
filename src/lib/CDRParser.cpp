@@ -1124,8 +1124,8 @@ void libcdr::CDRParser::readArrw(librevenge::RVNGInputStream *input, unsigned le
     point.first = (double)readCoordinate(input);
     points.push_back(point);
   }
-  CDRPath path;
-  processPath(points, pointTypes, path);
+  auto path = std::make_shared<CDRPath>();
+  processPath(points, pointTypes, *path);
   m_arrows[arrowId] = path;
 }
 
@@ -1217,13 +1217,13 @@ void libcdr::CDRParser::readWaldoOutl(librevenge::RVNGInputStream *input)
   unsigned short joinType = readU16(input);
   unsigned short capsType = readU16(input);
   unsigned startMarkerId = readU32(input);
-  std::map<unsigned, CDRPath>::const_iterator iter = m_arrows.find(startMarkerId);
-  CDRPath startMarker;
+  auto iter = m_arrows.find(startMarkerId);
+  std::shared_ptr<const CDRPath> startMarker;
   if (iter != m_arrows.end())
     startMarker = iter->second;
   unsigned endMarkerId = readU32(input);
   iter = m_arrows.find(endMarkerId);
-  CDRPath endMarker;
+  std::shared_ptr<const CDRPath> endMarker;
   if (iter != m_arrows.end())
     endMarker = iter->second;
   m_collector->collectLineStyle(++m_waldoOutlId, CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker));
@@ -1720,13 +1720,13 @@ void libcdr::CDRParser::readOutl(librevenge::RVNGInputStream *input, unsigned le
   else
     input->seek(fixPosition + 22, librevenge::RVNG_SEEK_SET);
   unsigned startMarkerId = readU32(input);
-  std::map<unsigned, CDRPath>::const_iterator iter = m_arrows.find(startMarkerId);
-  CDRPath startMarker;
+  auto iter = m_arrows.find(startMarkerId);
+  std::shared_ptr<const CDRPath> startMarker;
   if (iter != m_arrows.end())
     startMarker = iter->second;
   unsigned endMarkerId = readU32(input);
   iter = m_arrows.find(endMarkerId);
-  CDRPath endMarker;
+  std::shared_ptr<const CDRPath> endMarker;
   if (iter != m_arrows.end())
     endMarker = iter->second;
   m_lineStyles[lineId] = CDRLineStyle(lineType, capsType, joinType, lineWidth, stretch, angle, color, dashArray, startMarker, endMarker);

@@ -241,6 +241,17 @@ bool libcdr::CDRTransforms::empty() const
   return m_trafos.empty();
 }
 
+bool libcdr::CDRTransforms::operator==(const CDRTransforms &trafos) const
+{
+  return m_trafos == trafos.m_trafos;
+}
+
+bool libcdr::CDRTransform::operator==(const CDRTransform &trafo) const
+{
+  return m_v0 == trafo.m_v0 && m_v1 == trafo.m_v1 && m_x0 == trafo.m_x0 &&
+         m_v3 == trafo.m_v3 && m_v4 == trafo.m_v4 && m_y0 == trafo.m_y0;
+}
+
 void libcdr::CDRTransforms::applyToPoint(double &x, double &y) const
 {
   for (const auto &trafo : m_trafos)

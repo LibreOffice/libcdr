@@ -10,6 +10,7 @@
 #ifndef __CDRTYPES_H__
 #define __CDRTYPES_H__
 
+#include <memory>
 #include <utility>
 #include <vector>
 #include <math.h>
@@ -124,15 +125,15 @@ struct CDRLineStyle
   double angle;
   CDRColor color;
   std::vector<unsigned> dashArray;
-  CDRPath startMarker;
-  CDRPath endMarker;
+  std::shared_ptr<const CDRPath> startMarker;
+  std::shared_ptr<const CDRPath> endMarker;
   CDRLineStyle()
     : lineType((unsigned short)-1), capsType(0), joinType(0), lineWidth(0.0),
       stretch(0.0), angle(0.0), color(), dashArray(),
       startMarker(), endMarker() {}
   CDRLineStyle(unsigned short lt, unsigned short ct, unsigned short jt,
                double lw, double st, double a, const CDRColor &c, const std::vector<unsigned> &da,
-               const CDRPath &sm, const CDRPath &em)
+               const std::shared_ptr<const CDRPath> &sm, const std::shared_ptr<const CDRPath> &em)
     : lineType(lt), capsType(ct), joinType(jt), lineWidth(lw),
       stretch(st), angle(a), color(c), dashArray(da),
       startMarker(sm), endMarker(em) {}

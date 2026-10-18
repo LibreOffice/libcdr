@@ -85,6 +85,20 @@ private:
 
   void _fillProperties(librevenge::RVNGPropertyList &propList);
   void _lineProperties(librevenge::RVNGPropertyList &propList);
+
+  // A line marker as written out, and what it was made from
+  struct WrittenMarker
+  {
+    std::shared_ptr<const CDRPath> marker;
+    CDRTransforms transforms;
+    bool hasGroupTransforms;
+    CDRTransforms groupTransforms;
+    librevenge::RVNGString path;
+    librevenge::RVNGString viewBox;
+    WrittenMarker()
+      : marker(), transforms(), hasGroupTransforms(false), groupTransforms(), path(), viewBox() {}
+  };
+  void _writeMarker(WrittenMarker &written, const std::shared_ptr<const CDRPath> &marker, const CDRTransform &mirror);
   void _generateBitmapFromPattern(librevenge::RVNGBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor);
 
   librevenge::RVNGDrawingInterface *m_painter;
@@ -119,6 +133,8 @@ private:
   std::queue<CDROutputElementList> m_fillOutputElementsQueue;
   std::stack<unsigned> m_groupLevels;
   std::stack<CDRTransforms> m_groupTransforms;
+  WrittenMarker m_writtenStartMarker;
+  WrittenMarker m_writtenEndMarker;
   CDRSplineData m_splineData;
   double m_fillOpacity;
   bool m_reverseOrder;

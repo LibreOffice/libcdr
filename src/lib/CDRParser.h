@@ -102,7 +102,7 @@ private:
   std::map<unsigned, CDRFont> m_fonts;
   std::map<unsigned, CDRFillStyle> m_fillStyles;
   std::map<unsigned, CDRLineStyle> m_lineStyles;
-  std::map<unsigned, CDRPath> m_arrows;
+  std::map<unsigned, std::shared_ptr<const CDRPath>> m_arrows;
 
   unsigned m_version;
   unsigned m_waldoOutlId;
