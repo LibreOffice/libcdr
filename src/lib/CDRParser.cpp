@@ -2735,7 +2735,9 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
           tmpCharDescription = readU64(input) & 0xffffffff;
         else
           tmpCharDescription = readU32(input);
-        charDescriptions[i] = (unsigned char)((tmpCharDescription >> 16) | (tmpCharDescription & 0x01));
+        // the style (an even number, see the styles' map) and bit 0: a 2-byte (UTF-16) character;
+        // the style part may be odd, its bit 0 is not that (1-byte text became Chinese characters)
+        charDescriptions[i] = (unsigned char)(((tmpCharDescription >> 16) & 0xfe) | (tmpCharDescription & 0x01));
       }
       unsigned long numBytes = numChars;
       if (m_version >= 1200)
@@ -2861,7 +2863,9 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
       {
         unsigned tmpCharDescription = 0;
         tmpCharDescription = readU64(input) & 0xffffffff;
-        charDescriptions[i] = (unsigned char)((tmpCharDescription >> 16) | (tmpCharDescription & 0x01));
+        // the style (an even number, see the styles' map) and bit 0: a 2-byte (UTF-16) character;
+        // the style part may be odd, its bit 0 is not that (1-byte text became Chinese characters)
+        charDescriptions[i] = (unsigned char)(((tmpCharDescription >> 16) & 0xfe) | (tmpCharDescription & 0x01));
       }
       unsigned numBytes = readU32(input);
       unsigned long numBytesRead = 0;
