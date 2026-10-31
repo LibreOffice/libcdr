@@ -298,6 +298,13 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
     if ((tmpCharDescription & 0x01) && (j < data.size()))
       tmpTextData.push_back(data[j++]);
   }
+  if (!i)   // an empty paragraph: its style all the same (it gives the line its height)
+  {
+    tmpCharStyle = defaultCharStyle;
+    auto iter = styleOverrides.find(0);
+    if (iter != styleOverrides.end())
+      tmpCharStyle.overrideStyle(iter->second);
+  }
   librevenge::RVNGString text;
   if (!tmpTextData.empty())
   {

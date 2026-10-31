@@ -625,9 +625,15 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
         paraProps.insert("fo:margin-bottom", fabs(after), after < 0 ? librevenge::RVNG_POINT : librevenge::RVNG_PERCENT);
       }
       outputElement.addOpenParagraph(paraProps);
+      // an empty paragraph: a span without text all the same, so that its line gets the height of
+      // its font (else a default one)
+      bool emptyParagraph = true;
+      for (const auto &j : currentLine)
+        if (!j.m_text.empty())
+          emptyParagraph = false;
       for (const auto &j : currentLine)
       {
-        if (!j.m_text.empty())
+        if (!j.m_text.empty() || (emptyParagraph && &j == &currentLine[0]))
         {
           librevenge::RVNGPropertyList spanProps;
           // (to 1/100 pt: rounded to half points, the words a PDF import placed one by one
@@ -649,7 +655,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
           if (j.m_style.m_fillStyle.fillType != (unsigned short)-1)
             spanProps.insert("fo:color", m_ps.getRGBColorString(j.m_style.m_fillStyle.color1));
           outputElement.addOpenSpan(spanProps);
-          outputElement.addInsertText(j.m_text);
+          if (!j.m_text.empty())
+            outputElement.addInsertText(j.m_text);
           outputElement.addCloseSpan();
         }
       }
