@@ -2342,7 +2342,32 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
     }
     unsigned numIntervals = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numIntervals 0x%x\n", numIntervals));
-    input->seek(52 * static_cast<long>(numIntervals), librevenge::RVNG_SEEK_CUR);
+    // the spacings (characters, words, lines, paragraphs): of these the line spacing and the spacing
+    // before and after a paragraph are used, shares of the character height (1 000 000: 100%) or,
+    // from version 14 when the last field is 1, lengths (1/254000 inch; in points, negative here);
+    // they were skipped, so texts with a line spacing other than 100% bunched up or spread out
+    struct Spacing
+    {
+      double line, before, after;
+    };
+    std::map<unsigned, Spacing> spacings;
+    for (unsigned i = 0; i < numIntervals && getRemainingLength(input) >= 52; ++i)
+    {
+      unsigned intervalId = readU32(input);
+      input->seek(20, librevenge::RVNG_SEEK_CUR);
+      int line = (int)readU32(input);
+      int before = (int)readU32(input);
+      int after = (int)readU32(input);
+      input->seek(12, librevenge::RVNG_SEEK_CUR);
+      unsigned unit = readU32(input);
+      if (unit > 1 || line <= 0 || before < 0 || after < 0)
+        continue;
+      auto value = [unit](int v)
+      {
+        return unit ? -v / 254000.0 * 72.0 : v / 1000000.0;
+      };
+      spacings[intervalId] = Spacing{value(line), value(before), value(after)};
+    }
     unsigned numSet5s = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numSet5s 0x%x\n", numSet5s));
     input->seek(152 * static_cast<long>(numSet5s), librevenge::RVNG_SEEK_CUR);
@@ -2476,6 +2501,17 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
           std::map<unsigned, unsigned>::const_iterator iterAlign = aligns.find(alignId);
           if (iterAlign != aligns.end())
             tmpCharStyle.m_align = iterAlign->second;
+        }
+        if (iter->second.intervalId)
+        {
+          auto iterSpacing = spacings.find(iter->second.intervalId);
+          if (iterSpacing != spacings.end())
+          {
+            tmpCharStyle.m_lineSpacing = iterSpacing->second.line;
+            tmpCharStyle.m_spaceBefore = iterSpacing->second.before;
+            tmpCharStyle.m_spaceAfter = iterSpacing->second.after;
+            tmpCharStyle.m_hasParagraphSpacing = true;
+          }
         }
         unsigned indentId = iter->second.indentId;
         if (indentId)

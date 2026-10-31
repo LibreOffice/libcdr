@@ -613,6 +613,17 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       default:
         break;
       }
+      if (currentLine[0].m_style.m_lineSpacing > 0)
+        paraProps.insert("fo:line-height", currentLine[0].m_style.m_lineSpacing, librevenge::RVNG_PERCENT);
+      else if (currentLine[0].m_style.m_lineSpacing < 0)
+        paraProps.insert("fo:line-height", -currentLine[0].m_style.m_lineSpacing, librevenge::RVNG_POINT);
+      // (as the line height: a share of the character height, or points)
+      if (currentLine[0].m_style.m_hasParagraphSpacing)
+      {
+        double before = currentLine[0].m_style.m_spaceBefore, after = currentLine[0].m_style.m_spaceAfter;
+        paraProps.insert("fo:margin-top", fabs(before), before < 0 ? librevenge::RVNG_POINT : librevenge::RVNG_PERCENT);
+        paraProps.insert("fo:margin-bottom", fabs(after), after < 0 ? librevenge::RVNG_POINT : librevenge::RVNG_PERCENT);
+      }
       outputElement.addOpenParagraph(paraProps);
       for (const auto &j : currentLine)
       {

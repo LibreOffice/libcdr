@@ -149,13 +149,17 @@ struct CDRStyle
   double m_shiftX, m_shiftY;   // characters moved from their place, in em (up positive)
   unsigned m_align;
   double m_leftIndent, m_firstIndent, m_rightIndent;
+  double m_lineSpacing;   // the line spacing: > 0 a share of the character height (1.0: 100%), < 0 in points, 0: not set
+  double m_spaceBefore, m_spaceAfter;   // a paragraph's spacing before / after it: as m_lineSpacing, set
+  bool m_hasParagraphSpacing;           // when this is (0: none)
   CDRLineStyle m_lineStyle;
   CDRFillStyle m_fillStyle;
   unsigned m_parentId;
   CDRStyle()
     : m_charSet((unsigned short)-1), m_fontName(),
       m_fontSize(0.0), m_fontWeight(0), m_fontItalic(0), m_shiftX(0.0), m_shiftY(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
-      m_rightIndent(0.0), m_lineStyle(), m_fillStyle(), m_parentId(0)
+      m_rightIndent(0.0), m_lineSpacing(0.0), m_spaceBefore(0.0), m_spaceAfter(0.0), m_hasParagraphSpacing(false),
+      m_lineStyle(), m_fillStyle(), m_parentId(0)
   {
     m_fontName.clear();
   }
@@ -183,6 +187,14 @@ struct CDRStyle
       m_leftIndent = override.m_leftIndent;
       m_firstIndent = override.m_firstIndent;
       m_rightIndent = override.m_rightIndent;
+    }
+    if (!CDR_ALMOST_ZERO(override.m_lineSpacing))
+      m_lineSpacing = override.m_lineSpacing;
+    if (override.m_hasParagraphSpacing)
+    {
+      m_spaceBefore = override.m_spaceBefore;
+      m_spaceAfter = override.m_spaceAfter;
+      m_hasParagraphSpacing = true;
     }
     if (override.m_lineStyle.lineType != (unsigned short)-1)
       m_lineStyle = override.m_lineStyle;
