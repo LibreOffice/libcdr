@@ -233,6 +233,21 @@ void normalizeAngle(double &angle)
     angle += 2*M_PI;
 }
 
+// A leading line break does not make a line in CorelDRAW: texts often start with one (to set a
+// block below another one), and with it counted they came out a line lower than meant (two columns
+// of a sheet, one starting with a line break, no longer lined up; a business card's second heading
+// line, a text of its own, sat on the third).
+void dropLeadingLineBreak(std::vector<unsigned char> &textData, std::vector<unsigned char> &charDescriptions)
+{
+  if (textData.empty() || charDescriptions.empty() || textData[0] != 0x0d)
+    return;
+  bool twoByte = charDescriptions[0] & 0x01;
+  if (twoByte && (textData.size() < 2 || textData[1] != 0))
+    return;
+  textData.erase(textData.begin(), textData.begin() + (twoByte ? 2 : 1));
+  charDescriptions.erase(charDescriptions.begin());
+}
+
 } // anonymous namespace
 
 libcdr::CDRParser::CDRParser(const std::vector<std::unique_ptr<librevenge::RVNGInputStream>> &externalStreams, libcdr::CDRCollector *collector)
@@ -2786,6 +2801,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
       if (numBytesRead)
         memcpy(&textData[0], buffer, numBytesRead);
       input->seek(1, librevenge::RVNG_SEEK_CUR); //skip the 0 ending character
+      dropLeadingLineBreak(textData, charDescriptions);
 
       if (!textData.empty() || !styles.empty())
       {
@@ -3016,6 +3032,7 @@ void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
       charDescriptions.push_back(readU8(input) << 1);
       input->seek(5, librevenge::RVNG_SEEK_CUR);
     }
+    dropLeadingLineBreak(textData, charDescriptions);
     if (!textData.empty())
       m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
   }
@@ -3107,13 +3124,7 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
       // else pairs of characters were read as one (CorelDRAW 5 texts came out as CJK)
       charDescriptions.push_back((unsigned char)((readU16(input) >> 3) & 0xfe));
     }
-    // a leading line break does not make a line in CorelDRAW 5: texts start with one more than the
-    // lines they show above (two columns of a sheet, one starting with a line break, line up)
-    if (!textData.empty() && textData[0] == 0x0d)
-    {
-      textData.erase(textData.begin());
-      charDescriptions.erase(charDescriptions.begin());
-    }
+    dropLeadingLineBreak(textData, charDescriptions);
     if (!textData.empty())
       m_collector->collectText(textId, stlId, textData, charDescriptions, styles);
   }
