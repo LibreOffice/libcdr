@@ -11,6 +11,7 @@
 #define __CDRCOLLECTOR_H__
 
 #include <map>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -33,6 +34,7 @@ public:
   CDRParserState();
   ~CDRParserState();
   std::map<unsigned, librevenge::RVNGBinaryData> m_bmps;
+  std::set<unsigned> m_monoBmps;   // the 1-bit (black and white) ones: coloured by the object using them
   std::map<unsigned, CDRPattern> m_patterns;
   std::map<unsigned, librevenge::RVNGBinaryData> m_vects;
   std::vector<CDRPage> m_pages;

@@ -40,6 +40,8 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
 {
   libcdr::CDRInternalStream stream(bitmap);
   librevenge::RVNGBinaryData image;
+  if (colorModel == 6)
+    m_ps.m_monoBmps.insert(imageId);
 
   if (height == 0)
     height = 1;

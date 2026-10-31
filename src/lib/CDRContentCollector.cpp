@@ -75,7 +75,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   : m_painter(painter), m_isDocumentStarted(false), m_isPageProperties(false), m_isPageStarted(false),
     m_ignorePage(false), m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFillStyle(), m_currentLineStyle(),
     m_spnd(0), m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
-    m_currentStyleId(0), m_currentImage(), m_currentText(nullptr), m_currentBBox(), m_currentTextBox(), m_currentPath(),
+    m_currentStyleId(0), m_currentImage(), m_currentImageMono(false), m_currentText(nullptr), m_currentBBox(), m_currentTextBox(), m_currentPath(),
     m_currentTransforms(), m_fillTransforms(), m_polygon(), m_isInPolygon(false), m_isInSpline(false),
     m_outputElementsStack(nullptr), m_contentOutputElementsStack(), m_fillOutputElementsStack(),
     m_outputElementsQueue(nullptr), m_contentOutputElementsQueue(), m_fillOutputElementsQueue(),
@@ -285,6 +285,12 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     librevenge::RVNGPropertyList style;
     _fillProperties(style);
     _lineProperties(style);
+    if (m_currentImage.getImage().size() && m_currentImageMono)
+    {
+      // a 1-bit bitmap's fill and outline are its colours (see _monoImage), not drawn
+      style.insert("draw:fill", "none");
+      style.insert("draw:stroke", "none");
+    }
     m_currentPath.transform(m_currentTransforms);
     if (!m_groupTransforms.empty())
       m_currentPath.transform(m_groupTransforms.top());
@@ -468,7 +474,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       propList.insert("librevenge:rotate", rotate * 180 / M_PI, librevenge::RVNG_GENERIC);
 
     propList.insert("librevenge:mime-type", "image/bmp");
-    propList.insert("office:binary-data", m_currentImage.getImage());
+    propList.insert("office:binary-data", m_currentImageMono ? _monoImage(m_currentImage.getImage()) : m_currentImage.getImage());
     // the bitmap's own outline (a bitmap cropped with the Shape tool, or a pattern tile of an
     // imported PDF): it shows only inside it (libcdr's own: librevenge has no clip for images)
     if (imageClip.count())
@@ -641,6 +647,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     outputElement.addEndTextObject();
   }
   m_currentImage = libcdr::CDRImage();
+  m_currentImageMono = false;
   if (!outputElement.empty())
   {
     if (m_reverseOrder)
@@ -789,6 +796,33 @@ void libcdr::CDRContentCollector::collectSpline()
 void libcdr::CDRContentCollector::collectPolygonTransform(unsigned numAngles, unsigned nextPoint, double rx, double ry, double cx, double cy)
 {
   m_polygon.reset(new CDRPolygon(numAngles, nextPoint, rx, ry, cx, cy));
+}
+
+// A 1-bit bitmap as CorelDRAW colours it: its black pixels in the object's outline colour (black
+// without an outline), its white ones in the fill colour (transparent without a fill). bmp: the
+// 32-bit BMP of CDRStylesCollector::collectBmp, its pixels 0x000000 or 0xffffff.
+librevenge::RVNGBinaryData libcdr::CDRContentCollector::_monoImage(const librevenge::RVNGBinaryData &bmp)
+{
+  librevenge::RVNGPropertyList style;   // (resolves the object's fill and line styles)
+  _fillProperties(style);
+  _lineProperties(style);
+  bool outline = m_currentLineStyle.lineType != (unsigned short)-1 && !(m_currentLineStyle.lineType & 0x1);
+  bool fill = m_currentFillStyle.fillType == 1;
+  unsigned fg = 0xff000000 | (outline ? m_ps._getRGBColor(m_currentLineStyle.color) : 0);
+  unsigned bg = fill ? 0xff000000 | m_ps._getRGBColor(m_currentFillStyle.color1) : 0;
+  const unsigned long offset = 54;
+  if (bmp.size() < offset)
+    return bmp;
+  std::vector<unsigned char> data(bmp.getDataBuffer(), bmp.getDataBuffer() + bmp.size());
+  for (unsigned long i = offset; i + 4 <= data.size(); i += 4)
+  {
+    unsigned v = (data[i] & 1) ? bg : fg;
+    data[i] = (unsigned char)v;
+    data[i + 1] = (unsigned char)(v >> 8);
+    data[i + 2] = (unsigned char)(v >> 16);
+    data[i + 3] = (unsigned char)(v >> 24);
+  }
+  return librevenge::RVNGBinaryData(data.data(), data.size());
 }
 
 void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &propList)
@@ -1333,7 +1367,10 @@ void libcdr::CDRContentCollector::collectBitmap(unsigned imageId, double x1, dou
 {
   auto iter = m_ps.m_bmps.find(imageId);
   if (iter != m_ps.m_bmps.end())
+  {
     m_currentImage = CDRImage(iter->second, x1, x2, y1, y2);
+    m_currentImageMono = m_ps.m_monoBmps.count(imageId) != 0;
+  }
 }
 
 void libcdr::CDRContentCollector::collectPpdt(const std::vector<std::pair<double, double> > &points, const std::vector<unsigned> &knotVector)

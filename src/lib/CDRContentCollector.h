@@ -86,6 +86,7 @@ private:
   void _textScale(double &sx, double &sy);
 
   void _fillProperties(librevenge::RVNGPropertyList &propList);
+  librevenge::RVNGBinaryData _monoImage(const librevenge::RVNGBinaryData &bmp);
   void _lineProperties(librevenge::RVNGPropertyList &propList);
 
   // A line marker as written out, and what it was made from
@@ -117,6 +118,7 @@ private:
   unsigned m_spnd;
   unsigned m_currentObjectLevel, m_currentGroupLevel, m_currentVectLevel, m_currentPageLevel, m_currentStyleId;
   CDRImage m_currentImage;
+  bool m_currentImageMono;   // a 1-bit bitmap (see _monoImage)
   const std::vector<CDRTextLine> *m_currentText;
   CDRBox m_currentBBox;
   CDRBox m_currentTextBox;
