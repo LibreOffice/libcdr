@@ -11,6 +11,7 @@
 
 #include <librevenge-stream/librevenge-stream.h>
 
+#include <algorithm>
 #include <math.h>
 #include <stdlib.h>
 #include <utility>
@@ -618,9 +619,9 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
       case CMX_Tag_PolyCurve_PointList:
       {
         pointNum = readU16(input, m_bigEndian);
-        // The points sit inside this tag, so its own length says how many of
-        // them there is room for.
-        const long tagEnd = startOffset + tagLength;
+        // The points sit inside this tag, and the tag inside its instruction,
+        // so the nearer of the two ends says how many of them there is room for.
+        const long tagEnd = std::min(startOffset + tagLength, (long)m_nextInstructionOffset);
         const long here = input->tell();
         const unsigned long pointsInTag = tagEnd > here ? (unsigned long)(tagEnd - here) / (2 * 4 + 1) : 0;
         if (pointNum > pointsInTag)
@@ -653,7 +654,10 @@ void libcdr::CMXParser::readPolyCurve(librevenge::RVNGInputStream *input)
     if (!readRenderingAttributes(input))
       return;
     pointNum = readU16(input, m_bigEndian);
-    const unsigned long maxPoints = getRemainingLength(input) / (2 * 2 + 1);
+    // The points sit inside this instruction.
+    const long here = input->tell();
+    const unsigned long inInstruction = (long)m_nextInstructionOffset > here ? (unsigned long)((long)m_nextInstructionOffset - here) : 0;
+    const unsigned long maxPoints = std::min(getRemainingLength(input), inInstruction) / (2 * 2 + 1);
     if (pointNum > maxPoints)
       pointNum = maxPoints;
     for (unsigned long i = 0; i < pointNum; ++i)
