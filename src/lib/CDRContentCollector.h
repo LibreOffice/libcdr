@@ -67,7 +67,7 @@ public:
   void collectPaletteEntry(unsigned, unsigned, const CDRColor &) override {}
   void collectText(unsigned, unsigned, const std::vector<unsigned char> &,
                    const std::vector<unsigned char> &, const std::map<unsigned, CDRStyle> &) override {}
-  void collectArtisticText(double x, double y) override;
+  void collectArtisticText(double x, double y, bool objectStyle = false) override;
   void collectParagraphText(double x, double y, double width, double height) override;
   void collectStld(unsigned, const CDRStyle &) override {}
   void collectStyleId(unsigned styleId) override;
@@ -120,6 +120,7 @@ private:
   CDRImage m_currentImage;
   bool m_currentImageMono;   // a 1-bit bitmap (see _monoImage)
   const std::vector<CDRTextLine> *m_currentText;
+  bool m_currentTextObjectStyle;   // its characters take the object's fill and outline (see collectArtisticText)
   CDRBox m_currentBBox;
   CDRBox m_currentTextBox;
 

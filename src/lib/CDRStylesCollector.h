@@ -65,7 +65,7 @@ public:
   void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color) override;
   void collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
                    const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRStyle> &styleOverrides) override;
-  void collectArtisticText(double, double) override {}
+  void collectArtisticText(double, double, bool) override {}
   void collectParagraphText(double, double, double, double) override {}
   void collectStld(unsigned id, const CDRStyle &style) override;
   void collectStyleId(unsigned) override {}

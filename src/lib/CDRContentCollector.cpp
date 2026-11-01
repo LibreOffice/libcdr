@@ -75,7 +75,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
   : m_painter(painter), m_isDocumentStarted(false), m_isPageProperties(false), m_isPageStarted(false),
     m_ignorePage(false), m_page(ps.m_pages[0]), m_pageIndex(0), m_currentFillStyle(), m_currentLineStyle(),
     m_spnd(0), m_currentObjectLevel(0), m_currentGroupLevel(0), m_currentVectLevel(0), m_currentPageLevel(0),
-    m_currentStyleId(0), m_currentImage(), m_currentImageMono(false), m_currentText(nullptr), m_currentBBox(), m_currentTextBox(), m_currentPath(),
+    m_currentStyleId(0), m_currentImage(), m_currentImageMono(false), m_currentText(nullptr), m_currentTextObjectStyle(false), m_currentBBox(), m_currentTextBox(), m_currentPath(),
     m_currentTransforms(), m_fillTransforms(), m_polygon(), m_isInPolygon(false), m_isInSpline(false),
     m_outputElementsStack(nullptr), m_contentOutputElementsStack(), m_fillOutputElementsStack(),
     m_outputElementsQueue(nullptr), m_contentOutputElementsQueue(), m_fillOutputElementsQueue(),
@@ -676,10 +676,13 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
             spanProps.insert("fo:font-weight", "bold");
           if (j.m_style.m_fontItalic == 2)
             spanProps.insert("fo:font-style", "italic");
-          if (j.m_style.m_fillStyle.fillType == 0)   // (no fill, outlined characters: libcdr's own, as for shapes)
+          // (a CorelDRAW 4 text: its object's fill and outline, when it has them: a text with an
+          // outline and no fill came out black)
+          const CDRFillStyle &fill = m_currentTextObjectStyle && m_currentFillStyle.fillType != (unsigned short)-1 ? m_currentFillStyle : j.m_style.m_fillStyle;
+          if (fill.fillType == 0)   // (no fill: libcdr's own, as for shapes)
             spanProps.insert("draw:fill", "none");
-          else if (j.m_style.m_fillStyle.fillType != (unsigned short)-1)
-            spanProps.insert("fo:color", m_ps.getRGBColorString(j.m_style.m_fillStyle.color1));
+          else if (fill.fillType != (unsigned short)-1)
+            spanProps.insert("fo:color", m_ps.getRGBColorString(fill.color1));
           // the character and word spacing: shares of a space's width (libcdr's own: ODF's
           // fo:letter-spacing is a length, and the font's space is not known here)
           if (!CDR_ALMOST_ZERO(j.m_style.m_charSpacing))
@@ -688,7 +691,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
             spanProps.insert("libcdr:word-spacing", j.m_style.m_wordSpacing, librevenge::RVNG_GENERIC);
           // the characters' outline (as a shape's; no ODF property for this): it was left out, so
           // white texts with a thin black outline melted into a light background
-          const CDRLineStyle &outline = j.m_style.m_lineStyle;
+          const CDRLineStyle &outline = m_currentTextObjectStyle && m_currentLineStyle.lineType != (unsigned short)-1 ? m_currentLineStyle : j.m_style.m_lineStyle;
           if (outline.lineType != (unsigned short)-1 && !(outline.lineType & 0x1) && (outline.lineType & 0x6))
           {
             double scale = outline.lineType & 0x20 ? (scaleX > scaleY ? scaleX : scaleY) : 1.0;   // scale with image
@@ -719,6 +722,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
   m_fillTransforms = libcdr::CDRTransforms();
   m_fillOpacity = 1.0;
   m_currentText = nullptr;
+  m_currentTextObjectStyle = false;
 }
 
 void libcdr::CDRContentCollector::collectTransform(const CDRTransforms &transforms, bool considerGroupTransform)
@@ -1509,8 +1513,9 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const librev
 #endif
 }
 
-void libcdr::CDRContentCollector::collectArtisticText(double x, double y)
+void libcdr::CDRContentCollector::collectArtisticText(double x, double y, bool objectStyle)
 {
+  m_currentTextObjectStyle = objectStyle;
   m_currentTextBox = CDRBox(x, y, x, y);
   m_currentBBox.m_w *= 2.0;
   std::map<unsigned, std::vector<CDRTextLine> >::const_iterator iter = m_ps.m_texts.find(m_spnd);

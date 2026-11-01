@@ -101,7 +101,8 @@ public:
   virtual void collectPaletteEntry(unsigned colorId, unsigned userId, const CDRColor &color) = 0;
   virtual void collectText(unsigned textId, unsigned styleId, const std::vector<unsigned char> &data,
                            const std::vector<unsigned char> &charDescriptions, const std::map<unsigned, CDRStyle> &styleOverrides) = 0;
-  virtual void collectArtisticText(double x, double y) = 0;
+  // objectStyle: the text object's fill and outline are its characters' (CorelDRAW 4)
+  virtual void collectArtisticText(double x, double y, bool objectStyle = false) = 0;
   virtual void collectParagraphText(double x, double y, double width, double height) = 0;
   virtual void collectStld(unsigned id, const CDRStyle &style) = 0;
   virtual void collectStyleId(unsigned id) = 0;

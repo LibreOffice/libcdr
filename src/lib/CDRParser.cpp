@@ -3436,7 +3436,7 @@ void libcdr::CDRParser::readArtisticText4(librevenge::RVNGInputStream *input, un
   if (!textData.empty())
     m_collector->collectText(textId, styleId, textData, charDescriptions, std::map<unsigned, CDRStyle>());
   m_collector->collectSpnd(textId);
-  m_collector->collectArtisticText(0.0, 0.0);
+  m_collector->collectArtisticText(0.0, 0.0, true);
 }
 
 // The document's embedded (OLE) objects: an OLE storage with an "Embedding <n>" storage each. The
