@@ -3099,7 +3099,11 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
         style.m_fontSize = readCoordinate(input);
       else
         input->seek(2, librevenge::RVNG_SEEK_CUR);
-      input->seek(2, librevenge::RVNG_SEEK_CUR);
+      // the characters' rotation in 1/10 degree (fitted to a path, a text's characters are moved
+      // and turned so, one by one)
+      short rotation = readS16(input);
+      if (flag&0x08)
+        style.m_rotation = rotation / 10.0;
       if (flag&0x10)
       {
         unsigned fillId = readU32(input);
@@ -3118,7 +3122,15 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
       }
       else
         input->seek(4, librevenge::RVNG_SEEK_CUR);
-      input->seek(14, librevenge::RVNG_SEEK_CUR);
+      // the characters' shift from their place in 1/100 em, as in the later versions (CorelDRAW's
+      // Shape tool; a form's questions were moved right of their check boxes so)
+      short shiftX = readS16(input);
+      short shiftY = readS16(input);
+      if (flag&0x40)
+        style.m_shiftX = shiftX / 100.0;
+      if (flag&0x80)
+        style.m_shiftY = shiftY / 100.0;
+      input->seek(10, librevenge::RVNG_SEEK_CUR);
       styles[2*i] = style;
     }
     unsigned long numChars = readU16(input);

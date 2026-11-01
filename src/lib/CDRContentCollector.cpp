@@ -645,6 +645,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
             spanProps.insert("libcdr:shift-x", j.m_style.m_shiftX, librevenge::RVNG_GENERIC);
           if (!CDR_ALMOST_ZERO(j.m_style.m_shiftY))
             spanProps.insert("libcdr:shift-y", j.m_style.m_shiftY, librevenge::RVNG_GENERIC);
+          if (!CDR_ALMOST_ZERO(j.m_style.m_rotation))
+            spanProps.insert("libcdr:rotate", j.m_style.m_rotation, librevenge::RVNG_GENERIC);
           spanProps.insert("fo:font-size", fontSize, librevenge::RVNG_POINT);
           if (j.m_style.m_fontName.len())
             spanProps.insert("style:font-name", j.m_style.m_fontName);
