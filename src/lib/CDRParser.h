@@ -92,6 +92,7 @@ private:
   void readTxsm5(librevenge::RVNGInputStream *input);
   void readUdta(librevenge::RVNGInputStream *input);
   void readArtisticText(librevenge::RVNGInputStream *input);
+  void readArtisticText4(librevenge::RVNGInputStream *input, unsigned textId, unsigned styleId);
   void readParagraphText(librevenge::RVNGInputStream *input);
 
   bool _redirectX6Chunk(librevenge::RVNGInputStream **input, unsigned &length);
@@ -112,6 +113,7 @@ private:
   unsigned m_layerLevel;
   bool m_layerFlagsPending;
   bool m_skipLayer;
+  unsigned m_textCount4;   // CorelDRAW 4 texts read: their ids (the same in both passes)
   // X6 text styles, parsed once: big plans repeat the same JSON style strings thousands of times
   std::map<std::string, std::shared_ptr<const boost::property_tree::ptree>> m_x6Styles;
 

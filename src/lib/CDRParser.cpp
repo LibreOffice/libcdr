@@ -253,7 +253,7 @@ void dropLeadingLineBreak(std::vector<unsigned char> &textData, std::vector<unsi
 libcdr::CDRParser::CDRParser(const std::vector<std::unique_ptr<librevenge::RVNGInputStream>> &externalStreams, libcdr::CDRCollector *collector)
   : CommonParser(collector), m_externalStreams(externalStreams),
     m_fonts(), m_fillStyles(), m_lineStyles(), m_arrows(), m_version(0), m_waldoOutlId(0), m_waldoFillId(0),
-    m_layerLevel(0), m_layerFlagsPending(false), m_skipLayer(false), m_x6Styles() {}
+    m_layerLevel(0), m_layerFlagsPending(false), m_skipLayer(false), m_textCount4(0), m_x6Styles() {}
 
 libcdr::CDRParser::~CDRParser()
 {
@@ -1804,11 +1804,20 @@ void libcdr::CDRParser::readLoda(librevenge::RVNGInputStream *input, unsigned le
   input->seek(startPosition+startOfArgTypes, librevenge::RVNG_SEEK_SET);
   while (i>0)
     argTypes[--i] = readUnsigned(input);
+  unsigned textStyleId = 0;   // (CorelDRAW 4 text: its style, for the text read with its coordinates)
+  for (i=0; i < argTypes.size(); i++)
+    if (argTypes[i] == 0xc8)
+    {
+      input->seek(startPosition+argOffsets[i], librevenge::RVNG_SEEK_SET);
+      textStyleId = readUnsigned(input);
+    }
 
   for (i=0; i < argTypes.size(); i++)
   {
     input->seek(startPosition+argOffsets[i], librevenge::RVNG_SEEK_SET);
-    if (argTypes[i] == 0x1e) // loda coords
+    if (argTypes[i] == 0x1e && m_version >= 400 && m_version < 500 && chunkType == 0x04)
+      readArtisticText4(input, 0x40000000 + m_textCount4++, textStyleId);
+    else if (argTypes[i] == 0x1e) // loda coords
     {
       if ((m_version >= 400 && chunkType == 0x01) || (m_version < 400 && chunkType == 0x00)) // Rectangle
         readRectangle(input);
@@ -3265,6 +3274,38 @@ void libcdr::CDRParser::readArtisticText(librevenge::RVNGInputStream *input)
   double x = readCoordinate(input);
   double y = readCoordinate(input);
   m_collector->collectArtisticText(x, y);
+}
+
+// CorelDRAW 4 keeps an artistic text's characters in its object, not in a text record of the
+// document: a 0 field, the number of characters, the field's length, then 3 bytes a character
+// (flags, the character in the font's code page, 0); with flag bit 0 a 22-byte record of the
+// character's own style follows (not read: the character takes the text's style). Lines end in
+// CR LF. The text sits at the origin of its transformation. It was read as two coordinates (the
+// characters' count among them), and the characters not at all: CorelDRAW 4 texts were missing.
+void libcdr::CDRParser::readArtisticText4(librevenge::RVNGInputStream *input, unsigned textId, unsigned styleId)
+{
+  input->seek(2, librevenge::RVNG_SEEK_CUR);
+  unsigned numChars = readU16(input);
+  input->seek(2, librevenge::RVNG_SEEK_CUR);
+  if (numChars > getRemainingLength(input) / 3)
+    numChars = getRemainingLength(input) / 3;
+  std::vector<unsigned char> textData;
+  textData.reserve(numChars);
+  for (unsigned i = 0; i < numChars; ++i)
+  {
+    unsigned char flags = readU8(input);
+    unsigned char character = readU8(input);
+    input->seek((flags & 1) ? 23 : 1, librevenge::RVNG_SEEK_CUR);
+    if (character == 0x0a && !textData.empty() && textData.back() == 0x0d)
+      continue;
+    textData.push_back(character);
+  }
+  std::vector<unsigned char> charDescriptions(textData.size(), 0);
+  dropLeadingLineBreak(textData, charDescriptions);
+  if (!textData.empty())
+    m_collector->collectText(textId, styleId, textData, charDescriptions, std::map<unsigned, CDRStyle>());
+  m_collector->collectSpnd(textId);
+  m_collector->collectArtisticText(0.0, 0.0);
 }
 
 void libcdr::CDRParser::readParagraphText(librevenge::RVNGInputStream *input)
