@@ -2226,8 +2226,12 @@ void libcdr::CDRParser::readFont(librevenge::RVNGInputStream *input, unsigned le
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned short fontId = readU16(input);
-  unsigned short fontEncoding = readU16(input);
-  input->seek(14, librevenge::RVNG_SEEK_CUR);
+  unsigned short fontEncoding = 0;
+  if (m_version >= 500)   // (CorelDRAW 4: the name follows the id)
+  {
+    fontEncoding = readU16(input);
+    input->seek(14, librevenge::RVNG_SEEK_CUR);
+  }
   std::vector<unsigned char> name;
   librevenge::RVNGString fontName;
   if (m_version >= 1200)
