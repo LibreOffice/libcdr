@@ -3249,8 +3249,21 @@ void libcdr::CDRParser::readStyd(librevenge::RVNGInputStream *input)
       break;
     case STYD_BULLETS:
       break;
-    case STYD_INTERVALS:
+    case STYD_INTERVALS:   // (percents: character, word and line spacing, spacing before and after a paragraph)
+    {
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
+      unsigned line = readU16(input);
+      unsigned before = readU16(input);
+      unsigned after = readU16(input);
+      if (line > 0 && line < 10000 && before < 10000 && after < 10000)
+      {
+        style.m_lineSpacing = line / 100.0;
+        style.m_spaceBefore = before / 100.0;
+        style.m_spaceAfter = after / 100.0;
+        style.m_hasParagraphSpacing = true;
+      }
       break;
+    }
     case STYD_TABS:
       break;
     case STYD_IDENTS:
