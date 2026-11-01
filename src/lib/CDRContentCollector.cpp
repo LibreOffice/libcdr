@@ -676,7 +676,9 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
             spanProps.insert("fo:font-weight", "bold");
           if (j.m_style.m_fontItalic == 2)
             spanProps.insert("fo:font-style", "italic");
-          if (j.m_style.m_fillStyle.fillType != (unsigned short)-1)
+          if (j.m_style.m_fillStyle.fillType == 0)   // (no fill, outlined characters: libcdr's own, as for shapes)
+            spanProps.insert("draw:fill", "none");
+          else if (j.m_style.m_fillStyle.fillType != (unsigned short)-1)
             spanProps.insert("fo:color", m_ps.getRGBColorString(j.m_style.m_fillStyle.color1));
           // the character and word spacing: shares of a space's width (libcdr's own: ODF's
           // fo:letter-spacing is a length, and the font's space is not known here)
