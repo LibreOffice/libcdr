@@ -1011,6 +1011,22 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             stopElement.insert("svg:offset", gradStop.m_offset, librevenge::RVNG_PERCENT);
             stopElement.insert("svg:stop-color", m_ps.getRGBColorString(gradStop.m_color));
             stops.append(stopElement);
+            // a two colour fill's midpoint (versions 7+; 0 before): the colours half mixed there,
+            // evenly on both sides of it (as CorelDRAW 9's PDF exports show)
+            if (gradient.m_stops.size() == 2 && &gradStop == &gradient.m_stops[0] && gradient.m_midPoint > 0.0
+                && gradient.m_midPoint < 1.0 && gradient.m_midPoint != 0.5)
+            {
+              const unsigned a = m_ps._getRGBColor(gradient.m_stops[0].m_color);
+              const unsigned b = m_ps._getRGBColor(gradient.m_stops[1].m_color);
+              const double at = gradient.m_stops[0].m_offset + gradient.m_midPoint * (gradient.m_stops[1].m_offset - gradient.m_stops[0].m_offset);
+              librevenge::RVNGString mixed;
+              mixed.sprintf("#%.2x%.2x%.2x", (((a >> 16) & 0xff) + ((b >> 16) & 0xff) + 1) / 2,
+                            (((a >> 8) & 0xff) + ((b >> 8) & 0xff) + 1) / 2, ((a & 0xff) + (b & 0xff) + 1) / 2);
+              librevenge::RVNGPropertyList midElement;
+              midElement.insert("svg:offset", at, librevenge::RVNG_PERCENT);
+              midElement.insert("svg:stop-color", mixed);
+              stops.append(midElement);
+            }
           }
           propList.insert("libcdr:gradient-stops", stops);
         }
