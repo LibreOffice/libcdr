@@ -2336,6 +2336,10 @@ void libcdr::CDRParser::readFont(librevenge::RVNGInputStream *input, unsigned le
   }
   if (!fontEncoding)
     processNameForEncoding(fontName, fontEncoding);
+  // the Symbol font's characters are Greek letters and signs: CorelDRAW 5's font records give
+  // another value there (0x40), so a sum sign came out as an S, a mu as an m
+  if (fontName == "Symbol")
+    fontEncoding = 0x02;
   std::map<unsigned, CDRFont>::const_iterator iter = m_fonts.find(fontId);
   // Asume that the first font with the given ID is a font
   // that we want, the others are substitution fonts. We might
