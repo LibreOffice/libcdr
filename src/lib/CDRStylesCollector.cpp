@@ -283,6 +283,11 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
       style.overrideStyle(iter->second);
     if ((key & 0x100) && defaultCharStyle.m_fontSize > 0)
       style.m_fontSize = defaultCharStyle.m_fontSize;
+    else if (style.m_subscript)   // (the shift in the subscript's em: a fifth of the full size)
+    {
+      style.m_fontSize /= 2.0;
+      style.m_shiftY -= 0.4;
+    }
     return style;
   };
 

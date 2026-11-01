@@ -3184,7 +3184,12 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
         setFontStyle(style, readU16(input));
       else
         input->seek(2, librevenge::RVNG_SEEK_CUR);
-      input->seek(4, librevenge::RVNG_SEEK_CUR);
+      // with the style, the characters' placement: 4 a subscript (as CorelDRAW 9's PDF exports show);
+      // it was skipped, so formulas' indices stood on the line at full size
+      input->seek(3, librevenge::RVNG_SEEK_CUR);
+      unsigned char placement = readU8(input);
+      if ((flag&0x02) && placement == 4)
+        style.m_subscript = true;
       if (flag&0x04)
         style.m_fontSize = readCoordinate(input);
       else

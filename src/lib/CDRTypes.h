@@ -148,6 +148,7 @@ struct CDRStyle
   unsigned m_fontItalic;   // 0: not set, 1 upright, 2 italic
   double m_shiftX, m_shiftY;   // characters moved from their place, in em (up positive)
   double m_rotation;   // characters turned about their place, in degrees (counter-clockwise)
+  bool m_subscript;    // (CorelDRAW 5) half the size, a fifth of the size lower
   unsigned m_align;
   double m_leftIndent, m_firstIndent, m_rightIndent;
   double m_lineSpacing;   // the line spacing: > 0 a share of the character height (1.0: 100%), < 0 in points, 0: not set
@@ -160,7 +161,7 @@ struct CDRStyle
   unsigned m_parentId;
   CDRStyle()
     : m_charSet((unsigned short)-1), m_fontName(),
-      m_fontSize(0.0), m_fontWeight(0), m_fontItalic(0), m_shiftX(0.0), m_shiftY(0.0), m_rotation(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
+      m_fontSize(0.0), m_fontWeight(0), m_fontItalic(0), m_shiftX(0.0), m_shiftY(0.0), m_rotation(0.0), m_subscript(false), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
       m_rightIndent(0.0), m_lineSpacing(0.0), m_spaceBefore(0.0), m_spaceAfter(0.0), m_hasParagraphSpacing(false),
       m_charSpacing(0.0), m_wordSpacing(1.0), m_hasCharSpacing(false), m_lineStyle(), m_fillStyle(), m_parentId(0)
   {
@@ -185,6 +186,8 @@ struct CDRStyle
       m_shiftY = override.m_shiftY;
     if (!CDR_ALMOST_ZERO(override.m_rotation))
       m_rotation = override.m_rotation;
+    if (override.m_subscript)
+      m_subscript = true;
     if (override.m_align)
       m_align = override.m_align;
     if (!CDR_ALMOST_ZERO(override.m_leftIndent) && !CDR_ALMOST_ZERO(override.m_firstIndent) && !CDR_ALMOST_ZERO(override.m_rightIndent))
