@@ -473,7 +473,19 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     if (!CDR_ALMOST_ZERO(rotate))
       propList.insert("librevenge:rotate", rotate * 180 / M_PI, librevenge::RVNG_GENERIC);
 
-    propList.insert("librevenge:mime-type", "image/bmp");
+    // (libcdr's bitmaps are BMPs; embedded objects' images, their own format)
+    const librevenge::RVNGBinaryData &imageData = m_currentImage.getImage();
+    const unsigned char *head = imageData.getDataBuffer();
+    const char *mimeType = "image/bmp";
+    if (imageData.size() > 4 && !memcmp(head, "8BPS", 4))
+      mimeType = "image/vnd.adobe.photoshop";
+    else if (imageData.size() > 4 && !memcmp(head, "\x89PNG", 4))
+      mimeType = "image/png";
+    else if (imageData.size() > 3 && !memcmp(head, "\xff\xd8\xff", 3))
+      mimeType = "image/jpeg";
+    else if (imageData.size() > 4 && !memcmp(head, "GIF8", 4))
+      mimeType = "image/gif";
+    propList.insert("librevenge:mime-type", mimeType);
     propList.insert("office:binary-data", m_currentImageMono ? _monoImage(m_currentImage.getImage()) : m_currentImage.getImage());
     // the bitmap's own outline (a bitmap cropped with the Shape tool, or a pattern tile of an
     // imported PDF): it shows only inside it (libcdr's own: librevenge has no clip for images)

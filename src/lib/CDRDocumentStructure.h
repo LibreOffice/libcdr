@@ -90,6 +90,8 @@
 #define CDR_FOURCC_npps 0x7370706e
 
 #define CDR_FOURCC_obbx 0x7862626f
+#define CDR_FOURCC_ole2 0x32656c6f
+#define CDR_FOURCC_olel 0x6c656c6f
 #define CDR_FOURCC_obj  0x206a626f
 #define CDR_FOURCC_osfp 0x7066736f
 #define CDR_FOURCC_otlt 0x746c746f

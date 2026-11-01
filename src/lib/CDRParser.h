@@ -94,6 +94,8 @@ private:
   void readArtisticText(librevenge::RVNGInputStream *input);
   void readArtisticText4(librevenge::RVNGInputStream *input, unsigned textId, unsigned styleId);
   void readParagraphText(librevenge::RVNGInputStream *input);
+  void readOle2(librevenge::RVNGInputStream *input, unsigned length);
+  void readOlel(librevenge::RVNGInputStream *input);
 
   bool _redirectX6Chunk(librevenge::RVNGInputStream **input, unsigned &length);
   void _readX6StyleString(librevenge::RVNGInputStream *input, unsigned long length, CDRStyle &style);
@@ -114,6 +116,7 @@ private:
   bool m_layerFlagsPending;
   bool m_skipLayer;
   unsigned m_textCount4;   // CorelDRAW 4 texts read: their ids (the same in both passes)
+  double m_oleX1, m_oleX2, m_oleY1, m_oleY2;   // the embedded (OLE) object being read: its box
   // X6 text styles, parsed once: big plans repeat the same JSON style strings thousands of times
   std::map<std::string, std::shared_ptr<const boost::property_tree::ptree>> m_x6Styles;
 

@@ -8,6 +8,8 @@
  */
 
 #include "CDRParser.h"
+#include <cstdio>
+#include <librevenge-stream/librevenge-stream.h>
 
 #include <locale.h>
 #include <math.h>
@@ -253,7 +255,8 @@ void dropLeadingLineBreak(std::vector<unsigned char> &textData, std::vector<unsi
 libcdr::CDRParser::CDRParser(const std::vector<std::unique_ptr<librevenge::RVNGInputStream>> &externalStreams, libcdr::CDRCollector *collector)
   : CommonParser(collector), m_externalStreams(externalStreams),
     m_fonts(), m_fillStyles(), m_lineStyles(), m_arrows(), m_version(0), m_waldoOutlId(0), m_waldoFillId(0),
-    m_layerLevel(0), m_layerFlagsPending(false), m_skipLayer(false), m_textCount4(0), m_x6Styles() {}
+    m_layerLevel(0), m_layerFlagsPending(false), m_skipLayer(false), m_textCount4(0),
+    m_oleX1(0.0), m_oleX2(0.0), m_oleY1(0.0), m_oleY2(0.0), m_x6Styles() {}
 
 libcdr::CDRParser::~CDRParser()
 {
@@ -796,6 +799,12 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, librevenge:
     break;
   case CDR_FOURCC_styd:
     readStyd(input);
+    break;
+  case CDR_FOURCC_ole2:
+    readOle2(input, length);
+    break;
+  case CDR_FOURCC_olel:
+    readOlel(input);
     break;
   default:
     break;
@@ -1817,6 +1826,17 @@ void libcdr::CDRParser::readLoda(librevenge::RVNGInputStream *input, unsigned le
     input->seek(startPosition+argOffsets[i], librevenge::RVNG_SEEK_SET);
     if (argTypes[i] == 0x1e && m_version >= 400 && m_version < 500 && chunkType == 0x04)
       readArtisticText4(input, 0x40000000 + m_textCount4++, textStyleId);
+    else if (argTypes[i] == 0x1e && chunkType == 0x0a && m_version >= 600)   // an embedded (OLE) object
+    {
+      // its width and height, then two opposite corners (the object is drawn from the document's
+      // OLE storage when its olel record comes, see readOlel)
+      readCoordinate(input);
+      readCoordinate(input);
+      m_oleX1 = readCoordinate(input);
+      m_oleY1 = readCoordinate(input);
+      m_oleX2 = readCoordinate(input);
+      m_oleY2 = readCoordinate(input);
+    }
     else if (argTypes[i] == 0x1e) // loda coords
     {
       if ((m_version >= 400 && chunkType == 0x01) || (m_version < 400 && chunkType == 0x00)) // Rectangle
@@ -3335,6 +3355,64 @@ void libcdr::CDRParser::readArtisticText4(librevenge::RVNGInputStream *input, un
     m_collector->collectText(textId, styleId, textData, charDescriptions, std::map<unsigned, CDRStyle>());
   m_collector->collectSpnd(textId);
   m_collector->collectArtisticText(0.0, 0.0);
+}
+
+// The document's embedded (OLE) objects: an OLE storage with an "Embedding <n>" storage each. The
+// ones whose CONTENTS stream is an image (a Photoshop image, PNG, JPEG ...) become bitmaps, numbered
+// 0x80000000 + n; the others (their WMF previews in OlePres000) are not drawn. They were all skipped:
+// a seal's Photoshop drawing was missing.
+void libcdr::CDRParser::readOle2(librevenge::RVNGInputStream *input, unsigned length)
+{
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
+  if (length > getRemainingLength(input))
+    length = (unsigned)getRemainingLength(input);
+  unsigned long numBytesRead = 0;
+  const unsigned char *buffer = input->read(length, numBytesRead);
+  if (!buffer || numBytesRead < 512)
+    return;
+  librevenge::RVNGStringStream storage(buffer, (unsigned)numBytesRead);
+  if (!storage.isStructured())
+    return;
+  for (unsigned i = 0; i < storage.subStreamCount(); ++i)
+  {
+    const char *name = storage.subStreamName(i);
+    unsigned id = 0;
+    char stream[16] = {0};
+    if (!name || sscanf(name, "Embedding %u/%15s", &id, stream) != 2 || strcmp(stream, "CONTENTS"))
+      continue;
+    std::unique_ptr<librevenge::RVNGInputStream> contents(storage.getSubStreamById(i));
+    if (!contents)
+      continue;
+    std::vector<unsigned char> data;
+    while (!contents->isEnd())
+    {
+      unsigned long got = 0;
+      const unsigned char *p = contents->read(65536, got);
+      if (!p || !got)
+        break;
+      data.insert(data.end(), p, p + got);
+    }
+    static const struct
+    {
+      const char *magic;
+      size_t length;
+    } images[] = {{"8BPS", 4}, {"\x89PNG", 4}, {"\xff\xd8\xff", 3}, {"BM", 2}, {"GIF8", 4}};
+    for (const auto &image : images)
+      if (data.size() > 64 && !memcmp(&data[0], image.magic, image.length))
+      {
+        m_collector->collectBmp(0x80000000 + id, data);
+        break;
+      }
+  }
+}
+
+// an object's link to its embedded (OLE) object: drawn as a bitmap in the box its loda gave
+void libcdr::CDRParser::readOlel(librevenge::RVNGInputStream *input)
+{
+  input->seek(4, librevenge::RVNG_SEEK_CUR);
+  unsigned id = readU32(input);
+  m_collector->collectBitmap(0x80000000 + id, m_oleX1, m_oleX2, m_oleY1, m_oleY2);
 }
 
 void libcdr::CDRParser::readParagraphText(librevenge::RVNGInputStream *input)
