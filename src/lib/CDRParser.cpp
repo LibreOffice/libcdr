@@ -1291,8 +1291,9 @@ void libcdr::CDRParser::readWaldoOutl(librevenge::RVNGInputStream *input)
 {
   if (m_version >= 400)
     return;
+  // (0: no outline, as CorelDRAW 5 draws such files; it was a black hairline round every shape)
   unsigned short lineType = readU8(input);
-  lineType <<= 1;
+  lineType = lineType ? lineType << 1 : 1;
   auto lineWidth = (double)readCoordinate(input);
   double stretch = (double)readU16(input) / 100.0;
   double angle = readAngle(input);
