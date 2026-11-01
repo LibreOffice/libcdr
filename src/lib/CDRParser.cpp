@@ -3342,7 +3342,16 @@ void libcdr::CDRParser::readStyd(librevenge::RVNGInputStream *input)
       if (m_version >= 600)
         input->seek(8, librevenge::RVNG_SEEK_CUR);
       style.m_fontSize = readCoordinate(input);
-      if (m_version < 600)   // the font style (see setFontStyle)
+      if (m_version < 500)   // CorelDRAW 4's font style: 1 normal, 2 bold, 4 italic (as its PDF exports
+      {                       // show; its bold headings were not bold)
+        unsigned short fontStyle = readU16(input);
+        if (fontStyle == 1 || fontStyle == 2 || fontStyle == 4)
+        {
+          style.m_fontWeight = fontStyle == 2 ? 700 : 400;
+          style.m_fontItalic = fontStyle == 4 ? 2 : 1;
+        }
+      }
+      else if (m_version < 600)   // the font style (see setFontStyle)
         setFontStyle(style, readU16(input));
       break;
     }
