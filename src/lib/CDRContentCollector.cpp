@@ -41,6 +41,32 @@ namespace libcdr
 namespace
 {
 
+// An arrowhead's outline as SVG path data in its own units, as its arrw record gives it (libcdr's
+// own libcdr:marker-start / -end: draw:marker-*-path is transformed for ODF's drawing of markers)
+librevenge::RVNGString markerPath(const libcdr::CDRPath &marker)
+{
+  librevenge::RVNGPropertyListVector vec;
+  marker.writeOut(vec);
+  librevenge::RVNGString out;
+  for (unsigned long i = 0; i < vec.count(); ++i)
+  {
+    const librevenge::RVNGPropertyList &e = vec[i];
+    if (!e["librevenge:path-action"])
+      continue;
+    librevenge::RVNGString action = e["librevenge:path-action"]->getStr();
+    librevenge::RVNGString part;
+    if (action == "C" && e["svg:x1"] && e["svg:y1"] && e["svg:x2"] && e["svg:y2"] && e["svg:x"] && e["svg:y"])
+      part.sprintf("C%g %g %g %g %g %g", e["svg:x1"]->getDouble(), e["svg:y1"]->getDouble(), e["svg:x2"]->getDouble(),
+                   e["svg:y2"]->getDouble(), e["svg:x"]->getDouble(), e["svg:y"]->getDouble());
+    else if ((action == "M" || action == "L") && e["svg:x"] && e["svg:y"])
+      part.sprintf("%s%g %g", action.cstr(), e["svg:x"]->getDouble(), e["svg:y"]->getDouble());
+    else if (action == "Z")
+      part = "Z";
+    out.append(part);
+  }
+  return out;
+}
+
 /// Move the number into [0;1] range.
 void normalize(double &d)
 {
@@ -1335,6 +1361,20 @@ void libcdr::CDRContentCollector::_lineProperties(librevenge::RVNGPropertyList &
       }
       scale *= m_currentLineStyle.stretch;
       propList.insert("svg:stroke-width", m_currentLineStyle.lineWidth * scale);
+      // arrowheads, in their own units: 1 (1000 in a CorelDRAW 5 arrw record) is twice the line's
+      // width, but no less than 0.028 inch (as CorelDRAW 9's PDF exports show); the tip at the
+      // line's end, the arrowhead's y axis along the line (libcdr's own properties)
+      const bool hasStartMarker = m_currentLineStyle.startMarker && !m_currentLineStyle.startMarker->empty();
+      const bool hasEndMarker = m_currentLineStyle.endMarker && !m_currentLineStyle.endMarker->empty();
+      if (hasStartMarker || hasEndMarker)
+      {
+        double width = m_currentLineStyle.lineWidth * scale;
+        propList.insert("libcdr:marker-unit", 2.0 * (width > 0.014 ? width : 0.014));
+        if (hasStartMarker)
+          propList.insert("libcdr:marker-start", markerPath(*m_currentLineStyle.startMarker));
+        if (hasEndMarker)
+          propList.insert("libcdr:marker-end", markerPath(*m_currentLineStyle.endMarker));
+      }
       propList.insert("svg:stroke-color", m_ps.getRGBColorString(m_currentLineStyle.color));
 
       switch (m_currentLineStyle.capsType)

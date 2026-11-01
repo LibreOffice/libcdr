@@ -1193,12 +1193,13 @@ void libcdr::CDRParser::readPath(librevenge::RVNGInputStream *input)
 void libcdr::CDRParser::readArrw(librevenge::RVNGInputStream *input, unsigned length)
 {
   CDR_DEBUG_MSG(("CDRParser::readArrw\n"));
-  if (m_version < 600)
+  // (CorelDRAW 5 as well, its id followed by 2 bytes, not 4: its lines' arrowheads were missing)
+  if (m_version < 500)
     return;
   if (!_redirectX6Chunk(&input, length))
     throw GenericException();
   unsigned arrowId = readU32(input);
-  input->seek(4, librevenge::RVNG_SEEK_CUR);
+  input->seek(m_version < 600 ? 2 : 4, librevenge::RVNG_SEEK_CUR);
   unsigned long pointNum = readU16(input);
   const unsigned short pointSize = 2 * (m_precision == PRECISION_16BIT ? 2 : 4) + 1;
   const unsigned long maxLength = getRemainingLength(input);
