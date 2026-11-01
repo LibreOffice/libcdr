@@ -265,39 +265,57 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   if (data.empty() && styleOverrides.empty())
     return;
 
-  unsigned char tmpCharDescription = 0;
+  // a run's key: the character description (its style, bit 0: 2-byte characters), with 0x100 for
+  // line breaks: a line break has its character's font but the text's own size, the most CorelDRAW
+  // makes an empty line (its previews and PDF exports: after a 20 pt title in a 12 pt text, 12 pt
+  // empty lines; 10 pt line breaks in a 17.4 pt text, 17.4 pt empty lines)
+  unsigned tmpKey = 0;
   unsigned i = 0;
   unsigned j = 0;
   std::vector<unsigned char> tmpTextData;
   CDRStyle defaultCharStyle, tmpCharStyle;
   m_ps.getRecursedStyle(defaultCharStyle, styleId);
+  auto styleOf = [&](unsigned key)
+  {
+    CDRStyle style = defaultCharStyle;
+    auto iter = styleOverrides.find(key & 0xfe);
+    if (iter != styleOverrides.end())
+      style.overrideStyle(iter->second);
+    if ((key & 0x100) && defaultCharStyle.m_fontSize > 0)
+      style.m_fontSize = defaultCharStyle.m_fontSize;
+    return style;
+  };
 
   CDRTextLine line;
   for (i=0, j=0; i<charDescriptions.size() && j<data.size(); ++i)
   {
-    tmpCharStyle = defaultCharStyle;
-    auto iter = styleOverrides.find(tmpCharDescription & 0xfe);
-    if (iter != styleOverrides.end())
-      tmpCharStyle.overrideStyle(iter->second);
-    if (charDescriptions[i] != tmpCharDescription)
+    bool twoByte = charDescriptions[i] & 0x01;
+    bool lineBreak = data[j] == 0x0d && (!twoByte || (j + 1 < data.size() && data[j + 1] == 0));
+    unsigned key = lineBreak ? 0x100 | charDescriptions[i] : charDescriptions[i];
+    tmpCharStyle = styleOf(tmpKey);
+    if (key != tmpKey)
     {
       librevenge::RVNGString text;
-      if (!tmpTextData.empty())
+      if (tmpKey & 0x100)   // (line breaks, not converted: a symbol font's code page made them other characters)
+        for (size_t k = 0; k < tmpTextData.size(); k += (tmpKey & 0x01) ? 2 : 1)
+          text.append('\n');
+      else if (!tmpTextData.empty())
       {
-        if (tmpCharDescription & 0x01)
+        if (tmpKey & 0x01)
           appendCharacters(text, tmpTextData);
         else
           appendCharacters(text, tmpTextData, tmpCharStyle.m_charSet);
       }
       line.append(CDRText(text, tmpCharStyle));
       tmpTextData.clear();
-      tmpCharDescription = charDescriptions[i];
+      tmpKey = key;
 
     }
     tmpTextData.push_back(data[j++]);
-    if ((tmpCharDescription & 0x01) && (j < data.size()))
+    if ((tmpKey & 0x01) && (j < data.size()))
       tmpTextData.push_back(data[j++]);
   }
+  tmpCharStyle = styleOf(tmpKey);
   if (!i)   // an empty paragraph: its style all the same (it gives the line its height)
   {
     tmpCharStyle = defaultCharStyle;
@@ -306,9 +324,12 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
       tmpCharStyle.overrideStyle(iter->second);
   }
   librevenge::RVNGString text;
-  if (!tmpTextData.empty())
+  if (tmpKey & 0x100)
+    for (size_t k = 0; k < tmpTextData.size(); k += (tmpKey & 0x01) ? 2 : 1)
+      text.append('\n');
+  else if (!tmpTextData.empty())
   {
-    if (tmpCharDescription & 0x01)
+    if (tmpKey & 0x01)
       appendCharacters(text, tmpTextData);
     else
       appendCharacters(text, tmpTextData, tmpCharStyle.m_charSet);
