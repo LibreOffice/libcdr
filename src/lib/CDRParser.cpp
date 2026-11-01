@@ -366,19 +366,27 @@ bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
       double y1 = readCoordinate(input);
       unsigned short flags = readU16(input);
       CDRTransform trafo;
-      if (moreDataID)
+      // the group's transform: the last 24 bytes of the 0x8c part of its more data record (that
+      // part has 10 more bytes before them, or none: they were always read from 0x26, so such a
+      // group was stretched out of the page; a missing record left them read from the wrong place)
+      std::map<unsigned, WaldoRecordInfo>::const_iterator iter7 = records7.find(moreDataID);
+      if (moreDataID && iter7 != records7.end())
       {
-        std::map<unsigned, WaldoRecordInfo>::const_iterator iter7 = records7.find(moreDataID);
-        if (iter7 != records7.end())
-          input->seek(iter7->second.offset, librevenge::RVNG_SEEK_SET);
-        input->seek(0x26, librevenge::RVNG_SEEK_CUR);
-        double v0 = readFixedPoint(input);
-        double v1 = readFixedPoint(input);
-        double v2 = readFixedPoint(input) / 1000.0;
-        double v3 = readFixedPoint(input);
-        double v4 = readFixedPoint(input);
-        double v5 = readFixedPoint(input) / 1000.0;
-        trafo = CDRTransform(v0, v1, v2, v3, v4, v5);
+        input->seek(iter7->second.offset + 0x12, librevenge::RVNG_SEEK_SET);
+        unsigned short tag = readU16(input);
+        input->seek(4, librevenge::RVNG_SEEK_CUR);
+        unsigned partLength = readU32(input);
+        if (tag == 0x8c && partLength >= 24 && partLength <= 0x100)
+        {
+          input->seek(partLength - 24, librevenge::RVNG_SEEK_CUR);
+          double v0 = readFixedPoint(input);
+          double v1 = readFixedPoint(input);
+          double v2 = readFixedPoint(input) / 1000.0;
+          double v3 = readFixedPoint(input);
+          double v4 = readFixedPoint(input);
+          double v5 = readFixedPoint(input) / 1000.0;
+          trafo = CDRTransform(v0, v1, v2, v3, v4, v5);
+        }
       }
       records1[record.id] = WaldoRecordType1(record.id, next, previous, child, parent, flags, x0, y0, x1, y1, trafo);
     }
