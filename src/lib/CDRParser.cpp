@@ -3323,7 +3323,9 @@ void libcdr::CDRParser::readArtisticText4(librevenge::RVNGInputStream *input, un
 
 void libcdr::CDRParser::readParagraphText(librevenge::RVNGInputStream *input)
 {
-  input->seek(4, librevenge::RVNG_SEEK_CUR);
+  // (a field before the frame's size, as long as a coordinate: CorelDRAW 5 read its height as the
+  // width, and the next field, 1, as the height)
+  input->seek(m_version < 600 ? 2 : 4, librevenge::RVNG_SEEK_CUR);
   double width = readCoordinate(input);
   double height = readCoordinate(input);
   m_collector->collectParagraphText(0.0, 0.0, width, height);
