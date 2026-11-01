@@ -2761,8 +2761,11 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
         }
         if (fl2&4) // Font Size
           style.m_fontSize = readCoordinate(input);
-        if (fl2&8) // assumption
-          input->seek(4, librevenge::RVNG_SEEK_CUR);
+        // the characters' rotation in 1/1000000 degree, counter-clockwise (as a fitted text's,
+        // CorelDRAW's Shape tool turns them so); it was skipped, so characters moved one by one
+        // along a circle stood upright, and their line ran off it
+        if (fl2&8)
+          style.m_rotation = readS32(input) / 1000000.0;
         // the characters' shift from their place in 1/100 em (PDF imports place each word of a
         // line so; CorelDRAW's Shape tool too)
         if (fl2&0x10) // Offset X
