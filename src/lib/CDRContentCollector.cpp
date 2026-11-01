@@ -501,6 +501,8 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     double y2 = m_currentTextBox.m_y - m_currentTextBox.m_h;
     double rotate = 0.0;   // the text frame's rotation (degrees, as for images)
     double scaleX = 1.0, scaleY = 1.0;   // artistic text stretched by its transform
+    bool mirrored = false;   // artistic text mirrored by its transform (its characters are drawn
+                             // unmirrored, at their mirrored places: their shifts' y turns over)
     if (!CDR_ALMOST_ZERO(m_currentTextBox.m_h) && !CDR_ALMOST_ZERO(m_currentTextBox.m_w))
     {
       // three corners of the frame (top left, top right, bottom left): its centre, size and
@@ -532,6 +534,14 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
       // at the alignment point), turned around it; the bounding box only approximated that
       rotate = _textRotation();
       _textScale(scaleX, scaleY);
+      double o[2] = {0.0, 0.0}, u[2] = {1.0, 0.0}, v[2] = {0.0, 1.0};
+      for (double *p : {o, u, v})
+      {
+        m_currentTransforms.applyToPoint(p[0], p[1]);
+        if (!m_groupTransforms.empty())
+          m_groupTransforms.top().applyToPoint(p[0], p[1]);
+      }
+      mirrored = (u[0] - o[0]) * (v[1] - o[1]) - (u[1] - o[1]) * (v[0] - o[0]) < 0;
       x1 = 0.0;
       y1 = 0.0;
       m_currentTransforms.applyToPoint(x1, y1);
@@ -656,7 +666,7 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
           if (!CDR_ALMOST_ZERO(j.m_style.m_shiftX))   // (libcdr's own: no ODF property for this)
             spanProps.insert("libcdr:shift-x", j.m_style.m_shiftX, librevenge::RVNG_GENERIC);
           if (!CDR_ALMOST_ZERO(j.m_style.m_shiftY))
-            spanProps.insert("libcdr:shift-y", j.m_style.m_shiftY, librevenge::RVNG_GENERIC);
+            spanProps.insert("libcdr:shift-y", mirrored ? -j.m_style.m_shiftY : j.m_style.m_shiftY, librevenge::RVNG_GENERIC);
           if (!CDR_ALMOST_ZERO(j.m_style.m_rotation))
             spanProps.insert("libcdr:rotate", j.m_style.m_rotation, librevenge::RVNG_GENERIC);
           spanProps.insert("fo:font-size", fontSize, librevenge::RVNG_POINT);

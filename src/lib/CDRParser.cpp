@@ -2645,6 +2645,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
       return readTxsm16(input);
 
     unsigned frameFlag = readU32(input);
+    bool fitted = false;   // a text fitted to a path: its characters' places follow its text
     input->seek(0x20, librevenge::RVNG_SEEK_CUR);
     if (m_version >= 1500)
       input->seek(1, librevenge::RVNG_SEEK_CUR);
@@ -2655,6 +2656,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
 
       if (textOnPath == 1)
       {
+        fitted = true;
         input->seek(4, librevenge::RVNG_SEEK_CUR); // var1
         input->seek(4, librevenge::RVNG_SEEK_CUR); // var3
         input->seek(4, librevenge::RVNG_SEEK_CUR); // Offset
@@ -2678,6 +2680,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
         unsigned textOnPath = readU32(input);
         if (textOnPath == 1)
         {
+          fitted = true;
           input->seek(4, librevenge::RVNG_SEEK_CUR); // var1
           if (m_version > 1200)
           {
@@ -2834,6 +2837,35 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
       if (numBytesRead)
         memcpy(&textData[0], buffer, numBytesRead);
       input->seek(1, librevenge::RVNG_SEEK_CUR); //skip the 0 ending character
+      // a text fitted to a path: each character's place, 24 bytes a character (its shift from its
+      // place in 1/100 em, up positive; its rotation in 1/1000000 degree, counter-clockwise; 12
+      // more bytes), as CorelDRAW laid it on the path. They become each character's own style
+      // (the styles are numbered in a byte: up to 127 of them). They were skipped: the texts
+      // fitted to a circle (a seal's lettering) came out on a straight line over it.
+      if (fitted && styles.size() + numChars <= 127 && getRemainingLength(input) >= 24 * numChars)
+      {
+        const unsigned firstKey = 2 * (unsigned)styles.size();
+        for (unsigned long i = 0; i < numChars; ++i)
+        {
+          int shiftX = readS32(input);
+          int shiftY = readS32(input);
+          int rotation = readS32(input);
+          input->seek(12, librevenge::RVNG_SEEK_CUR);
+          CDRStyle style;
+          auto iter = styles.find(charDescriptions[i] & 0xfe);
+          if (iter != styles.end())
+            style = iter->second;
+          style.m_shiftX = shiftX / 100.0;
+          style.m_shiftY = shiftY / 100.0;
+          style.m_rotation = rotation / 1000000.0;
+          unsigned key = firstKey + 2 * (unsigned)i;
+          styles[key] = style;
+          charDescriptions[i] = (unsigned char)(key | (charDescriptions[i] & 0x01));
+        }
+        // left aligned: the places are from the text's origin, its placement on the path in them
+        // (the paragraph takes its alignment from the text's first run, of style 0)
+        styles[0].m_align = 1;
+      }
       dropLeadingLineBreak(textData, charDescriptions);
 
       if (!textData.empty() || !styles.empty())
