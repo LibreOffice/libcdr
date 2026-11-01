@@ -678,6 +678,16 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
             spanProps.insert("fo:font-style", "italic");
           if (j.m_style.m_fillStyle.fillType != (unsigned short)-1)
             spanProps.insert("fo:color", m_ps.getRGBColorString(j.m_style.m_fillStyle.color1));
+          // the characters' outline (as a shape's; no ODF property for this): it was left out, so
+          // white texts with a thin black outline melted into a light background
+          const CDRLineStyle &outline = j.m_style.m_lineStyle;
+          if (outline.lineType != (unsigned short)-1 && !(outline.lineType & 0x1) && (outline.lineType & 0x6))
+          {
+            double scale = outline.lineType & 0x20 ? (scaleX > scaleY ? scaleX : scaleY) : 1.0;   // scale with image
+            spanProps.insert("draw:stroke", "solid");
+            spanProps.insert("svg:stroke-width", outline.lineWidth * outline.stretch * scale);
+            spanProps.insert("svg:stroke-color", m_ps.getRGBColorString(outline.color));
+          }
           outputElement.addOpenSpan(spanProps);
           if (!j.m_text.empty())
             outputElement.addInsertText(j.m_text);
