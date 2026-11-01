@@ -804,7 +804,7 @@ void libcdr::CDRParser::readRecord(unsigned fourCC, unsigned length, librevenge:
     readOle2(input, length);
     break;
   case CDR_FOURCC_olel:
-    readOlel(input);
+    readOlel(input, length);
     break;
   default:
     break;
@@ -3440,8 +3440,12 @@ void libcdr::CDRParser::readOle2(librevenge::RVNGInputStream *input, unsigned le
 }
 
 // an object's link to its embedded (OLE) object: drawn as a bitmap in the box its loda gave
-void libcdr::CDRParser::readOlel(librevenge::RVNGInputStream *input)
+void libcdr::CDRParser::readOlel(librevenge::RVNGInputStream *input, unsigned length)
 {
+  // (from version 16 in a data file, as the OLE storage: else its place there was read as the
+  // embedding's number, and no object was drawn)
+  if (!_redirectX6Chunk(&input, length))
+    throw GenericException();
   input->seek(4, librevenge::RVNG_SEEK_CUR);
   unsigned id = readU32(input);
   m_collector->collectBitmap(0x80000000 + id, m_oleX1, m_oleX2, m_oleY1, m_oleY2);

@@ -95,7 +95,7 @@ private:
   void readArtisticText4(librevenge::RVNGInputStream *input, unsigned textId, unsigned styleId);
   void readParagraphText(librevenge::RVNGInputStream *input);
   void readOle2(librevenge::RVNGInputStream *input, unsigned length);
-  void readOlel(librevenge::RVNGInputStream *input);
+  void readOlel(librevenge::RVNGInputStream *input, unsigned length);
 
   bool _redirectX6Chunk(librevenge::RVNGInputStream **input, unsigned &length);
   void _readX6StyleString(librevenge::RVNGInputStream *input, unsigned long length, CDRStyle &style);
