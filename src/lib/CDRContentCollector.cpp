@@ -991,6 +991,29 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
           }
           propList.insert("svg:linearGradient", vec);
         }
+        // the fountain fill as CorelDRAW draws it (libcdr's own properties: ODF has no conical
+        // gradient, and its radial and square ones are sized otherwise): the type, the angle
+        // (degrees, counter-clockwise), the centre's offset and the edge pad (shares) and the stops
+        // from the start colour to the end colour
+        if (m_currentFillStyle.gradient.m_stops.size() > 1)
+        {
+          static const char *const types[] = { "linear", "linear", "radial", "conical", "square" };
+          const CDRGradient &gradient = m_currentFillStyle.gradient;
+          propList.insert("libcdr:gradient-type", types[gradient.m_type < 5 ? gradient.m_type : 0]);
+          propList.insert("libcdr:gradient-angle", gradient.m_angle * 180 / M_PI);
+          propList.insert("libcdr:gradient-center-x", gradient.m_centerXOffset / 100.0);
+          propList.insert("libcdr:gradient-center-y", gradient.m_centerYOffset / 100.0);
+          propList.insert("libcdr:gradient-edge", gradient.m_edgeOffset / 100.0);
+          librevenge::RVNGPropertyListVector stops;
+          for (auto &gradStop : gradient.m_stops)
+          {
+            librevenge::RVNGPropertyList stopElement;
+            stopElement.insert("svg:offset", gradStop.m_offset, librevenge::RVNG_PERCENT);
+            stopElement.insert("svg:stop-color", m_ps.getRGBColorString(gradStop.m_color));
+            stops.append(stopElement);
+          }
+          propList.insert("libcdr:gradient-stops", stops);
+        }
         break;
       case 7: // Pattern
       case 8: // Pattern
