@@ -3574,8 +3574,11 @@ void libcdr::CDRParser::_readX6StyleString(librevenge::RVNGInputStream *input, u
 
     if (!!pt.get_child_optional("character.outline"))
     {
-      style.m_lineStyle.lineType = 0;
+      // an outline with a type (0: solid) and a width is drawn, one without (width 0) is none;
+      // all were of type 0 here, which is none to the content collector (no text outline showed)
+      boost::optional<unsigned> lineType = pt.get_optional<unsigned>("character.outline.type");
       boost::optional<unsigned> lineWidth = pt.get_optional<unsigned>("character.outline.width");
+      style.m_lineStyle.lineType = !lineType || !lineWidth || !lineWidth.get() ? 1 : lineType.get() == 0 ? 2 : 0;
       if (!!lineWidth)
         style.m_lineStyle.lineWidth = (double)lineWidth.get() / 254000.0;
       boost::optional<std::string> color = pt.get_optional<std::string>("character.outline.color");
