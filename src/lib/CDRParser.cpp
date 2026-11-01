@@ -2394,27 +2394,34 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
     // before and after a paragraph are used, shares of the character height (1 000 000: 100%) or,
     // from version 14 when the last field is 1, lengths (1/254000 inch; in points, negative here);
     // they were skipped, so texts with a line spacing other than 100% bunched up or spread out
+    // The character and word spacing (always shares of a space's width) were skipped too: texts
+    // spread out by them (a seal's lettering around its circle) bunched up.
     struct Spacing
     {
       double line, before, after;
+      bool paragraph;
+      double chars, words;
     };
     std::map<unsigned, Spacing> spacings;
     for (unsigned i = 0; i < numIntervals && getRemainingLength(input) >= 52; ++i)
     {
       unsigned intervalId = readU32(input);
-      input->seek(20, librevenge::RVNG_SEEK_CUR);
+      input->seek(8, librevenge::RVNG_SEEK_CUR);
+      int chars = (int)readU32(input);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
+      int words = (int)readU32(input);
       int line = (int)readU32(input);
       int before = (int)readU32(input);
       int after = (int)readU32(input);
       input->seek(12, librevenge::RVNG_SEEK_CUR);
       unsigned unit = readU32(input);
-      if (unit > 1 || line <= 0 || before < 0 || after < 0)
-        continue;
       auto value = [unit](int v)
       {
         return unit ? -v / 254000.0 * 72.0 : v / 1000000.0;
       };
-      spacings[intervalId] = Spacing{value(line), value(before), value(after)};
+      bool paragraph = unit <= 1 && line > 0 && before >= 0 && after >= 0;
+      spacings[intervalId] = Spacing{paragraph ? value(line) : 0.0, paragraph ? value(before) : 0.0, paragraph ? value(after) : 0.0,
+                                     paragraph, chars / 1000000.0, words >= 0 ? words / 1000000.0 : 1.0};
     }
     unsigned numSet5s = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numSet5s 0x%x\n", numSet5s));
@@ -2555,10 +2562,16 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
           auto iterSpacing = spacings.find(iter->second.intervalId);
           if (iterSpacing != spacings.end())
           {
-            tmpCharStyle.m_lineSpacing = iterSpacing->second.line;
-            tmpCharStyle.m_spaceBefore = iterSpacing->second.before;
-            tmpCharStyle.m_spaceAfter = iterSpacing->second.after;
-            tmpCharStyle.m_hasParagraphSpacing = true;
+            if (iterSpacing->second.paragraph)
+            {
+              tmpCharStyle.m_lineSpacing = iterSpacing->second.line;
+              tmpCharStyle.m_spaceBefore = iterSpacing->second.before;
+              tmpCharStyle.m_spaceAfter = iterSpacing->second.after;
+              tmpCharStyle.m_hasParagraphSpacing = true;
+            }
+            tmpCharStyle.m_charSpacing = iterSpacing->second.chars;
+            tmpCharStyle.m_wordSpacing = iterSpacing->second.words;
+            tmpCharStyle.m_hasCharSpacing = true;
           }
         }
         unsigned indentId = iter->second.indentId;
@@ -3322,10 +3335,17 @@ void libcdr::CDRParser::readStyd(librevenge::RVNGInputStream *input)
       break;
     case STYD_INTERVALS:   // (percents: character, word and line spacing, spacing before and after a paragraph)
     {
-      input->seek(4, librevenge::RVNG_SEEK_CUR);
+      int chars = (short)readU16(input);
+      unsigned words = readU16(input);
       unsigned line = readU16(input);
       unsigned before = readU16(input);
       unsigned after = readU16(input);
+      if (words < 10000)
+      {
+        style.m_charSpacing = chars / 100.0;
+        style.m_wordSpacing = words / 100.0;
+        style.m_hasCharSpacing = true;
+      }
       if (line > 0 && line < 10000 && before < 10000 && after < 10000)
       {
         style.m_lineSpacing = line / 100.0;

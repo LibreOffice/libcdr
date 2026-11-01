@@ -678,6 +678,12 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
             spanProps.insert("fo:font-style", "italic");
           if (j.m_style.m_fillStyle.fillType != (unsigned short)-1)
             spanProps.insert("fo:color", m_ps.getRGBColorString(j.m_style.m_fillStyle.color1));
+          // the character and word spacing: shares of a space's width (libcdr's own: ODF's
+          // fo:letter-spacing is a length, and the font's space is not known here)
+          if (!CDR_ALMOST_ZERO(j.m_style.m_charSpacing))
+            spanProps.insert("libcdr:letter-spacing", j.m_style.m_charSpacing, librevenge::RVNG_GENERIC);
+          if (!CDR_ALMOST_EQUAL(j.m_style.m_wordSpacing, 1.0))
+            spanProps.insert("libcdr:word-spacing", j.m_style.m_wordSpacing, librevenge::RVNG_GENERIC);
           // the characters' outline (as a shape's; no ODF property for this): it was left out, so
           // white texts with a thin black outline melted into a light background
           const CDRLineStyle &outline = j.m_style.m_lineStyle;

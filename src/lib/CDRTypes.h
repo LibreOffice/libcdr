@@ -153,6 +153,8 @@ struct CDRStyle
   double m_lineSpacing;   // the line spacing: > 0 a share of the character height (1.0: 100%), < 0 in points, 0: not set
   double m_spaceBefore, m_spaceAfter;   // a paragraph's spacing before / after it: as m_lineSpacing, set
   bool m_hasParagraphSpacing;           // when this is (0: none)
+  double m_charSpacing, m_wordSpacing;   // the character spacing / a space's width: shares of a
+  bool m_hasCharSpacing;                 // space's width (0.0 / 1.0: as it is), set when this is
   CDRLineStyle m_lineStyle;
   CDRFillStyle m_fillStyle;
   unsigned m_parentId;
@@ -160,7 +162,7 @@ struct CDRStyle
     : m_charSet((unsigned short)-1), m_fontName(),
       m_fontSize(0.0), m_fontWeight(0), m_fontItalic(0), m_shiftX(0.0), m_shiftY(0.0), m_rotation(0.0), m_align(0), m_leftIndent(0.0), m_firstIndent(0.0),
       m_rightIndent(0.0), m_lineSpacing(0.0), m_spaceBefore(0.0), m_spaceAfter(0.0), m_hasParagraphSpacing(false),
-      m_lineStyle(), m_fillStyle(), m_parentId(0)
+      m_charSpacing(0.0), m_wordSpacing(1.0), m_hasCharSpacing(false), m_lineStyle(), m_fillStyle(), m_parentId(0)
   {
     m_fontName.clear();
   }
@@ -198,6 +200,12 @@ struct CDRStyle
       m_spaceBefore = override.m_spaceBefore;
       m_spaceAfter = override.m_spaceAfter;
       m_hasParagraphSpacing = true;
+    }
+    if (override.m_hasCharSpacing)
+    {
+      m_charSpacing = override.m_charSpacing;
+      m_wordSpacing = override.m_wordSpacing;
+      m_hasCharSpacing = true;
     }
     if (override.m_lineStyle.lineType != (unsigned short)-1)
       m_lineStyle = override.m_lineStyle;
