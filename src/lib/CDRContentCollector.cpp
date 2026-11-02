@@ -486,12 +486,14 @@ void libcdr::CDRContentCollector::_flushCurrentPath()
     else if (imageData.size() > 4 && !memcmp(head, "GIF8", 4))
       mimeType = "image/gif";
     propList.insert("librevenge:mime-type", mimeType);
-    propList.insert("office:binary-data", m_currentImageMono ? _monoImage(m_currentImage.getImage()) : m_currentImage.getImage());
+    const librevenge::RVNGBinaryData image = m_currentImageMono ? _monoImage(imageData) : imageData;
+    propList.insert("office:binary-data", image);
     // the bitmap's own outline (a bitmap cropped with the Shape tool, or a pattern tile of an
     // imported PDF): it shows only inside it (libcdr's own: librevenge has no clip for images)
     if (imageClip.count())
       propList.insert("libcdr:clip-path", imageClip);
-    outputElement.addGraphicObject(propList);
+    if (image.size())   // (empty: a 1-bit bitmap with nothing to show)
+      outputElement.addGraphicObject(propList);
   }
   if (m_currentText && !m_currentText->empty())
   {
@@ -864,7 +866,9 @@ void libcdr::CDRContentCollector::collectPolygonTransform(unsigned numAngles, un
 
 // A 1-bit bitmap as CorelDRAW colours it: its black pixels in the object's outline colour (black
 // without an outline), its white ones in the fill colour (transparent without a fill). bmp: the
-// 32-bit BMP of CDRStylesCollector::collectBmp, its pixels 0x000000 or 0xffffff.
+// 32-bit BMP of CDRStylesCollector::collectBmp, its pixels 0x000000 or 0xffffff. Empty when all
+// its pixels are transparent (all white without a fill): a BMP whose alpha is 0 everywhere is
+// read as an opaque one (a black rectangle).
 librevenge::RVNGBinaryData libcdr::CDRContentCollector::_monoImage(const librevenge::RVNGBinaryData &bmp)
 {
   librevenge::RVNGPropertyList style;   // (resolves the object's fill and line styles)
@@ -878,14 +882,18 @@ librevenge::RVNGBinaryData libcdr::CDRContentCollector::_monoImage(const libreve
   if (bmp.size() < offset)
     return bmp;
   std::vector<unsigned char> data(bmp.getDataBuffer(), bmp.getDataBuffer() + bmp.size());
+  bool shown = false;
   for (unsigned long i = offset; i + 4 <= data.size(); i += 4)
   {
     unsigned v = (data[i] & 1) ? bg : fg;
+    shown = shown || v;
     data[i] = (unsigned char)v;
     data[i + 1] = (unsigned char)(v >> 8);
     data[i + 2] = (unsigned char)(v >> 16);
     data[i + 3] = (unsigned char)(v >> 24);
   }
+  if (!shown)
+    return librevenge::RVNGBinaryData();
   return librevenge::RVNGBinaryData(data.data(), data.size());
 }
 

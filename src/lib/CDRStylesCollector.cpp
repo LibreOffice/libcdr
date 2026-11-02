@@ -194,20 +194,27 @@ void libcdr::CDRStylesCollector::collectBmp(unsigned imageId, unsigned colorMode
 #endif
 
     // a transparency mask: its values become the alpha of the pixels (left 0 otherwise,
-    // which BMP readers take as an opaque image)
+    // which BMP readers take as an opaque image); a wholly transparent bitmap is left out (its
+    // alpha 0 everywhere would read as an opaque one)
+    bool shown = true;
     if (m_maskId == imageId && m_maskWidth == width && m_maskHeight == height && height &&
         m_mask.size() / height >= width && pixels.size() == (unsigned long)width * height * 4)
     {
+      shown = false;
       const unsigned long maskStride = m_mask.size() / height;
       for (unsigned j = 0; j < height; ++j)
         for (unsigned k = 0; k < width; ++k)
+        {
           pixels[((unsigned long)j * width + k) * 4 + 3] = m_mask[j * maskStride + k];
+          shown = shown || m_mask[j * maskStride + k];
+        }
     }
     image.append(pixels.data(), pixels.size());
     m_mask.clear();
     m_maskId = 0;
 
-    m_ps.m_bmps[imageId] = image;
+    if (shown)
+      m_ps.m_bmps[imageId] = image;
   }
 }
 
