@@ -304,9 +304,9 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
     bool twoByte = charDescriptions[i] & 0x01;
     bool lineBreak = data[j] == 0x0d && (!twoByte || (j + 1 < data.size() && data[j + 1] == 0));
     unsigned key = lineBreak ? 0x100 | charDescriptions[i] : charDescriptions[i];
-    tmpCharStyle = styleOf(tmpKey);
-    if (key != tmpKey)
+    if (key != tmpKey)   // (the run's style only here: a CDRStyle is big, it was copied for every character)
     {
+      tmpCharStyle = styleOf(tmpKey);
       librevenge::RVNGString text;
       if (tmpKey & 0x100)   // (line breaks, not converted: a symbol font's code page made them other characters)
         for (size_t k = 0; k < tmpTextData.size(); k += (tmpKey & 0x01) ? 2 : 1)
