@@ -41,6 +41,14 @@
 namespace
 {
 
+// A CorelDRAW 5 text style's character set: those files mark Central European (Hungarian) text
+// with East Asian ones too (Shift-JIS, Hangul, GB2312, Big5: it came out as CJK characters); no
+// character set (guessed from the text) instead. Later versions' East Asian text keeps its own.
+unsigned short version5CharSet(unsigned short charSet)
+{
+  return charSet == 0x80 || charSet == 0x81 || charSet == 0x86 || charSet == 0x88 ? 0 : charSet;
+}
+
 unsigned getCDRVersion(char c)
 {
   if (c == 0x20)
@@ -2302,6 +2310,8 @@ void libcdr::CDRParser::readFont(librevenge::RVNGInputStream *input, unsigned le
   if (m_version >= 500)   // (CorelDRAW 4: the name follows the id)
   {
     fontEncoding = readU16(input);
+    if (m_version < 600)
+      fontEncoding = version5CharSet(fontEncoding);
     input->seek(14, librevenge::RVNG_SEEK_CUR);
   }
   std::vector<unsigned char> name;
@@ -3178,7 +3188,7 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
         }
         unsigned short charSet = readU8(input);
         if (charSet)
-          style.m_charSet = charSet;
+          style.m_charSet = version5CharSet(charSet);
       }
       else
         input->seek(2, librevenge::RVNG_SEEK_CUR);
@@ -3349,7 +3359,7 @@ void libcdr::CDRParser::readStyd(librevenge::RVNGInputStream *input)
       }
       unsigned short charSet = readUnsignedShort(input);
       if (charSet)
-        style.m_charSet = charSet;
+        style.m_charSet = m_version < 600 ? version5CharSet(charSet) : charSet;
       if (m_version >= 600)
         input->seek(8, librevenge::RVNG_SEEK_CUR);
       style.m_fontSize = readCoordinate(input);
