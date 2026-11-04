@@ -19,6 +19,7 @@ test_LDADD = \
 	$(top_builddir)/src/lib/libcdr-internal.la \
 	$(CPPUNIT_LIBS) \
 	$(ICU_LIBS) \
+	$(ICONV_LIBS) \
 	$(LCMS2_LIBS) \
 	$(REVENGE_LIBS) \
 	$(REVENGE_STREAM_LIBS) \

@@ -10,4 +10,4 @@ Requires: librevenge-0.0
 Libs: -L${libdir} -lcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@
 Cflags: -I${includedir}/libcdr-@CDR_MAJOR_VERSION@.@CDR_MINOR_VERSION@
 
-Requires.private: icu-i18n lcms2 zlib
+Requires.private: @ICU_REQUIRES@ lcms2 zlib

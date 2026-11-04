@@ -95,15 +95,42 @@ PKG_CHECK_MODULES([ZLIB],[zlib])
 AC_SUBST(ZLIB_CFLAGS)
 AC_SUBST(ZLIB_LIBS)
 
-# ========
-# Find icu
-# ========
-PKG_CHECK_MODULES([ICU], [icu-i18n >= 75 icu-uc >= 75],
-	[AX_CXX_COMPILE_STDCXX_17],
-	[PKG_CHECK_MODULES([ICU], [icu-i18n])]
+# ==================
+# Find icu (or iconv)
+# ==================
+AC_ARG_WITH([icu],
+	[AS_HELP_STRING([--without-icu], [Convert text with iconv (MultiByteToWideChar on Windows) instead of ICU; no charset detection])],
+	[with_icu="$withval"],
+	[with_icu=yes]
 )
+ICU_REQUIRES=
+ICONV_LIBS=
+AS_IF([test "x$with_icu" != "xno"], [
+	PKG_CHECK_MODULES([ICU], [icu-i18n >= 75 icu-uc >= 75],
+		[AX_CXX_COMPILE_STDCXX_17],
+		[PKG_CHECK_MODULES([ICU], [icu-i18n])]
+	)
+	ICU_REQUIRES=icu-i18n
+], [
+	# glibc has iconv in libc; elsewhere -liconv; Windows uses MultiByteToWideChar
+	AS_CASE([$host_os], [mingw*|cygwin*|msys*], [], [
+		AC_MSG_CHECKING([for iconv])
+		AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <iconv.h>]], [[iconv_close(iconv_open("UTF-8", "CP1250"));]])],
+			[AC_MSG_RESULT([yes])],
+			[save_LIBS="$LIBS"
+			LIBS="$LIBS -liconv"
+			AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <iconv.h>]], [[iconv_close(iconv_open("UTF-8", "CP1250"));]])],
+				[AC_MSG_RESULT([-liconv])
+				ICONV_LIBS=-liconv],
+				[AC_MSG_ERROR([iconv not found])])
+			LIBS="$save_LIBS"])
+	])
+])
+AM_CONDITIONAL([WITH_ICU], [test "x$with_icu" != "xno"])
 AC_SUBST(ICU_CFLAGS)
 AC_SUBST(ICU_LIBS)
+AC_SUBST(ICU_REQUIRES)
+AC_SUBST(ICONV_LIBS)
 
 
 # ===========================
@@ -363,6 +390,7 @@ Build configuration:
 	debug:           ${enable_debug}
 	docs:            ${build_docs}
 	fuzzers:         ${enable_fuzzers}
+	icu:             ${with_icu}
 	tests:           ${enable_tests}
 	tools:           ${enable_tools}
 	werror:          ${enable_werror}

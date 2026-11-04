@@ -14,10 +14,22 @@
 #include <cstdio>
 #include <string.h>
 
+#ifdef WITH_ICU
 #include <unicode/ucsdet.h>
 #include <unicode/ucnv.h>
 #include <unicode/utypes.h>
 #include <unicode/utf8.h>
+#else
+#include <cerrno>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>   // MultiByteToWideChar: Windows has no iconv
+#include <cstdlib>
+#else
+#include <iconv.h>
+#endif
+#endif
 
 #define CDR_NUM_ELEMENTS(array) sizeof(array)/sizeof(array[0])
 
@@ -25,6 +37,8 @@
 
 namespace
 {
+
+#ifdef WITH_ICU
 
 static unsigned short getEncodingFromICUName(const char *name)
 {
@@ -157,6 +171,177 @@ static void _appendUCS4(librevenge::RVNGString &text, UChar32 ucs4Character)
 
   text.append((char *)outbuf);
 }
+
+#else // WITH_ICU
+
+// No charset given (or ANSI / DEFAULT, which old Hungarian files also use for Central European
+// text): without ICU's charset detector, windows-1250 when the text has its o/u with double
+// acute (0xd5 0xdb 0xf5 0xfb: Hungarian), else 1252. Not when it also has letters Hungarian never
+// uses in 1250 but French / Portuguese do in 1252 (a grave or circumflex e, a grave a, u, i, o,
+// an a with tilde: 1250's r with acute, c / e / n with caron...): then those bytes are 1252's
+// O / U with tilde or circumflex (sur, aout, Portuguese o with tilde came out with o / u with
+// double acute).
+static unsigned short getEncoding(const unsigned char *buffer, unsigned long bufferLength)
+{
+  if (!buffer)
+    return 0;
+  bool doubleAcute = false;
+  for (unsigned long i = 0; i < bufferLength; i++)
+  {
+    switch (buffer[i])
+    {
+    case 0xd5: case 0xdb: case 0xf5: case 0xfb:
+      doubleAcute = true;
+      break;
+    case 0xc0: case 0xc3: case 0xc8: case 0xca: case 0xcc: case 0xd2: case 0xd9:
+    case 0xe0: case 0xe3: case 0xe8: case 0xea: case 0xec: case 0xf2: case 0xf9:
+      return 0;
+    default:
+      break;
+    }
+  }
+  return doubleAcute ? 0xee : 0;
+}
+
+// Text from CorelDRAW for Mac (charset 0, Mac Central European code page): its Hungarian
+// letters lie in 0x80..0x9f (á 0x87, é 0x8e, ö 0x9a...), where Windows code pages have only
+// punctuation; text with Windows Hungarian letters stays Windows text
+static bool isMacText(const unsigned char *buffer, unsigned long bufferLength)
+{
+  bool mac = false;
+  for (unsigned long i = 0; i < bufferLength; i++)
+  {
+    switch (buffer[i])
+    {
+    case 0x83: case 0x85: case 0x86: case 0x87: case 0x8e: case 0x92: case 0x97: case 0x9a: case 0x9c: case 0x9f:
+      mac = true;
+      break;
+    case 0xc1: case 0xc9: case 0xcd: case 0xd3: case 0xd5: case 0xd6: case 0xda: case 0xdb: case 0xdc:
+    case 0xe1: case 0xe9: case 0xed: case 0xf3: case 0xf6: case 0xfa: case 0xfb: case 0xfc:
+      return false;
+    default:
+      break;
+    }
+  }
+  return mac;
+}
+
+static const uint32_t macCentralEurope[128] =   // 0x80..0xff
+{
+    0x00C4, 0x0100, 0x0101, 0x00C9, 0x0104, 0x00D6, 0x00DC, 0x00E1,
+    0x0105, 0x010C, 0x00E4, 0x010D, 0x0106, 0x0107, 0x00E9, 0x0179,
+    0x017A, 0x010E, 0x00ED, 0x010F, 0x0112, 0x0113, 0x0116, 0x00F3,
+    0x0117, 0x00F4, 0x00F6, 0x00F5, 0x00FA, 0x011A, 0x011B, 0x00FC,
+    0x2020, 0x00B0, 0x0118, 0x00A3, 0x00A7, 0x2022, 0x00B6, 0x00DF,
+    0x00AE, 0x00A9, 0x2122, 0x0119, 0x00A8, 0x2260, 0x0123, 0x012E,
+    0x012F, 0x012A, 0x2264, 0x2265, 0x012B, 0x0136, 0x2202, 0x2211,
+    0x0142, 0x013B, 0x013C, 0x013D, 0x013E, 0x0139, 0x013A, 0x0145,
+    0x0146, 0x0143, 0x00AC, 0x221A, 0x0144, 0x0147, 0x2206, 0x00AB,
+    0x00BB, 0x2026, 0x00A0, 0x0148, 0x0150, 0x00D5, 0x0151, 0x014C,
+    0x2013, 0x2014, 0x201C, 0x201D, 0x2018, 0x2019, 0x00F7, 0x25CA,
+    0x014D, 0x0154, 0x0155, 0x0158, 0x2039, 0x203A, 0x0159, 0x0156,
+    0x0157, 0x0160, 0x201A, 0x201E, 0x0161, 0x015A, 0x015B, 0x00C1,
+    0x0164, 0x0165, 0x00CD, 0x017D, 0x017E, 0x016A, 0x00D3, 0x00D4,
+    0x016B, 0x016E, 0x00DA, 0x016F, 0x0170, 0x0171, 0x0172, 0x0173,
+    0x00DD, 0x00FD, 0x0137, 0x017B, 0x0141, 0x017C, 0x0122, 0x02C7
+};
+
+static bool isUnicodeChar(uint32_t c)
+{
+  return c < 0x110000 && (c < 0xd800 || c > 0xdfff) && (c & 0xfffe) != 0xfffe && (c < 0xfdd0 || c > 0xfdef);
+}
+
+static void _appendUCS4(librevenge::RVNGString &text, uint32_t ucs4Character)
+{
+  // Convert carriage returns to new line characters
+  // Writerperfect/LibreOffice will replace them by <text:line-break>
+  if (ucs4Character == 0x0d)
+    ucs4Character = '\n';
+
+  unsigned char outbuf[5];
+  int i = 0;
+  if (ucs4Character < 0x80)
+    outbuf[i++] = (unsigned char)ucs4Character;
+  else if (ucs4Character < 0x800)
+  {
+    outbuf[i++] = (unsigned char)(0xc0 | (ucs4Character >> 6));
+    outbuf[i++] = (unsigned char)(0x80 | (ucs4Character & 0x3f));
+  }
+  else if (ucs4Character < 0x10000)
+  {
+    outbuf[i++] = (unsigned char)(0xe0 | (ucs4Character >> 12));
+    outbuf[i++] = (unsigned char)(0x80 | ((ucs4Character >> 6) & 0x3f));
+    outbuf[i++] = (unsigned char)(0x80 | (ucs4Character & 0x3f));
+  }
+  else
+  {
+    outbuf[i++] = (unsigned char)(0xf0 | (ucs4Character >> 18));
+    outbuf[i++] = (unsigned char)(0x80 | ((ucs4Character >> 12) & 0x3f));
+    outbuf[i++] = (unsigned char)(0x80 | ((ucs4Character >> 6) & 0x3f));
+    outbuf[i++] = (unsigned char)(0x80 | (ucs4Character & 0x3f));
+  }
+  outbuf[i] = 0;
+
+  text.append((char *)outbuf);
+}
+
+// Converts bytes in a code page to UTF-8 with iconv (instead of ICU): characters it can't
+// convert are skipped, as before.
+static void _appendCodepage(librevenge::RVNGString &text, const std::vector<unsigned char> &characters, const char *codepage)
+{
+#ifdef _WIN32
+  // Windows' own converter, the code page number from the "CPnnnn" name; characters it can't
+  // convert (its replacement character) are skipped
+  const unsigned cp = strncmp(codepage, "CP", 2) == 0 ? (unsigned)atoi(codepage + 2) : 0;
+  if (!cp || characters.empty())
+    return;
+  const int n = MultiByteToWideChar(cp, 0, reinterpret_cast<const char *>(&characters[0]), (int)characters.size(), nullptr, 0);
+  if (n <= 0)
+    return;
+  std::vector<wchar_t> wide((size_t)n);
+  MultiByteToWideChar(cp, 0, reinterpret_cast<const char *>(&characters[0]), (int)characters.size(), &wide[0], n);
+  for (size_t i = 0; i < wide.size(); ++i)
+  {
+    uint32_t c = (uint16_t)wide[i];
+    if (c >= 0xd800 && c < 0xdc00 && i + 1 < wide.size() && (uint16_t)wide[i + 1] >= 0xdc00 && (uint16_t)wide[i + 1] < 0xe000)
+    {
+      c = SURROGATE_VALUE(c, (uint16_t)wide[i + 1]);
+      ++i;
+    }
+    if (c != 0xfffd && isUnicodeChar(c))
+      _appendUCS4(text, c);
+  }
+#else
+  iconv_t cd = iconv_open("UTF-32LE", codepage);
+  if (cd == (iconv_t)-1)
+    return;
+  auto *src = const_cast<char *>(reinterpret_cast<const char *>(&characters[0]));
+  size_t srcLeft = characters.size();
+  while (srcLeft)
+  {
+    unsigned char out[4 * 64];
+    auto *dst = reinterpret_cast<char *>(out);
+    size_t dstLeft = sizeof(out);
+    size_t r = iconv(cd, &src, &srcLeft, &dst, &dstLeft);
+    for (size_t k = 0; k + 4 <= sizeof(out) - dstLeft; k += 4)
+    {
+      uint32_t c = out[k] | (out[k + 1] << 8) | (out[k + 2] << 16) | ((uint32_t)out[k + 3] << 24);
+      if (isUnicodeChar(c))
+        _appendUCS4(text, c);
+    }
+    if (r == (size_t)-1 && errno != E2BIG)
+    {
+      if (errno == EINVAL)   // an incomplete sequence at the end
+        break;
+      src++;   // EILSEQ: skip the byte
+      srcLeft--;
+    }
+  }
+  iconv_close(cd);
+#endif
+}
+
+#endif // WITH_ICU
 
 } // anonymous namespace
 
@@ -326,7 +511,7 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned
 {
   if (characters.empty())
     return;
-  static const UChar32 symbolmap [] =
+  static const uint32_t symbolmap [] =
   {
     0x0020, 0x0021, 0x2200, 0x0023, 0x2203, 0x0025, 0x0026, 0x220D, // 0x20 ..
     0x0028, 0x0029, 0x2217, 0x002B, 0x002C, 0x2212, 0x002E, 0x002F,
@@ -374,6 +559,7 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned
       _appendUCS4(text, ucs4Character);
     }
   }
+#ifdef WITH_ICU
   else
   {
     UErrorCode status = U_ZERO_ERROR;
@@ -437,6 +623,69 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned
     if (conv)
       ucnv_close(conv);
   }
+#else
+  // CorelDRAW for Mac text: its charsets are often wrong too (Hungarian text marked Baltic);
+  // not tried for code pages with letters in 0x80..0x9f (Cyrillic, Arabic), none (Hebrew, Thai)
+  // or two bytes a character (East Asian: Shift-JIS lead bytes are 0x81..0x9f, katakana came out
+  // as Mac Central European letters)
+  else if (charset != 0xcc && charset != 0xb2 && charset != 0xb1 && charset != 0xde &&
+           charset != 0x80 && charset != 0x81 && charset != 0x86 && charset != 0x88 &&
+           isMacText(&characters[0], characters.size()))
+  {
+    for (unsigned char c : characters)
+      _appendUCS4(text, c < 0x80 ? c : macCentralEurope[c - 0x80]);
+  }
+  else
+  {
+    const char *codepage;
+    switch (charset)
+    {
+    case 0x80: // SHIFTJIS
+      codepage = "CP932";
+      break;
+    case 0x81: // HANGUL
+      codepage = "CP949";
+      break;
+    case 0x86: // GB2312
+      codepage = "CP936";
+      break;
+    case 0x88: // CHINESEBIG5
+      codepage = "CP950";
+      break;
+    case 0xa1: // GREEEK
+      codepage = "CP1253";
+      break;
+    case 0xa2: // TURKISH
+      codepage = "CP1254";
+      break;
+    case 0xa3: // VIETNAMESE
+      codepage = "CP1258";
+      break;
+    case 0xb1: // HEBREW
+      codepage = "CP1255";
+      break;
+    case 0xb2: // ARABIC
+      codepage = "CP1256";
+      break;
+    case 0xba: // BALTIC
+      codepage = "CP1257";
+      break;
+    case 0xcc: // RUSSIAN
+      codepage = "CP1251";
+      break;
+    case 0xde: // THAI
+      codepage = "CP874";
+      break;
+    case 0xee: // CENTRAL EUROPE
+      codepage = "CP1250";
+      break;
+    default:   // ANSI, DEFAULT and others: often Central European text (old Hungarian files)
+      codepage = getEncoding(&characters[0], characters.size()) == 0xee ? "CP1250" : "CP1252";
+      break;
+    }
+    _appendCodepage(text, characters, codepage);
+  }
+#endif
 }
 
 void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned char> characters)
@@ -444,6 +693,7 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned
   if (characters.empty())
     return;
 
+#ifdef WITH_ICU
   UErrorCode status = U_ZERO_ERROR;
   UConverter *conv = ucnv_open("UTF-16LE", &status);
 
@@ -460,6 +710,24 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, std::vector<unsigned
   }
   if (conv)
     ucnv_close(conv);
+#else
+  // UTF-16LE (decoded here; ICU did it before): unpaired surrogates are skipped
+  for (size_t i = 0; i + 1 < characters.size(); i += 2)
+  {
+    uint32_t c = characters[i] | (characters[i + 1] << 8);
+    if (c >= 0xd800 && c <= 0xdbff && i + 3 < characters.size())
+    {
+      uint32_t l = characters[i + 2] | (characters[i + 3] << 8);
+      if (l >= 0xdc00 && l <= 0xdfff)
+      {
+        c = SURROGATE_VALUE(c, l);
+        i += 2;
+      }
+    }
+    if (isUnicodeChar(c))
+      _appendUCS4(text, c);
+  }
+#endif
 }
 
 void libcdr::appendUTF8Characters(librevenge::RVNGString &text, std::vector<unsigned char> characters)

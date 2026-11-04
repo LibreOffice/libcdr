@@ -6,7 +6,8 @@ Most up to date code is available from Git repository at libreoffice.org
 freedesktop.org (http://cgit.freedesktop.org/libreoffice/libcdr/). See
 https://wiki.documentfoundation.org/DLP/Libraries/libcdr for more information.
 
-libcdr requires boost, icu, lcms2, librevenge and zlib to build.
+libcdr requires boost, icu, lcms2, librevenge and zlib to build; with
+--without-icu, iconv instead of icu (none on Windows).
 
 The library is available under MPL 2.0.
 
