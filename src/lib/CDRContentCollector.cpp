@@ -954,14 +954,14 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
           case 2: // radial
             propList.insert("draw:border", (2.0 * (double)(m_currentFillStyle.gradient.m_edgeOffset)/100.0), librevenge::RVNG_PERCENT);
             propList.insert("draw:style", "radial");
-            propList.insert("svg:cx", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/200.0), librevenge::RVNG_PERCENT);
-            propList.insert("svg:cy", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/200.0), librevenge::RVNG_PERCENT);
+            propList.insert("svg:cx", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/100.0), librevenge::RVNG_PERCENT);
+            propList.insert("svg:cy", (double)(0.5 - m_currentFillStyle.gradient.m_centerYOffset/100.0), librevenge::RVNG_PERCENT);   // (a share of the box, up positive)
             break;
           case 4: // square
             propList.insert("draw:border", (2.0 * (double)(m_currentFillStyle.gradient.m_edgeOffset)/100.0), librevenge::RVNG_PERCENT);
             propList.insert("draw:style", "square");
-            propList.insert("svg:cx", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/200.0), librevenge::RVNG_PERCENT);
-            propList.insert("svg:cy", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/200.0), librevenge::RVNG_PERCENT);
+            propList.insert("svg:cx", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/100.0), librevenge::RVNG_PERCENT);
+            propList.insert("svg:cy", (double)(0.5 - m_currentFillStyle.gradient.m_centerYOffset/100.0), librevenge::RVNG_PERCENT);   // (a share of the box, up positive)
             break;
           default:
             propList.insert("draw:style", "linear");
