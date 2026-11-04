@@ -205,7 +205,8 @@ static unsigned short getEncoding(const unsigned char *buffer, unsigned long buf
 
 // Text from CorelDRAW for Mac (charset 0, Mac Central European code page): its Hungarian
 // letters lie in 0x80..0x9f (á 0x87, é 0x8e, ö 0x9a...), where Windows code pages have only
-// punctuation; text with Windows Hungarian letters stays Windows text
+// punctuation; text with Windows Hungarian letters stays Windows text. Mac's Ö í ó (0x85 0x92
+// 0x97) are windows-1252's common … ’ — ("don’t" came out "donít"): no evidence either way
 static bool isMacText(const unsigned char *buffer, unsigned long bufferLength)
 {
   bool mac = false;
@@ -213,9 +214,10 @@ static bool isMacText(const unsigned char *buffer, unsigned long bufferLength)
   {
     switch (buffer[i])
     {
-    case 0x83: case 0x85: case 0x86: case 0x87: case 0x8e: case 0x92: case 0x97: case 0x9a: case 0x9c: case 0x9f:
+    case 0x83: case 0x86: case 0x87: case 0x8e: case 0x9a: case 0x9c: case 0x9f:   // 1252: rare ƒ † ‡ Ž š œ Ÿ
       mac = true;
       break;
+    case 0x91: case 0x94: case 0x96:   // 1252's ‘ ” –; Mac's Ď Ē Ė, not Hungarian
     case 0xc1: case 0xc9: case 0xcd: case 0xd3: case 0xd5: case 0xd6: case 0xda: case 0xdb: case 0xdc:
     case 0xe1: case 0xe9: case 0xed: case 0xf3: case 0xf6: case 0xfa: case 0xfb: case 0xfc:
       return false;

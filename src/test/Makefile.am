@@ -14,6 +14,10 @@ AM_CXXFLAGS = \
 	$(BOOST_CFLAGS) \
 	$(DEBUG_CXXFLAGS)
 
+if WITH_ICU
+AM_CXXFLAGS += -DWITH_ICU
+endif
+
 test_LDFLAGS = -L$(top_srcdir)/src/lib
 test_LDADD = \
 	$(top_builddir)/src/lib/libcdr-internal.la \
@@ -27,6 +31,7 @@ test_LDADD = \
 
 test_SOURCES = \
 	CDRInternalStreamTest.cpp \
+	CDRTextEncodingTest.cpp \
 	test.cpp
 
 TESTS = $(target_test)
