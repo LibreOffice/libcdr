@@ -82,9 +82,10 @@ struct CDRGradient
   int m_edgeOffset;
   int m_centerXOffset;
   int m_centerYOffset;
+  bool m_objectAngle;   // the angle is the object's own (versions 6+), turned with it; else the page's
   std::vector<CDRGradientStop> m_stops;
   CDRGradient()
-    : m_type(0), m_mode(0), m_angle(0.0), m_midPoint(0.0), m_edgeOffset(0), m_centerXOffset(0), m_centerYOffset(0), m_stops() {}
+    : m_type(0), m_mode(0), m_angle(0.0), m_midPoint(0.0), m_edgeOffset(0), m_centerXOffset(0), m_centerYOffset(0), m_objectAngle(false), m_stops() {}
 };
 
 struct CDRImageFill

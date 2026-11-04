@@ -1563,6 +1563,7 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
       gradient.m_edgeOffset = readS16(input);
     }
     gradient.m_angle = readAngle(input);
+    gradient.m_objectAngle = m_version >= 600;   // (CorelDRAW 5: -47.5 for a fill of 0 on an object turned by it)
     gradient.m_centerXOffset = readInteger(input);
     gradient.m_centerYOffset = readInteger(input);
     if (m_version >= 600)

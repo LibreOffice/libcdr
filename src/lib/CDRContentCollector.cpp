@@ -95,6 +95,20 @@ void normalizeAngle(double &angle)
     angle += 360;
 }
 
+// A fountain fill's angle on the page (radians, counter-clockwise): one of the object's own is
+// turned (and mirrored) with the object
+double pageAngle(const libcdr::CDRGradient &gradient, const libcdr::CDRTransforms &trafos)
+{
+  if (!gradient.m_objectAngle || trafos.empty())
+    return gradient.m_angle;
+  double x0 = 0.0, y0 = 0.0, x1 = cos(gradient.m_angle), y1 = sin(gradient.m_angle);
+  trafos.applyToPoint(x0, y0);
+  trafos.applyToPoint(x1, y1);
+  if (CDR_ALMOST_ZERO(x1 - x0) && CDR_ALMOST_ZERO(y1 - y0))
+    return gradient.m_angle;
+  return atan2(y1 - y0, x1 - x0);
+}
+
 // The bounding box a CMX file's header gives, in inches: its drawing's, the page of the SVG made
 // from it. False if it is not a little-endian CMX of 16- or 32-bit coordinates.
 bool cmxBoundingBox(const librevenge::RVNGBinaryData &data, libcdr::CDRBox &box)
@@ -1016,7 +1030,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
         }
         else if (m_currentFillStyle.gradient.m_stops.size() == 2)
         {
-          double angle = m_currentFillStyle.gradient.m_angle * 180 / M_PI;
+          double angle = pageAngle(m_currentFillStyle.gradient, m_currentTransforms) * 180 / M_PI;
           normalizeAngle(angle);
           propList.insert("draw:fill", "gradient");
           propList.insert("draw:start-color", m_ps.getRGBColorString(m_currentFillStyle.gradient.m_stops[0].m_color));
@@ -1066,7 +1080,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
         {
           propList.insert("draw:fill", "gradient");
           propList.insert("draw:style", "linear");
-          double angle = m_currentFillStyle.gradient.m_angle * 180 / M_PI;
+          double angle = pageAngle(m_currentFillStyle.gradient, m_currentTransforms) * 180 / M_PI;
           angle += 90.0;
           normalizeAngle(angle);
           propList.insert("draw:angle", (int)angle);
@@ -1090,7 +1104,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
           static const char *const types[] = { "linear", "linear", "radial", "conical", "square" };
           const CDRGradient &gradient = m_currentFillStyle.gradient;
           propList.insert("libcdr:gradient-type", types[gradient.m_type < 5 ? gradient.m_type : 0]);
-          propList.insert("libcdr:gradient-angle", gradient.m_angle * 180 / M_PI);
+          propList.insert("libcdr:gradient-angle", pageAngle(gradient, m_currentTransforms) * 180 / M_PI);
           propList.insert("libcdr:gradient-center-x", gradient.m_centerXOffset / 100.0);
           propList.insert("libcdr:gradient-center-y", gradient.m_centerYOffset / 100.0);
           propList.insert("libcdr:gradient-edge", gradient.m_edgeOffset / 100.0);
