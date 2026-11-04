@@ -109,6 +109,18 @@ double pageAngle(const libcdr::CDRGradient &gradient, const libcdr::CDRTransform
   return atan2(y1 - y0, x1 - x0);
 }
 
+// A radial or square fill's radius in its bounding box's units (svg:r; an ODF consumer goes by
+// draw:border): CorelDRAW's start colour reaches the box's farthest corner from the centre, the
+// edge pad shrinking it by twice its share (librevenge's SVG made it the box's width: the corners
+// were not reached)
+double cornerRadius(const libcdr::CDRGradient &gradient)
+{
+  const double cx = 0.5 + gradient.m_centerXOffset / 100.0, cy = 0.5 - gradient.m_centerYOffset / 100.0;
+  const double dx = cx > 0.5 ? cx : 1.0 - cx, dy = cy > 0.5 ? cy : 1.0 - cy;
+  const double shrink = 1.0 - 2.0 * gradient.m_edgeOffset / 100.0;
+  return sqrt(dx * dx + dy * dy) * (shrink > 0.0 ? shrink : 0.0);
+}
+
 // The bounding box a CMX file's header gives, in inches: its drawing's, the page of the SVG made
 // from it. False if it is not a little-endian CMX of 16- or 32-bit coordinates.
 bool cmxBoundingBox(const librevenge::RVNGBinaryData &data, libcdr::CDRBox &box)
@@ -1051,12 +1063,14 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             propList.insert("draw:style", "radial");
             propList.insert("svg:cx", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/100.0), librevenge::RVNG_PERCENT);
             propList.insert("svg:cy", (double)(0.5 - m_currentFillStyle.gradient.m_centerYOffset/100.0), librevenge::RVNG_PERCENT);   // (a share of the box, up positive)
+            propList.insert("svg:r", cornerRadius(m_currentFillStyle.gradient), librevenge::RVNG_PERCENT);
             break;
           case 4: // square
             propList.insert("draw:border", (2.0 * (double)(m_currentFillStyle.gradient.m_edgeOffset)/100.0), librevenge::RVNG_PERCENT);
             propList.insert("draw:style", "square");
             propList.insert("svg:cx", (double)(0.5 + m_currentFillStyle.gradient.m_centerXOffset/100.0), librevenge::RVNG_PERCENT);
             propList.insert("svg:cy", (double)(0.5 - m_currentFillStyle.gradient.m_centerYOffset/100.0), librevenge::RVNG_PERCENT);   // (a share of the box, up positive)
+            propList.insert("svg:r", cornerRadius(m_currentFillStyle.gradient), librevenge::RVNG_PERCENT);
             break;
           default:
             propList.insert("draw:style", "linear");
