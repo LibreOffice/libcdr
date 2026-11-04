@@ -1144,7 +1144,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
         {
         case CMX_Tag_RenderAttr_FillSpec_Fountain_Base:
         {
-          gradient.m_type = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
+          gradient.m_type = (unsigned char)((readU16(input, m_bigEndian) & 0xff) + 1);   // (CMX: 0 linear .. 3 square; CDR: 1 ..)
           /* unsigned short screen = */ readU16(input, m_bigEndian);
           gradient.m_edgeOffset = readU16(input, m_bigEndian);
           gradient.m_angle = readAngle(input, m_bigEndian);
@@ -1182,7 +1182,7 @@ bool libcdr::CMXParser::readFill(librevenge::RVNGInputStream *input)
     else if (m_precision == libcdr::PRECISION_16BIT)
     {
       CDR_DEBUG_MSG(("    Fountain fill\n"));
-      gradient.m_type = (unsigned char)(readU16(input, m_bigEndian) & 0xff);
+      gradient.m_type = (unsigned char)((readU16(input, m_bigEndian) & 0xff) + 1);   // (CMX: 0 linear .. 3 square; CDR: 1 ..)
       /* unsigned short screen = */ readU16(input, m_bigEndian);
       gradient.m_edgeOffset = readU16(input, m_bigEndian);
       gradient.m_angle = readAngle(input, m_bigEndian);
