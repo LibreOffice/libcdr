@@ -1705,13 +1705,27 @@ void libcdr::CDRParser::readFild(librevenge::RVNGInputStream *input, unsigned le
       patternWidth = (double)tmpWidth / 100.0;
       patternHeight = (double)tmpHeight / 100.0;
     }
+    CDRBox tile;
     if (m_version >= 1300)
       input->seek(17, librevenge::RVNG_SEEK_CUR);
+    else if (m_version >= 600)
+    {
+      // the tile: a rectangle of the pattern's own drawing, whose objects may reach beyond it
+      // (CorelDRAW 6 .. 12; the pattern's CMX gives only their bounding box)
+      input->seek(1, librevenge::RVNG_SEEK_CUR);
+      const double x0 = readCoordinate(input);
+      const double y0 = readCoordinate(input);
+      const double x1 = readCoordinate(input);
+      const double y1 = readCoordinate(input);
+      tile = CDRBox(x0, y0, x1, y1);
+      input->seek(4, librevenge::RVNG_SEEK_CUR);
+    }
     else
       input->seek(21, librevenge::RVNG_SEEK_CUR);
     if (m_version >= 600)
       patternId = readUnsigned(input);
     imageFill = libcdr::CDRImageFill(patternId, patternWidth, patternHeight, isRelative, tileOffsetX, tileOffsetY, rcpOffset, flags);
+    imageFill.tile = tile;
   }
   break;
   case 11: // Texture

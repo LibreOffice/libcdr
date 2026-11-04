@@ -37,6 +37,7 @@ public:
   std::set<unsigned> m_monoBmps;   // the 1-bit (black and white) ones: coloured by the object using them
   std::map<unsigned, CDRPattern> m_patterns;
   std::map<unsigned, librevenge::RVNGBinaryData> m_vects;
+  std::map<unsigned, CDRBox> m_vectBoxes;   // a vector pattern's drawing: the page of its SVG in m_vects
   std::vector<CDRPage> m_pages;
   std::map<unsigned, CDRColor> m_documentPalette;
   std::map<unsigned, std::vector<CDRTextLine> > m_texts;

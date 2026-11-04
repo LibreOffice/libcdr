@@ -9,6 +9,8 @@
 
 #include "CDRContentCollector.h"
 
+#include <cstdint>
+#include <string>
 #include <utility>
 
 #include <math.h>
@@ -65,6 +67,59 @@ void normalizeAngle(double &angle)
   angle = fmod(angle, 360);
   if (angle < 0)
     angle += 360;
+}
+
+// The bounding box a CMX file's header gives, in inches: its drawing's, the page of the SVG made
+// from it. False if it is not a little-endian CMX of 16- or 32-bit coordinates.
+bool cmxBoundingBox(const librevenge::RVNGBinaryData &data, libcdr::CDRBox &box)
+{
+  const unsigned char *p = data.getDataBuffer();
+  if (!p || data.size() < 0x84 || memcmp(p, "RIFF", 4) || memcmp(p + 8, "CMX1", 4) || memcmp(p + 12, "cont", 4) || p[0x44] != '2')
+    return false;
+  double c[4];
+  for (int k = 0; k < 4; ++k)
+  {
+    if (p[0x48] == '4')
+    {
+      const unsigned char *q = p + 0x74 + 4 * k;
+      c[k] = (int32_t)((uint32_t)q[0] | (uint32_t)q[1] << 8 | (uint32_t)q[2] << 16 | (uint32_t)q[3] << 24) / 254000.0;
+    }
+    else if (p[0x48] == '2')
+    {
+      const unsigned char *q = p + 0x74 + 2 * k;
+      c[k] = (int16_t)((uint16_t)q[0] | (uint16_t)q[1] << 8) / 1000.0;
+    }
+    else
+      return false;
+  }
+  box = libcdr::CDRBox(c[0], c[1], c[2], c[3]);
+  return box.getWidth() > 0 && box.getHeight() > 0;
+}
+
+// A full colour pattern's SVG (its drawing, on the page `page`) cut to its tile: the root's viewBox
+// (points, y down from the page's top) and size set to the tile's
+librevenge::RVNGBinaryData tileSVG(const librevenge::RVNGBinaryData &svg, const libcdr::CDRBox &page, const libcdr::CDRBox &tile)
+{
+  std::string s((const char *)svg.getDataBuffer(), svg.size());
+  const size_t start = s.find("<svg ");
+  const size_t end = start == std::string::npos ? std::string::npos : s.find('>', start);
+  if (end == std::string::npos)
+    return svg;
+  std::string tag = s.substr(start, end - start);
+  for (const char *name : {" width=\"", " height=\"", " viewBox=\""})
+  {
+    const size_t i = tag.find(name);
+    const size_t j = i == std::string::npos ? i : tag.find('"', i + strlen(name));
+    if (j != std::string::npos)
+      tag.erase(i, j + 1 - i);
+  }
+  librevenge::RVNGString attributes;
+  attributes.sprintf(" width=\"%.4fin\" height=\"%.4fin\" viewBox=\"%.4f %.4f %.4f %.4f\"", tile.getWidth(), tile.getHeight(),
+                     (tile.getMinX() - page.getMinX()) * 72.0, (page.getMinY() + page.getHeight() - tile.getMinY() - tile.getHeight()) * 72.0,
+                     tile.getWidth() * 72.0, tile.getHeight() * 72.0);
+  tag += attributes.cstr();
+  s.replace(start, end - start, tag);
+  return librevenge::RVNGBinaryData((const unsigned char *)s.data(), s.size());
 }
 
 }
@@ -1181,7 +1236,12 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
         {
           propList.insert("draw:fill", "bitmap");
           propList.insert("librevenge:mime-type", "image/svg+xml");
-          propList.insert("draw:fill-image", iterVect->second);
+          const CDRBox &tile = m_currentFillStyle.imageFill.tile;
+          auto iterBox = m_ps.m_vectBoxes.find(m_currentFillStyle.imageFill.id);
+          if (tile.getWidth() > 0 && tile.getHeight() > 0 && iterBox != m_ps.m_vectBoxes.end())
+            propList.insert("draw:fill-image", tileSVG(iterVect->second, iterBox->second, tile));
+          else
+            propList.insert("draw:fill-image", iterVect->second);
           propList.insert("style:repeat", "repeat");
           if (m_currentFillStyle.imageFill.isRelative)
           {
@@ -1536,6 +1596,9 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const librev
     librevenge::RVNGBinaryData output((const unsigned char *)header, strlen(header));
     output.append((const unsigned char *)svgOutput[0].cstr(), strlen(svgOutput[0].cstr()));
     m_ps.m_vects[id] = output;
+    CDRBox box;
+    if (cmxBoundingBox(data, box))
+      m_ps.m_vectBoxes[id] = box;
   }
 #if DUMP_VECT
   librevenge::RVNGString filename;

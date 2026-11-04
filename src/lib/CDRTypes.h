@@ -97,10 +97,11 @@ struct CDRImageFill
   double yOffset;
   double rcpOffset;
   unsigned char flags;
-  CDRImageFill() : id(0), width(0.0), height(0.0), isRelative(false), xOffset(0.0), yOffset(0.0), rcpOffset(0.0), flags(0)
+  CDRBox tile;   // a full colour pattern's tile in its own drawing (empty: its whole drawing)
+  CDRImageFill() : id(0), width(0.0), height(0.0), isRelative(false), xOffset(0.0), yOffset(0.0), rcpOffset(0.0), flags(0), tile()
   {}
   CDRImageFill(unsigned i, double w, double h, bool r, double x, double y, double o, unsigned char f)
-    : id(i), width(w), height(h), isRelative(r), xOffset(x), yOffset(y), rcpOffset(o), flags(f) {}
+    : id(i), width(w), height(h), isRelative(r), xOffset(x), yOffset(y), rcpOffset(o), flags(f), tile() {}
 };
 
 struct CDRFillStyle

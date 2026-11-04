@@ -17,7 +17,7 @@
 #include "libcdr_utils.h"
 
 libcdr::CDRParserState::CDRParserState()
-  : m_bmps(), m_monoBmps(), m_patterns(), m_vects(), m_pages(), m_documentPalette(), m_texts(),
+  : m_bmps(), m_monoBmps(), m_patterns(), m_vects(), m_vectBoxes(), m_pages(), m_documentPalette(), m_texts(),
     m_styles(), m_fillStyles(), m_lineStyles(),
     m_colorTransformCMYK2RGB(nullptr), m_colorTransformLab2RGB(nullptr), m_colorTransformRGB2RGB(nullptr)
 {
