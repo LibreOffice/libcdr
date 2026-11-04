@@ -121,6 +121,17 @@ double cornerRadius(const libcdr::CDRGradient &gradient)
   return sqrt(dx * dx + dy * dy) * (shrink > 0.0 ? shrink : 0.0);
 }
 
+// A pattern's SVG with its pictures stretched to their boxes, as CorelDRAW draws them (an SVG
+// <image> keeps its proportions: a bitmap of 300 x 291 pixels on a square page left a strip of
+// the page empty at its top and bottom, the tiles of a CorelDRAW 5 bitmap pattern apart)
+std::string stretchedImages(const char *svg)
+{
+  std::string s(svg);
+  for (size_t i = 0; (i = s.find("<image ", i)) != std::string::npos; i += 7)
+    s.insert(i + 7, "preserveAspectRatio=\"none\" ");
+  return s;
+}
+
 // The bounding box a CMX file's header gives, in inches: its drawing's, the page of the SVG made
 // from it. False if it is not a little-endian CMX of 16- or 32-bit coordinates.
 bool cmxBoundingBox(const librevenge::RVNGBinaryData &data, libcdr::CDRBox &box)
@@ -897,7 +908,8 @@ void libcdr::CDRContentCollector::collectLevel(unsigned level)
       const char *header =
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
       librevenge::RVNGBinaryData output((const unsigned char *)header, strlen(header));
-      output.append((const unsigned char *)svgOutput[0].cstr(), strlen(svgOutput[0].cstr()));
+      const std::string svg = stretchedImages(svgOutput[0].cstr());
+      output.append((const unsigned char *)svg.data(), svg.size());
       m_ps.m_vects[m_spnd] = output;
     }
 #if DUMP_VECT
@@ -1662,7 +1674,8 @@ void libcdr::CDRContentCollector::collectVectorPattern(unsigned id, const librev
     const char *header =
       "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
     librevenge::RVNGBinaryData output((const unsigned char *)header, strlen(header));
-    output.append((const unsigned char *)svgOutput[0].cstr(), strlen(svgOutput[0].cstr()));
+    const std::string svg = stretchedImages(svgOutput[0].cstr());
+    output.append((const unsigned char *)svg.data(), svg.size());
     m_ps.m_vects[id] = output;
     CDRBox box;
     if (cmxBoundingBox(data, box))
