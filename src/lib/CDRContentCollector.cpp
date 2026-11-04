@@ -1208,7 +1208,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             }
             if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateY()))
             {
-              double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.width;
+              double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.height;
               normalize(yOffset);
               propList.insert("draw:fill-image-ref-point-y", 1.0 - yOffset, librevenge::RVNG_PERCENT);
             }
@@ -1270,7 +1270,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             }
             if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateY()))
             {
-              double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.width;
+              double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.height;
               while (yOffset < 0.0)
                 yOffset += 1.0;
               while (yOffset > 1.0)
@@ -1335,7 +1335,7 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             }
             if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateY()))
             {
-              double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.width;
+              double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.height;
               while (yOffset < 0.0)
                 yOffset += 1.0;
               while (yOffset > 1.0)
