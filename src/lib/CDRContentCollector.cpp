@@ -197,7 +197,7 @@ libcdr::CDRContentCollector::CDRContentCollector(libcdr::CDRParserState &ps, lib
     m_currentTransforms(), m_fillTransforms(), m_polygon(), m_isInPolygon(false), m_isInSpline(false),
     m_outputElementsStack(nullptr), m_contentOutputElementsStack(), m_fillOutputElementsStack(),
     m_outputElementsQueue(nullptr), m_contentOutputElementsQueue(), m_fillOutputElementsQueue(),
-    m_groupLevels(), m_groupTransforms(), m_writtenStartMarker(), m_writtenEndMarker(), m_splineData(), m_fillOpacity(1.0), m_reverseOrder(reverseOrder),
+    m_groupLevels(), m_groupTransforms(), m_writtenStartMarker(), m_writtenEndMarker(), m_markerPaths(), m_splineData(), m_fillOpacity(1.0), m_reverseOrder(reverseOrder),
     m_ps(ps)
 {
   m_outputElementsStack = &m_contentOutputElementsStack;
@@ -1411,9 +1411,9 @@ void libcdr::CDRContentCollector::_lineProperties(librevenge::RVNGPropertyList &
         double width = m_currentLineStyle.lineWidth * scale;
         propList.insert("libcdr:marker-unit", 2.0 * (width > 0.014 ? width : 0.014));
         if (hasStartMarker)
-          propList.insert("libcdr:marker-start", markerPath(*m_currentLineStyle.startMarker));
+          propList.insert("libcdr:marker-start", _markerPath(m_currentLineStyle.startMarker));
         if (hasEndMarker)
-          propList.insert("libcdr:marker-end", markerPath(*m_currentLineStyle.endMarker));
+          propList.insert("libcdr:marker-end", _markerPath(m_currentLineStyle.endMarker));
       }
       propList.insert("svg:stroke-color", m_ps.getRGBColorString(m_currentLineStyle.color));
 
@@ -1541,6 +1541,14 @@ void libcdr::CDRContentCollector::_writeMarker(WrittenMarker &written, const std
   written.hasGroupTransforms = hasGroupTransforms;
   if (hasGroupTransforms)
     written.groupTransforms = m_groupTransforms.top();
+}
+
+const librevenge::RVNGString &libcdr::CDRContentCollector::_markerPath(const std::shared_ptr<const CDRPath> &marker)
+{
+  auto iter = m_markerPaths.find(marker);
+  if (iter == m_markerPaths.end())
+    iter = m_markerPaths.emplace(marker, markerPath(*marker)).first;
+  return iter->second;
 }
 
 void libcdr::CDRContentCollector::_generateBitmapFromPattern(librevenge::RVNGBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor)

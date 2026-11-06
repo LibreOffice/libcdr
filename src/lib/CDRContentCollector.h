@@ -102,6 +102,7 @@ private:
       : marker(), transforms(), hasGroupTransforms(false), groupTransforms(), path(), viewBox() {}
   };
   void _writeMarker(WrittenMarker &written, const std::shared_ptr<const CDRPath> &marker, const CDRTransform &mirror);
+  const librevenge::RVNGString &_markerPath(const std::shared_ptr<const CDRPath> &marker);
   void _generateBitmapFromPattern(librevenge::RVNGBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor);
 
   librevenge::RVNGDrawingInterface *m_painter;
@@ -140,6 +141,8 @@ private:
   std::stack<CDRTransforms> m_groupTransforms;
   WrittenMarker m_writtenStartMarker;
   WrittenMarker m_writtenEndMarker;
+  // each arrowhead's outline as SVG path data in its own units
+  std::map<std::shared_ptr<const CDRPath>, librevenge::RVNGString> m_markerPaths;
   CDRSplineData m_splineData;
   double m_fillOpacity;
   bool m_reverseOrder;
