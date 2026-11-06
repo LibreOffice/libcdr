@@ -170,6 +170,7 @@ private:
   unsigned m_fillIndex;
   unsigned long m_nextInstructionOffset;
   std::set<unsigned> m_pagesRead;
+  bool m_headerRead;
   CMXParserState &m_parserState;
   CMXImageInfo m_currentImageInfo;
   std::unique_ptr<CDRPattern> m_currentPattern;

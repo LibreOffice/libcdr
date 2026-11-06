@@ -75,7 +75,7 @@ libcdr::CMXParser::CMXParser(libcdr::CDRCollector *collector, CMXParserState &pa
   : CommonParser(collector),
     m_bigEndian(false), m_unit(0),
     m_scale(0.0), m_xmin(0.0), m_xmax(0.0), m_ymin(0.0), m_ymax(0.0),
-    m_fillIndex(0), m_nextInstructionOffset(0), m_pagesRead(), m_parserState(parserState),
+    m_fillIndex(0), m_nextInstructionOffset(0), m_pagesRead(), m_headerRead(false), m_parserState(parserState),
     m_currentImageInfo(), m_currentPattern(), m_currentBitmap() {}
 
 libcdr::CMXParser::~CMXParser()
@@ -198,7 +198,12 @@ void libcdr::CMXParser::readRecord(unsigned fourCC, unsigned long length, librev
   switch (fourCC)
   {
   case CDR_FOURCC_cont:
-    readCMXHeader(input);
+    // the header's index can lead back to a cont record, so the header is read once only
+    if (!m_headerRead)
+    {
+      m_headerRead = true;
+      readCMXHeader(input);
+    }
     return;
   case CDR_FOURCC_info:
     readInfo(input);
