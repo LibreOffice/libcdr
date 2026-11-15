@@ -64,27 +64,19 @@ CDRAPI bool libcdr::CDRDocument::isSupported(librevenge::RVNGInputStream *input_
   if (!input_)
     return false;
 
-  librevenge::RVNGInputStream *tmpInput = input_;
-  std::shared_ptr<librevenge::RVNGInputStream> input(input_, CDRDummyDeleter());
-
-  input->seek(0, librevenge::RVNG_SEEK_SET);
-  unsigned version = getCDRVersion(input.get());
-  if (version)
+  input_->seek(0, librevenge::RVNG_SEEK_SET);
+  if (getCDRVersion(input_))
     return true;
-  if (tmpInput->isStructured())
-  {
-    input.reset(tmpInput->getSubStreamByName("content/riffData.cdr"));
-    if (!input)
-      input.reset(tmpInput->getSubStreamByName("content/root.dat"));
-  }
-  tmpInput->seek(0, librevenge::RVNG_SEEK_SET);
+  if (!input_->isStructured())
+    return false;
+  std::unique_ptr<librevenge::RVNGInputStream> input(input_->getSubStreamByName("content/riffData.cdr"));
+  if (!input)
+    input.reset(input_->getSubStreamByName("content/root.dat"));
+  input_->seek(0, librevenge::RVNG_SEEK_SET);
   if (!input)
     return false;
   input->seek(0, librevenge::RVNG_SEEK_SET);
-  version = getCDRVersion(input.get());
-  if (!version)
-    return false;
-  return true;
+  return getCDRVersion(input.get()) != 0;
 }
 catch (...)
 {
@@ -104,36 +96,34 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
   if (!input_ || !painter)
     return false;
 
-  std::shared_ptr<librevenge::RVNGInputStream> input(input_, CDRDummyDeleter());
-
-  input->seek(0, librevenge::RVNG_SEEK_SET);
+  input_->seek(0, librevenge::RVNG_SEEK_SET);
   bool retVal = false;
   unsigned version = 0;
   try
   {
-    version = getCDRVersion(input.get());
+    version = getCDRVersion(input_);
     if (version)
     {
-      input->seek(0, librevenge::RVNG_SEEK_SET);
+      input_->seek(0, librevenge::RVNG_SEEK_SET);
       CDRParserState ps;
       std::vector<std::unique_ptr<librevenge::RVNGInputStream>> dummyDataStreams;
       CDRStylesCollector stylesCollector(ps);
       CDRParser stylesParser(dummyDataStreams, &stylesCollector);
       if (version >= 300)
-        retVal = stylesParser.parseRecords(input.get());
+        retVal = stylesParser.parseRecords(input_);
       else
-        retVal = stylesParser.parseWaldo(input.get());
+        retVal = stylesParser.parseWaldo(input_);
       if (ps.m_pages.empty())
         retVal = false;
       if (retVal)
       {
-        input->seek(0, librevenge::RVNG_SEEK_SET);
+        input_->seek(0, librevenge::RVNG_SEEK_SET);
         CDRContentCollector contentCollector(ps, painter);
         CDRParser contentParser(dummyDataStreams, &contentCollector);
         if (version >= 300)
-          retVal = contentParser.parseRecords(input.get());
+          retVal = contentParser.parseRecords(input_);
         else
-          retVal = contentParser.parseWaldo(input.get());
+          retVal = contentParser.parseWaldo(input_);
       }
       return retVal;
     }
@@ -145,6 +135,7 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
   }
 
   librevenge::RVNGInputStream *tmpInput = input_;
+  std::shared_ptr<librevenge::RVNGInputStream> input;
   try
   {
     std::vector<std::string> dataFiles;
@@ -191,7 +182,7 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
       dataStreams.push_back(std::move(strm));
     }
     if (!input)
-      input.reset(tmpInput, CDRDummyDeleter());
+      input = makeUnownedStreamPtr(tmpInput);
     CDRParserState ps;
     {
       // libcdr extension to the getSubStreamByName. Will extract the first stream in the

@@ -61,10 +61,11 @@ void debugPrint(const char *format, ...) CDR_ATTRIBUTE_PRINTF(1, 2);
 namespace libcdr
 {
 
-struct CDRDummyDeleter
+// The result points at input but owns nothing, so the caller keeps input alive.
+inline std::shared_ptr<librevenge::RVNGInputStream> makeUnownedStreamPtr(librevenge::RVNGInputStream *const input)
 {
-  void operator()(void *) const {}
-};
+  return std::shared_ptr<librevenge::RVNGInputStream>(std::shared_ptr<librevenge::RVNGInputStream>(), input);
+}
 
 template<typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args &&... args)
