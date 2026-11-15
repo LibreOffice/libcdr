@@ -2817,6 +2817,8 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
         input->seek(1, librevenge::RVNG_SEEK_CUR);
 
       unsigned numStyles = readU32(input);
+      if (numStyles > getRemainingLength(input) / 3)
+        numStyles = getRemainingLength(input) / 3;
       std::map<unsigned, CDRStyle> styles;
       for (unsigned i = 0; i < numStyles; ++i)
       {
@@ -2953,6 +2955,8 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
     input->seek(37, librevenge::RVNG_SEEK_CUR);
 
     unsigned numFrames = readU32(input);
+    if (numFrames > getRemainingLength(input) / 64)
+      numFrames = getRemainingLength(input) / 64;
 
     unsigned textId = 0;
     bool fitted = false;   // a text fitted to a path: its characters' places follow its text
@@ -3100,6 +3104,8 @@ void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
       input->seek(8, librevenge::RVNG_SEEK_CUR); // Maybe flags
   }
   unsigned numPara = readU32(input);
+  if (numPara > getRemainingLength(input) / 16)
+    numPara = getRemainingLength(input) / 16;
   for (unsigned j=0; j<numPara; ++j)
   {
     unsigned stlId = readU32(input);
@@ -3187,8 +3193,10 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
   {
     unsigned stlId = readU16(input);
     unsigned numSt = readU16(input);
+    if (numSt > getRemainingLength(input) / 36)
+      numSt = getRemainingLength(input) / 36;
     std::map<unsigned, CDRStyle> styles;
-    for (unsigned i= 0; i<numSt /* && getRemainingLength(input) >= 34 */; ++i)
+    for (unsigned i= 0; i<numSt; ++i)
     {
       CDRStyle style;
       unsigned char flag = readU8(input);
