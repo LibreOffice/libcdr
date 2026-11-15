@@ -284,7 +284,7 @@ void readFittedPlaces(librevenge::RVNGInputStream *input, std::vector<unsigned c
     style.m_shiftY = shiftY / 100.0;
     style.m_rotation = rotation / 1000000.0;
     unsigned key = firstKey + 2 * (unsigned)i;
-    styles[key] = style;
+    styles[key] = std::move(style);
     charDescriptions[i] = (unsigned char)(key | (charDescriptions[i] & 0x01));
   }
   // left aligned: the places are from the text's origin, its placement on the path in them
@@ -2899,7 +2899,7 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
               input->seek(48, librevenge::RVNG_SEEK_CUR);
           }
         }
-        styles[2*i] = style;
+        styles[2*i] = std::move(style);
       }
       unsigned long numChars = readU32(input);
       const unsigned charSize = m_version >= 1200 ? 8 : 4;
@@ -3152,7 +3152,7 @@ void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
         if (iter != m_lineStyles.end())
           style.m_lineStyle = iter->second;
       }
-      styles[2*i] = style;
+      styles[2*i] = std::move(style);
     }
     unsigned numChars = readU32(input);
     input->seek(4, librevenge::RVNG_SEEK_CUR);
@@ -3262,7 +3262,7 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
       if (flag&0x80)
         style.m_shiftY = shiftY / 100.0;
       input->seek(10, librevenge::RVNG_SEEK_CUR);
-      styles[2*i] = style;
+      styles[2*i] = std::move(style);
     }
     unsigned long numChars = readU16(input);
     if (numChars > getRemainingLength(input) / 8)

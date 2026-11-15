@@ -165,7 +165,7 @@ CDRAPI bool libcdr::CDRDocument::parse(librevenge::RVNGInputStream *input_, libr
                 dataFileName += (char)character;
             }
             if (!dataFileName.empty())
-              dataFiles.push_back(dataFileName);
+              dataFiles.push_back(std::move(dataFileName));
           }
         }
       }

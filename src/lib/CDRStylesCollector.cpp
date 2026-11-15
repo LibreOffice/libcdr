@@ -330,7 +330,7 @@ void libcdr::CDRStylesCollector::collectText(unsigned textId, unsigned styleId, 
   tmpCharStyle = styleOf(tmpKey);
   if (!i)   // an empty paragraph: its style all the same (it gives the line its height)
   {
-    tmpCharStyle = defaultCharStyle;
+    tmpCharStyle = std::move(defaultCharStyle);
     auto iter = styleOverrides.find(0);
     if (iter != styleOverrides.end())
       tmpCharStyle.overrideStyle(iter->second);

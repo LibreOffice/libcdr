@@ -1803,7 +1803,7 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
     }
     else
       return;
-    m_parserState.m_dashArrays[j] = dots;
+    m_parserState.m_dashArrays[j] = std::move(dots);
   }
 }
 
