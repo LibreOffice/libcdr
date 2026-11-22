@@ -217,10 +217,6 @@ libcdr::CDRTransforms::CDRTransforms()
 {
 }
 
-libcdr::CDRTransforms::~CDRTransforms()
-{
-}
-
 void libcdr::CDRTransforms::append(double v0, double v1, double x0, double v3, double v4, double y0)
 {
   append(CDRTransform(v0, v1, x0, v3, v4, y0));

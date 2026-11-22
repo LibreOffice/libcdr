@@ -21,9 +21,6 @@ class CDRTransform
 public:
   CDRTransform();
   CDRTransform(double v0, double v1, double x0, double v3, double v4, double y0);
-  CDRTransform(const CDRTransform &trafo) = default;
-
-  CDRTransform &operator=(const CDRTransform &trafo) = default;
 
   void applyToPoint(double &x, double &y) const;
   void applyToArc(double &rx, double &ry, double &rotation, bool &sweep, double &endx, double &endy) const;
@@ -52,10 +49,6 @@ class CDRTransforms
 {
 public:
   CDRTransforms();
-  CDRTransforms(const CDRTransforms &trafos) = default;
-  ~CDRTransforms();
-
-  CDRTransforms &operator=(const CDRTransforms &trafo) = default;
 
   void append(double v0, double v1, double x0, double v3, double v4, double y0);
   void append(const CDRTransform &trafo);
