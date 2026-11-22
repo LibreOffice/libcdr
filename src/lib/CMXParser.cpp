@@ -422,6 +422,8 @@ void libcdr::CMXParser::readIxmr(librevenge::RVNGInputStream *input)
 
 void libcdr::CMXParser::readCommands(librevenge::RVNGInputStream *input, unsigned length)
 {
+  if (length > getRemainingLength(input))
+    length = getRemainingLength(input);
   long endPosition = length + input->tell();
   while (!input->isEnd() && endPosition > input->tell())
   {

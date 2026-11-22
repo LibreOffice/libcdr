@@ -443,6 +443,8 @@ bool libcdr::CDRParser::gatherWaldoInformation(librevenge::RVNGInputStream *inpu
   try
   {
     unsigned short numRecords = readU16(input);
+    if (numRecords > getRemainingLength(input) / 9)
+      numRecords = getRemainingLength(input) / 9;
     for (; numRecords > 0 && !input->isEnd(); --numRecords)
     {
       unsigned char recordType = readU8(input);
