@@ -43,7 +43,7 @@ private:
   bool gatherWaldoInformation(librevenge::RVNGInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
                               std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
                               std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
-                              std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther);
+                              std::map<unsigned, WaldoRecordInfo> &records8);
   void readWaldoRecord(librevenge::RVNGInputStream *input, const WaldoRecordInfo &info);
   bool parseRecord(librevenge::RVNGInputStream *input, const std::vector<unsigned> &blockLengths = std::vector<unsigned>(), unsigned level = 0);
   void readRecord(unsigned fourCC, unsigned length, librevenge::RVNGInputStream *input);

@@ -335,22 +335,21 @@ bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
     std::map<unsigned, WaldoRecordInfo> records6;
     std::map<unsigned, WaldoRecordInfo> records8;
     std::map<unsigned, WaldoRecordInfo> records7;
-    std::map<unsigned, WaldoRecordInfo> recordsOther;
     if (offsets[3])
     {
       input->seek(offsets[3], librevenge::RVNG_SEEK_SET);
-      if (!gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8, recordsOther))
+      if (!gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8))
         return false;
     }
     if (offsets[5])
     {
       input->seek(offsets[5], librevenge::RVNG_SEEK_SET);
-      gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8, recordsOther);
+      gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8);
     }
     if (offsets[11])
     {
       input->seek(offsets[11], librevenge::RVNG_SEEK_SET);
-      gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8, recordsOther);
+      gatherWaldoInformation(input, records, records2, records3, records4, records6, records7, records8);
     }
     std::map<unsigned, WaldoRecordType1> records1;
     for (auto &record : records)
@@ -405,8 +404,6 @@ bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
       readWaldoRecord(input, iter->second);
     for (iter = records8.begin(); iter != records8.end(); ++iter)
       readWaldoRecord(input, iter->second);
-    for (iter = recordsOther.begin(); iter != recordsOther.end(); ++iter)
-      readWaldoRecord(input, iter->second);
     if (!records1.empty() && !records2.empty())
     {
 
@@ -438,7 +435,7 @@ bool libcdr::CDRParser::parseWaldo(librevenge::RVNGInputStream *input)
 bool libcdr::CDRParser::gatherWaldoInformation(librevenge::RVNGInputStream *input, std::vector<WaldoRecordInfo> &records, std::map<unsigned, WaldoRecordInfo> &records2,
                                                std::map<unsigned, WaldoRecordInfo> &records3, std::map<unsigned, WaldoRecordInfo> &records4,
                                                std::map<unsigned, WaldoRecordInfo> &records6, std::map<unsigned, WaldoRecordInfo> &records7,
-                                               std::map<unsigned, WaldoRecordInfo> &records8, std::map<unsigned, WaldoRecordInfo> recordsOther)
+                                               std::map<unsigned, WaldoRecordInfo> &records8)
 {
   try
   {
@@ -474,7 +471,6 @@ bool libcdr::CDRParser::gatherWaldoInformation(librevenge::RVNGInputStream *inpu
         records8[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
         break;
       default:
-        recordsOther[recordId]  = WaldoRecordInfo(recordType, recordId, recordOffset);
         break;
       }
     }
