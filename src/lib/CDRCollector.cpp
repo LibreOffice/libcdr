@@ -310,6 +310,8 @@ unsigned libcdr::CDRParserState::_getRGBColor(const CDRColor &color)
 
     auto pantoneIndex = (unsigned short)(((int)col1 << 8) | (int)col0);
     double pantoneSaturation = (double)(((unsigned short)col3 << 8) | (unsigned short)col2) / 100.0;
+    if (pantoneSaturation > 1.0)
+      pantoneSaturation = 1.0;
     typedef struct
     {
       unsigned char r;
