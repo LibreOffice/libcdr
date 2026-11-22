@@ -732,7 +732,7 @@ void libcdr::appendCharacters(librevenge::RVNGString &text, const std::vector<un
 #endif
 }
 
-void libcdr::appendUTF8Characters(librevenge::RVNGString &text, std::vector<unsigned char> characters)
+void libcdr::appendUTF8Characters(librevenge::RVNGString &text, const std::vector<unsigned char> &characters)
 {
   if (characters.empty())
     return;
