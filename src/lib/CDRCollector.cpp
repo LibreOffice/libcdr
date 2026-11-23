@@ -592,23 +592,18 @@ librevenge::RVNGString libcdr::CDRParserState::getRGBColorString(const libcdr::C
 
 void libcdr::CDRParserState::getRecursedStyle(CDRStyle &style, unsigned styleId)
 {
-  std::map<unsigned, CDRStyle>::const_iterator iter = m_styles.find(styleId);
-  if (iter == m_styles.end())
-    return;
-
   std::stack<CDRStyle> styleStack;
-  styleStack.push(iter->second);
-  if (iter->second.m_parentId)
+  std::set<unsigned> visitedIds;
+  unsigned id = styleId;
+  while (visitedIds.insert(id).second)
   {
-    std::map<unsigned, CDRStyle>::const_iterator iter2 = m_styles.find(iter->second.m_parentId);
-    while (iter2 != m_styles.end())
-    {
-      styleStack.push(iter2->second);
-      if (iter2->second.m_parentId)
-        iter2 = m_styles.find(iter2->second.m_parentId);
-      else
-        iter2 = m_styles.end();
-    }
+    const auto iter = m_styles.find(id);
+    if (iter == m_styles.end())
+      break;
+    styleStack.push(iter->second);
+    if (!iter->second.m_parentId)
+      break;
+    id = iter->second.m_parentId;
   }
   while (!styleStack.empty())
   {
