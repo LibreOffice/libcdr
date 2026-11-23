@@ -9,6 +9,7 @@
 
 #include "CDRContentCollector.h"
 
+#include <cmath>
 #include <cstdint>
 #include <string>
 #include <utility>
@@ -70,22 +71,15 @@ librevenge::RVNGString markerPath(const libcdr::CDRPath &marker)
 /// Move the number into [0;1] range.
 void normalize(double &d)
 {
+  if (!std::isfinite(d))
+  {
+    d = 0.0;
+    return;
+  }
   if (d < 0.0)
-  {
-    const double n = d + static_cast<unsigned long>(-d) + 1.0;
-    if ((n < 0.0) || (n > 1.0))
-      d = 0.0; // The number was too big, thus rounded. Just pick a value.
-    else
-      d = n;
-  }
+    d += std::floor(-d) + 1.0;
   if (d > 1.0)
-  {
-    const double n = d - static_cast<unsigned long>(d);
-    if ((n < 0.0) || (n > 1.0))
-      d = 0.0; // The number was too big, thus rounded. Just pick a value.
-    else
-      d = n;
-  }
+    d -= std::floor(d);
 }
 
 void normalizeAngle(double &angle)
@@ -1274,19 +1268,13 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateX()))
             {
               double xOffset = m_fillTransforms.getTranslateX() / m_currentFillStyle.imageFill.width;
-              while (xOffset < 0.0)
-                xOffset += 1.0;
-              while (xOffset > 1.0)
-                xOffset -= 1.0;
+              normalize(xOffset);
               propList.insert("draw:fill-image-ref-point-x", xOffset, librevenge::RVNG_PERCENT);
             }
             if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateY()))
             {
               double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.height;
-              while (yOffset < 0.0)
-                yOffset += 1.0;
-              while (yOffset > 1.0)
-                yOffset -= 1.0;
+              normalize(yOffset);
               propList.insert("draw:fill-image-ref-point-y", 1.0 - yOffset, librevenge::RVNG_PERCENT);
             }
           }
@@ -1339,19 +1327,13 @@ void libcdr::CDRContentCollector::_fillProperties(librevenge::RVNGPropertyList &
             if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateX()))
             {
               double xOffset = m_fillTransforms.getTranslateX() / m_currentFillStyle.imageFill.width;
-              while (xOffset < 0.0)
-                xOffset += 1.0;
-              while (xOffset > 1.0)
-                xOffset -= 1.0;
+              normalize(xOffset);
               propList.insert("draw:fill-image-ref-point-x", xOffset, librevenge::RVNG_PERCENT);
             }
             if (!CDR_ALMOST_ZERO(m_fillTransforms.getTranslateY()))
             {
               double yOffset = m_fillTransforms.getTranslateY() / m_currentFillStyle.imageFill.height;
-              while (yOffset < 0.0)
-                yOffset += 1.0;
-              while (yOffset > 1.0)
-                yOffset -= 1.0;
+              normalize(yOffset);
               propList.insert("draw:fill-image-ref-point-y", 1.0 - yOffset, librevenge::RVNG_PERCENT);
             }
           }
