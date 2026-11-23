@@ -47,26 +47,18 @@ uint16_t readTagLength(librevenge::RVNGInputStream *const input, const bool bigE
   return tagLength;
 }
 
-void sanitizeNumRecords(
-  unsigned long &numRecords,
-  const libcdr::CoordinatePrecision precision, const unsigned size16, const unsigned size32,
-  const unsigned long remainingLength)
+unsigned getRecordSize(const libcdr::CoordinatePrecision precision, const unsigned size16, const unsigned size32)
 {
-  unsigned recordSize = 1;
   if (precision == libcdr::PRECISION_16BIT)
-    recordSize = size16;
-  else if (precision == libcdr::PRECISION_32BIT)
-    recordSize = size32;
-  if (numRecords > remainingLength / recordSize)
-    numRecords = remainingLength / recordSize;
+    return size16;
+  if (precision == libcdr::PRECISION_32BIT)
+    return size32;
+  return 1;
 }
 
-void sanitizeNumRecords(
-  unsigned long &numRecords,
-  const libcdr::CoordinatePrecision precision, const unsigned size16, const unsigned size32, const unsigned tags,
-  const unsigned long remainingLength)
+unsigned getRecordSize(const libcdr::CoordinatePrecision precision, const unsigned size16, const unsigned size32, const unsigned tags)
 {
-  sanitizeNumRecords(numRecords, precision, size16, size32 + 3 * tags + 1, remainingLength);
+  return getRecordSize(precision, size16, size32 + 3 * tags + 1);
 }
 
 }
@@ -1712,7 +1704,9 @@ void libcdr::CMXParser::readRclr(librevenge::RVNGInputStream *input)
 
   unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRclr - numRecords %li\n", numRecords));
-  sanitizeNumRecords(numRecords, m_precision, 2, 2 + 0, 2, getRemainingLength(input));
+  const unsigned long maxRecords = getRemainingLength(input) / getRecordSize(m_precision, 2, 2 + 0, 2);
+  if (numRecords > maxRecords)
+    numRecords = maxRecords;
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     CDR_DEBUG_MSG(("Color index %i\n", j));
@@ -1763,7 +1757,9 @@ void libcdr::CMXParser::readRdot(librevenge::RVNGInputStream *input)
 
   unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRdot - numRecords %li\n", numRecords));
-  sanitizeNumRecords(numRecords, m_precision, 2, 2, 1, getRemainingLength(input));
+  const unsigned long maxRecords = getRemainingLength(input) / getRecordSize(m_precision, 2, 2, 1);
+  if (numRecords > maxRecords)
+    numRecords = maxRecords;
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     std::vector<unsigned> dots;
@@ -1818,7 +1814,9 @@ void libcdr::CMXParser::readRott(librevenge::RVNGInputStream *input)
 
   unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRott - numRecords %li\n", numRecords));
-  sanitizeNumRecords(numRecords, m_precision, 2, 2, 1, getRemainingLength(input));
+  const unsigned long maxRecords = getRemainingLength(input) / getRecordSize(m_precision, 2, 2, 1);
+  if (numRecords > maxRecords)
+    numRecords = maxRecords;
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     CMXLineStyle lineStyle;
@@ -1867,7 +1865,9 @@ void libcdr::CMXParser::readRotl(librevenge::RVNGInputStream *input)
 
   unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRotl - numRecords %li\n", numRecords));
-  sanitizeNumRecords(numRecords, m_precision, 12, 12, 1, getRemainingLength(input));
+  const unsigned long maxRecords = getRemainingLength(input) / getRecordSize(m_precision, 12, 12, 1);
+  if (numRecords > maxRecords)
+    numRecords = maxRecords;
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     CMXOutline outline;
@@ -1924,7 +1924,9 @@ void libcdr::CMXParser::readRpen(librevenge::RVNGInputStream *input)
 
   unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readRpen - numRecords %li\n", numRecords));
-  sanitizeNumRecords(numRecords, m_precision, 10, 12, 1, getRemainingLength(input));
+  const unsigned long maxRecords = getRemainingLength(input) / getRecordSize(m_precision, 10, 12, 1);
+  if (numRecords > maxRecords)
+    numRecords = maxRecords;
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     CMXPen pen;
@@ -1986,7 +1988,9 @@ void libcdr::CMXParser::readIxtl(librevenge::RVNGInputStream *input)
       return;
   }
   unsigned type = readU16(input, m_bigEndian);
-  sanitizeNumRecords(numRecords, m_precision, 4, 4, getRemainingLength(input));
+  const unsigned long maxRecords = getRemainingLength(input) / getRecordSize(m_precision, 4, 4);
+  if (numRecords > maxRecords)
+    numRecords = maxRecords;
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     switch (type)
@@ -2023,7 +2027,9 @@ void libcdr::CMXParser::readIxef(librevenge::RVNGInputStream *input)
 
   unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readIxef - numRecords %li\n", numRecords));
-  sanitizeNumRecords(numRecords, m_precision, 6, 8, getRemainingLength(input));
+  const unsigned long maxRecords = getRemainingLength(input) / getRecordSize(m_precision, 6, 8);
+  if (numRecords > maxRecords)
+    numRecords = maxRecords;
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     int sizeInFile(0);
@@ -2060,7 +2066,9 @@ void libcdr::CMXParser::readIxpg(librevenge::RVNGInputStream *input)
 
   unsigned long numRecords = readU16(input, m_bigEndian);
   CDR_DEBUG_MSG(("CMXParser::readIxpg - numRecords %li\n", numRecords));
-  sanitizeNumRecords(numRecords, m_precision, 16, 18, getRemainingLength(input));
+  const unsigned long maxRecords = getRemainingLength(input) / getRecordSize(m_precision, 16, 18);
+  if (numRecords > maxRecords)
+    numRecords = maxRecords;
   for (unsigned j = 1; j <= numRecords; ++j)
   {
     int sizeInFile(0);
