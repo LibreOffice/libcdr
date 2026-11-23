@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -1535,20 +1536,19 @@ const librevenge::RVNGString &libcdr::CDRContentCollector::_markerPath(const std
 
 void libcdr::CDRContentCollector::_generateBitmapFromPattern(librevenge::RVNGBinaryData &bitmap, const CDRPattern &pattern, const CDRColor &fgColor, const CDRColor &bgColor)
 {
-  unsigned height = pattern.height;
-  unsigned width = pattern.width;
-  auto tmpPixelSize = (unsigned)(height * width);
-  if (tmpPixelSize < (unsigned)height) // overflow
+  const unsigned height = pattern.height;
+  const unsigned width = pattern.width;
+  // The pattern has one bit per pixel, and each row starts on a new byte.
+  const uint64_t lineWidth = (uint64_t(width) + 7) / 8;
+  if (height * lineWidth > pattern.pattern.size())
     return;
 
-  unsigned tmpDIBImageSize = tmpPixelSize * 4;
-  if (tmpPixelSize > tmpDIBImageSize) // overflow !!!
+  const unsigned tmpDIBOffsetBits = 14 + 40;
+  const uint64_t pixelCount = uint64_t(height) * width;
+  if (pixelCount > (std::numeric_limits<unsigned>::max() - tmpDIBOffsetBits) / 4)
     return;
-
-  unsigned tmpDIBOffsetBits = 14 + 40;
-  unsigned tmpDIBFileSize = tmpDIBOffsetBits + tmpDIBImageSize;
-  if (tmpDIBImageSize > tmpDIBFileSize) // overflow !!!
-    return;
+  const auto tmpDIBImageSize = unsigned(pixelCount * 4);
+  const unsigned tmpDIBFileSize = tmpDIBOffsetBits + tmpDIBImageSize;
 
   // Create DIB file header
   writeU16(bitmap, 0x4D42);  // Type
@@ -1572,9 +1572,6 @@ void libcdr::CDRContentCollector::_generateBitmapFromPattern(librevenge::RVNGBin
   writeU32(bitmap, 0); // ColorsUsed
   writeU32(bitmap, 0); // ColorsImportant
 
-  // The Bitmaps in CDR are padded to 32bit border
-  unsigned lineWidth = (width + 7) / 8;
-
   unsigned foreground = m_ps._getRGBColor(fgColor);
   unsigned background = m_ps._getRGBColor(bgColor);
 
@@ -1585,10 +1582,7 @@ void libcdr::CDRContentCollector::_generateBitmapFromPattern(librevenge::RVNGBin
     while (i <lineWidth && k < width)
     {
       unsigned l = 0;
-      unsigned char c = 0;
-      const unsigned index = (j-1)*lineWidth+i;
-      if (index < pattern.pattern.size())
-        c = pattern.pattern[index];
+      unsigned char c = pattern.pattern[(j-1)*lineWidth+i];
       i++;
       while (k < width && l < 8)
       {
