@@ -2474,6 +2474,8 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
       double chars, words;
     };
     std::map<unsigned, Spacing> spacings;
+    if (numIntervals > getRemainingLength(input) / 52)
+      numIntervals = getRemainingLength(input) / 52;
     for (unsigned i = 0; i < numIntervals && getRemainingLength(input) >= 52; ++i)
     {
       unsigned intervalId = readU32(input);
@@ -2502,6 +2504,8 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
     input->seek(784 * static_cast<long>(numTabs), librevenge::RVNG_SEEK_CUR);
     unsigned numBullets = readU32(input);
     CDR_DEBUG_MSG(("CDRParser::readStlt numBullets 0x%x\n", numBullets));
+    if (numBullets > getRemainingLength(input) / 56)
+      numBullets = getRemainingLength(input) / 56;
     for (unsigned i=0; i<numBullets && getRemainingLength(input) >= 16; ++i)
     {
       input->seek(40, librevenge::RVNG_SEEK_CUR);
@@ -2558,6 +2562,8 @@ void libcdr::CDRParser::readStlt(librevenge::RVNGInputStream *input, unsigned le
         input->seek(12 * static_cast<long>(numSet11s), librevenge::RVNG_SEEK_CUR);
       }
       std::map<unsigned, CDRStltRecord> styles;
+      if (numRecords > getRemainingLength(input) / 32)
+        numRecords = getRemainingLength(input) / 32;
       for (unsigned i=0; i<numRecords && getRemainingLength(input) >= 32; ++i)
       {
         CDR_DEBUG_MSG(("CDRParser::readStlt parsing styles\n"));
@@ -2754,6 +2760,8 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
 
     unsigned numFrames = readU32(input);
     unsigned textId = 0;
+    if (numFrames > getRemainingLength(input) / 52)
+      numFrames = getRemainingLength(input) / 52;
     for (unsigned i=0; i < numFrames; ++i)
     {
       unsigned frameId = readU32(input);
@@ -2807,6 +2815,8 @@ void libcdr::CDRParser::readTxsm(librevenge::RVNGInputStream *input, unsigned le
 
     unsigned numPara = readU32(input);
 
+    if (numPara > getRemainingLength(input) / 14)
+      numPara = getRemainingLength(input) / 14;
     for (unsigned j = 0; j < numPara; ++j)
     {
       unsigned stlId = readU32(input);
@@ -2997,6 +3007,8 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
 
     unsigned numPara = readU32(input);
 
+    if (numPara > getRemainingLength(input) / 22)
+      numPara = getRemainingLength(input) / 22;
     for (unsigned j = 0; j < numPara; ++j)
     {
 
@@ -3016,6 +3028,8 @@ void libcdr::CDRParser::readTxsm16(librevenge::RVNGInputStream *input)
 
       unsigned i = 0;
       std::map<unsigned, CDRStyle> styles;
+      if (numRecords > getRemainingLength(input) / 6)
+        numRecords = getRemainingLength(input) / 6;
       for (i=0; i<numRecords && getRemainingLength(input) >= 17; ++i)
       {
         styles[i*2] = defaultStyle;
@@ -3094,6 +3108,8 @@ void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
 
   unsigned numFrames = readU32(input);
   unsigned textId = 0;
+  if (numFrames > getRemainingLength(input) / 52)
+    numFrames = getRemainingLength(input) / 52;
   for (unsigned j=0; j<numFrames; ++j)
   {
     textId = readU32(input); // Frame Id
@@ -3109,6 +3125,8 @@ void libcdr::CDRParser::readTxsm6(librevenge::RVNGInputStream *input)
     unsigned stlId = readU32(input);
     unsigned numSt = readU32(input);
     std::map<unsigned, CDRStyle> styles;
+    if (numSt > getRemainingLength(input) / 60)
+      numSt = getRemainingLength(input) / 60;
     for (unsigned i=0; i<numSt; ++i)
     {
       CDRStyle style;
@@ -3178,6 +3196,8 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
   input->seek(2, librevenge::RVNG_SEEK_CUR);
   unsigned numFrames = readU16(input);
   unsigned textId = 0;
+  if (numFrames > getRemainingLength(input) / 4)
+    numFrames = getRemainingLength(input) / 4;
   for (unsigned j=0; j<numFrames; ++j)
   {
     textId = readU16(input); // Bogus, not really needed and it is frame Id anyway
@@ -3187,6 +3207,8 @@ void libcdr::CDRParser::readTxsm5(librevenge::RVNGInputStream *input)
     input->seek(2, librevenge::RVNG_SEEK_CUR);
   }
   unsigned numPara = readU16(input);
+  if (numPara > getRemainingLength(input) / 6)
+    numPara = getRemainingLength(input) / 6;
   for (unsigned j=0; j<numPara; ++j)
   {
     unsigned stlId = readU16(input);
